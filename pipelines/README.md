@@ -1,217 +1,177 @@
 # Pipelines · Mirante dos Dados
 
-Pipelines de dados rodando em **Databricks Free Edition** com **Lakeflow Declarative Pipelines** (DLT)
-em arquitetura medallion. Cada vertical do front (`/bolsa-familia`, `/saude-mri`, ...) consome um
-JSON gold que é gerado por um job aqui.
+Pipelines de dados rodando em **Databricks Free Edition**, arquitetura medallion
+em **Delta Lake puro** (sem DLT, sem materialized views — Delta com history,
+time travel, OPTIMIZE, MERGE, etc.).
 
-## Arquitetura
+## Princípios
 
-```
-                    ┌─ download_ibge ──┐
-                    │                  ├──→ dlt_populacao_uf_ano (DLT)
-                    │                  │       └─ mirante_prd.silver.populacao_uf_ano
-                    │                  │
-                    └──────────────────┘
-                                                                  ┌─ valor_2021
-                    ┌─ download_bcb ───┐                          ├─ pbfPerCapita
-                    │                  ├──→ dlt_ipca_2021  (DLT)  │
-                    │                  │       └─ mirante_prd.silver.ipca_deflators_2021
-                    └──────────────────┘                          │
-                                                                  ▼
-                    ┌─ download_cgu ───┐                       ┌──────────────────────┐
-                    │                  ├──→ dlt_pbf_medallion ─→ mirante_prd.gold.       │
-                    │                  │       (DLT bronze→     │ pbf_estados_df     │
-                    │                  │       silver→gold)     └──────────────────────┘
-                    └──────────────────┘                                  │
-                                                                          ▼
-                                                              export_pbf_json (notebook)
-                                                                          │
-                                                                          ▼
-                                                  /Volumes/mirante_prd/gold/exports/
-                                                       gold_pbf_estados_df.json
-                                                                          │
-                                                                          ▼ (GH Action puxa)
-                                                              data/gold/gold_pbf_estados_df.json
-                                                                          │
-                                                                          ▼
-                                                                front (GitHub Pages)
-```
+- **Auto Loader** (`cloudFiles`) ingere arquivos novos do UC Volume → bronze append-only
+- **Bronze** preserva o payload bruto (full struct das APIs / CSVs CGU completos)
+- **Silver** lê o snapshot mais recente do bronze, transforma, overwrite
+- **Gold** junta silvers, overwrite
+- **Cascata:** o DAG do job garante ingest → bronze → silver → gold → export em ordem
+- **History:** bronze é append-only (every refresh preserved); silver/gold via Delta time travel
+- **One notebook per table:** folder = camada, filename = nome da tabela
 
-## Estrutura
+## Folder layout
 
 ```
 pipelines/
-├── databricks.yml                     ← DAB config (3 DLT pipelines + 3 jobs)
+├── databricks.yml              DAB config (3 jobs, notebook tasks only)
 └── notebooks/
-    ├── populacao_uf_ano/              ← shared dim · independente
-    │   ├── 01_download_ibge.py        Pre-DLT: HTTP fetch IBGE
-    │   └── 02_dlt_populacao_uf_ano.py DLT bronze + silver (interpolação linear)
-    ├── ipca_deflators_2021/           ← shared dim · independente
-    │   ├── 01_download_bcb.py
-    │   └── 02_dlt_ipca_deflators.py
-    └── pbf/                           ← vertical · refresh mensal
-        ├── 01_download_cgu.py         CGU ZIPs (PBF + Auxílio + NBF)
-        ├── 02_dlt_pbf_medallion.py    DLT bronze → silver → gold + 8 expectations
-        └── 03_export_json.py          gold table → JSON em UC Volume
+    ├── ingest/                 HTTP downloads → UC Volume (timestamped filenames)
+    │   ├── ibge_populacao.py
+    │   ├── bcb_ipca.py
+    │   └── cgu_pbf_zips.py
+    ├── bronze/                 Auto Loader + writeStream(availableNow) → Delta
+    │   ├── ibge_populacao_raw.py     →  mirante_prd.bronze.ibge_populacao_raw
+    │   ├── bcb_ipca_raw.py           →  mirante_prd.bronze.bcb_ipca_raw
+    │   └── pbf_pagamentos.py         →  mirante_prd.bronze.pbf_pagamentos
+    ├── silver/                 batch read latest bronze → Delta overwrite
+    │   ├── populacao_uf_ano.py       →  mirante_prd.silver.populacao_uf_ano
+    │   ├── ipca_deflators_2021.py    →  mirante_prd.silver.ipca_deflators_2021
+    │   └── pbf_total_uf_mes.py       →  mirante_prd.silver.pbf_total_uf_mes
+    ├── gold/                   batch joins → Delta overwrite
+    │   └── pbf_estados_df.py         →  mirante_prd.gold.pbf_estados_df
+    └── export/                 gold table → JSON in UC Volume
+        └── pbf_estados_df_json.py
 ```
 
 ## Unity Catalog layout
 
 ```
-mirante_prd (catalog)
-├── bronze
-│   ├── ibge_populacao_raw          ← raw IBGE JSON (1 linha de struct)
-│   ├── bcb_ipca_raw                ← raw BCB IPCA JSON
-│   └── pbf_pagamentos              ← CSVs CGU descomprimidos, headers normalizados
-│       (partitionBy: origin, ano, mes)
-├── silver
-│   ├── populacao_uf_ano            ← 🔁 SHARED · 27 UFs × N anos · com `fonte` lineage
-│   ├── ipca_deflators_2021         ← 🔁 SHARED · Ano × deflator (Dez/2021 = 1.0)
-│   └── pbf_total_uf_mes            ← UF × Ano × Mes · n, n_ano, total_estado
-│       (partitionBy: Ano)
-└── gold
-    └── pbf_estados_df              ← UF × Ano · schema bate com o JSON do front
-        (partitionBy: Ano)
+mirante_prd (catalog · created via UI on Free Edition)
+├── bronze (schema)
+│   ├── ibge_populacao_raw     ← append: 1 row por refresh do IBGE (full payload)
+│   ├── bcb_ipca_raw           ← append: ~1 linha por mês de IPCA por refresh
+│   └── pbf_pagamentos         ← append: linhas dos CSVs CGU (partition: origin, ano)
+├── silver (schema)
+│   ├── populacao_uf_ano       ← 🔁 SHARED · 27 UFs × N anos · com `fonte` lineage
+│   ├── ipca_deflators_2021    ← 🔁 SHARED · Ano × deflator (Dez/2021 = 1.0)
+│   └── pbf_total_uf_mes       ← UF × Ano × Mes · n, n_ano, total_estado (partition: Ano)
+└── gold (schema)
+    └── pbf_estados_df         ← UF × Ano · schema bate com JSON do front (partition: Ano)
 ```
 
 ## Volumes
 
 ```
-mirante_prd.bronze.raw   (HTTP downloads landing zone)
-  ├── ibge/populacao_uf.json
-  ├── bcb/ipca_mensal.json
-  └── cgu/pbf/{PBF,AUX_BR,NBF}_YYYY_MM.zip      (~150 arquivos)
-
-mirante_prd.gold.exports (front-facing exports)
-  └── gold_pbf_estados_df.json                  (puxado pelo GH Action)
+mirante_prd.bronze.raw              Source landing zone (Auto Loader watches these)
+  ├── ibge/populacao_uf__YYYYMMDDTHHMMSSZ.json   ← timestamped per refresh
+  ├── bcb/ipca_mensal__YYYYMMDDTHHMMSSZ.json
+  └── cgu/pbf/<PROGRAM>_YYYY_MM.zip              ← already named by program/period
+mirante_prd.bronze._autoloader      Auto Loader checkpoints + schemas (managed)
+mirante_prd.bronze.raw/cgu/pbf_csv_extracted    ZIPs descomprimidos (intermediário)
+mirante_prd.gold.exports
+  └── gold_pbf_estados_df.json                   ← consumido pelo GH Action
 ```
+
+## Job DAGs
+
+```
+job_populacao_refresh    (yearly cron: Jul 1, paused by default)
+  ingest_ibge → bronze_ibge_populacao_raw → silver_populacao_uf_ano
+
+job_ipca_refresh         (monthly cron: day 15, paused)
+  ingest_bcb → bronze_bcb_ipca_raw → silver_ipca_deflators_2021
+
+job_pbf_refresh          (monthly cron: day 20, paused)
+  ingest_cgu_pbf_zips → bronze_pbf_pagamentos → silver_pbf_total_uf_mes →
+  gold_pbf_estados_df → export_pbf_estados_df_json
+```
+
+Cascata é automática: `depends_on` garante que silver só roda após bronze, etc.
 
 ---
 
-## Deploy (passos manuais — 1× só)
-
-Precisa do Databricks CLI v0.200+ instalado:
+## Deploy (1× só)
 
 ```bash
-# Linux / macOS via Homebrew
-brew tap databricks/tap
-brew install databricks
+# 1. Instala Databricks CLI v0.200+
+curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sudo sh
 
-# Linux sem brew
-curl -fsSL https://github.com/databricks/cli/releases/latest/download/databricks_cli_linux_amd64.tar.gz \
-  | tar -xz -C ~/.local/bin
-databricks --version
-```
-
-### 1. Autenticar (gere um PAT novo, NÃO use o que veio em chat)
-```bash
+# 2. Autentica (gera PAT NOVO no workspace, NÃO use o que já vazou)
 databricks configure --host https://dbc-cafe0a5f-07e3.cloud.databricks.com --token
-# cola o PAT (dapi***) quando pedir
-```
 
-### 2. Bootstrap do Unity Catalog (catalog + schemas + volumes)
-```bash
-cd /home/leochalhoub/mirante-dos-dados-br
+# 3. Cria catalog mirante_prd via UI (Free Edition limitation):
+#    https://dbc-cafe0a5f-07e3.cloud.databricks.com/explore/data
+#    → Create catalog → Name: mirante_prd → Storage: Default → Create
+
+# 4. Bootstrap (cria schemas + volumes; catalog já criado pela UI)
+cd ~/mirante-dos-dados-br
 bash scripts/databricks/bootstrap.sh
-```
 
-### 3. Deploy do bundle (sobe os notebooks + cria DLT pipelines + jobs)
-```bash
+# 5. Deploy do bundle (3 jobs)
 cd pipelines
 databricks bundle deploy --target dev
-```
 
-### 4. Aquecer dimensões compartilhadas (1× só na 1ª vez)
-```bash
+# 6. Aquecer dimensões compartilhadas (1× só)
 databricks bundle run job_populacao_refresh --target dev
 databricks bundle run job_ipca_refresh      --target dev
-```
 
-### 5. Rodar PBF end-to-end (download → DLT → export)
-```bash
+# 7. PBF end-to-end
 databricks bundle run job_pbf_refresh --target dev
-# 5–15 min (download CGU é o gargalo: ~150 ZIPs)
-```
 
-### 6. Verificar o JSON gerado
-```bash
+# 8. Verificar JSON gerado
 databricks fs cp dbfs:/Volumes/mirante_prd/gold/exports/gold_pbf_estados_df.json /tmp/check.json
 python3 -c "import json; d=json.load(open('/tmp/check.json')); print(len(d), d[0])"
+# espera 351 linhas, 2025 per_benef ≈ 5825.32
 ```
-
-### 7. (Opcional) commit manual do gold pra validar antes de habilitar o cron
-```bash
-cp /tmp/check.json /home/leochalhoub/mirante-dos-dados-br/data/gold/gold_pbf_estados_df.json
-cd /home/leochalhoub/mirante-dos-dados-br
-git add data/gold/ && git commit -m "chore(data): manual gold refresh"
-git push  # dispara o GH Action de Pages → site atualiza com novo dado
-```
-
-### 8. Automatizar via GitHub Actions (cron mensal)
-- Repo no GitHub → **Settings → Secrets and variables → Actions → New secret**:
-  - `DATABRICKS_HOST` = `https://dbc-cafe0a5f-07e3.cloud.databricks.com`
-  - `DATABRICKS_TOKEN` = (gere um PAT novo, comment "mirante-gh-actions", nunca cole no chat)
-- O workflow `.github/workflows/refresh-pipelines.yml` já está pronto pra:
-  - Disparar `job_pbf_refresh` no dia 20 de cada mês às 6h UTC
-  - Baixar o gold JSON do Volume
-  - Commitar em `data/gold/` se mudou
-  - Push → GH Pages re-deploya automático
 
 ---
 
-## Adicionar um novo vertical (ex: MRI)
+## Inspecionar history
 
-1. Crie `notebooks/mri/01_download_datasus.py` (HTTP/FTP fetch dos arquivos CNES)
-2. Crie `notebooks/mri/02_dlt_mri_medallion.py` (DLT bronze → silver → gold).
-   No gold, faça `spark.read.table("mirante_prd.silver.populacao_uf_ano")` pra reutilizar a dim.
-3. Crie `notebooks/mri/03_export_json.py` (mesmo padrão do PBF)
-4. Adicione no `databricks.yml`:
-   - DLT pipeline `mri_dlt`
-   - Job `job_mri_refresh` com tasks `download_datasus → dlt_mri → export_mri_json`
-5. `databricks bundle deploy --target dev` — cria o novo job
-6. Adicione um segundo step no GH Action de refresh pra puxar o JSON novo
+Bronze (append-only — every refresh preserved):
+```sql
+SELECT _ingest_ts, COUNT(*) FROM mirante_prd.bronze.ibge_populacao_raw GROUP BY _ingest_ts ORDER BY _ingest_ts;
+```
 
-A dim `populacao_uf_ano` **não** precisa ser republicada — o vertical novo só consome.
+Silver/Gold (Delta time travel — overwritten each refresh, prior versions still queryable):
+```sql
+DESCRIBE HISTORY mirante_prd.silver.populacao_uf_ano;
+SELECT * FROM mirante_prd.silver.populacao_uf_ano VERSION AS OF 3;
+SELECT * FROM mirante_prd.silver.populacao_uf_ano TIMESTAMP AS OF '2026-04-01 00:00:00';
+```
 
 ---
 
-## Quando refrescar manualmente
+## Adicionar novo vertical (ex: MRI)
 
-| Pipeline | Quando rodar | Comando |
-|---|---|---|
-| `populacao_uf_ano` | Quando IBGE publicar novo ano (~julho) | `databricks bundle run job_populacao_refresh --target dev` |
-| `ipca_deflators_2021` | Mensal automático (cron dia 15) | já agendado quando você unpause |
-| `pbf` | Mensal automático (cron dia 20) | já agendado quando você unpause |
+1. `notebooks/ingest/datasus_cnes_eq.py` — fetch CSVs/dbc DATASUS → Volume
+2. `notebooks/bronze/cnes_equipamentos.py` — Auto Loader → Delta append
+3. `notebooks/silver/mri_uf_ano.py` — agrega CNES por UF×Ano (split SUS/Privado)
+4. `notebooks/gold/mri_estados_ano.py` — join `silver.populacao_uf_ano` (dim compartilhada!)
+5. `notebooks/export/mri_estados_ano_json.py`
+6. Adicionar `job_mri_refresh` no `databricks.yml`
+7. `databricks bundle deploy --target dev`
+8. Adicionar etapa no GH Action de refresh pra puxar o novo JSON
 
-Pra **estender o range de anos** (ex: incluir 2027 no panel quando IBGE publicar):
+A dim `populacao_uf_ano` **não** precisa ser republicada — vertical novo só consome.
+
+---
+
+## Estendendo range de anos (ex: 2027 quando IBGE publicar)
+
 ```bash
+# 1. Roda ingest com novo range
 databricks bundle run job_populacao_refresh --target dev \
   --params start_year=2013,end_year=2027
+
+# 2. Atualiza silver year_max no databricks.yml + redeploy
+sed -i 's/year_max: "2026"/year_max: "2027"/g' pipelines/databricks.yml
+cd pipelines && databricks bundle deploy --target dev
 ```
-E atualizar o `databricks.yml` (`mirante.populacao.year_max: "2027"`) e redeployar.
-
----
-
-## Custo (Free Edition)
-
-- DLT serverless: até X DBU/mês grátis no Free Tier
-- Os 3 pipelines completos consomem ~5 min de DLT serverless/refresh = ~poucos centavos de DBU equivalente
-- Volume de dados em UC: irrisório (CSVs CGU ≈ 200MB total, JSONs < 1MB)
-- Fica MUITO dentro do cap mensal do Free Edition
 
 ---
 
 ## Troubleshooting
 
-**`bundle deploy` falha com "catalog not found"**
-→ rode `bash scripts/databricks/bootstrap.sh` primeiro
-
-**DLT pipeline falha com "table not found: mirante_prd.silver.populacao_uf_ano"**
-→ rode `job_populacao_refresh` antes do `job_pbf_refresh` (o gold do PBF lê dessa dim)
-
-**Download CGU retorna `missing` em todos**
-→ Portal da Transparência às vezes está fora do ar; rode novamente em algumas horas
-
-**JSON gerado tem números errados**
-→ Compare com o JSON local em `data/gold/gold_pbf_estados_df.json` antes do refresh.
-   Se 2025 per_benef ≠ 5825.32, alguma coisa quebrou na agregação.
+| Sintoma | Causa | Fix |
+|---|---|---|
+| `bundle deploy` falha "catalog not found" | Catalog `mirante_prd` não criado via UI | UI Catalog Explorer → Create Catalog |
+| Bronze table vazia após task ingest_X | Arquivo não chegou no Volume, ou Auto Loader checkpoint corrompido | `ls /Volumes/.../bronze/raw/...` no notebook; ou apaga `_autoloader/_checkpoint` |
+| Silver falha "BRONZE is empty" | Bronze ainda não rodou nessa run | Job DAG já cuida disso via depends_on; se rodando manual, roda bronze antes |
+| Gold falha "table not found: silver.populacao_uf_ano" | Esqueceu de aquecer dims compartilhadas | `databricks bundle run job_populacao_refresh --target dev` |
+| Auto Loader não pega arquivo novo | Schema location ficou stuck | `dbutils.fs.rm("dbfs:/Volumes/.../_autoloader/_schema", recurse=True)` |

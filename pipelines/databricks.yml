@@ -1,18 +1,19 @@
 # Mirante dos Dados — Databricks Asset Bundle
 #
-# Defines:
-#   - 3 DLT (Lakeflow Declarative Pipelines) — independent, parameterized refresh:
-#       * populacao_uf_ano_dlt        (shared dimension, refresh ~yearly)
-#       * ipca_deflators_2021_dlt     (shared dimension, refresh ~monthly)
-#       * pbf_dlt                     (vertical, refresh monthly)
-#   - 3 Jobs that orchestrate (download → DLT → optional export):
-#       * job_populacao_refresh
-#       * job_ipca_refresh
-#       * job_pbf_refresh             (also exports gold to JSON for the front)
+# Architecture: pure Delta tables (no DLT, no materialized views).
+#   - Bronze: Auto Loader (cloudFiles) on UC Volumes → Delta append (full history)
+#   - Silver: batch read latest bronze snapshot → Delta overwrite (Delta time travel)
+#   - Gold:   batch joins silver tables → Delta overwrite
 #
-# Deploy from your machine:
-#   cd pipelines && databricks bundle deploy --target dev
-#   databricks bundle run job_pbf_refresh --target dev
+# Folder layout (one notebook per table):
+#   notebooks/ingest/<source>.py    HTTP download → UC Volume (timestamped filenames)
+#   notebooks/bronze/<table>.py     Auto Loader → Delta append
+#   notebooks/silver/<table>.py     batch transform → Delta overwrite
+#   notebooks/gold/<table>.py       batch joins → Delta overwrite
+#   notebooks/export/<table>_json.py  gold table → JSON in UC Volume
+#
+# Job DAG cascade ensures: ingest → bronze → silver → gold → export, in order.
+# Each task overwrites/appends downstream automatically because of `depends_on`.
 
 bundle:
   name: mirante-dos-dados
@@ -22,19 +23,6 @@ variables:
     description: "Unity Catalog catalog name"
     default: mirante_prd
 
-  raw_root:
-    description: UC Volume root for raw downloads (one-shot files from APIs/CGU)
-    default: /Volumes/mirante_prd/bronze/raw
-
-  exports_root:
-    description: UC Volume path where the front's gold JSONs are written
-    default: /Volumes/mirante_prd/gold/exports
-
-  notification_email:
-    description: Email for job/pipeline failure alerts (optional)
-    default: ""
-
-# ─── Targets ───────────────────────────────────────────────────────────────
 targets:
   dev:
     mode: development
@@ -49,141 +37,122 @@ targets:
     run_as:
       user_name: ${workspace.current_user.userName}
 
-# ─── Resources ─────────────────────────────────────────────────────────────
 resources:
-  # ─────────────────── DLT pipelines ───────────────────
-  pipelines:
-    populacao_uf_ano_dlt:
-      name: mirante_populacao_uf_ano
-      catalog: ${var.catalog}
-      target: silver           # default schema for tables that don't fully-qualify
-      serverless: true
-      photon: true
-      development: false
-      libraries:
-        - notebook:
-            path: ./notebooks/populacao_uf_ano/02_dlt_populacao_uf_ano.py
-      configuration:
-        "mirante.catalog":             "${var.catalog}"
-        "mirante.populacao.raw_path":  "${var.raw_root}/ibge/populacao_uf.json"
-        "mirante.populacao.year_min":  "2013"
-        "mirante.populacao.year_max":  "2026"
-
-    ipca_deflators_2021_dlt:
-      name: mirante_ipca_deflators_2021
-      catalog: ${var.catalog}
-      target: silver
-      serverless: true
-      photon: true
-      development: false
-      libraries:
-        - notebook:
-            path: ./notebooks/ipca_deflators_2021/02_dlt_ipca_deflators.py
-      configuration:
-        "mirante.catalog":         "${var.catalog}"
-        "mirante.ipca.raw_path":   "${var.raw_root}/bcb/ipca_mensal.json"
-        "mirante.ipca.year_min":   "2013"
-        "mirante.ipca.year_max":   "2026"
-
-    pbf_dlt:
-      name: mirante_pbf
-      catalog: ${var.catalog}
-      target: silver           # PBF tables use fully-qualified names anyway
-      serverless: true
-      photon: true
-      development: false
-      libraries:
-        - notebook:
-            path: ./notebooks/pbf/02_dlt_pbf_medallion.py
-      configuration:
-        "mirante.catalog":      "${var.catalog}"
-        "mirante.pbf.raw_path": "${var.raw_root}/cgu/pbf"
-        "mirante.pbf.csv_extracted_path": "${var.raw_root}/cgu/pbf_csv_extracted"
-
-  # ─────────────────── Jobs (orchestration) ───────────────────
   jobs:
+
+    # ─── Shared dimension: populacao_uf_ano ─────────────────────────────────
     job_populacao_refresh:
       name: mirante · refresh populacao_uf_ano
       max_concurrent_runs: 1
       tasks:
-        - task_key: download_ibge
+        - task_key: ingest_ibge
           notebook_task:
-            notebook_path: ./notebooks/populacao_uf_ano/01_download_ibge.py
+            notebook_path: ./notebooks/ingest/ibge_populacao.py
             base_parameters:
               start_year: "2013"
-              end_year: "2026"
-              volume_path: "${var.raw_root}/ibge"
+              end_year:   "2026"
+              volume_dir: "/Volumes/${var.catalog}/bronze/raw/ibge"
 
-        - task_key: dlt_populacao
-          depends_on:
-            - task_key: download_ibge
-          pipeline_task:
-            pipeline_id: ${resources.pipelines.populacao_uf_ano_dlt.id}
+        - task_key: bronze_ibge_populacao_raw
+          depends_on: [{ task_key: ingest_ibge }]
+          notebook_task:
+            notebook_path: ./notebooks/bronze/ibge_populacao_raw.py
+            base_parameters:
+              catalog: "${var.catalog}"
 
-      # Manually-triggered or yearly cron (when IBGE publishes new estimates around July)
+        - task_key: silver_populacao_uf_ano
+          depends_on: [{ task_key: bronze_ibge_populacao_raw }]
+          notebook_task:
+            notebook_path: ./notebooks/silver/populacao_uf_ano.py
+            base_parameters:
+              catalog:  "${var.catalog}"
+              year_min: "2013"
+              year_max: "2026"
+
       schedule:
-        quartz_cron_expression: "0 0 6 1 7 ?"   # 6h UTC on Jul 1 every year
+        quartz_cron_expression: "0 0 6 1 7 ?"   # yearly: Jul 1 6h UTC (when IBGE typically publishes)
         timezone_id: UTC
-        pause_status: PAUSED                    # start unpaused only when ready
+        pause_status: PAUSED
 
+    # ─── Shared dimension: ipca_deflators_2021 ──────────────────────────────
     job_ipca_refresh:
       name: mirante · refresh ipca_deflators_2021
       max_concurrent_runs: 1
       tasks:
-        - task_key: download_bcb
+        - task_key: ingest_bcb
           notebook_task:
-            notebook_path: ./notebooks/ipca_deflators_2021/01_download_bcb.py
+            notebook_path: ./notebooks/ingest/bcb_ipca.py
             base_parameters:
-              volume_path: "${var.raw_root}/bcb"
+              volume_dir: "/Volumes/${var.catalog}/bronze/raw/bcb"
 
-        - task_key: dlt_ipca
-          depends_on:
-            - task_key: download_bcb
-          pipeline_task:
-            pipeline_id: ${resources.pipelines.ipca_deflators_2021_dlt.id}
+        - task_key: bronze_bcb_ipca_raw
+          depends_on: [{ task_key: ingest_bcb }]
+          notebook_task:
+            notebook_path: ./notebooks/bronze/bcb_ipca_raw.py
+            base_parameters:
+              catalog: "${var.catalog}"
 
-      # Monthly cron (BCB publishes IPCA monthly, around day 10)
+        - task_key: silver_ipca_deflators_2021
+          depends_on: [{ task_key: bronze_bcb_ipca_raw }]
+          notebook_task:
+            notebook_path: ./notebooks/silver/ipca_deflators_2021.py
+            base_parameters:
+              catalog:  "${var.catalog}"
+              year_min: "2013"
+              year_max: "2026"
+
       schedule:
-        quartz_cron_expression: "0 0 6 15 * ?"  # 6h UTC on day 15 of every month
+        quartz_cron_expression: "0 0 6 15 * ?"  # monthly: day 15 6h UTC (IPCA publishes ~day 10)
         timezone_id: UTC
         pause_status: PAUSED
 
+    # ─── Vertical: PBF (Bolsa Família) ──────────────────────────────────────
     job_pbf_refresh:
-      name: mirante · refresh PBF (download → DLT → export)
+      name: mirante · refresh PBF (ingest → bronze → silver → gold → export)
       max_concurrent_runs: 1
       tasks:
-        - task_key: download_cgu
+        - task_key: ingest_cgu_pbf_zips
           notebook_task:
-            notebook_path: ./notebooks/pbf/01_download_cgu.py
+            notebook_path: ./notebooks/ingest/cgu_pbf_zips.py
             base_parameters:
-              pbf_years:   "2013-2021"
-              aux_years:   "2021-2023"
-              nbf_years:   "2023-2026"
-              volume_path: "${var.raw_root}/cgu/pbf"
-              workers: "4"
+              pbf_years:  "2013-2021"
+              aux_years:  "2021-2023"
+              nbf_years:  "2023-2026"
+              volume_dir: "/Volumes/${var.catalog}/bronze/raw/cgu/pbf"
+              workers:    "4"
 
-        - task_key: dlt_pbf
-          depends_on:
-            - task_key: download_cgu
-          pipeline_task:
-            pipeline_id: ${resources.pipelines.pbf_dlt.id}
-
-        - task_key: export_pbf_json
-          depends_on:
-            - task_key: dlt_pbf
+        - task_key: bronze_pbf_pagamentos
+          depends_on: [{ task_key: ingest_cgu_pbf_zips }]
           notebook_task:
-            notebook_path: ./notebooks/pbf/03_export_json.py
+            notebook_path: ./notebooks/bronze/pbf_pagamentos.py
             base_parameters:
-              gold_table: "${var.catalog}.gold.pbf_estados_df"
-              output_path: "${var.exports_root}/gold_pbf_estados_df.json"
+              catalog:       "${var.catalog}"
+              zips_dir:      "/Volumes/${var.catalog}/bronze/raw/cgu/pbf"
+              csv_extracted: "/Volumes/${var.catalog}/bronze/raw/cgu/pbf_csv_extracted"
 
-      # Monthly cron — CGU publishes new month around day 5-10
+        - task_key: silver_pbf_total_uf_mes
+          depends_on: [{ task_key: bronze_pbf_pagamentos }]
+          notebook_task:
+            notebook_path: ./notebooks/silver/pbf_total_uf_mes.py
+            base_parameters:
+              catalog: "${var.catalog}"
+
+        - task_key: gold_pbf_estados_df
+          depends_on: [{ task_key: silver_pbf_total_uf_mes }]
+          notebook_task:
+            notebook_path: ./notebooks/gold/pbf_estados_df.py
+            base_parameters:
+              catalog: "${var.catalog}"
+
+        - task_key: export_pbf_estados_df_json
+          depends_on: [{ task_key: gold_pbf_estados_df }]
+          notebook_task:
+            notebook_path: ./notebooks/export/pbf_estados_df_json.py
+            base_parameters:
+              catalog:     "${var.catalog}"
+              output_path: "/Volumes/${var.catalog}/gold/exports/gold_pbf_estados_df.json"
+
       schedule:
-        quartz_cron_expression: "0 0 6 20 * ?"  # 6h UTC on day 20 of every month
+        quartz_cron_expression: "0 0 6 20 * ?"  # monthly: day 20 6h UTC
         timezone_id: UTC
         pause_status: PAUSED
-
-# ─── Permissions (optional, only run if you want broader access) ───────────
-# permissions:
-#   - level: CAN_VIEW
-#     group_name: users

@@ -1,48 +1,32 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # pbf · 01 · download CGU
+# MAGIC # ingest · cgu_pbf_zips
 # MAGIC
-# MAGIC Pré-DLT task: baixa os ZIPs mensais do Portal da Transparência (CGU) e grava em UC Volume.
-# MAGIC
-# MAGIC Programas:
-# MAGIC - **PBF** (Bolsa Família): jan/2013 – nov/2021
-# MAGIC - **AUX_BR** (Auxílio Brasil): nov/2021 – fev/2023
-# MAGIC - **NBF** (Novo Bolsa Família): mar/2023 em diante
-# MAGIC
-# MAGIC ## Parâmetros
-# MAGIC
-# MAGIC | param | default | descrição |
-# MAGIC | --- | --- | --- |
-# MAGIC | `pbf_years`  | `2013-2021` | anos pra baixar do programa PBF |
-# MAGIC | `aux_years`  | `2021-2023` | anos pra Auxílio Brasil |
-# MAGIC | `nbf_years`  | `2023-2026` | anos pra Novo Bolsa Família |
-# MAGIC | `volume_path`| `/Volumes/mirante/bronze/raw/cgu/pbf` | destino dos ZIPs |
-# MAGIC | `workers`    | `4`         | downloads paralelos |
-# MAGIC
-# MAGIC **Idempotência**: ZIPs válidos já no Volume são pulados (checagem por magic bytes).
+# MAGIC Baixa os ZIPs mensais do Portal da Transparência (CGU) — PBF, Auxílio Brasil e NBF.
+# MAGIC ZIPs já vêm com filename `<PROGRAMA>_YYYY_MM.zip`, então Auto Loader detecta cada
+# MAGIC arquivo novo. Skips ZIPs já válidos no Volume (idempotência).
 
 # COMMAND ----------
 
-dbutils.widgets.text("pbf_years",   "2013-2021")
-dbutils.widgets.text("aux_years",   "2021-2023")
-dbutils.widgets.text("nbf_years",   "2023-2026")
-dbutils.widgets.text("volume_path", "/Volumes/mirante_prd/bronze/raw/cgu/pbf")
-dbutils.widgets.text("workers",     "4")
+dbutils.widgets.text("pbf_years",  "2013-2021")
+dbutils.widgets.text("aux_years",  "2021-2023")
+dbutils.widgets.text("nbf_years",  "2023-2026")
+dbutils.widgets.text("volume_dir", "/Volumes/mirante_prd/bronze/raw/cgu/pbf")
+dbutils.widgets.text("workers",    "4")
 
-PBF_YEARS   = dbutils.widgets.get("pbf_years")
-AUX_YEARS   = dbutils.widgets.get("aux_years")
-NBF_YEARS   = dbutils.widgets.get("nbf_years")
-VOLUME_PATH = dbutils.widgets.get("volume_path")
-WORKERS     = int(dbutils.widgets.get("workers"))
+PBF_YEARS  = dbutils.widgets.get("pbf_years")
+AUX_YEARS  = dbutils.widgets.get("aux_years")
+NBF_YEARS  = dbutils.widgets.get("nbf_years")
+VOLUME_DIR = dbutils.widgets.get("volume_dir")
+WORKERS    = int(dbutils.widgets.get("workers"))
 
-print(f"pbf={PBF_YEARS}  aux={AUX_YEARS}  nbf={NBF_YEARS}  dest={VOLUME_PATH}  workers={WORKERS}")
+print(f"pbf={PBF_YEARS} aux={AUX_YEARS} nbf={NBF_YEARS} dest={VOLUME_DIR} workers={WORKERS}")
 
 # COMMAND ----------
 
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-
 import requests
 
 ZIP_MAGIC       = b"PK\x03\x04"
@@ -69,8 +53,7 @@ def parse_years(expr: str) -> list[int]:
 
 def is_valid_zip(p: Path) -> bool:
     try:
-        with p.open("rb") as f:
-            head = f.read(4)
+        with p.open("rb") as f: head = f.read(4)
         return head in (ZIP_MAGIC, ZIP_MAGIC_EMPTY)
     except OSError:
         return False
@@ -78,17 +61,13 @@ def is_valid_zip(p: Path) -> bool:
 
 def fetch(prefix: str, year: int, month: int, dest_dir: Path,
           timeout: int = 200, retries: int = 3) -> tuple[str, str]:
-    """Returns (label, status) where status ∈ {'ok','cached','missing','error'}."""
     url   = f"{CGU_BASES[prefix]}{year}{month:02d}"
     dest  = dest_dir / f"{prefix}_{year}_{month:02d}.zip"
     label = f"{prefix} {year}-{month:02d}"
-
     if dest.exists() and dest.stat().st_size > 0 and is_valid_zip(dest):
         return label, "cached"
-
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix(dest.suffix + ".part")
-
     for attempt in range(1, retries + 1):
         try:
             with requests.get(url, headers=HEADERS, stream=True, timeout=timeout, allow_redirects=True) as r:
@@ -98,23 +77,19 @@ def fetch(prefix: str, year: int, month: int, dest_dir: Path,
                 with tmp.open("wb") as f:
                     for chunk in r.iter_content(chunk_size=1 << 20):
                         if chunk:
-                            f.write(chunk)
-                            written += len(chunk)
+                            f.write(chunk); written += len(chunk)
                 if written < 4 or not is_valid_zip(tmp):
-                    tmp.unlink(missing_ok=True)
-                    return label, "missing"
-                tmp.replace(dest)
-                return label, "ok"
-        except (requests.HTTPError, requests.ConnectionError, requests.Timeout) as e:
+                    tmp.unlink(missing_ok=True); return label, "missing"
+                tmp.replace(dest); return label, "ok"
+        except (requests.HTTPError, requests.ConnectionError, requests.Timeout):
             if attempt == retries:
-                tmp.unlink(missing_ok=True)
-                return label, "error"
+                tmp.unlink(missing_ok=True); return label, "error"
             time.sleep(1.5)
     return label, "error"
 
 # COMMAND ----------
 
-dest_dir = Path(VOLUME_PATH)
+dest_dir = Path(VOLUME_DIR)
 dest_dir.mkdir(parents=True, exist_ok=True)
 
 specs = []
@@ -126,18 +101,11 @@ for prefix, years_expr in (("PBF", PBF_YEARS), ("AUX_BR", AUX_YEARS), ("NBF", NB
 print(f"Tentando {len(specs)} (prefix, year, month) combos…")
 
 results = {"ok": 0, "cached": 0, "missing": 0, "error": 0}
-errors  = []
 with ThreadPoolExecutor(max_workers=WORKERS) as ex:
     futures = [ex.submit(fetch, p, y, m, dest_dir) for (p, y, m) in specs]
     for fut in as_completed(futures):
-        label, status = fut.result()
+        _, status = fut.result()
         results[status] += 1
-        if status == "error":
-            errors.append(label)
 
 print(f"Resultado: {results}")
-if errors:
-    print(f"Errors em {len(errors)} downloads (primeiros 10): {errors[:10]}")
-
-zips_total = sorted(dest_dir.glob("*.zip"))
-print(f"Total de ZIPs no Volume agora: {len(zips_total)}")
+print(f"ZIPs no Volume agora: {len(sorted(dest_dir.glob('*.zip')))}")
