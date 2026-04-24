@@ -20,7 +20,32 @@
 set -euo pipefail
 
 CATALOG="${CATALOG:-mirante_prd}"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ⚠️  DATABRICKS FREE EDITION USERS — READ THIS FIRST
+# ─────────────────────────────────────────────────────────────────────────────
+# Free Edition uses "Default Storage" at the metastore level. The CLI cannot
+# create top-level catalogs in this configuration — the API rejects every
+# `catalogs create` call with:
+#
+#   Error: Metastore storage root URL does not exist. Default Storage is
+#   enabled in your account.
+#
+# Even if the catalog already exists. Workaround:
+#
+#   1. Open the workspace UI:
+#        https://<your-host>/explore/data
+#   2. Click "Create catalog" (top-right)
+#   3. Name: <CATALOG>, Type: Standard, Storage: Default storage
+#   4. Click Create.
+#   5. Re-run this script.
+#
+# Once the catalog exists, the rest (schemas + volumes) works fine via CLI.
+# ─────────────────────────────────────────────────────────────────────────────
+
 echo "▸ catalog = ${CATALOG}"
+echo "  (Databricks Free Edition: catalog must already exist — created via UI."
+echo "   Schemas and volumes below are created via CLI and are idempotent.)"
 echo
 
 # Helper: run a databricks CLI command, treating "already exists" as success but
