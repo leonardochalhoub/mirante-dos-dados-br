@@ -98,9 +98,23 @@ print(f"Extracted {extracted} new CSVs (skipped {skipped} already extracted).")
 
 # COMMAND ----------
 
+import re
 from pyspark.sql import functions as F
 
-stream = (
+# CGU CSVs ship headers with accents+spaces (e.g. "MÊS COMPETÊNCIA", "NIS FAVORECIDO")
+# which Delta column names don't allow. Normalize to ASCII snake_case before writing.
+_ACCENTS = {"Á":"A","À":"A","Â":"A","Ã":"A","É":"E","Ê":"E","Í":"I","Ó":"O","Ô":"O","Õ":"O","Ú":"U","Ç":"C"}
+
+def normalize_col(c: str) -> str:
+    raw = c.strip().upper().replace("MÊS", "MES")
+    for a, r in _ACCENTS.items():
+        raw = raw.replace(a, r)
+    new = re.sub(r"[^A-Z0-9]+", "_", raw).strip("_").lower()
+    return new or c.lower().replace(" ", "_")
+
+
+# Step A: Auto Loader → raw stream with original CSV headers
+raw_stream = (
     spark.readStream
         .format("cloudFiles")
         .option("cloudFiles.format", "csv")
@@ -115,7 +129,16 @@ stream = (
         .option("escape",    '"')
         .option("mode",      "PERMISSIVE")
         .load(CSV_EXTRACTED)
-        # Decode origin/year/month from the embedded filename
+)
+
+# Step B: rename ALL columns to Delta-friendly snake_case BEFORE adding metadata.
+# (_metadata is a hidden column not in df.columns; safe to rename in place.)
+new_names = [normalize_col(c) for c in raw_stream.columns]
+stream = raw_stream.toDF(*new_names)
+
+# Step C: add metadata columns + decode origin/year/month from filename
+stream = (
+    stream
         .withColumn("_source_file",  F.col("_metadata.file_path"))
         .withColumn("_fname",        F.element_at(F.split(F.col("_source_file"), "/"), -1))
         .withColumn("origin",        F.split(F.col("_fname"), "__").getItem(0))
