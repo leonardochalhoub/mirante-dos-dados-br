@@ -41,10 +41,22 @@ try_create() {
   return 1
 }
 
-# 1. Catalog
-echo "▸ creating catalog ${CATALOG}…"
-try_create "catalog ${CATALOG}" \
-  databricks catalogs create --json "{\"name\": \"${CATALOG}\", \"comment\": \"Mirante dos Dados — open public data lakehouse\"}"
+# 1. Catalog (check existence first; Free Edition with Default Storage refuses
+#    `catalogs create` regardless of whether the catalog already exists)
+echo "▸ checking catalog ${CATALOG}…"
+if databricks catalogs get "${CATALOG}" >/dev/null 2>&1; then
+  echo "  · catalog ${CATALOG} already exists (skip)"
+else
+  echo "  ! catalog ${CATALOG} does NOT exist."
+  echo "    Free Edition / Default Storage does not allow CLI catalog creation."
+  echo "    Please create it via the UI:"
+  echo "      1. Open https://dbc-cafe0a5f-07e3.cloud.databricks.com/explore/data"
+  echo "      2. Click 'Create catalog'"
+  echo "      3. Name: ${CATALOG}, Type: Standard, Storage: Default storage"
+  echo "      4. Click Create"
+  echo "    Then re-run this script."
+  exit 2
+fi
 
 echo
 # 2. Schemas
