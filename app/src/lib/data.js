@@ -20,3 +20,10 @@ export async function loadGeo(filename) {
   }
   return res.json();
 }
+
+export async function loadStats(filename = 'platform_stats.json') {
+  const url = `${base}stats/${filename}`.replace(/\/{2,}/g, '/');
+  const res = await fetch(url, { cache: 'no-cache' });   // stats refreshed monthly, want fresh
+  if (!res.ok) return null;                              // optional — Home renders without if missing
+  return res.json();
+}

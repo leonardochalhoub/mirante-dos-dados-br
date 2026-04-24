@@ -41,14 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           # Find job_id by name (DAB-deployed jobs use the names from databricks.yml)
-          JOB_ID=$(databricks jobs list --output JSON \
-            | python3 -c "
-import json, sys, os
-target = os.environ['JOB_NAME']
-jobs = json.load(sys.stdin).get('jobs', [])
-match = [j for j in jobs if j.get('settings', {}).get('name') == target]
-if not match: sys.exit(f'Job not found: {target}')
-print(match[0]['job_id'])")
+          JOB_ID=$(databricks jobs list --output JSON | python3 -c "import json,sys,os; target=os.environ['JOB_NAME']; jobs=json.load(sys.stdin).get('jobs',[]); m=[j for j in jobs if j.get('settings',{}).get('name')==target]; sys.exit(f'Job not found: {target}') if not m else print(m[0]['job_id'])")
           echo "Triggering job_id=$JOB_ID ($JOB_NAME)"
 
           # Run-now and poll until terminal state
@@ -74,20 +67,21 @@ print(match[0]['job_id'])")
             esac
           done
 
-      - name: Pull gold JSON from Volume
+      - name: Pull gold JSON + platform stats from Volume
         run: |
           set -euo pipefail
-          mkdir -p data/gold
+          mkdir -p data/gold data/stats
           databricks fs cp \
             "dbfs:/Volumes/mirante_prd/gold/exports/gold_pbf_estados_df.json" \
             "data/gold/gold_pbf_estados_df.json" \
             --overwrite
-          ls -la data/gold/
+          databricks fs cp \
+            "dbfs:/Volumes/mirante_prd/gold/exports/platform_stats.json" \
+            "data/stats/platform_stats.json" \
+            --overwrite || echo "(platform_stats.json optional, skipping if missing)"
+          ls -la data/gold/ data/stats/
           echo "---"
-          python3 -c "
-import json
-with open('data/gold/gold_pbf_estados_df.json') as f: d=json.load(f)
-print(f'rows={len(d)}, sample={d[0] if d else None}')"
+          python3 -c "import json; d=json.load(open('data/gold/gold_pbf_estados_df.json')); print(f'gold rows={len(d)}, sample={d[0] if d else None}')"
 
       - name: Commit & push if changed
         run: |

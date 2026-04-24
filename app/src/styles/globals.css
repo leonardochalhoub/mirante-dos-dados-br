@@ -713,6 +713,95 @@ button.primary:hover { filter: brightness(1.05); }
   color: var(--faint);
 }
 
+/* ── Big Data público strip ───────────────────────────────────────────── */
+.bigdata-strip {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  margin-bottom: var(--gap);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.bigdata-headline { display: flex; flex-direction: column; gap: 6px; }
+.bigdata-totals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.bigdata-totals b { font-weight: 700; }
+.bigdata-totals .dot { color: var(--faint); }
+
+.bigdata-pipelines {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 16px;
+}
+.bigdata-pipeline {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bigdata-pipeline-head { display: flex; justify-content: space-between; align-items: baseline; }
+
+.bigdata-pipeline-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+.bigdata-step {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  min-width: 0;
+}
+.bigdata-step.is-highlight { border-color: var(--gold); }
+.bigdata-step-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.bigdata-step-value {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.bigdata-step-sub {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.bigdata-arrow {
+  align-self: center;
+  color: var(--faint);
+  font-size: 14px;
+  user-select: none;
+}
+
+@media (max-width: 600px) {
+  .bigdata-pipeline-row { flex-direction: column; }
+  .bigdata-arrow { transform: rotate(90deg); padding: 4px 0; }
+}
+
 /* ── Medallion strip ──────────────────────────────────────────────────── */
 .medallion {
   display: grid;

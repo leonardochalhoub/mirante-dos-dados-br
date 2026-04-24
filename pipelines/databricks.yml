@@ -152,6 +152,14 @@ resources:
               catalog:     "${var.catalog}"
               output_path: "/Volumes/${var.catalog}/gold/exports/gold_pbf_estados_df.json"
 
+        - task_key: export_platform_stats_json
+          depends_on: [{ task_key: export_pbf_estados_df_json }]
+          notebook_task:
+            notebook_path: ./notebooks/export/platform_stats_json.py
+            base_parameters:
+              catalog:     "${var.catalog}"
+              output_path: "/Volumes/${var.catalog}/gold/exports/platform_stats.json"
+
       schedule:
         quartz_cron_expression: "0 0 6 20 * ?"  # monthly: day 20 6h UTC
         timezone_id: UTC

@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DeltaLogoLarge } from '../components/TechBadges';
+import { loadStats } from '../lib/data';
+import { fmtCompact, fmtInt } from '../lib/format';
 
 const VERTICAIS = [
   {
@@ -29,30 +32,33 @@ const VERTICAIS = [
 ];
 
 const MEDALLION = [
-  {
-    tier: 'Bronze',
-    color: 'var(--bronze)',
-    desc: 'Ingestão crua: ZIPs do Portal da Transparência, FTP DATASUS, APIs IBGE / BCB.',
-  },
-  {
-    tier: 'Silver',
-    color: 'var(--silver)',
-    desc: 'Limpeza, tipagem e normalização. Schemas estáveis, deduplicação, deflação por IPCA.',
-  },
-  {
-    tier: 'Gold',
-    color: 'var(--gold)',
-    desc: 'Agregados por UF e ano, prontos pro front. Saída: JSON versionado neste repo.',
-  },
+  { tier: 'Bronze', color: 'var(--bronze)', desc: 'Ingestão crua: ZIPs do Portal da Transparência, FTP DATASUS, APIs IBGE / BCB.' },
+  { tier: 'Silver', color: 'var(--silver)', desc: 'Limpeza, tipagem e normalização. Schemas estáveis, deduplicação, deflação por IPCA.' },
+  { tier: 'Gold',   color: 'var(--gold)',   desc: 'Agregados por UF e ano, prontos pro front. Saída: JSON versionado neste repo.' },
 ];
 
+// Format bytes → "42.3 GB" / "256 MB"
+function fmtBytes(b) {
+  if (b == null || !Number.isFinite(b)) return '—';
+  const u = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0; let v = b;
+  while (v >= 1024 && i < u.length - 1) { v /= 1024; i += 1; }
+  return `${v < 10 ? v.toFixed(1) : Math.round(v)} ${u[i]}`;
+}
+
 export default function Home() {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    loadStats('platform_stats.json').then(setStats).catch(() => setStats(null));
+  }, []);
+
   return (
     <>
       <section className="hero">
         <div className="hero-grid">
           <div className="hero-text">
-            <div className="hero-eyebrow">Plataforma aberta · pt-BR</div>
+            <div className="hero-eyebrow">Plataforma aberta · pt-BR · Big Data público</div>
             <h1 className="hero-title">Dados públicos do Brasil em um só lugar.</h1>
             <p className="hero-tagline">
               Pipelines em arquitetura medallion (bronze → silver → gold) sobre fontes oficiais
@@ -63,30 +69,17 @@ export default function Home() {
           </div>
 
           <div className="hero-logos">
-            <a
-              className="hero-logo-card hero-logo-card--delta"
-              href="https://delta.io/"
-              target="_blank"
-              rel="noreferrer"
-              title="Powered by Delta Lake"
-            >
+            <a className="hero-logo-card hero-logo-card--delta" href="https://delta.io/" target="_blank" rel="noreferrer" title="Powered by Delta Lake">
               <DeltaLogoLarge height={56} />
             </a>
-            <a
-              className="hero-logo-card"
-              href="https://spark.apache.org/"
-              target="_blank"
-              rel="noreferrer"
-              title="Powered by Apache Spark"
-            >
-              <img
-                src={`${import.meta.env.BASE_URL}spark-logo.svg`.replace(/\/{2,}/g, '/')}
-                alt="Apache Spark"
-              />
+            <a className="hero-logo-card" href="https://spark.apache.org/" target="_blank" rel="noreferrer" title="Powered by Apache Spark">
+              <img src={`${import.meta.env.BASE_URL}spark-logo.svg`.replace(/\/{2,}/g, '/')} alt="Apache Spark" />
             </a>
           </div>
         </div>
       </section>
+
+      {stats && <BigDataStrip stats={stats} />}
 
       <section className="vertical-grid">
         {VERTICAIS.map((v) =>
@@ -140,4 +133,70 @@ export default function Home() {
       </section>
     </>
   );
+}
+
+// ── Big Data público strip ────────────────────────────────────────────────
+function BigDataStrip({ stats }) {
+  const totalRaw = stats.raw?.total_bytes ?? 0;
+  const totalFiles = stats.raw?.total_files ?? 0;
+  const largest = stats.largest_table;
+
+  const verticals = stats.verticals || {};
+  const orderedVerticals = ['pbf', 'mri'].filter((k) => verticals[k]);
+
+  return (
+    <section className="bigdata-strip">
+      <div className="bigdata-headline">
+        <div className="kicker">Big Data público — escala atual</div>
+        <div className="bigdata-totals">
+          <span><b>{fmtCompact(totalFiles)}</b> arquivos crus</span>
+          <span className="dot">·</span>
+          <span><b>{fmtBytes(totalRaw)}</b> de raw ingerido</span>
+          {largest && (
+            <>
+              <span className="dot">·</span>
+              <span>maior tabela: <b>{fmtCompact(largest.rows)} linhas</b> ({fmtBytes(largest.bytes)})</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="bigdata-pipelines">
+        {orderedVerticals.map((k) => {
+          const v = verticals[k];
+          return (
+            <div key={k} className="bigdata-pipeline">
+              <div className="bigdata-pipeline-head">
+                <span className="kicker">{k === 'pbf' ? 'Bolsa Família' : 'Ressonância Magnética'}</span>
+              </div>
+              <div className="bigdata-pipeline-row">
+                <Step label={v.raw_compressed_label} files={v.raw_compressed_files} bytes={v.raw_compressed_bytes} />
+                <Arrow />
+                <Step label={v.intermediate_label}    files={v.intermediate_files}   bytes={v.intermediate_bytes} />
+                <Arrow />
+                <Step label="Delta bronze"            bytes={v.delta_bronze_bytes}   rows={v.delta_bronze_rows} highlight />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function Step({ label, files, bytes, rows, highlight }) {
+  return (
+    <div className={`bigdata-step${highlight ? ' is-highlight' : ''}`}>
+      <div className="bigdata-step-label">{label}</div>
+      <div className="bigdata-step-value">{fmtBytes(bytes)}</div>
+      <div className="bigdata-step-sub">
+        {files != null && `${fmtCompact(files)} arquivos`}
+        {rows  != null && `${fmtCompact(rows)} linhas`}
+      </div>
+    </div>
+  );
+}
+
+function Arrow() {
+  return <span className="bigdata-arrow">→</span>;
 }
