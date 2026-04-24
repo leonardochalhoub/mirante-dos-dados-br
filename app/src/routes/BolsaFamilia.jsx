@@ -184,16 +184,18 @@ export default function BolsaFamilia() {
 
   return (
     <>
-      <TechBadges />
       <PageHeader
         eyebrow="Vertical · transferências de renda"
         title="Bolsa Família"
         subtitle="Pagamentos, beneficiários e valor real (R$ 2021) por UF e ano. Fontes: Portal da Transparência (CGU), IBGE e BCB."
         right={
-          <DownloadActions
-            onExportXlsx={() => exportToXlsx('mirante-pbf', { 'pbf_uf_ano': rows })}
-            onExportPng={() => exportChartsAsZip('mirante-pbf')}
-          />
+          <div className="header-right-row">
+            <TechBadges />
+            <DownloadActions
+              onExportXlsx={() => exportToXlsx('mirante-pbf', { 'pbf_uf_ano': rows })}
+              onExportPng={() => exportChartsAsZip('mirante-pbf')}
+            />
+          </div>
         }
       />
 

@@ -236,6 +236,16 @@ code, pre, .mono {
 .switch input:checked + .slider::before { transform: translate(16px, -50%); }
 
 /* ── Page header ──────────────────────────────────────────────────────── */
+/* Horizontal row inside PageHeader's right slot: TechBadges + Download buttons */
+.header-right-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .tech-badges {
   display: inline-flex;
   align-items: center;
@@ -244,7 +254,6 @@ code, pre, .mono {
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--panel);
-  margin-bottom: 12px;
   box-shadow: var(--shadow-sm);
 }
 .tech-badges-label {
@@ -264,7 +273,6 @@ code, pre, .mono {
 }
 .tech-badges a:hover { opacity: 1; text-decoration: none; }
 .tech-badges img { height: 22px; width: auto; display: block; }
-.tech-badges .delta-logo { color: var(--text); }       /* SVG wordmark uses currentColor */
 [data-theme="dark"] .tech-badges img[alt="Apache Spark"] { background: #f8fafc; padding: 2px 4px; border-radius: 4px; }
 
 .page-header {
@@ -279,12 +287,12 @@ code, pre, .mono {
 .page-header-actions {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: flex-end;
   gap: 8px;
   flex-shrink: 0;
 }
 
-/* Download buttons stacked on the right of the page header */
+/* Download buttons stacked vertically; sit to the right of TechBadges */
 .download-actions {
   display: flex;
   flex-direction: column;
@@ -292,8 +300,10 @@ code, pre, .mono {
   min-width: 180px;
 }
 .download-actions button { height: 36px; }
+
 @media (max-width: 700px) {
-  .page-header-actions { width: 100%; }
+  .page-header-actions { width: 100%; align-items: stretch; }
+  .header-right-row { justify-content: flex-start; }
   .download-actions { flex-direction: row; min-width: 0; }
   .download-actions button { flex: 1; }
 }
@@ -608,8 +618,8 @@ button.primary:hover { filter: brightness(1.05); }
   height: auto;
   display: block;
 }
-.hero-logo-card--delta { color: var(--text); }   /* drives currentColor in DeltaLogo SVG */
-.hero-logo-card--delta .delta-logo svg { max-width: 220px; width: 100%; height: auto !important; }
+/* Delta hero card: container needs to fit the full PNG/SVG height we pass */
+.hero-logo-card--delta img { max-width: 220px; }
 /* Spark SVG has dark grey wordmark — invert just the wordmark for dark theme.
    We can't isolate it via CSS, so we lift the whole logo's brightness slightly
    without nuking the orange spark icon. */

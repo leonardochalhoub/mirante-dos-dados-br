@@ -194,16 +194,18 @@ export default function SaudeMri() {
 
   return (
     <>
-      <TechBadges />
       <PageHeader
         eyebrow="Vertical · saúde · ressonância magnética"
         title="Infraestrutura de Neuroimagem no Brasil"
         subtitle="Distribuição de equipamentos de Ressonância Magnética por UF — DATASUS/CNES (2005–2025)."
         right={
-          <DownloadActions
-            onExportXlsx={() => exportToXlsx('mirante-saude-mri', { 'mri_uf_ano': rows })}
-            onExportPng={() => exportChartsAsZip('mirante-saude-mri')}
-          />
+          <div className="header-right-row">
+            <TechBadges />
+            <DownloadActions
+              onExportXlsx={() => exportToXlsx('mirante-saude-mri', { 'mri_uf_ano': rows })}
+              onExportPng={() => exportChartsAsZip('mirante-saude-mri')}
+            />
+          </div>
         }
       />
 

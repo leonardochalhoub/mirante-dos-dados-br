@@ -1,55 +1,28 @@
-// Small "Powered by Delta Lake + Apache Spark" strip used at the top of each vertical
-// page (and stacked larger on the Home hero).
+// "Powered by Apache Spark + Delta Lake" strip.
+// Used in two places:
+//   - inline next to DownloadActions on each vertical page (compact pill)
+//   - large two-card stack on the Home hero
 //
-// Delta Lake SVG uses currentColor for the wordmark so it adapts to light/dark theme.
-// We inline-fetch the SVG into the DOM (instead of <img>) so CSS color cascades into it.
+// Theme-aware Delta logo: we ship two variants of the official asset (one with
+// dark wordmark for light bg, one with white wordmark for dark bg) and swap via
+// the useTheme hook. Cleaner than CSS color hacks on inline-injected SVG.
 
-import { useEffect, useRef, useState } from 'react';
+import { useTheme } from '../hooks/useTheme';
 
-const deltaSrc = `${import.meta.env.BASE_URL}delta-lake-logo.svg`.replace(/\/{2,}/g, '/');
-const sparkSrc = `${import.meta.env.BASE_URL}spark-logo.svg`.replace(/\/{2,}/g, '/');
+const base       = import.meta.env.BASE_URL;
+const sparkSrc   = `${base}spark-logo.svg`.replace(/\/{2,}/g, '/');
+const deltaLight = `${base}delta-lake-logo-light.svg`.replace(/\/{2,}/g, '/');
+const deltaDark  = `${base}delta-lake-logo-rev.svg`.replace(/\/{2,}/g, '/');
 
-// Cache the SVG markup so we only fetch once per page load.
-let deltaSvgPromise = null;
-function loadDeltaSvg() {
-  if (!deltaSvgPromise) {
-    deltaSvgPromise = fetch(deltaSrc)
-      .then((r) => r.text())
-      .catch(() => null);
-  }
-  return deltaSvgPromise;
-}
-
-function DeltaLogo({ height = 22 }) {
-  const ref = useRef(null);
-  const [svg, setSvg] = useState(null);
-
-  useEffect(() => {
-    let alive = true;
-    loadDeltaSvg().then((markup) => { if (alive) setSvg(markup); });
-    return () => { alive = false; };
-  }, []);
-
-  useEffect(() => {
-    if (!ref.current || !svg) return;
-    ref.current.innerHTML = svg;
-    const el = ref.current.querySelector('svg');
-    if (!el) return;
-    el.removeAttribute('width');
-    el.setAttribute('height', String(height));
-    el.style.height = `${height}px`;
-    el.style.width = 'auto';
-    el.style.display = 'block';
-  }, [svg, height]);
-
-  // Until SVG is fetched, render a sized placeholder to avoid layout shift.
+function DeltaLogo({ className, height }) {
+  const { theme } = useTheme();
+  const src = theme === 'dark' ? deltaDark : deltaLight;
   return (
-    <span
-      ref={ref}
-      className="delta-logo"
-      role="img"
-      aria-label="Delta Lake"
-      style={{ display: 'inline-block', height, lineHeight: 0 }}
+    <img
+      src={src}
+      alt="Delta Lake"
+      className={className}
+      style={height ? { height, width: 'auto' } : undefined}
     />
   );
 }
@@ -69,7 +42,7 @@ export default function TechBadges() {
   );
 }
 
-// Reusable larger Delta + Spark stack for the Home hero.
+// Larger Delta logo for the Home hero. Same theme switch under the hood.
 export function DeltaLogoLarge({ height = 56 }) {
   return <DeltaLogo height={height} />;
 }
