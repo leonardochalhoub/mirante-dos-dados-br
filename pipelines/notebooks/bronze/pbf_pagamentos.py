@@ -26,8 +26,8 @@ ZIPS_DIR      = dbutils.widgets.get("zips_dir")
 CSV_EXTRACTED = dbutils.widgets.get("csv_extracted")
 
 BRONZE_TABLE   = f"{CATALOG}.bronze.pbf_pagamentos"
-CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/_autoloader/pbf_pagamentos/_checkpoint"
-SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/_autoloader/pbf_pagamentos/_schema"
+CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/pbf_pagamentos/_checkpoint"
+SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/pbf_pagamentos/_schema"
 
 print(f"zips_dir={ZIPS_DIR}  csv_extracted={CSV_EXTRACTED}  target={BRONZE_TABLE}")
 

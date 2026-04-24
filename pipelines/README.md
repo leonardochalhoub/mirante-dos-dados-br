@@ -61,7 +61,7 @@ mirante_prd.bronze.raw              Source landing zone (Auto Loader watches the
   ├── ibge/populacao_uf__YYYYMMDDTHHMMSSZ.json   ← timestamped per refresh
   ├── bcb/ipca_mensal__YYYYMMDDTHHMMSSZ.json
   └── cgu/pbf/<PROGRAM>_YYYY_MM.zip              ← already named by program/period
-mirante_prd.bronze._autoloader      Auto Loader checkpoints + schemas (managed)
+mirante_prd.bronze.raw/_autoloader      Auto Loader checkpoints + schemas (managed)
 mirante_prd.bronze.raw/cgu/pbf_csv_extracted    ZIPs descomprimidos (intermediário)
 mirante_prd.gold.exports
   └── gold_pbf_estados_df.json                   ← consumido pelo GH Action
@@ -174,4 +174,4 @@ cd pipelines && databricks bundle deploy --target dev
 | Bronze table vazia após task ingest_X | Arquivo não chegou no Volume, ou Auto Loader checkpoint corrompido | `ls /Volumes/.../bronze/raw/...` no notebook; ou apaga `_autoloader/_checkpoint` |
 | Silver falha "BRONZE is empty" | Bronze ainda não rodou nessa run | Job DAG já cuida disso via depends_on; se rodando manual, roda bronze antes |
 | Gold falha "table not found: silver.populacao_uf_ano" | Esqueceu de aquecer dims compartilhadas | `databricks bundle run job_populacao_refresh --target dev` |
-| Auto Loader não pega arquivo novo | Schema location ficou stuck | `dbutils.fs.rm("dbfs:/Volumes/.../_autoloader/_schema", recurse=True)` |
+| Auto Loader não pega arquivo novo | Schema location ficou stuck | `dbutils.fs.rm("dbfs:/Volumes/.../bronze/raw/_autoloader/.../_schema", recurse=True)` |

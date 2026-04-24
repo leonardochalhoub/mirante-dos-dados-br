@@ -12,8 +12,8 @@ CATALOG = dbutils.widgets.get("catalog")
 
 SOURCE_DIR     = f"/Volumes/{CATALOG}/bronze/raw/bcb"
 BRONZE_TABLE   = f"{CATALOG}.bronze.bcb_ipca_raw"
-CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/_autoloader/bcb_ipca_raw/_checkpoint"
-SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/_autoloader/bcb_ipca_raw/_schema"
+CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/bcb_ipca_raw/_checkpoint"
+SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/bcb_ipca_raw/_schema"
 
 print(f"source={SOURCE_DIR}  target={BRONZE_TABLE}")
 
