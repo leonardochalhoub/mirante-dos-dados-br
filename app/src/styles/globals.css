@@ -264,6 +264,7 @@ code, pre, .mono {
 }
 .tech-badges a:hover { opacity: 1; text-decoration: none; }
 .tech-badges img { height: 22px; width: auto; display: block; }
+.tech-badges .delta-logo { color: var(--text); }       /* SVG wordmark uses currentColor */
 [data-theme="dark"] .tech-badges img[alt="Apache Spark"] { background: #f8fafc; padding: 2px 4px; border-radius: 4px; }
 
 .page-header {
@@ -607,6 +608,8 @@ button.primary:hover { filter: brightness(1.05); }
   height: auto;
   display: block;
 }
+.hero-logo-card--delta { color: var(--text); }   /* drives currentColor in DeltaLogo SVG */
+.hero-logo-card--delta .delta-logo svg { max-width: 220px; width: 100%; height: auto !important; }
 /* Spark SVG has dark grey wordmark — invert just the wordmark for dark theme.
    We can't isolate it via CSS, so we lift the whole logo's brightness slightly
    without nuking the orange spark icon. */

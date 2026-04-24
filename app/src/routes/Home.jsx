@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { DeltaLogoLarge } from '../components/TechBadges';
 
 const VERTICAIS = [
   {
@@ -63,16 +64,13 @@ export default function Home() {
 
           <div className="hero-logos">
             <a
-              className="hero-logo-card"
+              className="hero-logo-card hero-logo-card--delta"
               href="https://delta.io/"
               target="_blank"
               rel="noreferrer"
               title="Powered by Delta Lake"
             >
-              <img
-                src={`${import.meta.env.BASE_URL}delta-lake-logo.svg`.replace(/\/{2,}/g, '/')}
-                alt="Delta Lake"
-              />
+              <DeltaLogoLarge height={56} />
             </a>
             <a
               className="hero-logo-card"
