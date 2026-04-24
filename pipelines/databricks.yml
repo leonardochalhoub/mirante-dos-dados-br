@@ -19,7 +19,7 @@ bundle:
 
 variables:
   catalog:
-    description: Unity Catalog catalog name (default: mirante)
+    description: "Unity Catalog catalog name (default mirante)"
     default: mirante
 
   raw_root:
