@@ -3,8 +3,8 @@
 # MAGIC # ipca_deflators_2021 · 02 · DLT
 # MAGIC
 # MAGIC ```
-# MAGIC mirante.bronze.bcb_ipca_raw         ← raw BCB SGS 433 JSON
-# MAGIC mirante.silver.ipca_deflators_2021  ← Ano × deflator (Dez/2021 = 1.0)
+# MAGIC mirante_prd.bronze.bcb_ipca_raw         ← raw BCB SGS 433 JSON
+# MAGIC mirante_prd.silver.ipca_deflators_2021  ← Ano × deflator (Dez/2021 = 1.0)
 # MAGIC ```
 # MAGIC
 # MAGIC ## Lógica
@@ -21,7 +21,7 @@
 # MAGIC
 # MAGIC | chave | default | descrição |
 # MAGIC | --- | --- | --- |
-# MAGIC | `mirante.ipca.raw_path`  | `/Volumes/mirante/bronze/raw/bcb/ipca_mensal.json` | onde o JSON foi gravado |
+# MAGIC | `mirante.ipca.raw_path`  | `/Volumes/mirante_prd/bronze/raw/bcb/ipca_mensal.json` | onde o JSON foi gravado |
 # MAGIC | `mirante.ipca.year_min`  | `2013` | primeiro ano do panel |
 # MAGIC | `mirante.ipca.year_max`  | `2026` | último ano (forward-fill se IPCA-dez não publicado) |
 
@@ -30,21 +30,22 @@
 import dlt
 from pyspark.sql import functions as F, Window
 
-RAW_PATH = spark.conf.get("mirante.ipca.raw_path", "/Volumes/mirante/bronze/raw/bcb/ipca_mensal.json")
+CATALOG  = spark.conf.get("mirante.catalog", "mirante_prd")
+RAW_PATH = spark.conf.get("mirante.ipca.raw_path", f"/Volumes/{CATALOG}/bronze/raw/bcb/ipca_mensal.json")
 YEAR_MIN = int(spark.conf.get("mirante.ipca.year_min", "2013"))
 YEAR_MAX = int(spark.conf.get("mirante.ipca.year_max", "2026"))
 
-print(f"raw={RAW_PATH}  year_min={YEAR_MIN}  year_max={YEAR_MAX}")
+print(f"catalog={CATALOG}  raw={RAW_PATH}  year_min={YEAR_MIN}  year_max={YEAR_MAX}")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Bronze · `mirante.bronze.bcb_ipca_raw`
+# MAGIC ## Bronze · `mirante_prd.bronze.bcb_ipca_raw`
 
 # COMMAND ----------
 
 @dlt.table(
-    name="mirante.bronze.bcb_ipca_raw",
+    name=f"{CATALOG}.bronze.bcb_ipca_raw",
     comment="Raw payload from BCB SGS série 433 (IPCA variação mensal %).",
     table_properties={"quality": "bronze"},
 )
@@ -55,12 +56,12 @@ def bcb_ipca_raw():
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Silver · `mirante.silver.ipca_deflators_2021`
+# MAGIC ## Silver · `mirante_prd.silver.ipca_deflators_2021`
 
 # COMMAND ----------
 
 @dlt.table(
-    name="mirante.silver.ipca_deflators_2021",
+    name=f"{CATALOG}.silver.ipca_deflators_2021",
     comment="Deflatores anuais de IPCA para Dez/2021 = 1.0. Construído via cumprod do "
             "índice mensal (BCB série 433); forward-fill quando dezembro do ano não publicado.",
     table_properties={"quality": "silver"},
@@ -68,7 +69,7 @@ def bcb_ipca_raw():
 @dlt.expect_or_drop("ano_no_intervalo",  "Ano BETWEEN 2000 AND 2100")
 @dlt.expect_or_drop("deflator_positivo", "deflator_to_2021 > 0")
 def ipca_deflators_2021():
-    src = dlt.read("mirante.bronze.bcb_ipca_raw")
+    src = dlt.read(f"{CATALOG}.bronze.bcb_ipca_raw")
 
     df = (
         src.withColumn("dt",       F.to_date("data", "dd/MM/yyyy"))

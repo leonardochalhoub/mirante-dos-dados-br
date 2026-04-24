@@ -15,7 +15,7 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("volume_path", "/Volumes/mirante/bronze/raw/bcb")
+dbutils.widgets.text("volume_path", "/Volumes/mirante_prd/bronze/raw/bcb")
 VOLUME_PATH = dbutils.widgets.get("volume_path")
 print(f"dest={VOLUME_PATH}")
 

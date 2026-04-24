@@ -9,17 +9,17 @@ JSON gold que é gerado por um job aqui.
 ```
                     ┌─ download_ibge ──┐
                     │                  ├──→ dlt_populacao_uf_ano (DLT)
-                    │                  │       └─ mirante.silver.populacao_uf_ano
+                    │                  │       └─ mirante_prd.silver.populacao_uf_ano
                     │                  │
                     └──────────────────┘
                                                                   ┌─ valor_2021
                     ┌─ download_bcb ───┐                          ├─ pbfPerCapita
                     │                  ├──→ dlt_ipca_2021  (DLT)  │
-                    │                  │       └─ mirante.silver.ipca_deflators_2021
+                    │                  │       └─ mirante_prd.silver.ipca_deflators_2021
                     └──────────────────┘                          │
                                                                   ▼
                     ┌─ download_cgu ───┐                       ┌──────────────────────┐
-                    │                  ├──→ dlt_pbf_medallion ─→ mirante.gold.       │
+                    │                  ├──→ dlt_pbf_medallion ─→ mirante_prd.gold.       │
                     │                  │       (DLT bronze→     │ pbf_estados_df     │
                     │                  │       silver→gold)     └──────────────────────┘
                     └──────────────────┘                                  │
@@ -27,7 +27,7 @@ JSON gold que é gerado por um job aqui.
                                                               export_pbf_json (notebook)
                                                                           │
                                                                           ▼
-                                                  /Volumes/mirante/gold/exports/
+                                                  /Volumes/mirante_prd/gold/exports/
                                                        gold_pbf_estados_df.json
                                                                           │
                                                                           ▼ (GH Action puxa)
@@ -58,7 +58,7 @@ pipelines/
 ## Unity Catalog layout
 
 ```
-mirante (catalog)
+mirante_prd (catalog)
 ├── bronze
 │   ├── ibge_populacao_raw          ← raw IBGE JSON (1 linha de struct)
 │   ├── bcb_ipca_raw                ← raw BCB IPCA JSON
@@ -77,12 +77,12 @@ mirante (catalog)
 ## Volumes
 
 ```
-mirante.bronze.raw   (HTTP downloads landing zone)
+mirante_prd.bronze.raw   (HTTP downloads landing zone)
   ├── ibge/populacao_uf.json
   ├── bcb/ipca_mensal.json
   └── cgu/pbf/{PBF,AUX_BR,NBF}_YYYY_MM.zip      (~150 arquivos)
 
-mirante.gold.exports (front-facing exports)
+mirante_prd.gold.exports (front-facing exports)
   └── gold_pbf_estados_df.json                  (puxado pelo GH Action)
 ```
 
@@ -135,7 +135,7 @@ databricks bundle run job_pbf_refresh --target dev
 
 ### 6. Verificar o JSON gerado
 ```bash
-databricks fs cp dbfs:/Volumes/mirante/gold/exports/gold_pbf_estados_df.json /tmp/check.json
+databricks fs cp dbfs:/Volumes/mirante_prd/gold/exports/gold_pbf_estados_df.json /tmp/check.json
 python3 -c "import json; d=json.load(open('/tmp/check.json')); print(len(d), d[0])"
 ```
 
@@ -163,7 +163,7 @@ git push  # dispara o GH Action de Pages → site atualiza com novo dado
 
 1. Crie `notebooks/mri/01_download_datasus.py` (HTTP/FTP fetch dos arquivos CNES)
 2. Crie `notebooks/mri/02_dlt_mri_medallion.py` (DLT bronze → silver → gold).
-   No gold, faça `spark.read.table("mirante.silver.populacao_uf_ano")` pra reutilizar a dim.
+   No gold, faça `spark.read.table("mirante_prd.silver.populacao_uf_ano")` pra reutilizar a dim.
 3. Crie `notebooks/mri/03_export_json.py` (mesmo padrão do PBF)
 4. Adicione no `databricks.yml`:
    - DLT pipeline `mri_dlt`
@@ -206,7 +206,7 @@ E atualizar o `databricks.yml` (`mirante.populacao.year_max: "2027"`) e redeploy
 **`bundle deploy` falha com "catalog not found"**
 → rode `bash scripts/databricks/bootstrap.sh` primeiro
 
-**DLT pipeline falha com "table not found: mirante.silver.populacao_uf_ano"**
+**DLT pipeline falha com "table not found: mirante_prd.silver.populacao_uf_ano"**
 → rode `job_populacao_refresh` antes do `job_pbf_refresh` (o gold do PBF lê dessa dim)
 
 **Download CGU retorna `missing` em todos**

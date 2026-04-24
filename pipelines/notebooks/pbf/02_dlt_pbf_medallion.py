@@ -5,15 +5,15 @@
 # MAGIC Materializa a esteira completa do vertical PBF:
 # MAGIC
 # MAGIC ```
-# MAGIC mirante.bronze.pbf_pagamentos       ← CSVs descomprimidos dos ZIPs CGU, normalizados
-# MAGIC mirante.silver.pbf_total_uf_mes     ← UF × Ano × Mes: n beneficiários, total pago
-# MAGIC mirante.gold.pbf_estados_df         ← UF × Ano: nominal, R$2021, perBenef, perCapita
+# MAGIC mirante_prd.bronze.pbf_pagamentos       ← CSVs descomprimidos dos ZIPs CGU, normalizados
+# MAGIC mirante_prd.silver.pbf_total_uf_mes     ← UF × Ano × Mes: n beneficiários, total pago
+# MAGIC mirante_prd.gold.pbf_estados_df         ← UF × Ano: nominal, R$2021, perBenef, perCapita
 # MAGIC ```
 # MAGIC
 # MAGIC ## Dependências externas (lidas de OUTROS pipelines)
 # MAGIC
-# MAGIC - `mirante.silver.populacao_uf_ano`     (refresh independente)
-# MAGIC - `mirante.silver.ipca_deflators_2021`  (refresh independente)
+# MAGIC - `mirante_prd.silver.populacao_uf_ano`     (refresh independente)
+# MAGIC - `mirante_prd.silver.ipca_deflators_2021`  (refresh independente)
 # MAGIC
 # MAGIC Lidos via `spark.read.table()`, **não** via `dlt.read()`, porque pertencem a pipelines DLT
 # MAGIC distintas. DLT registra a leitura como dependência cross-pipeline pra lineage.
@@ -22,7 +22,7 @@
 # MAGIC
 # MAGIC | chave | default | descrição |
 # MAGIC | --- | --- | --- |
-# MAGIC | `mirante.pbf.raw_path` | `/Volumes/mirante/bronze/raw/cgu/pbf` | onde os ZIPs CGU foram baixados |
+# MAGIC | `mirante.pbf.raw_path` | `/Volumes/mirante_prd/bronze/raw/cgu/pbf` | onde os ZIPs CGU foram baixados |
 
 # COMMAND ----------
 
@@ -34,13 +34,15 @@ from typing import Optional
 import dlt
 from pyspark.sql import functions as F, types as T
 
-RAW_PATH = spark.conf.get("mirante.pbf.raw_path", "/Volumes/mirante/bronze/raw/cgu/pbf")
-print(f"raw_path={RAW_PATH}")
+CATALOG       = spark.conf.get("mirante.catalog",                "mirante_prd")
+RAW_PATH      = spark.conf.get("mirante.pbf.raw_path",           f"/Volumes/{CATALOG}/bronze/raw/cgu/pbf")
+CSV_EXTRACTED = spark.conf.get("mirante.pbf.csv_extracted_path", f"/Volumes/{CATALOG}/bronze/raw/cgu/pbf_csv_extracted")
+print(f"catalog={CATALOG}  raw_path={RAW_PATH}  csv_extracted={CSV_EXTRACTED}")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Bronze · `mirante.bronze.pbf_pagamentos`
+# MAGIC ## Bronze · `mirante_prd.bronze.pbf_pagamentos`
 # MAGIC
 # MAGIC Lê todos os CSVs dentro dos ZIPs em `RAW_PATH`. Como Spark não lê ZIPs nativamente,
 # MAGIC esta task extrai os CSVs pra um Volume tmp e aponta o `spark.read.csv` pra ele.
@@ -122,7 +124,7 @@ def extract_zips_to_csv_dir(raw_dir: str, target_dir: str) -> list[dict]:
 
 
 @dlt.table(
-    name="mirante.bronze.pbf_pagamentos",
+    name=f"{CATALOG}.bronze.pbf_pagamentos",
     comment="Pagamentos PBF/Auxílio Brasil/NBF lidos dos ZIPs do Portal da Transparência (CGU). "
             "Normalização de headers + correção do swap nov/2021 + partição sintética PBF_AUX_SUM em 2021-11.",
     table_properties={"quality": "bronze"},
@@ -130,8 +132,7 @@ def extract_zips_to_csv_dir(raw_dir: str, target_dir: str) -> list[dict]:
 )
 def pbf_pagamentos():
     # Extract all ZIPs into a flat folder of CSVs (idempotent)
-    csv_dir = "/Volumes/mirante/bronze/raw/cgu/pbf_csv_extracted"
-    meta = extract_zips_to_csv_dir(RAW_PATH, csv_dir)
+    meta = extract_zips_to_csv_dir(RAW_PATH, CSV_EXTRACTED)
     if not meta:
         # Return empty conformant DataFrame so DLT doesn't fail on first run
         return spark.createDataFrame([], schema=T.StructType([
@@ -211,7 +212,7 @@ def pbf_pagamentos():
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Silver · `mirante.silver.pbf_total_uf_mes`
+# MAGIC ## Silver · `mirante_prd.silver.pbf_total_uf_mes`
 # MAGIC
 # MAGIC Aplica a regra de nov/2021 (PBF_AUX_SUM substitui PBF+AUX), parseia `valor_parcela` como Decimal,
 # MAGIC e agrega por (`mes_competencia`, `uf`):
@@ -222,7 +223,7 @@ def pbf_pagamentos():
 # COMMAND ----------
 
 @dlt.table(
-    name="mirante.silver.pbf_total_uf_mes",
+    name=f"{CATALOG}.silver.pbf_total_uf_mes",
     comment="Pagamentos PBF agregados por (Ano, Mes, UF). "
             "n_ano = beneficiários distintos por ano (chave = nis_favorecido, dígitos), repetido em cada mês.",
     table_properties={"quality": "silver"},
@@ -233,7 +234,7 @@ def pbf_pagamentos():
 @dlt.expect_or_drop("mes_valido",       "Mes BETWEEN 1 AND 12")
 @dlt.expect_or_drop("total_positivo",   "total_estado IS NOT NULL AND total_estado >= 0")
 def pbf_total_uf_mes():
-    src = dlt.read("mirante.bronze.pbf_pagamentos")
+    src = dlt.read(f"{CATALOG}.bronze.pbf_pagamentos")
 
     # Apply the nov/2021 origin rule:
     is_2021_11 = (F.col("ano") == 2021) & (F.col("mes") == 11)
@@ -276,7 +277,7 @@ def pbf_total_uf_mes():
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Gold · `mirante.gold.pbf_estados_df`
+# MAGIC ## Gold · `mirante_prd.gold.pbf_estados_df`
 # MAGIC
 # MAGIC Une silver + dims compartilhados:
 # MAGIC - PBF silver agrega ano/UF (já tem n_ano via Silver)
@@ -293,7 +294,7 @@ def pbf_total_uf_mes():
 # COMMAND ----------
 
 @dlt.table(
-    name="mirante.gold.pbf_estados_df",
+    name=f"{CATALOG}.gold.pbf_estados_df",
     comment="UF × Ano: PBF beneficiários, valor nominal (R$ bi), valor R$2021 (R$ bi), "
             "população (IBGE), PBF per beneficiário (R$ 2021), PBF per capita (R$ 2021). "
             "Schema bate com /data/gold/gold_pbf_estados_df.json no front.",
@@ -307,11 +308,11 @@ def pbf_total_uf_mes():
 @dlt.expect("per_capita_razoavel",        "pbfPerCapita BETWEEN 0 AND 5000")
 @dlt.expect("per_benef_razoavel",         "pbfPerBenef  BETWEEN 0 AND 50000")
 def pbf_estados_df():
-    silver = dlt.read("mirante.silver.pbf_total_uf_mes")
+    silver = dlt.read(f"{CATALOG}.silver.pbf_total_uf_mes")
 
-    # Cross-pipeline reads: dims compartilhadas
-    pop_dim  = spark.read.table("mirante.silver.populacao_uf_ano").select("Ano", "uf", "populacao")
-    defl_dim = spark.read.table("mirante.silver.ipca_deflators_2021").select("Ano", "deflator_to_2021")
+    # Cross-pipeline reads: dims compartilhadas (não usam dlt.read porque vivem em outro pipeline)
+    pop_dim  = spark.read.table(f"{CATALOG}.silver.populacao_uf_ano").select("Ano", "uf", "populacao")
+    defl_dim = spark.read.table(f"{CATALOG}.silver.ipca_deflators_2021").select("Ano", "deflator_to_2021")
 
     # Aggregate UF×Ano values from silver (silver was UF×Ano×Mes)
     valores = (

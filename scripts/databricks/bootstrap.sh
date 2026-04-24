@@ -1,76 +1,85 @@
 #!/usr/bin/env bash
-# Mirante dos Dados — bootstrap do Unity Catalog.
+# Mirante dos Dados — Unity Catalog bootstrap.
 #
-# Cria catalog, schemas e Volumes necessários antes do primeiro `databricks bundle deploy`.
-# Idempotente: usa "IF NOT EXISTS" em tudo. Pode rodar quantas vezes quiser.
+# Cria o catalog `mirante_prd` (se não existir), os 3 schemas (bronze/silver/gold)
+# e os 2 volumes (bronze.raw e gold.exports). Idempotente — pode rodar várias vezes.
+#
+# IMPORTANT: erros de verdade (ex: permissão, quota) NÃO são silenciados — eles
+# aparecem na saída pra você diagnosticar. Apenas a mensagem específica
+# "already exists" é tratada como sucesso.
 #
 # Pré-requisitos:
-#   - Databricks CLI instalado e autenticado:
-#       databricks configure --host https://dbc-cafe0a5f-07e3.cloud.databricks.com --token
-#   - Permissão pra criar catalogs no metastore (admin do workspace ou user com USE_METASTORE)
+#   - Databricks CLI v0.200+ instalado e autenticado
+#       (databricks current-user me deve voltar seu email)
+#   - User tem CREATE_CATALOG no metastore (Free Edition: sim por default no managed metastore)
 #
 # Uso:
-#   bash scripts/databricks/bootstrap.sh                  # default catalog "mirante"
-#   CATALOG=mirante_dev bash scripts/databricks/bootstrap.sh
+#   bash scripts/databricks/bootstrap.sh                  # default catalog "mirante_prd"
+#   CATALOG=outro_nome bash scripts/databricks/bootstrap.sh
 
 set -euo pipefail
 
-CATALOG="${CATALOG:-mirante}"
-
+CATALOG="${CATALOG:-mirante_prd}"
 echo "▸ catalog = ${CATALOG}"
 echo
 
-run_sql() {
-  local sql="$1"
-  echo "  SQL> ${sql}"
-  databricks sql-warehouses list --output JSON > /dev/null 2>&1 || true
-  # Use Databricks CLI's "sql" command via api/2.0/sql or via the SDK.
-  # Simpler & always-available: the workspace shell-equivalent via api 2.0 statement-execution.
-  # Easier still: use a small notebook task. But to keep this self-contained, we exec via the CLI.
-  databricks api post /api/2.0/sql/statements \
-    --json "{
-      \"statement\": $(printf '%s' "$sql" | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read()))'),
-      \"warehouse_id\": \"\${WAREHOUSE_ID:-}\"
-    }" > /dev/null && return 0 || true
-
-  # Fallback: use unity-catalog catalog/schema/volume create commands
+# Helper: run a databricks CLI command, treating "already exists" as success but
+# printing the real error otherwise.
+try_create() {
+  local label="$1"; shift
+  local out
+  if out=$("$@" 2>&1); then
+    echo "  ✔ ${label} created"
+    return 0
+  fi
+  if grep -qiE "already exists|RESOURCE_ALREADY_EXISTS" <<<"$out"; then
+    echo "  · ${label} already exists (skip)"
+    return 0
+  fi
+  echo "  ✗ ${label} failed:" >&2
+  echo "$out" | sed 's/^/    /' >&2
   return 1
 }
 
-# The CLI's catalog/schema/volume CRUD is the most portable path. Try those first.
+# 1. Catalog
 echo "▸ creating catalog ${CATALOG}…"
-databricks catalogs create --name "${CATALOG}" \
-  --comment "Mirante dos Dados — open public data lakehouse" 2>/dev/null \
-  || echo "  (already exists, skipping)"
+try_create "catalog ${CATALOG}" \
+  databricks catalogs create --json "{\"name\": \"${CATALOG}\", \"comment\": \"Mirante dos Dados — open public data lakehouse\"}"
 
 echo
+# 2. Schemas
 echo "▸ creating schemas…"
 for schema in bronze silver gold; do
-  databricks schemas create --catalog-name "${CATALOG}" --name "${schema}" \
-    --comment "Mirante ${schema} layer" 2>/dev/null \
-    || echo "  ${CATALOG}.${schema} (already exists)"
+  try_create "${CATALOG}.${schema}" \
+    databricks schemas create --json "{\"catalog_name\": \"${CATALOG}\", \"name\": \"${schema}\", \"comment\": \"Mirante ${schema} layer\"}"
 done
 
 echo
+# 3. Volumes
 echo "▸ creating volumes…"
-# raw inputs (HTTPs downloads)
-databricks volumes create --catalog-name "${CATALOG}" --schema-name bronze \
-  --name raw --volume-type MANAGED \
-  --comment "Raw HTTP downloads (ZIPs/JSONs from CGU/IBGE/BCB)" 2>/dev/null \
-  || echo "  ${CATALOG}.bronze.raw (already exists)"
+try_create "${CATALOG}.bronze.raw" \
+  databricks volumes create --json "{\"catalog_name\": \"${CATALOG}\", \"schema_name\": \"bronze\", \"name\": \"raw\", \"volume_type\": \"MANAGED\", \"comment\": \"Raw HTTP downloads (CGU ZIPs / IBGE / BCB JSONs)\"}"
 
-# gold exports (JSONs picked up by the GitHub Action)
-databricks volumes create --catalog-name "${CATALOG}" --schema-name gold \
-  --name exports --volume-type MANAGED \
-  --comment "Gold JSON exports — picked up by the front-end via GitHub Action" 2>/dev/null \
-  || echo "  ${CATALOG}.gold.exports (already exists)"
+try_create "${CATALOG}.gold.exports" \
+  databricks volumes create --json "{\"catalog_name\": \"${CATALOG}\", \"schema_name\": \"gold\", \"name\": \"exports\", \"volume_type\": \"MANAGED\", \"comment\": \"Gold JSON exports — picked up by GitHub Action\"}"
 
 echo
-echo "✔ Bootstrap complete."
+# 4. Verification
+echo "▸ verifying…"
+echo "  catalogs containing '${CATALOG}':"
+databricks catalogs list 2>/dev/null | grep -E "^${CATALOG}\b" | sed 's/^/    /' || echo "    (none — bootstrap may have failed)"
+echo "  schemas in ${CATALOG}:"
+databricks schemas list "${CATALOG}" 2>/dev/null | sed 's/^/    /' | head -10 || true
+echo "  volumes in ${CATALOG}:"
+databricks volumes list "${CATALOG}" bronze 2>/dev/null | sed 's/^/    /' | head -5 || true
+databricks volumes list "${CATALOG}" gold   2>/dev/null | sed 's/^/    /' | head -5 || true
+
+echo
+echo "✔ Bootstrap done."
 echo
 echo "Next steps:"
 echo "  cd pipelines"
 echo "  databricks bundle deploy --target dev"
-echo "  databricks bundle run job_populacao_refresh --target dev   # warm shared dim 1"
-echo "  databricks bundle run job_ipca_refresh      --target dev   # warm shared dim 2"
-echo "  databricks bundle run job_pbf_refresh       --target dev   # full PBF E2E"
+echo "  databricks bundle run job_populacao_refresh --target dev"
+echo "  databricks bundle run job_ipca_refresh      --target dev"
+echo "  databricks bundle run job_pbf_refresh       --target dev"

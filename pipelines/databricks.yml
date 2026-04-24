@@ -19,16 +19,16 @@ bundle:
 
 variables:
   catalog:
-    description: "Unity Catalog catalog name (default mirante)"
-    default: mirante
+    description: "Unity Catalog catalog name"
+    default: mirante_prd
 
   raw_root:
     description: UC Volume root for raw downloads (one-shot files from APIs/CGU)
-    default: /Volumes/mirante/bronze/raw
+    default: /Volumes/mirante_prd/bronze/raw
 
   exports_root:
     description: UC Volume path where the front's gold JSONs are written
-    default: /Volumes/mirante/gold/exports
+    default: /Volumes/mirante_prd/gold/exports
 
   notification_email:
     description: Email for job/pipeline failure alerts (optional)
@@ -64,9 +64,10 @@ resources:
         - notebook:
             path: ./notebooks/populacao_uf_ano/02_dlt_populacao_uf_ano.py
       configuration:
-        "mirante.populacao.raw_path": "${var.raw_root}/ibge/populacao_uf.json"
-        "mirante.populacao.year_min": "2013"
-        "mirante.populacao.year_max": "2026"
+        "mirante.catalog":             "${var.catalog}"
+        "mirante.populacao.raw_path":  "${var.raw_root}/ibge/populacao_uf.json"
+        "mirante.populacao.year_min":  "2013"
+        "mirante.populacao.year_max":  "2026"
 
     ipca_deflators_2021_dlt:
       name: mirante_ipca_deflators_2021
@@ -79,9 +80,10 @@ resources:
         - notebook:
             path: ./notebooks/ipca_deflators_2021/02_dlt_ipca_deflators.py
       configuration:
-        "mirante.ipca.raw_path": "${var.raw_root}/bcb/ipca_mensal.json"
-        "mirante.ipca.year_min": "2013"
-        "mirante.ipca.year_max": "2026"
+        "mirante.catalog":         "${var.catalog}"
+        "mirante.ipca.raw_path":   "${var.raw_root}/bcb/ipca_mensal.json"
+        "mirante.ipca.year_min":   "2013"
+        "mirante.ipca.year_max":   "2026"
 
     pbf_dlt:
       name: mirante_pbf
@@ -94,7 +96,9 @@ resources:
         - notebook:
             path: ./notebooks/pbf/02_dlt_pbf_medallion.py
       configuration:
+        "mirante.catalog":      "${var.catalog}"
         "mirante.pbf.raw_path": "${var.raw_root}/cgu/pbf"
+        "mirante.pbf.csv_extracted_path": "${var.raw_root}/cgu/pbf_csv_extracted"
 
   # ─────────────────── Jobs (orchestration) ───────────────────
   jobs:

@@ -79,7 +79,7 @@ print(match[0]['job_id'])")
           set -euo pipefail
           mkdir -p data/gold
           databricks fs cp \
-            "dbfs:/Volumes/mirante/gold/exports/gold_pbf_estados_df.json" \
+            "dbfs:/Volumes/mirante_prd/gold/exports/gold_pbf_estados_df.json" \
             "data/gold/gold_pbf_estados_df.json" \
             --overwrite
           ls -la data/gold/

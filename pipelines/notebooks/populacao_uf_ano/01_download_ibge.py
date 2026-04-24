@@ -22,7 +22,7 @@
 
 dbutils.widgets.text("start_year",  "2013")
 dbutils.widgets.text("end_year",    "2026")
-dbutils.widgets.text("volume_path", "/Volumes/mirante/bronze/raw/ibge")
+dbutils.widgets.text("volume_path", "/Volumes/mirante_prd/bronze/raw/ibge")
 
 START_YEAR  = int(dbutils.widgets.get("start_year"))
 END_YEAR    = int(dbutils.widgets.get("end_year"))

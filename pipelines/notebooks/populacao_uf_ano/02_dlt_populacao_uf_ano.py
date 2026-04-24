@@ -5,8 +5,8 @@
 # MAGIC Materializa duas tabelas:
 # MAGIC
 # MAGIC ```
-# MAGIC mirante.bronze.ibge_populacao_raw   ← raw payload IBGE (JSON estruturado)
-# MAGIC mirante.silver.populacao_uf_ano     ← UF × Ano com interpolação linear de gaps
+# MAGIC mirante_prd.bronze.ibge_populacao_raw   ← raw payload IBGE (JSON estruturado)
+# MAGIC mirante_prd.silver.populacao_uf_ano     ← UF × Ano com interpolação linear de gaps
 # MAGIC ```
 # MAGIC
 # MAGIC ## Lógica de preenchimento
@@ -25,7 +25,7 @@
 # MAGIC Configurados via `databricks.yml` em `configuration:`:
 # MAGIC | chave | default | descrição |
 # MAGIC | --- | --- | --- |
-# MAGIC | `mirante.populacao.raw_path` | `/Volumes/mirante/bronze/raw/ibge/populacao_uf.json` | onde o JSON foi gravado |
+# MAGIC | `mirante.populacao.raw_path` | `/Volumes/mirante_prd/bronze/raw/ibge/populacao_uf.json` | onde o JSON foi gravado |
 # MAGIC | `mirante.populacao.year_min` | `2013` | primeiro ano do panel completo |
 # MAGIC | `mirante.populacao.year_max` | `2026` | último ano (Spark cria o grid completo) |
 
@@ -34,21 +34,22 @@
 import dlt
 from pyspark.sql import functions as F, Window
 
-RAW_PATH = spark.conf.get("mirante.populacao.raw_path", "/Volumes/mirante/bronze/raw/ibge/populacao_uf.json")
+CATALOG  = spark.conf.get("mirante.catalog", "mirante_prd")
+RAW_PATH = spark.conf.get("mirante.populacao.raw_path", f"/Volumes/{CATALOG}/bronze/raw/ibge/populacao_uf.json")
 YEAR_MIN = int(spark.conf.get("mirante.populacao.year_min", "2013"))
 YEAR_MAX = int(spark.conf.get("mirante.populacao.year_max", "2026"))
 
-print(f"raw={RAW_PATH}  year_min={YEAR_MIN}  year_max={YEAR_MAX}")
+print(f"catalog={CATALOG}  raw={RAW_PATH}  year_min={YEAR_MIN}  year_max={YEAR_MAX}")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Bronze · `mirante.bronze.ibge_populacao_raw`
+# MAGIC ## Bronze · `mirante_prd.bronze.ibge_populacao_raw`
 
 # COMMAND ----------
 
 @dlt.table(
-    name="mirante.bronze.ibge_populacao_raw",
+    name=f"{CATALOG}.bronze.ibge_populacao_raw",
     comment="Raw payload from IBGE/SIDRA Agregados (6579, var 9324). One JSON per refresh.",
     table_properties={"quality": "bronze"},
 )
@@ -60,7 +61,7 @@ def ibge_populacao_raw():
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Silver · `mirante.silver.populacao_uf_ano`
+# MAGIC ## Silver · `mirante_prd.silver.populacao_uf_ano`
 
 # COMMAND ----------
 
@@ -73,7 +74,7 @@ UF_ID_TO_SIGLA = {
 }
 
 @dlt.table(
-    name="mirante.silver.populacao_uf_ano",
+    name=f"{CATALOG}.silver.populacao_uf_ano",
     comment="População residente estimada por UF × Ano (IBGE/SIDRA tabela 6579, variável 9324). "
             "Anos não publicados pelo IBGE são preenchidos via interpolação linear entre vizinhos "
             "conhecidos; carry-forward/backward nas bordas.",
@@ -84,7 +85,7 @@ UF_ID_TO_SIGLA = {
 @dlt.expect_or_drop("populacao_positiva", "populacao IS NOT NULL AND populacao > 0")
 @dlt.expect("ano_dentro_do_range_pedido", f"Ano BETWEEN {YEAR_MIN} AND {YEAR_MAX}")
 def populacao_uf_ano():
-    src = dlt.read("mirante.bronze.ibge_populacao_raw")
+    src = dlt.read(f"{CATALOG}.bronze.ibge_populacao_raw")
 
     # Explode resultados[].series[] → (uf_id, serie_map)
     df = (

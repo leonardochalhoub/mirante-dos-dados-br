@@ -25,8 +25,8 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("output_path", "/Volumes/mirante/gold/exports/gold_pbf_estados_df.json")
-dbutils.widgets.text("gold_table",  "mirante.gold.pbf_estados_df")
+dbutils.widgets.text("output_path", "/Volumes/mirante_prd/gold/exports/gold_pbf_estados_df.json")
+dbutils.widgets.text("gold_table",  "mirante_prd.gold.pbf_estados_df")
 
 OUTPUT_PATH = dbutils.widgets.get("output_path")
 GOLD_TABLE  = dbutils.widgets.get("gold_table")

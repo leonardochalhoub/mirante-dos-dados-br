@@ -26,7 +26,7 @@
 dbutils.widgets.text("pbf_years",   "2013-2021")
 dbutils.widgets.text("aux_years",   "2021-2023")
 dbutils.widgets.text("nbf_years",   "2023-2026")
-dbutils.widgets.text("volume_path", "/Volumes/mirante/bronze/raw/cgu/pbf")
+dbutils.widgets.text("volume_path", "/Volumes/mirante_prd/bronze/raw/cgu/pbf")
 dbutils.widgets.text("workers",     "4")
 
 PBF_YEARS   = dbutils.widgets.get("pbf_years")
