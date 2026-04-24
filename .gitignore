@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.vite/
+.env*.local
+.DS_Store
+*.log
+
+# Vite copies these from /data/gold at prebuild — source of truth lives there.
+app/public/data/
+
+# Python (pipelines)
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
