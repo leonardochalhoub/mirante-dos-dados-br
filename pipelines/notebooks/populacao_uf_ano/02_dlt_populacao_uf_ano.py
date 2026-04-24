@@ -32,7 +32,7 @@
 # COMMAND ----------
 
 import dlt
-from pyspark.sql import functions as F, Window
+from pyspark.sql import functions as F, types as T, Window
 
 CATALOG  = spark.conf.get("mirante.catalog", "mirante_prd")
 RAW_PATH = spark.conf.get("mirante.populacao.raw_path", f"/Volumes/{CATALOG}/bronze/raw/ibge/populacao_uf.json")
@@ -87,19 +87,26 @@ UF_ID_TO_SIGLA = {
 def populacao_uf_ano():
     src = dlt.read(f"{CATALOG}.bronze.ibge_populacao_raw")
 
-    # Explode resultados[].series[] → (uf_id, serie_map)
+    # Explode resultados[].series[] → (uf_id, serie_struct)
     df = (
         src.select(F.explode("resultados").alias("r"))
            .select(F.explode(F.col("r.series")).alias("s"))
            .select(
                F.col("s.localidade.id").alias("uf_id"),
-               F.col("s.serie").alias("serie_map"),
+               F.col("s.serie").alias("serie_struct"),
            )
     )
 
-    # Explode the year→value map
-    df = df.select("uf_id", F.explode("serie_map").alias("ano_str", "valor_str"))
-    df = df.where(F.col("valor_str").isNotNull() & (F.col("valor_str") != "..."))
+    # IBGE returns serie as a JSON object with year-string keys (e.g. {"2013": "776463"}).
+    # Spark's JSON inference creates a STRUCT with fixed fields per year (changes across responses!),
+    # which doesn't work with explode(). Round-trip via JSON to a real MapType so explode works.
+    SERIE_MAP = T.MapType(T.StringType(), T.StringType())
+    df = (
+        df.withColumn("serie_json", F.to_json("serie_struct"))
+          .withColumn("serie_map",  F.from_json("serie_json", SERIE_MAP))
+          .select("uf_id", F.explode("serie_map").alias("ano_str", "valor_str"))
+          .where(F.col("valor_str").isNotNull() & (F.col("valor_str") != "..."))
+    )
 
     sigla_expr = F.create_map(*[v for pair in UF_ID_TO_SIGLA.items() for v in (F.lit(pair[0]), F.lit(pair[1]))])
     df = (
