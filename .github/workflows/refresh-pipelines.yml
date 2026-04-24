@@ -1,0 +1,108 @@
+name: Refresh Databricks pipelines + commit gold
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_name:
+        description: "Which job to trigger (mirante · refresh PBF, ...)"
+        required: true
+        default: "mirante · refresh PBF (download → DLT → export)"
+        type: string
+
+  schedule:
+    # Day 20 each month at 06:00 UTC (~03:00 BRT). CGU usually has the prior month by then.
+    - cron: "0 6 20 * *"
+
+permissions:
+  contents: write    # needed to commit the refreshed gold JSON back to data/gold/
+
+env:
+  DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL https://github.com/databricks/cli/releases/latest/download/databricks_cli_linux_amd64.tar.gz \
+            | tar -xz -C "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          databricks --version
+
+      - name: Trigger Databricks job + wait
+        id: run_job
+        env:
+          JOB_NAME: ${{ github.event.inputs.job_name || 'mirante · refresh PBF (download → DLT → export)' }}
+        run: |
+          set -euo pipefail
+          # Find job_id by name (DAB-deployed jobs use the names from databricks.yml)
+          JOB_ID=$(databricks jobs list --output JSON \
+            | python3 -c "
+import json, sys, os
+target = os.environ['JOB_NAME']
+jobs = json.load(sys.stdin).get('jobs', [])
+match = [j for j in jobs if j.get('settings', {}).get('name') == target]
+if not match: sys.exit(f'Job not found: {target}')
+print(match[0]['job_id'])")
+          echo "Triggering job_id=$JOB_ID ($JOB_NAME)"
+
+          # Run-now and poll until terminal state
+          RUN_ID=$(databricks jobs run-now --job-id "$JOB_ID" --output JSON \
+            | python3 -c "import json,sys; print(json.load(sys.stdin)['run_id'])")
+          echo "run_id=$RUN_ID" | tee -a "$GITHUB_OUTPUT"
+
+          while true; do
+            STATE=$(databricks jobs get-run --run-id "$RUN_ID" --output JSON \
+              | python3 -c "import json,sys; r=json.load(sys.stdin); s=r.get('state',{}); print(s.get('life_cycle_state',''), s.get('result_state',''))")
+            LC=$(echo "$STATE" | awk '{print $1}')
+            RS=$(echo "$STATE" | awk '{print $2}')
+            echo "  poll: life_cycle=$LC result=$RS"
+            case "$LC" in
+              TERMINATED|INTERNAL_ERROR|SKIPPED)
+                if [ "$RS" != "SUCCESS" ]; then
+                  echo "Job ended with result_state=$RS — failing the workflow."
+                  exit 1
+                fi
+                break ;;
+              *)
+                sleep 30 ;;
+            esac
+          done
+
+      - name: Pull gold JSON from Volume
+        run: |
+          set -euo pipefail
+          mkdir -p data/gold
+          databricks fs cp \
+            "dbfs:/Volumes/mirante/gold/exports/gold_pbf_estados_df.json" \
+            "data/gold/gold_pbf_estados_df.json" \
+            --overwrite
+          ls -la data/gold/
+          echo "---"
+          python3 -c "
+import json
+with open('data/gold/gold_pbf_estados_df.json') as f: d=json.load(f)
+print(f'rows={len(d)}, sample={d[0] if d else None}')"
+
+      - name: Commit & push if changed
+        run: |
+          set -euo pipefail
+          git config user.name  "mirante-refresh-bot"
+          git config user.email "mirante-refresh-bot@users.noreply.github.com"
+
+          if git diff --quiet -- data/gold/; then
+            echo "No changes in data/gold/, nothing to commit."
+            exit 0
+          fi
+
+          DATESTAMP=$(date -u +"%Y-%m-%d")
+          git add data/gold/
+          git commit -m "chore(data): refresh gold JSONs (${DATESTAMP})" \
+                     -m "Auto-refreshed by GitHub Actions from Databricks pipeline" \
+                     -m "Co-Authored-By: mirante-refresh-bot <noreply@github.com>"
+          git push

@@ -1,0 +1,185 @@
+# Mirante dos Dados — Databricks Asset Bundle
+#
+# Defines:
+#   - 3 DLT (Lakeflow Declarative Pipelines) — independent, parameterized refresh:
+#       * populacao_uf_ano_dlt        (shared dimension, refresh ~yearly)
+#       * ipca_deflators_2021_dlt     (shared dimension, refresh ~monthly)
+#       * pbf_dlt                     (vertical, refresh monthly)
+#   - 3 Jobs that orchestrate (download → DLT → optional export):
+#       * job_populacao_refresh
+#       * job_ipca_refresh
+#       * job_pbf_refresh             (also exports gold to JSON for the front)
+#
+# Deploy from your machine:
+#   cd pipelines && databricks bundle deploy --target dev
+#   databricks bundle run job_pbf_refresh --target dev
+
+bundle:
+  name: mirante-dos-dados
+
+variables:
+  catalog:
+    description: Unity Catalog catalog name (default: mirante)
+    default: mirante
+
+  raw_root:
+    description: UC Volume root for raw downloads (one-shot files from APIs/CGU)
+    default: /Volumes/mirante/bronze/raw
+
+  exports_root:
+    description: UC Volume path where the front's gold JSONs are written
+    default: /Volumes/mirante/gold/exports
+
+  notification_email:
+    description: Email for job/pipeline failure alerts (optional)
+    default: ""
+
+# ─── Targets ───────────────────────────────────────────────────────────────
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-cafe0a5f-07e3.cloud.databricks.com
+
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-cafe0a5f-07e3.cloud.databricks.com
+    run_as:
+      user_name: ${workspace.current_user.userName}
+
+# ─── Resources ─────────────────────────────────────────────────────────────
+resources:
+  # ─────────────────── DLT pipelines ───────────────────
+  pipelines:
+    populacao_uf_ano_dlt:
+      name: mirante_populacao_uf_ano
+      catalog: ${var.catalog}
+      target: silver           # default schema for tables that don't fully-qualify
+      serverless: true
+      photon: true
+      development: false
+      libraries:
+        - notebook:
+            path: ./notebooks/populacao_uf_ano/02_dlt_populacao_uf_ano.py
+      configuration:
+        "mirante.populacao.raw_path": "${var.raw_root}/ibge/populacao_uf.json"
+        "mirante.populacao.year_min": "2013"
+        "mirante.populacao.year_max": "2026"
+
+    ipca_deflators_2021_dlt:
+      name: mirante_ipca_deflators_2021
+      catalog: ${var.catalog}
+      target: silver
+      serverless: true
+      photon: true
+      development: false
+      libraries:
+        - notebook:
+            path: ./notebooks/ipca_deflators_2021/02_dlt_ipca_deflators.py
+      configuration:
+        "mirante.ipca.raw_path": "${var.raw_root}/bcb/ipca_mensal.json"
+        "mirante.ipca.year_min": "2013"
+        "mirante.ipca.year_max": "2026"
+
+    pbf_dlt:
+      name: mirante_pbf
+      catalog: ${var.catalog}
+      target: silver           # PBF tables use fully-qualified names anyway
+      serverless: true
+      photon: true
+      development: false
+      libraries:
+        - notebook:
+            path: ./notebooks/pbf/02_dlt_pbf_medallion.py
+      configuration:
+        "mirante.pbf.raw_path": "${var.raw_root}/cgu/pbf"
+
+  # ─────────────────── Jobs (orchestration) ───────────────────
+  jobs:
+    job_populacao_refresh:
+      name: mirante · refresh populacao_uf_ano
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: download_ibge
+          notebook_task:
+            notebook_path: ./notebooks/populacao_uf_ano/01_download_ibge.py
+            base_parameters:
+              start_year: "2013"
+              end_year: "2026"
+              volume_path: "${var.raw_root}/ibge"
+
+        - task_key: dlt_populacao
+          depends_on:
+            - task_key: download_ibge
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.populacao_uf_ano_dlt.id}
+
+      # Manually-triggered or yearly cron (when IBGE publishes new estimates around July)
+      schedule:
+        quartz_cron_expression: "0 0 6 1 7 ?"   # 6h UTC on Jul 1 every year
+        timezone_id: UTC
+        pause_status: PAUSED                    # start unpaused only when ready
+
+    job_ipca_refresh:
+      name: mirante · refresh ipca_deflators_2021
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: download_bcb
+          notebook_task:
+            notebook_path: ./notebooks/ipca_deflators_2021/01_download_bcb.py
+            base_parameters:
+              volume_path: "${var.raw_root}/bcb"
+
+        - task_key: dlt_ipca
+          depends_on:
+            - task_key: download_bcb
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.ipca_deflators_2021_dlt.id}
+
+      # Monthly cron (BCB publishes IPCA monthly, around day 10)
+      schedule:
+        quartz_cron_expression: "0 0 6 15 * ?"  # 6h UTC on day 15 of every month
+        timezone_id: UTC
+        pause_status: PAUSED
+
+    job_pbf_refresh:
+      name: mirante · refresh PBF (download → DLT → export)
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: download_cgu
+          notebook_task:
+            notebook_path: ./notebooks/pbf/01_download_cgu.py
+            base_parameters:
+              pbf_years:   "2013-2021"
+              aux_years:   "2021-2023"
+              nbf_years:   "2023-2026"
+              volume_path: "${var.raw_root}/cgu/pbf"
+              workers: "4"
+
+        - task_key: dlt_pbf
+          depends_on:
+            - task_key: download_cgu
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.pbf_dlt.id}
+
+        - task_key: export_pbf_json
+          depends_on:
+            - task_key: dlt_pbf
+          notebook_task:
+            notebook_path: ./notebooks/pbf/03_export_json.py
+            base_parameters:
+              gold_table: "${var.catalog}.gold.pbf_estados_df"
+              output_path: "${var.exports_root}/gold_pbf_estados_df.json"
+
+      # Monthly cron — CGU publishes new month around day 5-10
+      schedule:
+        quartz_cron_expression: "0 0 6 20 * ?"  # 6h UTC on day 20 of every month
+        timezone_id: UTC
+        pause_status: PAUSED
+
+# ─── Permissions (optional, only run if you want broader access) ───────────
+# permissions:
+#   - level: CAN_VIEW
+#     group_name: users
