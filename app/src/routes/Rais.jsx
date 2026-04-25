@@ -395,28 +395,38 @@ function ScoreCard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14, fontSize: 12.5 }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#059669', marginBottom: 6 }}>
-            ✓ Melhorias vs. monografia original
+            ✓ Pontos fortes
           </div>
           <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-            {PARECER_RAIS.melhorias_vs_original.map((m, i) => <li key={i}>{m}</li>)}
+            {(PARECER_RAIS.pontos_fortes || []).map((m, i) => <li key={i}>{m}</li>)}
           </ul>
         </div>
         <div>
           <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b45309', marginBottom: 6 }}>
-            ⚠ Pendências para alcançar plenamente o nível da monografia
+            ⚠ Pendências para nota 8 (lato sensu)
           </div>
           <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-            {PARECER_RAIS.pendencias_para_aprovacao_plena_lato_sensu.map((p, i) => <li key={i}>{p}</li>)}
+            {(PARECER_RAIS.problemas_que_impedem_nota_8 || []).map((p, i) => <li key={i}>{p}</li>)}
           </ul>
         </div>
         <div>
           <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#1d4ed8', marginBottom: 6 }}>
-            ★ Pendências adicionais para atingir nível stricto sensu (mestrado)
+            ★ Pendências para nota 9 / doutorado (stricto sensu)
           </div>
           <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-            {PARECER_RAIS.pendencias_para_nivel_mestrado.map((p, i) => <li key={i}>{p}</li>)}
+            {(PARECER_RAIS.problemas_que_impedem_nota_9_e_doutorado || []).map((p, i) => <li key={i}>{p}</li>)}
           </ul>
         </div>
+        {PARECER_RAIS.proximos_passos_concretos && PARECER_RAIS.proximos_passos_concretos.length > 0 && (
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 }}>
+              → Próximos passos concretos
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
+              {PARECER_RAIS.proximos_passos_concretos.map((p, i) => <li key={i}>{p}</li>)}
+            </ul>
+          </div>
+        )}
       </div>
     </section>
   );
