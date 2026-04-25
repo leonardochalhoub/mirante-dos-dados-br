@@ -1015,8 +1015,10 @@ button.primary:hover { filter: brightness(1.05); }
   line-height: 1.45;
 }
 
-/* TOC / lista de figuras / lista de tabelas — estilo ABNT */
-.article-toc { margin: 18px 0 24px; }
+/* TOC / lista de figuras / lista de tabelas — estilo ABNT
+   Grid 3 colunas:  [num fixo] [label flex + dots] [page fixo]
+   Garante alinhamento perfeito mesmo com larguras diferentes ("1.1.1" vs "Figura 10"). */
+.article-toc { margin: 20px 0 28px; }
 .article-toc-list {
   list-style: none;
   padding: 0;
@@ -1024,43 +1026,67 @@ button.primary:hover { filter: brightness(1.05); }
   font-size: 13px;
 }
 .toc-row {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 3px 0;
   font-variant-numeric: tabular-nums;
+  padding: 0;
+  margin: 0;
 }
-.toc-row a {
-  display: flex;
+.toc-row a,
+.toc-row > span:first-child + span,
+.toc-row {
+  display: grid;
+  grid-template-columns: 88px 1fr 44px;
   align-items: baseline;
-  gap: 6px;
+  gap: 0;
   width: 100%;
   color: var(--text);
   text-decoration: none;
+  padding: 4px 0;
 }
-.toc-row a:hover { color: var(--link); }
-.toc-row-l1 { font-weight: 600; }
-.toc-row-l2 { padding-left: 18px; font-weight: 400; font-size: 12.5px; }
+.toc-row a {
+  padding: 0;  /* parent <li> já paga o padding */
+}
+.toc-row a:hover .toc-label { color: var(--link); }
+.toc-row-l1 .toc-num,
+.toc-row-l1 .toc-label { font-weight: 600; color: var(--text); }
+.toc-row-l2 { padding-left: 18px; }
+.toc-row-l2 .toc-num,
+.toc-row-l2 .toc-label { font-weight: 400; color: var(--text); font-size: 12.5px; }
+
 .toc-num {
-  flex: 0 0 auto;
-  min-width: 70px;
+  text-align: left;
   font-weight: 700;
-  color: var(--muted);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 8px;
 }
-.toc-row-l2 .toc-num { min-width: 36px; }
-.toc-label { flex: 0 1 auto; }
-.toc-leader {
+/* Numbers like "Figura 10" / "Tabela 5" need more space */
+.article-list-figures .toc-num,
+.article-list-tables .toc-num { min-width: 84px; }
+
+.toc-label {
+  display: flex;
+  align-items: baseline;
+  overflow: hidden;
+  min-width: 0;
+}
+.toc-label::after {
+  content: "";
   flex: 1 1 auto;
-  border-bottom: 1px dotted var(--faint);
-  height: 0.65em;
-  min-width: 12px;
+  border-bottom: 1.5px dotted var(--faint);
+  height: 0.5em;
+  margin: 0 6px 0 8px;
+  min-width: 16px;
 }
+/* When .toc-leader span is also there (legacy), hide it — ::after handles it now */
+.toc-leader { display: none; }
+
 .toc-page {
-  flex: 0 0 auto;
-  min-width: 28px;
   text-align: right;
-  font-weight: 600;
-  color: var(--muted);
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
 }
 
 .article-glossary {
@@ -1090,9 +1116,63 @@ button.primary:hover { filter: brightness(1.05); }
 }
 @media print {
   .print-only-article .article-figure svg { border: 0.5pt solid #000; border-radius: 0; }
-  .print-only-article .toc-leader { border-bottom: 0.5pt dotted #555; }
-  .print-only-article .toc-num,
-  .print-only-article .toc-page { color: #000; }
+
+  /* Sumário / Lista de Figuras / Lista de Tabelas (ABNT print) */
+  .print-only-article .article-toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 12pt;
+  }
+  .print-only-article .toc-row,
+  .print-only-article .toc-row a {
+    display: grid !important;
+    grid-template-columns: 90pt 1fr 36pt;
+    align-items: baseline;
+    gap: 0;
+    padding: 3pt 0;
+    color: #000 !important;
+    text-decoration: none;
+    line-height: 1.2;
+    page-break-inside: avoid;
+  }
+  .print-only-article .toc-row a { padding: 0; }
+  .print-only-article .toc-row-l1 .toc-num,
+  .print-only-article .toc-row-l1 .toc-label { font-weight: bold; }
+  .print-only-article .toc-row-l2 { padding-left: 18pt; }
+  .print-only-article .toc-row-l2 .toc-num,
+  .print-only-article .toc-row-l2 .toc-label { font-weight: normal; }
+  .print-only-article .article-list-figures .toc-num,
+  .print-only-article .article-list-tables .toc-num { font-weight: bold; }
+
+  .print-only-article .toc-num {
+    text-align: left;
+    color: #000;
+    white-space: nowrap;
+    padding-right: 8pt;
+  }
+  .print-only-article .toc-label {
+    display: flex;
+    align-items: baseline;
+    overflow: hidden;
+    color: #000;
+    min-width: 0;
+  }
+  .print-only-article .toc-label::after {
+    content: "";
+    flex: 1 1 auto;
+    border-bottom: 0.5pt dotted #000;
+    height: 0.5em;
+    margin: 0 6pt 0 8pt;
+    min-width: 16pt;
+  }
+  .print-only-article .toc-page {
+    text-align: right;
+    color: #000;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+  .print-only-article .toc-leader { display: none; }
 }
 
 .article-footnote {
@@ -1104,8 +1184,19 @@ button.primary:hover { filter: brightness(1.05); }
 }
 .article-footnote p { margin: 0 0 8px; }
 
-/* Element kept rendered for print() but hidden on screen. */
-.print-only-article { display: none; }
+/* Element kept rendered for print() but hidden on screen.
+   IMPORTANT: NOT display:none — that would prevent SVGs/tables from being
+   measured properly during print rendering. We move it off-screen with
+   position absolute and aria-hidden the content. */
+.print-only-article {
+  position: absolute;
+  left: -100000px;
+  top: 0;
+  width: 800px;     /* approximate A4 content width — gives SVG viewBoxes room */
+  height: auto;
+  overflow: hidden;
+  pointer-events: none;
+}
 
 /* ─── ABNT-compliant print rules ──────────────────────────────────────────
    NBR 14724 / NBR 6022 (artigo científico):
@@ -1155,10 +1246,15 @@ button.primary:hover { filter: brightness(1.05); }
     display: block !important;
     visibility: visible !important;
     position: static !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
     color: black !important;
+    pointer-events: auto !important;
   }
   .print-only-article * { visibility: visible !important; }
 

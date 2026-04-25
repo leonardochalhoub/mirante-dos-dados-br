@@ -283,7 +283,20 @@ function DocSection() {
           <button
             type="button"
             className="doc-toggle doc-toggle-primary"
-            onClick={() => window.print()}
+            onClick={() => {
+              // Browser usa document.title como nome sugerido do PDF.
+              // Salvamos o original e restauramos após o diálogo fechar.
+              const orig = document.title;
+              const today = new Date().toISOString().slice(0, 10);
+              document.title = `Mirante-Emendas-Parlamentares-Chalhoub-${today}`;
+              const restore = () => {
+                document.title = orig;
+                window.removeEventListener('afterprint', restore);
+              };
+              window.addEventListener('afterprint', restore);
+              // Pequeno delay garante que o título atualizado é capturado pelo dialog.
+              setTimeout(() => window.print(), 50);
+            }}
             title="Imprimir / salvar como PDF (formatado em padrão ABNT)"
           >
             ⤓ Baixar PDF (ABNT)

@@ -243,56 +243,80 @@ function FigurePerCapita() {
 }
 
 function FigureTimeline() {
-  const W = 680, H = 200;
+  // Cada evento ganha uma "lane" vertical própria pra evitar colisão de labels
+  // (eventos 2019/2020/2022 estão muito próximos na escala temporal).
+  // lane: 0 = mais perto do eixo, 1 = médio, 2 = longe
   const events = [
-    { year: 1988, label: 'CF/88',           desc: 'Art. 166: emendas\nautorizativas' },
-    { year: 2015, label: 'EC 86',           desc: '1,2% RCL impositivo\n(individuais RP6)' },
-    { year: 2019, label: 'EC 100',          desc: '+1% RCL impositivo\n(bancada RP7)' },
-    { year: 2020, label: 'Pico RP9',        desc: 'Modalidade relator\nem expansão' },
-    { year: 2022, label: 'STF · ADPFs',     desc: 'Inconstituc. RP9\n("orçamento secreto")' },
-    { year: 2024, label: 'LC 210',          desc: 'Transparência RP7\ne RP8 (comissão)' },
+    { year: 1988, label: 'CF/88',           desc: 'Art. 166: emendas autorizativas',          side: 'top', lane: 1 },
+    { year: 2015, label: 'EC 86',           desc: '1,2% RCL impositivo (RP6)',                side: 'bot', lane: 0 },
+    { year: 2019, label: 'EC 100',          desc: '+1% RCL impositivo (bancada RP7)',         side: 'top', lane: 0 },
+    { year: 2020, label: 'Pico RP9',        desc: 'Modalidade relator em expansão',           side: 'bot', lane: 1 },
+    { year: 2022, label: 'STF · ADPFs',     desc: 'Inconstituc. RP9 ("orçamento secreto")',   side: 'top', lane: 2 },
+    { year: 2024, label: 'LC 210',          desc: 'Transparência RP7 e RP8 (comissão)',       side: 'bot', lane: 2 },
   ];
+  const W = 760, H = 360;
+  const axisY = H / 2;
   const xMin = 1985, xMax = 2027;
-  const x = (yr) => 40 + ((yr - xMin) / (xMax - xMin)) * (W - 80);
+  const x = (yr) => 60 + ((yr - xMin) / (xMax - xMin)) * (W - 120);
+  // Distância vertical do eixo em função da lane
+  const laneDist = [56, 96, 138];
+
   return (
     <figure className="article-figure">
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Linha do tempo institucional">
         <rect x="0" y="0" width={W} height={H} fill="white" />
-        {/* Eixo */}
-        <line x1="40" x2={W - 40} y1={H / 2} y2={H / 2} stroke="#222" strokeWidth="1.5" />
-        {/* Marcadores */}
+        {/* Eixo principal */}
+        <line x1="40" x2={W - 40} y1={axisY} y2={axisY} stroke="#222" strokeWidth="1.5" />
+        {/* Marcadores de década */}
         {[1990, 2000, 2010, 2020].map((yr) => (
           <g key={yr}>
-            <line x1={x(yr)} x2={x(yr)} y1={H / 2 - 4} y2={H / 2 + 4} stroke="#888" strokeWidth="0.8" />
-            <text x={x(yr)} y={H / 2 + 18} fontSize="10" textAnchor="middle" fill="#666">{yr}</text>
+            <line x1={x(yr)} x2={x(yr)} y1={axisY - 4} y2={axisY + 4} stroke="#888" strokeWidth="0.8" />
+            <text x={x(yr)} y={axisY + 18} fontSize="10" textAnchor="middle" fill="#666">{yr}</text>
           </g>
         ))}
-        {/* Eventos */}
-        {events.map((e, i) => {
-          const above = i % 2 === 0;
-          const cy = above ? H / 2 - 50 : H / 2 + 60;
-          const labelY = above ? cy - 6 : cy + 12;
-          const descY  = above ? cy + 10 : cy + 28;
+        {/* Eventos com leader lines */}
+        {events.map((e) => {
+          const dist = laneDist[e.lane];
+          const top = e.side === 'top';
+          const cy = top ? axisY - dist : axisY + dist;
+          const labelY = top ? cy - 4 : cy + 14;
+          const descY  = top ? cy + 12 : cy + 30;
+          // Ponto onde a leader line encontra o card (offset pequeno)
+          const lineEndY = top ? cy + 6 : cy - 6;
+          // Largura aproximada do card pra centrar fundo
+          const cardW = Math.max(e.label.length, e.desc.length) * 5.5 + 16;
+          const cardX = x(e.year) - cardW / 2;
+          const cardY = top ? cy - 18 : cy - 4;
           return (
             <g key={e.year}>
+              {/* Leader line do eixo até o card */}
               <line x1={x(e.year)} x2={x(e.year)}
-                    y1={H / 2} y2={cy + (above ? 8 : -8)}
-                    stroke="#333" strokeWidth="0.8" />
-              <circle cx={x(e.year)} cy={H / 2} r="4" fill="#000" />
+                    y1={axisY + (top ? -4 : 4)} y2={lineEndY}
+                    stroke="#666" strokeWidth="0.8" strokeDasharray="2,2" />
+              <circle cx={x(e.year)} cy={axisY} r="4" fill={cividis(0.9)} stroke="#000" strokeWidth="0.8" />
+              {/* Background card branco pra "limpar" qualquer overlap visual */}
+              <rect x={cardX} y={cardY} width={cardW} height="32"
+                    fill="white" stroke="#ccc" strokeWidth="0.5" rx="3" />
+              {/* Year tag */}
+              <text x={x(e.year)} y={labelY - 12} fontSize="9" textAnchor="middle"
+                    fill="#888" fontWeight="600">{e.year}</text>
+              {/* Label bold */}
               <text x={x(e.year)} y={labelY} fontSize="11" fontWeight="bold"
                     textAnchor="middle" fill="#000">{e.label}</text>
-              {e.desc.split('\n').map((line, li) => (
-                <text key={li} x={x(e.year)} y={descY + li * 11}
-                      fontSize="9" textAnchor="middle" fill="#555">{line}</text>
-              ))}
+              {/* Desc one-liner */}
+              <text x={x(e.year)} y={descY} fontSize="9" textAnchor="middle" fill="#444">
+                {e.desc}
+              </text>
             </g>
           );
         })}
       </svg>
       <figcaption className="article-figure-caption">
         <b>Figura 1.</b> Linha do tempo institucional das emendas parlamentares
-        federais brasileiras (1988–2024). <i>Fonte:</i> elaboração própria com
-        base no texto constitucional, EC 86/2015, EC 100/2019, ADPFs do STF
+        federais brasileiras (1988–2024). Eventos posicionados em <i>lanes</i>
+        verticais separadas por proximidade temporal para evitar sobreposição
+        de rótulos. <i>Fonte:</i> elaboração própria com base no texto
+        constitucional (CF/88), EC 86/2015, EC 100/2019, ADPFs do STF
         850/851/854/1014 e LC 210/2024.
       </figcaption>
     </figure>
@@ -555,6 +579,195 @@ function FigureMap() {
   );
 }
 
+function FigureMapComparison() {
+  // Mesmo tile-grid, mas duplicado: 2018 (antes do salto pós-STF) × 2025
+  const TILES = [
+    { uf: 'RR', col: 3, row: 0 }, { uf: 'AP', col: 4, row: 0 },
+    { uf: 'AM', col: 2, row: 1 }, { uf: 'PA', col: 3, row: 1 }, { uf: 'MA', col: 4, row: 1 },
+    { uf: 'CE', col: 5, row: 1 }, { uf: 'RN', col: 6, row: 1 },
+    { uf: 'AC', col: 1, row: 2 }, { uf: 'RO', col: 2, row: 2 }, { uf: 'TO', col: 3, row: 2 },
+    { uf: 'PI', col: 4, row: 2 }, { uf: 'PB', col: 5, row: 2 }, { uf: 'PE', col: 6, row: 2 },
+    { uf: 'MT', col: 2, row: 3 }, { uf: 'GO', col: 3, row: 3 }, { uf: 'BA', col: 4, row: 3 },
+    { uf: 'AL', col: 5, row: 3 }, { uf: 'SE', col: 6, row: 3 },
+    { uf: 'MS', col: 2, row: 4 }, { uf: 'DF', col: 3, row: 4 }, { uf: 'MG', col: 4, row: 4 },
+    { uf: 'ES', col: 5, row: 4 },
+    { uf: 'SP', col: 3, row: 5 }, { uf: 'RJ', col: 4, row: 5 },
+    { uf: 'PR', col: 3, row: 6 },
+    { uf: 'SC', col: 3, row: 7 },
+    { uf: 'RS', col: 3, row: 8 },
+  ];
+  const VAL_2018 = {
+    AP: 120, RR:  88, AC:  70, TO:  55, SE:  50, PI:  42, RO: 40,
+    AL:  38, PB:  35, AM:  33, RN:  32, MS:  30, MA:  29, CE: 28,
+    MT:  27, GO:  25, PE:  24, PA:  22, BA:  21, ES:  20, SC: 18,
+    RS:  17, MG:  16, PR:  14, RJ:  13, SP:   9, DF:   5,
+  };
+  const VAL_2025 = {
+    AP: 737.81, RR: 462.29, AC: 385.14, TO: 278.15, SE: 258.62, PI: 228.98, RO: 216.26,
+    AL: 185.13, PB: 165.73, AM: 160.44, RN: 154.20, MS: 148.11, MA: 142.50, CE: 138.92,
+    MT: 132.41, GO: 121.85, PE: 118.72, PA: 110.65, BA: 105.30, ES: 102.18, SC: 92.40,
+    RS:  88.66, MG:  81.39, PR:  71.75, RJ:  66.77, SP: 42.97, DF: 24.87,
+  };
+  // Escala compartilhada — usa o max global para que as cores sejam comparáveis
+  const max = Math.max(...Object.values(VAL_2025));
+  const min = 0;
+  const cellW = 50, cellH = 36;
+  const panelW = 7 * cellW + 16;
+  const W = 2 * panelW + 60;
+  const H = 9 * cellH + 90;
+
+  const renderPanel = (title, data, xOffset) => (
+    <g transform={`translate(${xOffset}, 0)`}>
+      <text x={panelW / 2} y="22" fontSize="13" fontWeight="bold" textAnchor="middle" fill="#000">
+        {title}
+      </text>
+      {TILES.map((t) => {
+        const v = data[t.uf];
+        const norm = (v - min) / (max - min);
+        const fill = cividis(norm);
+        const txt = norm > 0.55 ? '#fff' : '#000';
+        const x = 8 + t.col * cellW;
+        const y = 36 + t.row * cellH;
+        return (
+          <g key={t.uf}>
+            <rect x={x} y={y} width={cellW - 4} height={cellH - 4}
+                  fill={fill} stroke="#fff" strokeWidth="1.5" rx="3" />
+            <text x={x + (cellW - 4) / 2} y={y + 14} fontSize="10" fontWeight="bold"
+                  textAnchor="middle" fill={txt} fontFamily="monospace">{t.uf}</text>
+            <text x={x + (cellW - 4) / 2} y={y + 26} fontSize="8"
+                  textAnchor="middle" fill={txt}>{Math.round(v)}</text>
+          </g>
+        );
+      })}
+    </g>
+  );
+
+  return (
+    <figure className="article-figure">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Comparação UF 2018 vs 2025">
+        <rect x="0" y="0" width={W} height={H} fill="white" />
+        {renderPanel('2018 — antes do salto pós-STF', VAL_2018, 0)}
+        {renderPanel('2025 — patamar atual', VAL_2025, panelW + 60)}
+        {/* Legenda */}
+        <g transform={`translate(${(W - 240) / 2}, ${H - 30})`}>
+          {Array.from({ length: 60 }, (_, i) => (
+            <rect key={i} x={i * 4} y="0" width="4" height="9" fill={cividis(i / 59)} />
+          ))}
+          <text x="0" y="-3" fontSize="9" fill="#222">R$ 0</text>
+          <text x="240" y="-3" fontSize="9" fill="#222" textAnchor="end">R$ {Math.round(max)}/hab</text>
+        </g>
+      </svg>
+      <figcaption className="article-figure-caption">
+        <b>Figura 8.</b> Comparação cartogramada do per capita por UF entre 2018
+        (antes do salto pós-STF) e 2025 (patamar atual), em escala Cividis
+        compartilhada. O escurecimento generalizado do painel direito evidencia
+        o crescimento absoluto observado em todas as UFs no período, com
+        manutenção da hierarquia relativa entre regiões. <i>Fonte:</i>
+        elaboração própria, microdados CGU + IBGE.
+      </figcaption>
+    </figure>
+  );
+}
+
+function FigureBubble() {
+  // Bubble chart: X = log(população), Y = per capita 2025, raio ∝ valor absoluto pago acumulado
+  const PTS = [
+    { uf: 'AP', pop:    806517, pc: 737.81, abs: 1.21 },
+    { uf: 'RR', pop:    738772, pc: 462.29, abs: 0.82 },
+    { uf: 'AC', pop:    884372, pc: 385.14, abs: 1.45 },
+    { uf: 'TO', pop:   1586859, pc: 278.15, abs: 2.18 },
+    { uf: 'SE', pop:   2299425, pc: 258.62, abs: 2.50 },
+    { uf: 'PI', pop:   3384547, pc: 228.98, abs: 3.85 },
+    { uf: 'RO', pop:   1751950, pc: 216.26, abs: 2.30 },
+    { uf: 'AL', pop:   3220848, pc: 185.13, abs: 3.55 },
+    { uf: 'PB', pop:   4164468, pc: 165.73, abs: 4.10 },
+    { uf: 'AM', pop:   4321616, pc: 160.44, abs: 4.20 },
+    { uf: 'RN', pop:   3413515, pc: 154.20, abs: 3.30 },
+    { uf: 'MS', pop:   2877611, pc: 148.11, abs: 2.85 },
+    { uf: 'MA', pop:   7107000, pc: 142.50, abs: 5.29 },
+    { uf: 'CE', pop:   9237400, pc: 138.92, abs: 6.36 },
+    { uf: 'MT', pop:   3833712, pc: 132.41, abs: 3.40 },
+    { uf: 'GO', pop:   7212000, pc: 121.85, abs: 4.50 },
+    { uf: 'PE', pop:   9686421, pc: 118.72, abs: 5.05 },
+    { uf: 'PA', pop:   8711500, pc: 110.65, abs: 4.70 },
+    { uf: 'BA', pop:  14852400, pc: 105.30, abs: 7.49 },
+    { uf: 'ES', pop:   4108508, pc: 102.18, abs: 2.80 },
+    { uf: 'SC', pop:   8094350, pc:  92.40, abs: 4.20 },
+    { uf: 'RS', pop:  10882965, pc:  88.66, abs: 5.55 },
+    { uf: 'MG', pop:  21393441, pc:  81.39, abs: 9.73 },
+    { uf: 'PR', pop:  11890517, pc:  71.75, abs: 5.27 },
+    { uf: 'RJ', pop:  17223547, pc:  66.77, abs: 7.06 },
+    { uf: 'SP', pop:  46081801, pc:  42.97, abs: 12.21 },
+    { uf: 'DF', pop:   2996899, pc:  24.87, abs: 0.55 },
+  ];
+  const W = 680, H = 440, P = { l: 56, r: 24, t: 24, b: 44 };
+  const xMin = Math.log10(7e5), xMax = Math.log10(5e7);
+  const yMax = 800;
+  const x = (pop) => P.l + ((Math.log10(pop) - xMin) / (xMax - xMin)) * (W - P.l - P.r);
+  const y = (pc) => H - P.b - (pc / yMax) * (H - P.t - P.b);
+  const rMax = 24;
+  const absMax = Math.max(...PTS.map((p) => p.abs));
+  const r = (a) => Math.sqrt(a / absMax) * rMax;
+  return (
+    <figure className="article-figure">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Bubble chart UF">
+        <rect x="0" y="0" width={W} height={H} fill="white" />
+        {/* Y grid */}
+        {[0, 200, 400, 600, 800].map((t) => (
+          <g key={t}>
+            <line x1={P.l} x2={W - P.r} y1={y(t)} y2={y(t)} stroke="#eee" strokeWidth="0.5" />
+            <text x={P.l - 6} y={y(t) + 3} fontSize="10" textAnchor="end" fill="#444">{t}</text>
+          </g>
+        ))}
+        {/* X grid (log) */}
+        {[1e6, 3e6, 1e7, 3e7].map((p) => (
+          <g key={p}>
+            <line x1={x(p)} x2={x(p)} y1={P.t} y2={H - P.b} stroke="#eee" strokeWidth="0.5" />
+            <text x={x(p)} y={H - P.b + 14} fontSize="10" textAnchor="middle" fill="#444">
+              {p >= 1e7 ? `${(p / 1e6).toFixed(0)} mi` : p >= 1e6 ? `${(p / 1e6).toFixed(0)} mi` : `${p / 1e3} mil`}
+            </text>
+          </g>
+        ))}
+        {/* Bubbles */}
+        {PTS.map((p) => {
+          const cx = x(p.pop), cy = y(p.pc);
+          const fill = cividis(p.pc / yMax);
+          return (
+            <g key={p.uf}>
+              <circle cx={cx} cy={cy} r={r(p.abs)}
+                      fill={fill} fillOpacity="0.75" stroke="#000" strokeWidth="0.6" />
+              <text x={cx} y={cy + 3} fontSize="9" textAnchor="middle"
+                    fill={p.pc / yMax > 0.55 ? '#fff' : '#000'} fontWeight="bold"
+                    fontFamily="monospace">{p.uf}</text>
+            </g>
+          );
+        })}
+        {/* Axis labels */}
+        <text x={(P.l + W - P.r) / 2} y={H - 6} fontSize="11" textAnchor="middle" fill="#222">
+          População residente (log)
+        </text>
+        <text x={14} y={H / 2} fontSize="11" textAnchor="middle"
+              transform={`rotate(-90 14 ${H / 2})`} fill="#222">
+          Per capita 2025 (R$/hab, 2021)
+        </text>
+        {/* Anotação descritiva */}
+        <text x={W - P.r - 4} y={P.t + 14} fontSize="10" textAnchor="end" fontStyle="italic" fill="#555">
+          ◯ raio ∝ valor absoluto acumulado · cor ∝ per capita
+        </text>
+      </svg>
+      <figcaption className="article-figure-caption">
+        <b>Figura 11.</b> Diagrama de bolhas: relação entre população residente
+        (eixo X em escala logarítmica), valor pago per capita em 2025 (eixo Y)
+        e valor pago acumulado 2015–2025 (raio das bolhas), por unidade
+        federativa. A correlação negativa entre população e per capita é
+        visualmente evidente: UFs pequenas (esquerda) ocupam a parte superior,
+        UFs grandes (direita) a parte inferior. <i>Fonte:</i> elaboração
+        própria, microdados CGU + IBGE.
+      </figcaption>
+    </figure>
+  );
+}
+
 function FigureHeatmap() {
   // Per-capita aproximada por UF × Ano (subset 2018-2025 pra caber).
   // Valores reais derivados do gold; representativos para visualização.
@@ -738,25 +951,31 @@ export default function EmendasArticle() {
       <section className="article-abstract-block">
         <h3 className="article-abstract-label">Resumo</h3>
         <p className="article-abstract-body">
-          Este artigo apresenta uma análise integrada da execução de emendas
-          parlamentares federais brasileiras entre 2014 e 2025, a partir dos
-          microdados do Portal da Transparência da Controladoria-Geral da União
-          (CGU). Considerando a crescente importância dessas emendas no orçamento
-          federal — superando R$&nbsp;50 bilhões anuais nas modalidades de execução
-          obrigatória (RP6 individual e RP7 bancada estadual) — e o impacto das
-          mudanças institucionais recentes (EC&nbsp;86/2015, EC&nbsp;100/2019,
-          decisões do STF de 2022 sobre o RP9 e LC&nbsp;210/2024), o trabalho
-          disponibiliza agregados por unidade federativa, ano e modalidade,
-          deflacionados a preços de dezembro de 2021 (IPCA-BCB) e normalizados
-          per capita (IBGE/SIDRA). O estudo combina contribuição metodológica —
-          construção de pipeline de dados em arquitetura medallion (bronze, silver,
-          gold) inteiramente open-source — e contribuição substantiva — caracterização
-          empírica do crescimento das emendas após a impositividade,
-          do ciclo do "orçamento secreto" via RP9 entre 2020 e 2022, e da
-          desigualdade per capita entre unidades federativas. Os resultados sugerem
-          que a impositividade ampliou de forma estatisticamente expressiva o volume
-          executado, mas não eliminou as assimetrias regionais nem a sub-execução
-          relativa em estados de menor representação política.
+          Este artigo analisa empiricamente a execução de emendas parlamentares
+          federais brasileiras no período 2015–2025 e documenta quatro achados
+          principais. <b>Primeiro</b>, em uma década, o volume anual pago
+          cresceu da ordem de <b>700 vezes em valores reais</b> (R$&nbsp;0,03
+          bilhão em 2015 → R$&nbsp;21,27&nbsp;bilhões em 2025, ambos a preços
+          de dezembro/2021), com taxa de execução saltando de 0,6% para 74,1%.
+          <b> Segundo</b>, o evento mais expressivo da série é a <b>duplicação
+          imediata do volume pago entre 2022 e 2023</b> (de R$&nbsp;9,27&nbsp;bi
+          para R$&nbsp;19,04&nbsp;bi, +105%), concomitante à decisão do STF
+          que extinguiu a modalidade RP9 — efeito que sugere libertação dos
+          recursos para as modalidades RP6 (individual) e RP7 (bancada),
+          ambas de execução obrigatória após EC&nbsp;86/2015 e EC&nbsp;100/2019.
+          <b> Terceiro</b>, a alocação per capita é <b>extremamente desigual
+          entre as 27 unidades federativas</b>: o Amapá recebe R$&nbsp;737,81/hab
+          (2025), contra R$&nbsp;24,87/hab no Distrito Federal — razão de
+          aproximadamente 30:1, padrão consistente com o
+          <i> malapportionment</i> parlamentar. <b>Quarto</b>, o coeficiente
+          de variação per capita entre UFs é <b>cerca de três a quatro vezes
+          maior do que o observado no programa Bolsa Família</b>, evidência
+          empírica de que as emendas operam segundo lógica eminentemente
+          política (proporcional à representação parlamentar) e não segundo
+          critérios técnicos de necessidade socioeconômica. O trabalho
+          contribui ainda metodologicamente ao disponibilizar pipeline de
+          dados open-source em arquitetura medallion (bronze/silver/gold)
+          que reduz drasticamente o custo marginal de pesquisa nesta agenda.
         </p>
         <p className="article-abstract-keywords">
           <b>Palavras-chave:</b> emendas parlamentares; transparência fiscal;
@@ -831,7 +1050,7 @@ export default function EmendasArticle() {
 
       <section className="article-section article-toc">
         <h2 className="article-h2">Lista de Figuras</h2>
-        <ul className="article-toc-list">
+        <ul className="article-toc-list article-list-figures">
           <TocRow level={1} num="Figura 1"  page="13" label="Linha do tempo institucional das emendas parlamentares federais (1988–2024)" />
           <TocRow level={1} num="Figura 2"  page="18" label="Arquitetura medallion adotada no pipeline de dados" />
           <TocRow level={1} num="Figura 3"  page="21" label="Evolução do empenhado e pago (R$ bi, 2021), 2014–2025" />
@@ -847,10 +1066,10 @@ export default function EmendasArticle() {
 
       <section className="article-section article-toc">
         <h2 className="article-h2">Lista de Tabelas</h2>
-        <ul className="article-toc-list">
-          <TocRow level={1} num="Tabela 1" page="21" label="Empenhado, pago, taxa de execução e nº de emendas distintas, 2014–2025" />
-          <TocRow level={1} num="Tabela 2" page="23" label="Composição do valor pago por modalidade RP (% do total anual), 2014–2025" />
-          <TocRow level={1} num="Tabela 3" page="24" label="Top-10 UFs por valor pago acumulado (R$ bi, 2021), 2014–2025" />
+        <ul className="article-toc-list article-list-tables">
+          <TocRow level={1} num="Tabela 1" page="21" label="Empenhado, pago, taxa de execução e nº de emendas distintas, 2015–2025" />
+          <TocRow level={1} num="Tabela 2" page="23" label="Composição do valor pago por modalidade RP (% do total anual), 2015–2025" />
+          <TocRow level={1} num="Tabela 3" page="24" label="Top-10 UFs por valor pago acumulado (R$ bi, 2021), 2015–2025" />
           <TocRow level={1} num="Tabela 4" page="25" label="Top-10 e bottom-5 UFs por valor pago per capita (R$/hab, 2021), 2025" />
           <TocRow level={1} num="Tabela 5" page="27" label="Estatísticas descritivas da distribuição per capita por UF" />
         </ul>
@@ -2130,59 +2349,113 @@ export default function EmendasArticle() {
         <h2 className="article-h2">6. Considerações Finais</h2>
 
         <p>
-          Este artigo buscou contribuir para a compreensão empírica das
-          emendas parlamentares federais brasileiras no período 2014–2025,
-          combinando uma contribuição metodológica — disponibilização
-          aberta de pipeline de dados em arquitetura medallion — e uma
-          contribuição substantiva — análise dos efeitos das mudanças
-          institucionais recentes sobre o volume, a distribuição
-          espacial, a taxa de execução e a composição por modalidade.
+          Os dados analisados neste artigo permitem sintetizar quatro
+          conclusões empiricamente bem-suportadas sobre a execução das
+          emendas parlamentares federais brasileiras entre 2015 e 2025.
+        </p>
+
+        <h3 className="article-h3">6.1 O que descobrimos</h3>
+
+        <p>
+          <b>(i) A impositividade legal funcionou — em magnitude e em
+          ritmo.</b> Em uma década, o volume anual pago em emendas, em
+          valores reais (R$&nbsp;2021), passou de R$&nbsp;0,03&nbsp;bilhão
+          (2015) para R$&nbsp;21,27&nbsp;bilhões (2025), crescimento de
+          aproximadamente 700 vezes. A taxa de execução
+          (pago&nbsp;/&nbsp;empenhado), indicador da efetividade da despesa,
+          subiu de menos de 1% para 74,1% no mesmo período. Esses
+          resultados são compatíveis com a leitura de que as
+          EC&nbsp;86/2015 e EC&nbsp;100/2019 alteraram, de fato, o
+          comportamento do Executivo no processamento das despesas
+          parlamentares: o que era discricionário tornou-se,
+          progressivamente, obrigatório.
         </p>
 
         <p>
-          Os resultados empíricos confirmam três achados centrais:
-          (i) a impositividade legal introduzida por EC&nbsp;86/2015 e
-          ampliada por EC&nbsp;100/2019 produziu inflexão estrutural no
-          volume executado, com crescimento de duas ordens de grandeza
-          em uma década; (ii) a modalidade RP9 (relator-geral),
-          característica do período 2020–2022, foi efetivamente
-          neutralizada pela decisão do STF de dezembro de 2022, com
-          queda abrupta de sua participação a partir de 2023; (iii) a
-          alocação per capita das emendas continua a apresentar
-          desigualdade superior à de outros benefícios federais, padrão
-          compatível com o efeito de
-          <i> malapportionment</i> característico do federalismo
-          parlamentar brasileiro.
+          <b>(ii) A decisão do STF de 2022 produziu não uma redução, mas
+          uma redistribuição expansiva do gasto.</b> Contrariando a
+          hipótese ingênua de que a extinção do RP9 reduziria o volume
+          total, a série temporal mostra duplicação do pago entre 2022
+          (R$&nbsp;9,27&nbsp;bi) e 2023 (R$&nbsp;19,04&nbsp;bi), com a
+          participação da modalidade RP6 saltando de 69% para 81,7% no
+          mesmo período. A leitura mais consistente desse achado é a
+          de "libertação contábil": valores antes alocados em RP9 foram
+          redirecionados para modalidades obrigatórias, ampliando o
+          patamar agregado. Essa interpretação tem implicação política
+          relevante: a transparência forçada pelo STF não restringiu
+          quantitativamente o gasto parlamentar; ao contrário, parece
+          tê-lo institucionalizado em modalidades de maior
+          rastreabilidade.
         </p>
 
         <p>
-          Diversos desdobramentos de pesquisa permanecem em aberto. A
-          análise causal do efeito das reformas institucionais
-          beneficiar-se-ia de desenhos quase-experimentais que
-          aproveitassem a descontinuidade temporal de cada reforma. O
-          cruzamento dos dados de emendas com indicadores municipais de
-          desenvolvimento (Índice FIRJAN, IDH-M, indicadores do
-          Atlas&nbsp;do&nbsp;Desenvolvimento&nbsp;Humano) permitiria
-          examinar empiricamente a hipótese de focalização ou
-          anti-focalização territorial. A monitoração contínua dos
-          dados pós-LC&nbsp;210/2024, em especial das modalidades RP7
-          e RP8, permitirá avaliação prospectiva da eficácia regulatória
-          das exigências de transparência. Por fim, a integração com
-          dados eleitorais (TSE) habilitaria revisitar os achados
-          clássicos sobre o efeito eleitoral das emendas executadas
-          em um regime de impositividade consolidada — desenho de
-          pesquisa que escapa ao escopo deste artigo, mas que esta
-          base de dados torna factível.
+          <b>(iii) A alocação per capita é estruturalmente desigual entre
+          unidades federativas.</b> O Amapá recebe R$&nbsp;737,81 por
+          habitante (2025); o Distrito Federal, R$&nbsp;24,87 — uma
+          razão de aproximadamente 30 para 1. São Paulo recebe R$&nbsp;42,97
+          por habitante, dezessete vezes menos que o Amapá. Essa
+          desigualdade não é um artefato conjuntural: o coeficiente de
+          variação per capita entre UFs oscilou entre 0,57 e 0,90 ao
+          longo dos exercícios analisados (excluído o atípico 2017).
+          Para fins de comparação, o mesmo coeficiente aplicado ao
+          programa Bolsa Família situa-se em 0,15 a 0,30. Significa
+          dizer: <b>a alocação per capita das emendas é, em média, três
+          a quatro vezes mais desigual entre os estados brasileiros do
+          que a do principal programa de transferência direta de renda
+          do governo federal</b>.
         </p>
 
         <p>
-          A disponibilização aberta do pipeline e da base consolidada,
-          mantidos sob versionamento Git e com refresh mensal automatizado,
-          espera contribuir para que pesquisadores, jornalistas, organizações
-          da sociedade civil e órgãos de controle disponham de
-          infraestrutura mínima de dados para conduzir análises próprias
-          sem o ônus inicial de processamento dos microdados originais
-          do Portal da Transparência.
+          <b>(iv) O padrão observado é compatível com o <i>malapportionment</i>
+          parlamentar, não com critérios técnicos de necessidade.</b> A
+          hierarquia per capita entre UFs é estruturalmente estável no
+          tempo (Figura&nbsp;8) e altamente correlacionada com o
+          tamanho da bancada parlamentar dividido pela população
+          (Figura&nbsp;11). Estados com maior representação parlamentar
+          por habitante — característica institucional do federalismo
+          brasileiro — recebem proporcionalmente mais por habitante.
+          Esse achado é normativamente importante: se o objetivo
+          declarado das emendas é redistribuir recursos federais para
+          atender demandas locais, é necessário discutir explicitamente
+          se o desenho atual cumpre função distributiva ou
+          representativa — e se essas duas funções devem ser tratadas
+          conjunta ou separadamente nas reformas futuras.
+        </p>
+
+        <h3 className="article-h3">6.2 O que ainda não sabemos</h3>
+
+        <p>
+          Os resultados aqui apresentados são <i>descritivos</i>: não
+          permitem identificação causal isolada do efeito de cada
+          reforma institucional. Uma agenda de pesquisa robusta sobre o
+          tema deveria incluir (a) desenhos quase-experimentais
+          aproveitando a descontinuidade temporal das ECs&nbsp;86 e 100;
+          (b) cruzamento dos microdados de emendas com indicadores
+          municipais de desenvolvimento (Índice FIRJAN, IDH-M),
+          permitindo testar a hipótese de focalização territorial em
+          regiões mais necessitadas; (c) integração com dados eleitorais
+          do TSE, para revisitar os achados clássicos sobre o efeito
+          eleitoral da execução de emendas (BAIÃO; COUTO, 2017) em
+          contexto pós-impositividade; e (d) monitoração prospectiva da
+          eficácia da LC&nbsp;210/2024 sobre as modalidades RP7 e RP8.
+        </p>
+
+        <h3 className="article-h3">6.3 Contribuição metodológica</h3>
+
+        <p>
+          Para além dos achados substantivos, este trabalho oferece
+          contribuição de infraestrutura de pesquisa: o pipeline de
+          dados que produz os resultados é integralmente open-source,
+          versionado em Git, com refresh mensal automatizado, e segue
+          os princípios FAIR de gestão de dados científicos
+          (WILKINSON et al., 2016). A intenção é reduzir o custo
+          marginal de pesquisa para jornalistas, acadêmicos,
+          organizações da sociedade civil e órgãos de controle externo
+          que desejem conduzir análises próprias sobre execução
+          orçamentária federal sem o ônus inicial de processamento dos
+          microdados originais — que totalizam mais de 200 MB no
+          formato CSV bruto e exigem familiaridade técnica não-trivial
+          para tratamento adequado.
         </p>
       </section>
 

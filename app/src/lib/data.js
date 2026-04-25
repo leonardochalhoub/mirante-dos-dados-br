@@ -5,7 +5,9 @@ const base = import.meta.env.BASE_URL || '/';
 
 export async function loadGold(filename) {
   const url = `${base}data/${filename}`.replace(/\/{2,}/g, '/');
-  const res = await fetch(url, { cache: 'force-cache' });
+  // 'no-cache' validates with server via ETag (cheap) instead of trusting stale
+  // cached data forever. Critical because gold JSONs are refreshed monthly.
+  const res = await fetch(url, { cache: 'no-cache' });
   if (!res.ok) {
     throw new Error(`Falha ao carregar ${filename} (HTTP ${res.status})`);
   }
@@ -14,6 +16,7 @@ export async function loadGold(filename) {
 
 export async function loadGeo(filename) {
   const url = `${base}geo/${filename}`.replace(/\/{2,}/g, '/');
+  // Geo files are static — safe to cache.
   const res = await fetch(url, { cache: 'force-cache' });
   if (!res.ok) {
     throw new Error(`Falha ao carregar ${filename} (HTTP ${res.status})`);
