@@ -144,7 +144,7 @@ function BigDataStrip({ stats }) {
   const verticals = stats.verticals || {};
   // Ordem preferida; verticais não listadas aparecem no fim por ordem alfabética.
   // Default genérico pra que novas verticais apareçam automaticamente.
-  const PREFERRED_ORDER = ['pbf', 'equipamentos', 'mri', 'emendas'];
+  const PREFERRED_ORDER = ['pbf', 'equipamentos', 'equipamentos-sus', 'emendas', 'uropro'];
   const orderedVerticals = [
     ...PREFERRED_ORDER.filter((k) => verticals[k]),
     ...Object.keys(verticals).filter((k) => !PREFERRED_ORDER.includes(k)).sort(),
@@ -152,10 +152,11 @@ function BigDataStrip({ stats }) {
 
   // Label legível por chave; fallback humaniza a chave caso novo vertical não liste aqui
   const verticalLabel = {
-    pbf:           'Bolsa Família',
-    mri:           'Ressonância Magnética',
-    equipamentos:  'Equipamentos médicos (CNES)',
-    emendas:       'Emendas Parlamentares',
+    pbf:                 'Bolsa Família',
+    equipamentos:        'Equipamentos médicos (CNES)',
+    'equipamentos-sus':  'Equipamentos SUS',
+    emendas:             'Emendas Parlamentares',
+    uropro:              'Incontinência Urinária (SIH)',
   };
   const labelOf = (k) => verticalLabel[k]
     || k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ');

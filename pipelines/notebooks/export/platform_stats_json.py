@@ -98,6 +98,10 @@ raw = {
     "datasus_cnes_eq_dbc":    folder_stats_filtered(f"{RAW_ROOT}/datasus/cnes_eq",        (".dbc",)),
     "datasus_cnes_eq_parquet":folder_stats_filtered(f"{RAW_ROOT}/datasus/cnes_eq_converted", (".parquet", ".csv")),
 
+    # UroPro (DATASUS SIH-AIH-RD): .dbc files → .parquet, mesmo padrão CNES
+    "datasus_sih_rd_dbc":     folder_stats_filtered(f"{RAW_ROOT}/datasus/sih_rd",          (".dbc",)),
+    "datasus_sih_rd_parquet": folder_stats_filtered(f"{RAW_ROOT}/datasus/sih_rd_parquet",  (".parquet",)),
+
     # APIs (lightweight JSON)
     "ibge_json":              folder_stats_filtered(f"{RAW_ROOT}/ibge",                   (".json",)),
     "bcb_json":               folder_stats_filtered(f"{RAW_ROOT}/bcb",                    (".json",)),
@@ -171,6 +175,16 @@ verticals = {
         "intermediate_label":   "CSV",
         "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "emendas_pagamentos"), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "emendas_pagamentos"), 0),
+    },
+    "uropro": {
+        "raw_compressed_files": raw["datasus_sih_rd_dbc"]["files"],
+        "raw_compressed_bytes": raw["datasus_sih_rd_dbc"]["bytes"],
+        "raw_compressed_label": "DBC",
+        "intermediate_files":   raw["datasus_sih_rd_parquet"]["files"],
+        "intermediate_bytes":   raw["datasus_sih_rd_parquet"]["bytes"],
+        "intermediate_label":   "Parquet",
+        "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "sih_aih_rd_uropro"), 0),
+        "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "sih_aih_rd_uropro"), 0),
     },
 }
 
