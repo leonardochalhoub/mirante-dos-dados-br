@@ -115,6 +115,22 @@ silver_df = (
       .withColumn("_silver_built_ts", F.current_timestamp())
 )
 
+# Defensive filter: keep only valid 27 UFs + valid year range. CGU sometimes ships
+# malformed rows with null/empty UF or Mês outside 1..12 — these would leak NULLs
+# downstream when the gold tries to join with populacao_uf_ano / ipca_deflators_2021.
+VALID_UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
+             "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"]
+n_before = silver_df.count()
+silver_df = silver_df.where(
+    F.col("Ano").isNotNull() & (F.col("Ano") >= 2013) & (F.col("Ano") <= 2099)
+    & F.col("Mes").isNotNull() & (F.col("Mes").between(1, 12))
+    & F.col("uf").isin(VALID_UFS)
+)
+n_after = silver_df.count()
+if n_after < n_before:
+    print(f"⚠ filtrou {n_before - n_after} linhas silver com Ano/Mes/uf inválidos "
+          f"(mantém {n_after} válidas)")
+
 # COMMAND ----------
 
 n = silver_df.count()
