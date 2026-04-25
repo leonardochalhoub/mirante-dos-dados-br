@@ -120,6 +120,19 @@ def convert_one(dbc_path_str: str, out_dir_str: str) -> tuple[str, str]:
         df["estado"]      = meta["estado"]
         df["ano"]         = meta["ano"]
         df["mes"]         = meta["mes"]
+
+        # Schema-drift fix: pandas infere int64 quando todos valores são inteiros
+        # naquele mês, mas float64 quando há NaN. Spark falha ao ler parquets do
+        # mesmo diretório com tipos incompatíveis (LONG vs DOUBLE) na mesma
+        # coluna. Coercemos TODAS as colunas numéricas para float64 antes de
+        # escrever — float aceita qualquer int sem perda relevante p/ análise
+        # epidemiológica deste dataset (contagens de equipamentos, IDs).
+        for c in df.columns:
+            if c in ("source_file", "estado", "ano", "mes"):
+                continue
+            if pd.api.types.is_integer_dtype(df[c]) or pd.api.types.is_float_dtype(df[c]):
+                df[c] = df[c].astype("float64")
+
         df.to_parquet(out_path, index=False)
         return dbc_path.name, "ok"
     except Exception as e:
@@ -196,8 +209,14 @@ if use_batch:
           f"checkpoint_initialized={checkpoint_initialized}")
     print("  Lendo parquets em batch e reescrevendo Delta (full overwrite — primeira carga).")
 
+    # mergeSchema=true reconcilia parquets com colunas em tipos diferentes
+    # (LONG vs DOUBLE etc) — necessário pq parquets antigos foram escritos
+    # antes do fix de coerce-to-float64 em convert_one(). Após re-conversão
+    # de todos arquivos, pode ser removido (mas não custa nada manter).
     df = (
-        spark.read.parquet(PARQUET_DIR)
+        spark.read
+            .option("mergeSchema", "true")
+            .parquet(PARQUET_DIR)
             # Unity Catalog não suporta input_file_name(); usar _metadata.file_path
             .withColumn("_source_file", F.col("_metadata.file_path"))
             .withColumn("_ingest_ts",   F.current_timestamp())
