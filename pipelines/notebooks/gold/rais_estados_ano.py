@@ -23,6 +23,12 @@ GOLD   = f"{CATALOG}.gold.rais_estados_ano"
 
 from pyspark.sql import functions as F
 
+# Defensivo: silver pode não existir se silver_rais_uf_ano saiu via
+# dbutils.notebook.exit (bronze ausente/vazio) — cascade do upstream.
+if not spark.catalog.tableExists(SILVER):
+    print(f"⚠ {SILVER} não existe — cascade do upstream (silver_rais_uf_ano).")
+    dbutils.notebook.exit(f"SKIPPED: {SILVER} does not exist")
+
 silver = spark.read.table(SILVER)
 pop    = spark.read.table(POP).select("Ano", "uf", "populacao")
 defl   = spark.read.table(DEFL).select("Ano", "deflator_to_2021")

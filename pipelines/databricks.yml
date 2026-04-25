@@ -229,9 +229,13 @@ resources:
           notebook_task:
             notebook_path: ./notebooks/ingest/mte_rais.py
             base_parameters:
-              years:      "2020-2021"
+              # Range maximalista: ingest tenta TODOS os anos; URLs ausentes são
+              # ignoradas (status='missing'). Cobre desde a era moderna do PDET
+              # até o último exercício completo. Bronze/silver vão filtrar pelos
+              # anos que efetivamente vieram com dados.
+              years:      "1985-2025"
               volume_dir: "/Volumes/${var.catalog}/bronze/raw/mte/rais"
-              workers:    "2"
+              workers:    "4"
 
         - task_key: bronze_rais_vinculos
           depends_on: [{ task_key: ingest_mte_rais }]

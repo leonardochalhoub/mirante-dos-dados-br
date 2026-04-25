@@ -23,8 +23,22 @@ SILVER_TABLE = f"{CATALOG}.silver.rais_uf_ano"
 
 from pyspark.sql import functions as F, types as T
 
+# Defensivo: bronze pode não existir ainda se o ingest do PDET falhou
+# (URLs do MTE mudam frequentemente, ou o ano não tem .7z publicado).
+# Sai gracefully sem TABLE_OR_VIEW_NOT_FOUND cascade.
+if not spark.catalog.tableExists(BRONZE_TABLE):
+    print(f"⚠ {BRONZE_TABLE} não existe — provavelmente ingest_mte_rais não baixou nenhum .7z.")
+    print("  Investigar:")
+    print("  - URL pattern em ingest/mte_rais.py (URL_TEMPLATES)")
+    print("  - Listar volume: dbutils.fs.ls('/Volumes/mirante_prd/bronze/raw/mte/rais')")
+    dbutils.notebook.exit(f"SKIPPED: {BRONZE_TABLE} does not exist")
+
 bronze = spark.read.table(BRONZE_TABLE)
-print(f"bronze rows: {bronze.count():,}")
+n_bronze = bronze.count()
+print(f"bronze rows: {n_bronze:,}")
+if n_bronze == 0:
+    print(f"⚠ {BRONZE_TABLE} existe mas está vazia.")
+    dbutils.notebook.exit(f"SKIPPED: {BRONZE_TABLE} is empty")
 
 # Mapping IBGE 2-digit code → UF sigla
 UF_BY_CODE = {

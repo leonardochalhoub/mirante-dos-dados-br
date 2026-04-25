@@ -41,8 +41,8 @@ const VERTICAIS = [
     to: '/rais',
     eyebrow: 'Mercado de trabalho · governança de dados',
     title: 'RAIS — Vínculos Públicos',
-    desc: 'Replica e estende a monografia do autor (UFRJ MBA Eng. Dados, 2023) — comparação de formatos Lakehouse (CSV / Parquet / Delta / Iceberg / Hudi) e scoring FAIR sobre microdados RAIS. Fontes: PDET/MTE · IBGE · BCB.',
-    period: '2020 – 2025',
+    desc: 'Replica e estende a monografia do autor (UFRJ MBA Eng. Dados, 2023) — comparação de formatos Lakehouse (CSV / Parquet / Delta / Iceberg / Hudi) e scoring FAIR sobre microdados RAIS. Cobertura maximalista (anos sem publicação no PDET são ignorados). Fontes: PDET/MTE · IBGE · BCB.',
+    period: '1985 – 2025',
     available: true,
   },
 ];

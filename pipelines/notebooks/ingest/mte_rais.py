@@ -21,9 +21,9 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("years",      "2020-2021")
+dbutils.widgets.text("years",      "1985-2025")
 dbutils.widgets.text("volume_dir", "/Volumes/mirante_prd/bronze/raw/mte/rais")
-dbutils.widgets.text("workers",    "2")
+dbutils.widgets.text("workers",    "4")
 
 YEARS_EXPR = dbutils.widgets.get("years")
 VOLUME_DIR = dbutils.widgets.get("volume_dir")
