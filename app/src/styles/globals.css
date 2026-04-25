@@ -1043,19 +1043,44 @@ button.primary:hover { filter: brightness(1.05); }
     margin: 3cm 2cm 2cm 3cm;   /* sup dir inf esq */
   }
 
-  /* Hide everything except the printable article */
-  body * { visibility: hidden; }
-  .print-only-article, .print-only-article * { visibility: visible; }
+  /* Reset every ancestor: must be block-flow, no overflow, no constraints,
+     so content flows naturally across multiple printed pages. */
+  html, body, #root, .app, .app-main, .container {
+    display: block !important;
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide all on-screen page elements (sidebar, header, KPIs, panels, etc.) */
+  .sidebar,
+  .page-header,
+  .kpiRow,
+  .layout,
+  .footer,
+  .emendas-abstract,
+  .no-print,
+  .no-print * { display: none !important; }
+
+  /* Show the printable article (it lives inside .container as a sibling
+     of the rest of the page, but above we hid all siblings). */
   .print-only-article {
     display: block !important;
-    position: absolute;
-    inset: 0;
-    margin: 0;
-    padding: 0;
-    background: white;
-    color: black;
+    visibility: visible !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
   }
-  .no-print, .no-print * { display: none !important; }
+  .print-only-article * { visibility: visible !important; }
 
   /* ABNT typography */
   .print-only-article .article {
