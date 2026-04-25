@@ -44,10 +44,15 @@ valores = (
     silver.groupBy("Ano", "uf")
           .agg((F.sum("total_estado") / F.lit(1e9)).cast("double").alias("valor_nominal"))
 )
+# NOTE: silver.n_ano can vary across (mes_competencia, uf) rows for the same
+# (Ano, uf) when bronze has multiple origins (PBF + AUX + NBF) for the same
+# filename year. distinct() would keep all variants and multiply the gold rows.
+# Aggregate-collapse to one row per (Ano, uf) using max — the highest count of
+# distinct beneficiaries is the most accurate (others undercount due to
+# origin-restricted scans).
 benef = (
-    silver.select("Ano", "uf", "n_ano").distinct()
-          .withColumnRenamed("n_ano", "n_benef")
-          .withColumn("n_benef", F.col("n_benef").cast("long"))
+    silver.groupBy("Ano", "uf")
+          .agg(F.max("n_ano").cast("long").alias("n_benef"))
 )
 
 df = (
