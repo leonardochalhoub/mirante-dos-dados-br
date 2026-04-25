@@ -33,11 +33,16 @@ dbutils.widgets.text("catalog",        "mirante_prd")
 dbutils.widgets.text("dbc_dir",        "/Volumes/mirante_prd/bronze/raw/datasus/cnes_eq")
 dbutils.widgets.text("parquet_dir",    "/Volumes/mirante_prd/bronze/raw/datasus/cnes_eq_parquet")
 dbutils.widgets.text("workers",        "8")
+# Set to "true" once after deploying the float64-coerce fix to wipe old
+# parquets (which had mixed BIGINT/DOUBLE schemas) and re-convert all
+# 6614 .dbc files with consistent schema. After that, leave at "false".
+dbutils.widgets.text("force_reconvert", "false")
 
-CATALOG     = dbutils.widgets.get("catalog")
-DBC_DIR     = dbutils.widgets.get("dbc_dir")
-PARQUET_DIR = dbutils.widgets.get("parquet_dir")
-WORKERS     = int(dbutils.widgets.get("workers"))
+CATALOG          = dbutils.widgets.get("catalog")
+DBC_DIR          = dbutils.widgets.get("dbc_dir")
+PARQUET_DIR      = dbutils.widgets.get("parquet_dir")
+WORKERS          = int(dbutils.widgets.get("workers"))
+FORCE_RECONVERT  = dbutils.widgets.get("force_reconvert").lower() in ("true", "1", "yes")
 
 BRONZE_TABLE   = f"{CATALOG}.bronze.cnes_equipamentos"
 CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/cnes_equipamentos/_checkpoint"
@@ -97,7 +102,8 @@ def convert_one(dbc_path_str: str, out_dir_str: str) -> tuple[str, str]:
     dbc_path = Path(dbc_path_str)
     out_dir = Path(out_dir_str)
     out_path = out_dir / (dbc_path.stem + ".parquet")
-    if out_path.exists() and out_path.stat().st_size > 0:
+    # Skip if cached AND we're not in force-reconvert mode
+    if not FORCE_RECONVERT and out_path.exists() and out_path.stat().st_size > 0:
         return dbc_path.name, "cached"
 
     meta = parse_filename(dbc_path.name)
@@ -146,6 +152,21 @@ def convert_one(dbc_path_str: str, out_dir_str: str) -> tuple[str, str]:
 
 dbc_dir     = Path(DBC_DIR)
 parquet_dir = Path(PARQUET_DIR)
+
+# Force-reconvert: wipe existing parquets so all .dbc files re-convert
+# with the unified float64 schema (fixes BIGINT vs DOUBLE merge errors
+# from older parquets written before the schema-coerce fix).
+if FORCE_RECONVERT:
+    print(f"⚠ FORCE_RECONVERT=true → apagando {PARQUET_DIR} antes de re-converter…")
+    try:
+        dbutils.fs.rm(PARQUET_DIR, True)
+        print(f"  apagado.")
+    except Exception as e:
+        print(f"  (tentativa via dbutils falhou: {e}; tentando via Path…)")
+        import shutil
+        if parquet_dir.exists():
+            shutil.rmtree(parquet_dir)
+
 parquet_dir.mkdir(parents=True, exist_ok=True)
 
 dbc_files = sorted(dbc_dir.glob("*.dbc"))
@@ -185,6 +206,22 @@ print(f"Total .parquet now: {len(list(parquet_dir.glob('*.parquet')))}")
 # COMMAND ----------
 
 from pyspark.sql import functions as F
+
+# Em FORCE_RECONVERT, também derrubamos a tabela bronze + checkpoint
+# pra forçar re-criação from scratch com o schema novo unificado.
+if FORCE_RECONVERT:
+    print("⚠ FORCE_RECONVERT=true → derrubando tabela bronze + checkpoint do Auto Loader…")
+    try:
+        spark.sql(f"DROP TABLE IF EXISTS {BRONZE_TABLE}")
+        print(f"  tabela {BRONZE_TABLE} apagada.")
+    except Exception as e:
+        print(f"  (drop falhou: {e})")
+    try:
+        dbutils.fs.rm(CHECKPOINT_LOC, True)
+        dbutils.fs.rm(SCHEMA_LOC, True)
+        print(f"  checkpoint Auto Loader apagado.")
+    except Exception:
+        pass
 
 table_exists = spark.catalog.tableExists(BRONZE_TABLE)
 existing_rows = (

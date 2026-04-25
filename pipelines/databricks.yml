@@ -184,10 +184,14 @@ resources:
           notebook_task:
             notebook_path: ./notebooks/bronze/cnes_equipamentos.py
             base_parameters:
-              catalog:     "${var.catalog}"
-              dbc_dir:     "/Volumes/${var.catalog}/bronze/raw/datasus/cnes_eq"
-              parquet_dir: "/Volumes/${var.catalog}/bronze/raw/datasus/cnes_eq_parquet"
-              workers:     "8"
+              catalog:          "${var.catalog}"
+              dbc_dir:          "/Volumes/${var.catalog}/bronze/raw/datasus/cnes_eq"
+              parquet_dir:      "/Volumes/${var.catalog}/bronze/raw/datasus/cnes_eq_parquet"
+              workers:          "8"
+              # Set to "true" once via Workflows UI override pra wipar cache
+              # de parquets antigos (com schema heterogêneo BIGINT/DOUBLE)
+              # e re-converter todos os 6614 .dbc com schema unificado float64.
+              force_reconvert:  "false"
 
         - task_key: silver_equipamentos_uf_ano
           depends_on: [{ task_key: bronze_cnes_equipamentos }]

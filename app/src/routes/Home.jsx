@@ -29,6 +29,14 @@ const VERTICAIS = [
     period: '2014 – 2025',
     available: true,
   },
+  {
+    to: '/incontinencia-urinaria',
+    eyebrow: 'Saúde · incontinência urinária',
+    title: 'Incontinência Urinária (SIH)',
+    desc: 'Tratamento cirúrgico no SUS — vias abdominal vs vaginal (SIGTAP 0409010499 e 0409070270). Volume, despesa pública (R$ 2021), permanência hospitalar e distribuição por UF. Fontes: DATASUS/SIH-AIH-RD · IBGE · BCB.',
+    period: '2015 – 2025',
+    available: true,
+  },
 ];
 
 const MEDALLION = [
