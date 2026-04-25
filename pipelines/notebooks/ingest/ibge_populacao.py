@@ -27,6 +27,7 @@ print(f"start_year={START_YEAR} end_year={END_YEAR} dest={VOLUME_DIR}")
 # COMMAND ----------
 
 import json
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 import requests
@@ -41,9 +42,24 @@ url = (
 )
 print(f"GET {url}")
 
-r = requests.get(url, headers={"User-Agent": "mirante-dos-dados/1.0"}, timeout=60)
-r.raise_for_status()
-payload = r.json()
+# IBGE API is flaky — retry with backoff on timeouts/connection errors
+MAX_ATTEMPTS = 5
+TIMEOUT      = 180   # 3 minutes per attempt
+payload = None
+for attempt in range(1, MAX_ATTEMPTS + 1):
+    try:
+        r = requests.get(url, headers={"User-Agent": "mirante-dos-dados/1.0"}, timeout=TIMEOUT)
+        r.raise_for_status()
+        payload = r.json()
+        print(f"✔ attempt {attempt}/{MAX_ATTEMPTS}: got {len(str(payload)):,} chars")
+        break
+    except (requests.ConnectTimeout, requests.ReadTimeout, requests.ConnectionError) as e:
+        print(f"  attempt {attempt}/{MAX_ATTEMPTS} failed: {type(e).__name__}: {str(e)[:120]}")
+        if attempt == MAX_ATTEMPTS:
+            raise
+        sleep_s = 2 ** attempt    # 2, 4, 8, 16, 32 seconds
+        print(f"  backing off {sleep_s}s before retry…")
+        time.sleep(sleep_s)
 
 # Sanity check
 years_seen = set()
