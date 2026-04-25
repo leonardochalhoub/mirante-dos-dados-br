@@ -13,6 +13,8 @@ import StateRanking    from '../components/StateRanking';
 import EvolutionBar    from '../components/charts/EvolutionBar';
 import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
+import ScoreCard       from '../components/ScoreCard';
+import { PARECER_RAIS } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
 import { COLORSCALES } from '../lib/scales';
@@ -129,7 +131,7 @@ export default function Rais() {
         }
       />
 
-      <ScoreCard />
+      <ScoreCard parecer={PARECER_RAIS} />
 
       <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
         <div className="doc-block">
@@ -252,183 +254,6 @@ export default function Rais() {
 
       <Footer />
     </>
-  );
-}
-
-// ─── Parecer crítico (atualizado a cada deploy pelo avaliador) ──────────
-// Esta seção NÃO é auto-avaliação gerada pela página. É o parecer do
-// avaliador externo (IA atuando como professor de pós-graduação),
-// calibrado contra o original (monografia 2023, Score 8/10) e
-// atualizado manualmente a cada deploy quando o trabalho evolui.
-//
-// Master's level signal: quando o trabalho atingir nível stricto sensu,
-// MASTER_LEVEL = true e o componente exibe destaque + nota 10.
-// Régua: STRICTO SENSU (Mestrado/Doutorado em Finanças e Eng. de Software).
-// Avaliador "casca grossa" — não distribui 8s e 9s. Vide
-// memory/feedback_rais_score_per_deploy.md pra critérios completos.
-//
-// Nota atual 6,8: o vertical herda a base da monografia 2023 (8,0 lato
-// sensu, mas ~6,5-7,0 se trazida para régua stricto sensu) e adiciona
-// melhorias de infraestrutura. Não está reprovado — está no patamar
-// "passaria mestrado com ressalvas substanciais SE entregasse o que
-// está prometido no spec". Como ainda não entregou (sem dados, sem
-// .tex escrito, sem extensões), fica por aqui.
-const SCORE_ATUAL = 6.8;
-const SCORE_ORIGINAL = 8.0;   // nota original na régua LATO SENSU MBA
-const MASTER_LEVEL = false;
-
-const PARECER_RAIS = {
-  ultimaAtualizacao: '2026-04-25T17:55 BRT',
-  versao: '0.1 — scaffold sem execução empírica',
-  resumo_calibragem:
-    'Régua stricto sensu (Mestrado/Doutorado em Finanças e Engenharia de ' +
-    'Software). A nota original 8,0 da monografia foi atribuída em régua MBA; ' +
-    'na régua atual (mais dura), o mesmo trabalho ficaria em ~6,5-7,0. O ' +
-    'vertical RAIS herda essa base, ganha pontos por infraestrutura aberta e ' +
-    'reprodutível, mas ainda não entregou nenhuma extensão substantiva — sem ' +
-    'dados rodados, sem .tex escrito, sem método novo. 6,8 reflete isso. ' +
-    'Subir para 8,0 stricto sensu exige resultados empíricos REAIS na ' +
-    'plataforma Mirante; subir para 9,5+ (doutorado) exige contribuição ' +
-    'metodológica original — não basta replicar.',
-  pontos_fortes: [
-    'Infraestrutura open-source versionada em Git — atende parcialmente princípios FAIR sobre o próprio trabalho',
-    'Arquitetura medallion canônica (bronze/silver/gold) com padrão híbrido batch+Auto Loader',
-    'Bronze STRING-ONLY (regra de plataforma — nenhuma inferência de tipo em bronze, casts apenas em silver+)',
-    'Spec doc explícito (docs/vertical-rais-fair-lakehouse-spec.md) documenta parecer crítico da monografia + roadmap',
-    'Defensive guards em todas camadas downstream (skip on missing upstream) — evita cascade failures',
-  ],
-  problemas_que_impedem_nota_8: [
-    'Pipeline NUNCA RODOU — sem dados, qualquer "extensão" é apenas promessa em prosa',
-    'PDET URL não confirmada — risco de o ingest não funcionar em ambiente real',
-    'Artigo (.tex) é literalmente um esqueleto: 6 das 6 seções marcadas "[A ser escrito]"',
-    'Score só é 6,8 (e não 6,0) porque infraestrutura é genuinamente boa; senão seria reprovado',
-  ],
-  problemas_que_impedem_nota_9_e_doutorado: [
-    'Replicação literal não constitui contribuição original — peso 15% da nota não está sendo atendido',
-    'Sem desenho experimental controlado: número de execuções, variância, IC 95%, teste de hipótese — todos ausentes',
-    'Sem comparação com formatos não-Delta (Iceberg, Hudi, parquet+iceberg, parquet+hudi) — sem isso, "comparação de formatos lakehouse" é falsa-promessa',
-    'FAIR scoring promete usar RDA Maturity Model mas não tem implementação sequer em planejamento detalhado',
-    'Análise when-not-to-use Lakehouse não tem nem outline — sinaliza que autor não conhece os limites do que defende',
-    'Sem teste de robustez: múltiplos clusters, múltiplos datasets, múltiplas seeds, sensibilidade a parâmetros',
-    'Bibliografia inicial é razoável mas vai precisar incluir os papers de comparação de formatos lakehouse 2023-2025 (Iceberg vs Delta vs Hudi benchmarks)',
-  ],
-  proximos_passos_concretos: [
-    '1. Confirmar URL PDET ou fazer upload manual de 1-2 anos de RAIS no Volume',
-    '2. Rodar pipeline end-to-end pra ter pelo menos um silver/gold com dados',
-    '3. Escrever a Seção 4 (Resultados) do .tex com números reais e tratamento estatístico desde o início',
-    '4. Implementar comparação com Iceberg E Hudi (não apenas mencionar)',
-    '5. Implementar FAIR scoring via algum dos frameworks consagrados (RDA, FAIRplus)',
-    '6. Escrever Seção 5 (Discussão) incluindo when-not-to-use Lakehouse honesto',
-  ],
-};
-
-function ScoreCard() {
-  const trend = SCORE_ATUAL - SCORE_ORIGINAL;
-  const trendIcon = trend > 0 ? '▲' : trend < 0 ? '▼' : '●';
-  const trendColor = trend > 0 ? '#059669' : trend < 0 ? '#dc2626' : 'var(--muted)';
-
-  return (
-    <section className="panel no-print" style={{ marginBottom: 14, borderLeft: `4px solid ${MASTER_LEVEL ? '#059669' : '#b45309'}` }}>
-      <div className="panelHead">
-        <span className="panelLabel">
-          Parecer crítico — Avaliador externo independente
-          (IA Claude Opus 4.7, modo Professor de Programa de Mestrado e Doutorado
-          em Finanças e Engenharia de Software)
-        </span>
-        <span className="kicker">Atualizado em {PARECER_RAIS.ultimaAtualizacao} · v{PARECER_RAIS.versao}</span>
-      </div>
-
-      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 14 }}>
-        <div>
-          <div className="kicker" style={{ marginBottom: 4 }}>Score atual</div>
-          <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1, color: MASTER_LEVEL ? '#059669' : 'var(--text)' }}>
-            {SCORE_ATUAL.toFixed(1)}<span style={{ fontSize: 18, color: 'var(--muted)', fontWeight: 600 }}> /10</span>
-          </div>
-        </div>
-        <div>
-          <div className="kicker" style={{ marginBottom: 4 }}>Score original (monografia 2023)</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, color: 'var(--muted)' }}>
-              {SCORE_ORIGINAL.toFixed(1)}<span style={{ fontSize: 16, color: 'var(--faint)', fontWeight: 600 }}> /10</span>
-            </div>
-            <a
-              href="https://github.com/leonardochalhoub/CodingMBA_UFRJ/raw/main/Monografia_LeonardoChalhoub.pdf"
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '6px 12px',
-                fontSize: 12,
-                fontWeight: 600,
-                color: 'var(--accent)',
-                background: 'var(--accent-soft)',
-                border: '1px solid var(--border)',
-                borderRadius: 999,
-                textDecoration: 'none',
-                whiteSpace: 'nowrap',
-              }}
-              title="Abre o PDF da monografia original (UFRJ MBA Eng. Dados, 2023) em nova aba"
-            >
-              📄 Ler monografia original ↗
-            </a>
-          </div>
-        </div>
-        <div style={{ color: trendColor, fontSize: 14, fontWeight: 700 }}>
-          {trendIcon} {trend >= 0 ? '+' : ''}{trend.toFixed(1)} vs original
-        </div>
-        {MASTER_LEVEL && (
-          <div style={{ marginLeft: 'auto', padding: '6px 12px', background: '#059669', color: 'white',
-                        borderRadius: 999, fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-            ★ NÍVEL STRICTO SENSU (MESTRADO) ATINGIDO
-          </div>
-        )}
-      </div>
-
-      {PARECER_RAIS.resumo_calibragem && (
-        <p style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 14, lineHeight: 1.6 }}>
-          <b>Calibragem:</b> {PARECER_RAIS.resumo_calibragem}
-        </p>
-      )}
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14, fontSize: 12.5 }}>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#059669', marginBottom: 6 }}>
-            ✓ Pontos fortes
-          </div>
-          <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-            {(PARECER_RAIS.pontos_fortes || []).map((m, i) => <li key={i}>{m}</li>)}
-          </ul>
-        </div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b45309', marginBottom: 6 }}>
-            ⚠ Pendências para nota 8 (lato sensu)
-          </div>
-          <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-            {(PARECER_RAIS.problemas_que_impedem_nota_8 || []).map((p, i) => <li key={i}>{p}</li>)}
-          </ul>
-        </div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#1d4ed8', marginBottom: 6 }}>
-            ★ Pendências para nota 9 / doutorado (stricto sensu)
-          </div>
-          <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-            {(PARECER_RAIS.problemas_que_impedem_nota_9_e_doutorado || []).map((p, i) => <li key={i}>{p}</li>)}
-          </ul>
-        </div>
-        {PARECER_RAIS.proximos_passos_concretos && PARECER_RAIS.proximos_passos_concretos.length > 0 && (
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 }}>
-              → Próximos passos concretos
-            </div>
-            <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-              {PARECER_RAIS.proximos_passos_concretos.map((p, i) => <li key={i}>{p}</li>)}
-            </ul>
-          </div>
-        )}
-      </div>
-    </section>
   );
 }
 

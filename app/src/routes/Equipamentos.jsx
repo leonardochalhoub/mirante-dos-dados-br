@@ -17,6 +17,8 @@ import StateRanking                  from '../components/StateRanking';
 import EvolutionStackedComposed      from '../components/charts/EvolutionStackedComposed';
 import DownloadActions               from '../components/DownloadActions';
 import TechBadges                    from '../components/TechBadges';
+import ScoreCard                     from '../components/ScoreCard';
+import { PARECER_EQUIPAMENTOS }      from '../data/pareceres';
 import { useTheme }                  from '../hooks/useTheme';
 import { loadGold }                  from '../lib/data';
 import { COLORSCALES }               from '../lib/scales';
@@ -184,6 +186,8 @@ export default function Equipamentos() {
           </div>
         }
       />
+
+      <ScoreCard parecer={PARECER_EQUIPAMENTOS} />
 
       <div className="kpiRow" data-export-id="equipamentos-kpis">
         <KpiCard label={`Total · ${kpis.y ?? '—'}`}             value={fmtInt(kpis.total)} sub="equipamentos somados" color={theme === 'dark' ? '#60a5fa' : '#1d4ed8'} />

@@ -14,6 +14,8 @@ import EvolutionBar   from '../components/charts/EvolutionBar';
 import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
 import EmendasArticle  from '../components/EmendasArticle';
+import ScoreCard       from '../components/ScoreCard';
+import { PARECER_EMENDAS } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
 import { COLORSCALES } from '../lib/scales';
@@ -133,6 +135,8 @@ export default function Emendas() {
       />
 
       {/* ─── DOCUMENTAÇÃO ─────────────────────────────────────────────── */}
+      <ScoreCard parecer={PARECER_EMENDAS} />
+
       <DocSection />
 
       {/* ─── DADOS ───────────────────────────────────────────────────── */}

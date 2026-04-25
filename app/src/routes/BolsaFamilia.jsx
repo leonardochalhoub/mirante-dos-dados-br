@@ -16,6 +16,8 @@ import StateRanking    from '../components/StateRanking';
 import EvolutionBar    from '../components/charts/EvolutionBar';
 import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
+import ScoreCard       from '../components/ScoreCard';
+import { PARECER_PBF } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
 import { COLORSCALES } from '../lib/scales';
@@ -210,6 +212,8 @@ export default function BolsaFamilia() {
           </div>
         }
       />
+
+      <ScoreCard parecer={PARECER_PBF} />
 
       <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
         <div className="doc-block">

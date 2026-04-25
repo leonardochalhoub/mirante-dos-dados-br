@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DeltaLogoLarge } from '../components/TechBadges';
+import ScoreCard from '../components/ScoreCard';
+import { PARECER_GLOBAL } from '../data/pareceres';
 import { loadStats } from '../lib/data';
 import { fmtCompact, fmtInt } from '../lib/format';
 
@@ -96,6 +98,8 @@ export default function Home() {
       </section>
 
       {stats && <BigDataStrip stats={stats} />}
+
+      <ScoreCard parecer={PARECER_GLOBAL} />
 
       <section className="vertical-grid">
         {VERTICAIS.map((v) =>
