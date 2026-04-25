@@ -10,12 +10,25 @@ const NAV = [
 // Each vertical's tag (e.g. "v3") is read from platform_stats.json's
 // `delta_version` for the listed gold table. Falls back to `defaultTag` while
 // stats are loading or if the table is missing.
+//
+// `firstPublished` is the date the vertical first went to production
+// (derived from git log of each route file). Ordering is chronological,
+// oldest first → reflects the platform's evolution over time.
 const VERTICALS = [
-  { to: '/bolsa-familia',          label: 'Bolsa Família',          goldTable: 'pbf_estados_df',           defaultTag: 'v1' },
-  { to: '/equipamentos',           label: 'Equipamentos',           goldTable: 'equipamentos_estados_ano', defaultTag: 'v1' },
-  { to: '/emendas',                label: 'Emendas Parlamentares',  goldTable: 'emendas_estados_df',       defaultTag: 'v1' },
-  { to: '/incontinencia-urinaria', label: 'Incontinência Urinária', goldTable: 'uropro_estados_ano',       defaultTag: 'v1' },
-];
+  { to: '/bolsa-familia',          label: 'Bolsa Família',          goldTable: 'pbf_estados_df',           defaultTag: 'v1', firstPublished: '2026-04-24' },
+  { to: '/equipamentos',           label: 'Equipamentos',           goldTable: 'equipamentos_estados_ano', defaultTag: 'v1', firstPublished: '2026-04-24' },
+  { to: '/emendas',                label: 'Emendas Parlamentares',  goldTable: 'emendas_estados_df',       defaultTag: 'v1', firstPublished: '2026-04-25' },
+  { to: '/incontinencia-urinaria', label: 'Incontinência Urinária', goldTable: 'uropro_estados_ano',       defaultTag: 'v1', firstPublished: '2026-04-25' },
+].sort((a, b) => a.firstPublished.localeCompare(b.firstPublished));
+
+// Format ISO date as "24/abr/2026"
+const MONTHS_PT = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+                   'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+function fmtPubDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${MONTHS_PT[parseInt(m, 10) - 1]}/${y}`;
+}
 
 const flagSrc = `${import.meta.env.BASE_URL}brazil-flag.svg`.replace(/\/{2,}/g, '/');
 
@@ -71,20 +84,27 @@ export default function Layout() {
           <ul className="nav-list">
             {VERTICALS.map((v) => {
               const tag = tagFor(v);
+              const pub = fmtPubDate(v.firstPublished);
               return (
                 <li key={v.to}>
                   {v.soon ? (
-                    <span className="nav-link" style={{ opacity: 0.55, cursor: 'default' }}>
-                      {v.label}
-                      <span className="nav-link-tag tag-soon">{tag}</span>
+                    <span className="nav-link nav-link-vertical" style={{ opacity: 0.55, cursor: 'default' }}>
+                      <span className="nav-link-row">
+                        <span className="nav-link-label">{v.label}</span>
+                        <span className="nav-link-tag tag-soon">{tag}</span>
+                      </span>
+                      {pub && <span className="nav-link-pubdate">desde {pub}</span>}
                     </span>
                   ) : (
                     <NavLink
                       to={v.to}
-                      className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}
+                      className={({ isActive }) => `nav-link nav-link-vertical${isActive ? ' is-active' : ''}`}
                     >
-                      {v.label}
-                      <span className="nav-link-tag" title="Versão da tabela Delta (DESCRIBE HISTORY)">{tag}</span>
+                      <span className="nav-link-row">
+                        <span className="nav-link-label">{v.label}</span>
+                        <span className="nav-link-tag" title="Versão da tabela Delta (DESCRIBE HISTORY)">{tag}</span>
+                      </span>
+                      {pub && <span className="nav-link-pubdate" title="Data da primeira versão publicada">desde {pub}</span>}
                     </NavLink>
                   )}
                 </li>

@@ -190,6 +190,28 @@ code, pre, .mono {
 }
 .nav-link-tag.tag-soon { color: var(--faint); }
 
+/* Vertical nav links use a 2-line layout: [label + tag] / [pub date] */
+.nav-link-vertical {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+}
+.nav-link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.nav-link-label { flex: 1 1 auto; min-width: 0; }
+.nav-link-pubdate {
+  font-size: 9.5px;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  padding-left: 0;
+  font-variant-numeric: tabular-nums;
+}
+
 .sidebar-footer {
   margin-top: auto;
   padding-top: 12px;
