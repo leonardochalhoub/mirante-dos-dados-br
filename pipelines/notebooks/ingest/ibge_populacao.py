@@ -14,15 +14,18 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("start_year",  "2013")
-dbutils.widgets.text("end_year",    "2026")
-dbutils.widgets.text("volume_dir",  "/Volumes/mirante_prd/bronze/raw/ibge")
+dbutils.widgets.text("start_year",   "2013")
+dbutils.widgets.text("end_year",     "2026")
+dbutils.widgets.text("volume_dir",   "/Volumes/mirante_prd/bronze/raw/ibge")
+dbutils.widgets.text("fallback_url", "https://raw.githubusercontent.com/leonardochalhoub/mirante-dos-dados-br/main/data/fallback/ibge_populacao_uf.json")
 
-START_YEAR = int(dbutils.widgets.get("start_year"))
-END_YEAR   = int(dbutils.widgets.get("end_year"))
-VOLUME_DIR = dbutils.widgets.get("volume_dir")
+START_YEAR   = int(dbutils.widgets.get("start_year"))
+END_YEAR     = int(dbutils.widgets.get("end_year"))
+VOLUME_DIR   = dbutils.widgets.get("volume_dir")
+FALLBACK_URL = dbutils.widgets.get("fallback_url")
 
 print(f"start_year={START_YEAR} end_year={END_YEAR} dest={VOLUME_DIR}")
+print(f"fallback_url={FALLBACK_URL}")
 
 # COMMAND ----------
 
@@ -45,21 +48,36 @@ print(f"GET {url}")
 # IBGE API is flaky — retry with backoff on timeouts/connection errors
 MAX_ATTEMPTS = 5
 TIMEOUT      = 180   # 3 minutes per attempt
-payload = None
+payload      = None
+source       = None
+
 for attempt in range(1, MAX_ATTEMPTS + 1):
     try:
         r = requests.get(url, headers={"User-Agent": "mirante-dos-dados/1.0"}, timeout=TIMEOUT)
         r.raise_for_status()
         payload = r.json()
-        print(f"✔ attempt {attempt}/{MAX_ATTEMPTS}: got {len(str(payload)):,} chars")
+        source  = f"ibge_api_attempt_{attempt}"
+        print(f"✔ attempt {attempt}/{MAX_ATTEMPTS}: got {len(str(payload)):,} chars from IBGE")
         break
-    except (requests.ConnectTimeout, requests.ReadTimeout, requests.ConnectionError) as e:
+    except (requests.ConnectTimeout, requests.ReadTimeout, requests.ConnectionError, requests.HTTPError) as e:
         print(f"  attempt {attempt}/{MAX_ATTEMPTS} failed: {type(e).__name__}: {str(e)[:120]}")
-        if attempt == MAX_ATTEMPTS:
-            raise
-        sleep_s = 2 ** attempt    # 2, 4, 8, 16, 32 seconds
-        print(f"  backing off {sleep_s}s before retry…")
-        time.sleep(sleep_s)
+        if attempt < MAX_ATTEMPTS:
+            sleep_s = 2 ** attempt
+            print(f"  backing off {sleep_s}s before retry…")
+            time.sleep(sleep_s)
+
+# All IBGE attempts failed — fall back to the static baked-in JSON shipped in the repo.
+# Has 27 UFs × 13 years (2013-2025) of population data extracted from the previous
+# successful pipeline run. Pipeline can continue; next refresh will retry IBGE.
+if payload is None:
+    print(f"⚠ All {MAX_ATTEMPTS} IBGE attempts failed. Falling back to {FALLBACK_URL}")
+    r = requests.get(FALLBACK_URL, timeout=60)
+    r.raise_for_status()
+    payload = r.json()
+    source  = "github_fallback"
+    print(f"✔ fallback loaded ({len(str(payload)):,} chars)")
+
+print(f"data source: {source}")
 
 # Sanity check
 years_seen = set()
