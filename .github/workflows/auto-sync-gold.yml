@@ -33,14 +33,34 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Install Databricks CLI
-        # Official install script — handles release-asset name versioning
-        # (the older `/releases/latest/download/databricks_cli_linux_amd64.tar.gz`
-        # URL pattern stopped working when Databricks added version numbers
-        # to the asset filenames). Installs to /usr/local/bin/databricks
-        # which is already on PATH on ubuntu-latest.
         run: |
           curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sudo sh
           databricks --version
+
+      # The new Go-based Databricks CLI's "unified auth" doesn't
+      # reliably pick up DATABRICKS_HOST/TOKEN from workflow-level
+      # `env:`. Write the canonical config file explicitly — that
+      # path is always honored.
+      - name: Configure Databricks CLI auth
+        env:
+          DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          if [ -z "$DATABRICKS_HOST" ] || [ -z "$DATABRICKS_TOKEN" ]; then
+            echo "✗ Secrets not injected. Check repo Settings → Secrets → Actions:"
+            echo "    DATABRICKS_HOST  set: $([ -n "$DATABRICKS_HOST" ]  && echo yes || echo NO)"
+            echo "    DATABRICKS_TOKEN set: $([ -n "$DATABRICKS_TOKEN" ] && echo yes || echo NO)"
+            exit 1
+          fi
+          umask 077
+          cat > "$HOME/.databrickscfg" <<EOF
+          [DEFAULT]
+          host  = $DATABRICKS_HOST
+          token = $DATABRICKS_TOKEN
+          EOF
+          echo "✓ Wrote $HOME/.databrickscfg ($(stat -c %s "$HOME/.databrickscfg") bytes)"
+          # Sanity probe — list the workspace root to confirm auth works
+          databricks workspace list / 2>&1 | head -5 || echo "(workspace probe failed)"
 
       # Pull gold JSONs from Volume. Each cp checked via `databricks fs ls`
       # FIRST — this distinguishes "file doesn't exist yet" (acceptable, skip)
