@@ -38,7 +38,17 @@ silver = spark.read.table(SILVER_EMENDAS)
 pop    = spark.read.table(SILVER_POP).select("Ano", "uf", "populacao")
 defl   = spark.read.table(SILVER_DEFL).select("Ano", "deflator_to_2021")
 
-print(f"silver_emendas rows={silver.count():,}  pop rows={pop.count()}  defl rows={defl.count()}")
+silver_n = silver.count()
+print(f"silver_emendas rows={silver_n:,}  pop rows={pop.count()}  defl rows={defl.count()}")
+
+# Defensive: silver pode estar vazia se o ingest CGU falhou ou se a bronze
+# foi populada antes de fix de schema. Sai gracefully sem crashar o DAG.
+if silver_n == 0:
+    print("⚠ silver.emendas_uf_ano está vazia. Investigue o upstream:")
+    print("  1. Verifique o run de ingest_cgu_emendas (URL emendas-parlamentares)")
+    print("  2. Verifique bronze.emendas_pagamentos: spark.read.table(...).count()")
+    print("  3. Re-rode silver após bronze ter dados")
+    dbutils.notebook.exit("SKIPPED: silver.emendas_uf_ano is empty")
 
 # COMMAND ----------
 
