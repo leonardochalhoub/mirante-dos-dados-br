@@ -69,7 +69,15 @@ def table_stats(catalog: str, schema: str) -> list[dict]:
             rows  = spark.read.table(full).count()
             detail = spark.sql(f"DESCRIBE DETAIL {full}").first()
             size  = int(detail["sizeInBytes"]) if detail and detail["sizeInBytes"] is not None else 0
-            out.append({"table": tname, "full_name": full, "rows": rows, "bytes": size})
+            # Delta version = latest entry in DESCRIBE HISTORY (commits to this table over time).
+            # Each refresh increments by 1. Used by the front to show "v{N}" badge.
+            try:
+                hist = spark.sql(f"DESCRIBE HISTORY {full}").orderBy("version", ascending=False).first()
+                delta_version = int(hist["version"]) if hist and hist["version"] is not None else 0
+            except Exception:
+                delta_version = 0
+            out.append({"table": tname, "full_name": full, "rows": rows,
+                        "bytes": size, "delta_version": delta_version})
         except Exception as e:
             print(f"  could not stat {full}: {e}")
     return out

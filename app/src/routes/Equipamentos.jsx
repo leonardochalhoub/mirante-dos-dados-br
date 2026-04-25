@@ -1,0 +1,410 @@
+// Vertical: Equipamentos CNES (todos os tipos, não só Ressonância Magnética).
+// Source: /data/gold/gold_equipamentos_estados_ano.json
+// Schema row: { estado, ano, codequip, equipment_name, populacao,
+//   cnes_count, total_avg, per_capita_scaled,
+//   sus_cnes_count, sus_total_avg, sus_per_capita_scaled,
+//   priv_cnes_count, priv_total_avg, priv_per_capita_scaled,
+//   per_capita_scale_pow10 }
+//
+// User selects 1+ codequips (multi-select). Front re-aggregates client-side.
+
+import { useEffect, useMemo, useState } from 'react';
+import PageHeader                    from '../components/PageHeader';
+import Panel                         from '../components/Panel';
+import KpiCard                       from '../components/KpiCard';
+import BrazilMap                     from '../components/BrazilMap';
+import StateRanking                  from '../components/StateRanking';
+import EvolutionStackedComposed      from '../components/charts/EvolutionStackedComposed';
+import DownloadActions               from '../components/DownloadActions';
+import TechBadges                    from '../components/TechBadges';
+import { useTheme }                  from '../hooks/useTheme';
+import { loadGold }                  from '../lib/data';
+import { COLORSCALES }               from '../lib/scales';
+import { fmtCompact, fmtDec1, fmtInt, fmtPct } from '../lib/format';
+import { exportToXlsx, exportChartsAsZip } from '../lib/exporters';
+
+const METRICS = {
+  per_million: { label: 'Equip. por milhão de hab.', short: 'eq/Mhab',  fmt: fmtDec1 },
+  total:       { label: 'Total de equipamentos',     short: 'equip.',  fmt: fmtDec1 },
+  cnes:        { label: 'Estabelecimentos com equip.', short: 'estab.', fmt: fmtInt  },
+};
+
+const SETORES = {
+  todos: { label: 'Todos',         color: '#1d4ed8', colorDark: '#60a5fa' },
+  sus:   { label: 'Público (SUS)', color: '#1d4ed8', colorDark: '#60a5fa' },
+  priv:  { label: 'Privado',       color: '#be185d', colorDark: '#f472b6' },
+};
+
+const MIN_YEAR        = 2005;
+const DEFAULT_METRIC  = 'per_million';
+const DEFAULT_SETOR   = 'todos';
+const DEFAULT_COLOR   = 'Cividis';
+const DEFAULT_CODEQUIPS = ['42'];   // Ressonância Magnética por default
+
+function aggCols(sector) {
+  if (sector === 'sus')  return { total: 'sus_total_avg',  cnes: 'sus_cnes_count'  };
+  if (sector === 'priv') return { total: 'priv_total_avg', cnes: 'priv_cnes_count' };
+  return { total: 'total_avg', cnes: 'cnes_count' };
+}
+
+export default function Equipamentos() {
+  const { theme } = useTheme();
+  const [rows, setRows]                 = useState(null);
+  const [error, setError]               = useState(null);
+  const [metricKey, setMetricKey]       = useState(DEFAULT_METRIC);
+  const [setor, setSetor]               = useState(DEFAULT_SETOR);
+  const [year, setYear]                 = useState(null);
+  const [colorscale, setColorscale]     = useState(DEFAULT_COLOR);
+  const [selectedCodequips, setSelectedCodequips] = useState(DEFAULT_CODEQUIPS);
+
+  useEffect(() => {
+    loadGold('gold_equipamentos_estados_ano.json')
+      .then((all) => {
+        const filtered = all.filter((r) => r.ano >= MIN_YEAR);
+        setRows(filtered);
+        const last = Math.max(...filtered.map((r) => r.ano));
+        setYear(String(last));
+      })
+      .catch((e) => setError(e.message));
+  }, []);
+
+  const metric = METRICS[metricKey];
+  const setorLabel = SETORES[setor].label;
+
+  const years = useMemo(
+    () => (rows ? Array.from(new Set(rows.map((r) => r.ano))).sort() : []),
+    [rows],
+  );
+
+  const equipmentOptions = useMemo(() => {
+    if (!rows) return [];
+    const totals = new Map();
+    const names  = new Map();
+    for (const r of rows) {
+      totals.set(r.codequip, (totals.get(r.codequip) || 0) + (r.total_avg || 0));
+      if (!names.has(r.codequip)) names.set(r.codequip, r.equipment_name);
+    }
+    return Array.from(totals.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([codequip]) => ({ codequip, name: names.get(codequip) || `Cód. ${codequip}` }));
+  }, [rows]);
+
+  const rowsForCurrentYear = useMemo(() => {
+    if (!rows || !year) return [];
+    const yNum = Number(year);
+    const sel  = new Set(selectedCodequips);
+    return rows.filter((r) => r.ano === yNum && sel.has(r.codequip));
+  }, [rows, year, selectedCodequips]);
+
+  const filtered = useMemo(() => {
+    if (!rowsForCurrentYear.length) return [];
+    const byUf = new Map();
+    for (const r of rowsForCurrentYear) {
+      if (!byUf.has(r.estado)) byUf.set(r.estado, []);
+      byUf.get(r.estado).push(r);
+    }
+    const cols = aggCols(setor);
+    return Array.from(byUf.entries()).map(([uf, rs]) => {
+      const total = rs.reduce((s, r) => s + (r[cols.total] || 0), 0);
+      const cnes  = rs.reduce((s, r) => s + (r[cols.cnes]  || 0), 0);
+      const pop   = rs[0]?.populacao || 0;
+      const value = metricKey === 'per_million' ? (pop > 0 ? (total / pop) * 1e6 : 0)
+                  : metricKey === 'total'        ? total
+                  :                                 cnes;
+      return { uf, value };
+    });
+  }, [rowsForCurrentYear, setor, metricKey]);
+
+  const ranking = useMemo(() => [...filtered].sort((a, b) => b.value - a.value), [filtered]);
+
+  const kpis = useMemo(() => {
+    if (!rowsForCurrentYear.length) {
+      return { y: null, total: 0, sus: 0, priv: 0, cnes: 0, susShare: 0, privShare: 0,
+               yoyTotal: null, prevYear: null };
+    }
+    const y = Number(year);
+    const sumT = (rs, col) => rs.reduce((s, r) => s + (r[col] || 0), 0);
+    const total = sumT(rowsForCurrentYear, 'total_avg');
+    const sus   = sumT(rowsForCurrentYear, 'sus_total_avg');
+    const priv  = sumT(rowsForCurrentYear, 'priv_total_avg');
+    const cnes  = sumT(rowsForCurrentYear, 'cnes_count');
+    const prevYear = years.includes(y - 1) ? y - 1 : null;
+    let yoyTotal = null;
+    if (prevYear != null) {
+      const sel = new Set(selectedCodequips);
+      const prev = rows.filter((r) => r.ano === prevYear && sel.has(r.codequip));
+      const totalPrev = sumT(prev, 'total_avg');
+      if (totalPrev > 0) yoyTotal = (total - totalPrev) / totalPrev;
+    }
+    return {
+      y, total, sus, priv, cnes,
+      susShare:  total > 0 ? sus  / total : 0,
+      privShare: total > 0 ? priv / total : 0,
+      yoyTotal, prevYear,
+    };
+  }, [rowsForCurrentYear, year, years, rows, selectedCodequips]);
+
+  const evolutionData = useMemo(() => {
+    if (!rows) return [];
+    const sel = new Set(selectedCodequips);
+    return years.map((y) => {
+      const yr = rows.filter((r) => r.ano === y && sel.has(r.codequip));
+      const susT  = yr.reduce((s, r) => s + (r.sus_total_avg  || 0), 0);
+      const privT = yr.reduce((s, r) => s + (r.priv_total_avg || 0), 0);
+      const totalT = susT + privT;
+      const setorT = setor === 'sus' ? susT : setor === 'priv' ? privT : totalT;
+      const ufPop = new Map();
+      for (const r of yr) if (!ufPop.has(r.estado)) ufPop.set(r.estado, r.populacao || 0);
+      const popBR = Array.from(ufPop.values()).reduce((s, v) => s + v, 0);
+      const ratio = popBR > 0 ? (setorT / popBR) * 1e6 : 0;
+      return { year: String(y), sus: susT, priv: privT, ratio };
+    });
+  }, [rows, years, setor, selectedCodequips]);
+
+  if (error) return <div className="error-block">Erro ao carregar dados: {error}</div>;
+  if (!rows) return <div className="loading-block">Carregando dados…</div>;
+
+  const titleSubject = selectedCodequips.length === 1
+    ? equipmentOptions.find((e) => e.codequip === selectedCodequips[0])?.name || 'Equipamento'
+    : `${selectedCodequips.length} equipamentos selecionados`;
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="Vertical · saúde · equipamentos médicos (CNES)"
+        title="Equipamentos médicos no Brasil"
+        subtitle={`${titleSubject} — DATASUS/CNES (2005–${Math.max(...years)}). População via IBGE/SIDRA.`}
+        right={
+          <div className="header-right-row">
+            <TechBadges />
+            <DownloadActions
+              onExportXlsx={() => exportToXlsx('mirante-equipamentos', { 'equipamentos_uf_ano': rows })}
+              onExportPng={() => exportChartsAsZip('mirante-equipamentos')}
+            />
+          </div>
+        }
+      />
+
+      <div className="kpiRow" data-export-id="equipamentos-kpis">
+        <KpiCard label={`Total · ${kpis.y ?? '—'}`}             value={fmtInt(kpis.total)} sub="equipamentos somados" color={theme === 'dark' ? '#60a5fa' : '#1d4ed8'} />
+        <KpiCard label={`SUS · ${kpis.y ?? '—'}`}               value={fmtInt(kpis.sus)}   sub={`${fmtPct(kpis.susShare)} do total`} color={SETORES.sus.color} />
+        <KpiCard label={`Privado · ${kpis.y ?? '—'}`}           value={fmtInt(kpis.priv)}  sub={`${fmtPct(kpis.privShare)} do total`} color={SETORES.priv.color} />
+        <KpiCard label={`Estabelecimentos · ${kpis.y ?? '—'}`}  value={fmtInt(kpis.cnes)}  sub="com pelo menos 1 unidade" color={theme === 'dark' ? '#34d399' : '#059669'} />
+        {kpis.prevYear != null && kpis.yoyTotal != null && (
+          <KpiCard
+            label="Crescimento YoY"
+            value={<YoyValue value={kpis.yoyTotal} />}
+            sub={`${kpis.prevYear} → ${kpis.y}`}
+            color={theme === 'dark' ? '#34d399' : '#059669'}
+          />
+        )}
+      </div>
+
+      <div className="layout">
+        <div className="row row-controls-bar">
+          <Panel label="Filtros & dados" sub="DATASUS · IBGE">
+            <div className="controls">
+              <div className="control" style={{ gridTemplateColumns: '90px 1fr', alignItems: 'flex-start' }}>
+                <label htmlFor="equip" style={{ paddingTop: 6 }}>Equipamento</label>
+                <EquipmentMultiSelect
+                  options={equipmentOptions}
+                  selected={selectedCodequips}
+                  onChange={setSelectedCodequips}
+                />
+              </div>
+
+              <div className="control">
+                <label htmlFor="metric">Métrica</label>
+                <select id="metric" value={metricKey} onChange={(e) => setMetricKey(e.target.value)}>
+                  {Object.entries(METRICS).map(([k, m]) => (
+                    <option key={k} value={k}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="control">
+                <label htmlFor="setor">Setor</label>
+                <select id="setor" value={setor} onChange={(e) => setSetor(e.target.value)}>
+                  <option value="todos">Todos</option>
+                  <option value="sus">Público (SUS)</option>
+                  <option value="priv">Privado</option>
+                </select>
+              </div>
+
+              <div className="control">
+                <label htmlFor="year">Ano</label>
+                <select id="year" value={year || ''} onChange={(e) => setYear(e.target.value)}>
+                  {years.map((y) => (<option key={y} value={y}>{y}</option>))}
+                </select>
+              </div>
+
+              <div className="metaBlock">
+                <b>Fonte:</b> DATASUS — Cadastro Nacional de Estabelecimentos de Saúde<br />
+                <b>SUS:</b> IND_SUS = 1 · <b>Privado:</b> IND_SUS = 0<br />
+                <b>Multi-seleção:</b> totais somam, per capita recalcula
+              </div>
+            </div>
+          </Panel>
+
+          <Panel
+            label="Evolução nacional"
+            sub={`${titleSubject} · ${setorLabel} + por milhão de hab.`}
+            exportId="equipamentos-evolucao"
+          >
+            <EvolutionStackedComposed
+              data={evolutionData}
+              setor={setor}
+              theme={theme}
+              fmtBar={(v) => fmtCompact(v)}
+              fmtLine={(v) => fmtDec1(v)}
+              yLeftLabel="Equipamentos (média anual)"
+              yRightLabel="por milhão"
+              xLabel="Ano"
+              height={340}
+            />
+          </Panel>
+        </div>
+
+        <div className="row row-ranking-map">
+          <Panel
+            label="Ranking por UF"
+            sub={`${metric.label} · ${setorLabel} · ${year}`}
+            exportId="equipamentos-ranking-uf"
+          >
+            <StateRanking
+              rows={ranking}
+              format={metric.fmt}
+              accentColor={
+                setor === 'priv'
+                  ? (theme === 'dark' ? SETORES.priv.colorDark : SETORES.priv.color)
+                  : (theme === 'dark' ? SETORES.sus.colorDark  : SETORES.sus.color)
+              }
+            />
+          </Panel>
+
+          <Panel
+            label="Distribuição geográfica"
+            exportId="equipamentos-mapa-uf"
+            right={
+              <div className="mapControls">
+                <label htmlFor="colorscale">Cores</label>
+                <select id="colorscale" value={colorscale} onChange={(e) => setColorscale(e.target.value)}>
+                  {COLORSCALES.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
+                </select>
+              </div>
+            }
+          >
+            <BrazilMap
+              data={filtered}
+              colorscale={colorscale}
+              theme={theme}
+              hoverFmt={metric.fmt}
+              unit={metric.short}
+            />
+          </Panel>
+        </div>
+      </div>
+
+      <Footer />
+    </>
+  );
+}
+
+function EquipmentMultiSelect({ options, selected, onChange }) {
+  const [open, setOpen]   = useState(false);
+  const [query, setQuery] = useState('');
+  const sel = new Set(selected);
+
+  const filtered = options.filter((o) =>
+    !query || o.name.toLowerCase().includes(query.toLowerCase()) || o.codequip.includes(query),
+  );
+
+  const toggle = (codequip) => {
+    const next = sel.has(codequip)
+      ? selected.filter((c) => c !== codequip)
+      : [...selected, codequip];
+    if (next.length > 0) onChange(next);   // sempre manter ao menos 1
+  };
+
+  const summary = selected.length === 1
+    ? options.find((o) => o.codequip === selected[0])?.name || `Cód. ${selected[0]}`
+    : `${selected.length} selecionados`;
+
+  return (
+    <div className="multi-select">
+      <button type="button" className="multi-select-trigger" onClick={() => setOpen((v) => !v)}>
+        <span>{summary}</span>
+        <span className="multi-select-caret">▾</span>
+      </button>
+      {open && (
+        <div className="multi-select-popover">
+          <input
+            type="text"
+            placeholder="Buscar…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="multi-select-search"
+            autoFocus
+          />
+          <div className="multi-select-options">
+            {filtered.map((o) => (
+              <label key={o.codequip} className="multi-select-option">
+                <input
+                  type="checkbox"
+                  checked={sel.has(o.codequip)}
+                  onChange={() => toggle(o.codequip)}
+                />
+                <span>{o.name}</span>
+                <span className="multi-select-code">{o.codequip}</span>
+              </label>
+            ))}
+          </div>
+          <button type="button" className="multi-select-close" onClick={() => setOpen(false)}>Fechar</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function YoyValue({ value }) {
+  if (value == null || !Number.isFinite(value)) return <span className="muted">—</span>;
+  const up    = value >= 0;
+  const sign  = up ? '+' : '';
+  const arrow = up ? '▲' : '▼';
+  return (
+    <span className={`kpiYoy ${up ? 'up' : 'down'}`}>
+      <span className="arrow">{arrow}</span>
+      <span>{sign}{fmtPct(value)}</span>
+    </span>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="footer panel" style={{ marginTop: 18 }}>
+      <div className="footerSection">
+        <div className="footerHeading">Fontes</div>
+        <div className="footerSource">
+          <a href="https://datasus.saude.gov.br/transferencia-de-arquivos/" target="_blank" rel="noreferrer">
+            DATASUS — CNES/EQ (Equipamentos)
+          </a>
+          <span className="footerDesc">Cadastro Nacional de Estabelecimentos de Saúde — equipamentos por estabelecimento, mensal, jan/2005 em diante</span>
+        </div>
+        <div className="footerSource">
+          <a href="https://sidra.ibge.gov.br/tabela/6579" target="_blank" rel="noreferrer">IBGE SIDRA — Tabela 6579</a>
+          <span className="footerDesc">População residente estimada por UF (variável 9324)</span>
+        </div>
+        <div className="footerNote">
+          Pipeline: bronze (FTP DATASUS, 6.6K .dbc) → silver (UF × Ano × CODEQUIP, split SUS/Privado) → gold (mesma granularidade, com nome do equipamento). Front re-agrega quando o usuário seleciona múltiplos.
+        </div>
+      </div>
+
+      <div className="footerSection">
+        <div className="footerHeading">Notas técnicas</div>
+        <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
+          Quando você seleciona <b>2+ equipamentos</b>, o "Total" é a soma direta dos averages. O "por milhão" é recomputado como (soma de equipamentos) / população × 10⁶ — não é a soma das taxas individuais. Isso garante comparação correta entre UFs com tamanhos diferentes.
+        </div>
+      </div>
+    </footer>
+  );
+}

@@ -14,10 +14,10 @@ const VERTICAIS = [
     available: true,
   },
   {
-    to: '/saude-mri',
-    eyebrow: 'Saúde · ressonância magnética',
-    title: 'Ressonância Magnética',
-    desc: 'Distribuição de equipamentos de RM no Brasil por UF, com split público (SUS) e privado. Fontes: DATASUS/CNES · IBGE.',
+    to: '/equipamentos',
+    eyebrow: 'Saúde · equipamentos médicos',
+    title: 'Equipamentos médicos (CNES)',
+    desc: 'Multi-seleção entre dezenas de tipos de equipamentos (RM, TC, mamógrafos, raio-X, leitos UTI, ventiladores…) por UF, com split público (SUS) e privado. Fontes: DATASUS/CNES · IBGE.',
     period: '2005 – 2025',
     available: true,
   },
@@ -142,7 +142,13 @@ function BigDataStrip({ stats }) {
   const largest = stats.largest_table;
 
   const verticals = stats.verticals || {};
-  const orderedVerticals = ['pbf', 'mri'].filter((k) => verticals[k]);
+  const orderedVerticals = ['pbf', 'mri', 'equipamentos'].filter((k) => verticals[k]);
+
+  const verticalLabel = {
+    pbf: 'Bolsa Família',
+    mri: 'Ressonância Magnética',
+    equipamentos: 'Equipamentos médicos (CNES)',
+  };
 
   return (
     <section className="bigdata-strip">
@@ -167,7 +173,7 @@ function BigDataStrip({ stats }) {
           return (
             <div key={k} className="bigdata-pipeline">
               <div className="bigdata-pipeline-head">
-                <span className="kicker">{k === 'pbf' ? 'Bolsa Família' : 'Ressonância Magnética'}</span>
+                <span className="kicker">{verticalLabel[k] || k}</span>
               </div>
               <div className="bigdata-pipeline-row">
                 <Step label={v.raw_compressed_label} files={v.raw_compressed_files} bytes={v.raw_compressed_bytes} />

@@ -55,7 +55,10 @@ extracted = 0
 skipped = 0
 Path(CSV_EXTRACTED).mkdir(parents=True, exist_ok=True)
 
-for zp in sorted(Path(ZIPS_DIR).glob("*.zip")):
+zips_found = sorted(Path(ZIPS_DIR).glob("*.zip"))
+print(f"ZIPs em {ZIPS_DIR}: {len(zips_found)}")
+
+for zp in zips_found:
     year = year_of(zp.name)
     if not year:
         continue
@@ -70,7 +73,20 @@ for zp in sorted(Path(ZIPS_DIR).glob("*.zip")):
         fout.write(zf.read(inner))
     extracted += 1
 
-print(f"Extracted {extracted} new CSVs (skipped {skipped} already extracted).")
+csvs_now = sorted(Path(CSV_EXTRACTED).glob("*.csv"))
+print(f"Extracted {extracted} new CSVs (skipped {skipped} already extracted). "
+      f"Total CSVs: {len(csvs_now)}")
+
+# Guard: if no CSVs in folder, skip the Auto Loader step gracefully.
+# This happens when the upstream ingest task didn't successfully download any
+# CGU ZIPs (URL changed, network issue, dataset moved). Without this guard,
+# Auto Loader fails with CF_EMPTY_DIR_FOR_SCHEMA_INFERENCE.
+if not csvs_now:
+    print("⚠ No CSVs to process. Bronze table NOT updated. Investigate the ingest task:")
+    print("  - Verify URL pattern at https://portaldatransparencia.gov.br/download-de-dados/emendas")
+    print("  - Check the ingest_cgu_emendas task output for HTTP errors")
+    print("  - Once URLs are fixed, re-run this job.")
+    dbutils.notebook.exit("SKIPPED: no CSV files in source folder")
 
 # COMMAND ----------
 

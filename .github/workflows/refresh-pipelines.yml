@@ -76,11 +76,11 @@ jobs:
             "dbfs:/Volumes/mirante_prd/gold/exports/gold_pbf_estados_df.json" \
             "data/gold/gold_pbf_estados_df.json" \
             --overwrite || echo "(PBF gold not yet generated, skip)"
-          # MRI gold
+          # Equipamentos gold (todos CODEQUIPs, front escolhe)
           databricks fs cp \
-            "dbfs:/Volumes/mirante_prd/gold/exports/gold_mri_estados_ano.json" \
-            "data/gold/gold_mri_estados_ano.json" \
-            --overwrite || echo "(MRI gold not yet generated, skip)"
+            "dbfs:/Volumes/mirante_prd/gold/exports/gold_equipamentos_estados_ano.json" \
+            "data/gold/gold_equipamentos_estados_ano.json" \
+            --overwrite || echo "(Equipamentos gold not yet generated, skip)"
           # Emendas gold
           databricks fs cp \
             "dbfs:/Volumes/mirante_prd/gold/exports/gold_emendas_estados_df.json" \
