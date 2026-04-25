@@ -45,32 +45,19 @@ url = (
 )
 print(f"GET {url}")
 
-# IBGE API is flaky — retry with backoff on timeouts/connection errors
-MAX_ATTEMPTS = 5
-TIMEOUT      = 180   # 3 minutes per attempt
-payload      = None
-source       = None
+# IBGE API: fast-fail on first failure → fallback. No retries.
+TIMEOUT = 30
+payload = None
+source  = None
 
-for attempt in range(1, MAX_ATTEMPTS + 1):
-    try:
-        r = requests.get(url, headers={"User-Agent": "mirante-dos-dados/1.0"}, timeout=TIMEOUT)
-        r.raise_for_status()
-        payload = r.json()
-        source  = f"ibge_api_attempt_{attempt}"
-        print(f"✔ attempt {attempt}/{MAX_ATTEMPTS}: got {len(str(payload)):,} chars from IBGE")
-        break
-    except (requests.ConnectTimeout, requests.ReadTimeout, requests.ConnectionError, requests.HTTPError) as e:
-        print(f"  attempt {attempt}/{MAX_ATTEMPTS} failed: {type(e).__name__}: {str(e)[:120]}")
-        if attempt < MAX_ATTEMPTS:
-            sleep_s = 2 ** attempt
-            print(f"  backing off {sleep_s}s before retry…")
-            time.sleep(sleep_s)
-
-# All IBGE attempts failed — fall back to the static baked-in JSON shipped in the repo.
-# Has 27 UFs × 13 years (2013-2025) of population data extracted from the previous
-# successful pipeline run. Pipeline can continue; next refresh will retry IBGE.
-if payload is None:
-    print(f"⚠ All {MAX_ATTEMPTS} IBGE attempts failed. Falling back to {FALLBACK_URL}")
+try:
+    r = requests.get(url, headers={"User-Agent": "mirante-dos-dados/1.0"}, timeout=TIMEOUT)
+    r.raise_for_status()
+    payload = r.json()
+    source  = "ibge_api"
+    print(f"✔ IBGE OK ({len(str(payload)):,} chars)")
+except (requests.ConnectTimeout, requests.ReadTimeout, requests.ConnectionError, requests.HTTPError) as e:
+    print(f"⚠ IBGE failed ({type(e).__name__}: {str(e)[:120]}). Falling back to {FALLBACK_URL}")
     r = requests.get(FALLBACK_URL, timeout=60)
     r.raise_for_status()
     payload = r.json()
