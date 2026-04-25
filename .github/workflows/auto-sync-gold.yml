@@ -1,0 +1,104 @@
+name: Auto-sync gold from Databricks Volume
+
+# Closes the loop "Databricks job done → site updated" without any
+# Databricks-side changes (no webhooks, no PATs).
+#
+# Strategy: poll. Every 30 minutes (free for public repos), pull the
+# current state of gold/exports from the Databricks UC Volume into
+# data/gold/ and data/stats/, then commit + push IF anything changed.
+# That commit triggers deploy-pages.yml automatically (its path filter
+# includes data/gold/**), so the site rebuilds.
+#
+# Idempotent: if no JSON changed since last run, the diff check
+# short-circuits and nothing is committed. Safe to run frequently.
+#
+# Manual trigger: also available via workflow_dispatch (Actions UI →
+# Run workflow) for "I just ran a Databricks job, sync now please".
+
+on:
+  schedule:
+    # Every 30 minutes. Cron in UTC. GitHub Actions cron is "best-effort" —
+    # actual fire time can drift up to ~10min during high load.
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write    # commit data/gold/ and data/stats/ back to main
+
+# Don't run two sync jobs at once — queue them. Avoids race on git push.
+concurrency:
+  group: gold-sync
+  cancel-in-progress: false
+
+env:
+  DATABRICKS_HOST:  ${{ secrets.DATABRICKS_HOST }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL https://github.com/databricks/cli/releases/latest/download/databricks_cli_linux_amd64.tar.gz \
+            | tar -xz -C "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          databricks --version
+
+      - name: Pull gold JSONs + platform stats from Volume
+        run: |
+          set -euo pipefail
+          mkdir -p data/gold data/stats
+
+          # Each `cp` is wrapped in `|| true` because not every gold table
+          # exists yet (e.g., uropro on first run). We don't want a single
+          # missing file to kill the whole sync.
+          for f in \
+              gold_pbf_estados_df.json \
+              gold_equipamentos_estados_ano.json \
+              gold_emendas_estados_df.json \
+              gold_uropro_estados_ano.json \
+              gold_rais_estados_ano.json
+          do
+            databricks fs cp \
+              "dbfs:/Volumes/mirante_prd/gold/exports/$f" \
+              "data/gold/" --overwrite \
+              && echo "  ✓ pulled $f" \
+              || echo "  ⚠ $f not in Volume yet (skip)"
+          done
+
+          databricks fs cp \
+            "dbfs:/Volumes/mirante_prd/gold/exports/platform_stats.json" \
+            "data/stats/" --overwrite \
+            && echo "  ✓ pulled platform_stats.json" \
+            || echo "  ⚠ platform_stats.json not in Volume yet (skip)"
+
+          echo "---"
+          ls -la data/gold/ data/stats/
+
+      - name: Commit & push if anything changed
+        run: |
+          set -euo pipefail
+          git config user.name  "mirante-sync-bot"
+          git config user.email "mirante-sync-bot@users.noreply.github.com"
+
+          if git diff --quiet -- data/gold/ data/stats/; then
+            echo "✓ No changes in gold/stats — nothing to commit."
+            exit 0
+          fi
+
+          # Show what changed (helpful in Action logs)
+          echo "Changes detected:"
+          git diff --stat -- data/gold/ data/stats/
+
+          DATESTAMP=$(date -u +"%Y-%m-%dT%H:%MZ")
+          git add data/gold/ data/stats/
+          git commit -m "chore(data): auto-sync gold from Volume (${DATESTAMP})" \
+                     -m "Pulled by auto-sync-gold workflow. Each JSON only changes when its underlying Databricks job emits a new export." \
+                     -m "Co-Authored-By: mirante-sync-bot <noreply@github.com>"
+          git push
+
+          echo "✓ Pushed — deploy-pages.yml will pick it up and rebuild the site."
