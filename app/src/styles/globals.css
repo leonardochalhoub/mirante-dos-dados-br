@@ -821,6 +821,64 @@ button.primary:hover { filter: brightness(1.05); }
 .medallion-tier p { margin: 0; font-size: 12px; color: var(--muted); }
 
 /* ── Documentação textual (vertical Emendas) ─────────────────────────── */
+.emendas-abstract {
+  margin-bottom: var(--gap);
+}
+.emendas-abstract .doc-block {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+}
+.emendas-abstract p {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text);
+  text-align: justify;
+  margin: 0;
+}
+.doc-toggle {
+  margin-top: 16px;
+  height: 32px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.doc-toggle:hover { border-color: var(--accent); }
+
+.doc-full {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.doc-h3 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 16px 0 8px;
+  color: var(--text);
+}
+.doc-h3:first-child { margin-top: 0; }
+.doc-full p,
+.doc-full li {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+}
+.doc-full p { margin: 0 0 10px; }
+.doc-full ul,
+.doc-full ol {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+.doc-full li { margin-bottom: 6px; }
+
 .emendas-doc {
   display: grid;
   grid-template-columns: 1fr 1fr;

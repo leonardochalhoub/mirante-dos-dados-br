@@ -51,6 +51,19 @@ const METRICS = {
 const DEFAULT_METRIC = 'emendaPerCapita2021';
 const DEFAULT_COLOR  = 'Cividis';
 
+// Mesma heurística do PBF: CGU publica dados acumulando mensalmente, então o ano
+// corrente sempre aparece como stub parcial (R$0.22bi para jan-mar/2026 vs R$21bi
+// para 2025 completo). Drop o último ano se < 70% do total do ano anterior.
+function lastFullYear(rows) {
+  const totals = new Map();
+  for (const r of rows) totals.set(r.Ano, (totals.get(r.Ano) || 0) + (r.valor_pago_2021 || 0));
+  const yrs = Array.from(totals.keys()).sort((a, b) => a - b);
+  if (yrs.length < 2) return yrs[yrs.length - 1];
+  const last = yrs[yrs.length - 1];
+  const prev = yrs[yrs.length - 2];
+  return totals.get(last) < 0.7 * totals.get(prev) ? prev : last;
+}
+
 export default function Emendas() {
   const { theme } = useTheme();
   const [rows, setRows]             = useState(null);
@@ -62,9 +75,10 @@ export default function Emendas() {
   useEffect(() => {
     loadGold('gold_emendas_estados_df.json')
       .then((all) => {
-        setRows(all);
-        const last = Math.max(...all.map((r) => r.Ano));
-        setYear(String(last));
+        const cap = lastFullYear(all);
+        const filtered = all.filter((r) => r.Ano <= cap);
+        setRows(filtered);
+        setYear(String(cap));
       })
       .catch((e) => setError(e.message));
   }, []);
@@ -228,112 +242,132 @@ export default function Emendas() {
   );
 }
 
-// ─── Documentação textual ────────────────────────────────────────────────
+// ─── Documentação ────────────────────────────────────────────────────────
+// Resumo (estilo abstract de artigo científico em Gestão Pública) sempre visível;
+// detalhamento completo (introdução, objetivos, razões, notas) atrás de toggle.
 function DocSection() {
+  const [open, setOpen] = useState(false);
   return (
-    <section className="emendas-doc">
+    <section className="emendas-abstract">
       <div className="doc-block">
-        <div className="kicker">Introdução</div>
-        <h2 className="doc-h2">O que são emendas parlamentares</h2>
-        <p>
-          Emendas parlamentares são alterações que deputados federais e senadores fazem na
-          proposta de orçamento da União, redirecionando recursos para áreas e regiões
-          escolhidas por eles — saúde, educação, infraestrutura, cultura. São o principal
-          instrumento que o Legislativo tem para influenciar onde o dinheiro federal chega.
+        <div className="kicker">Resumo · Gestão Pública</div>
+        <p style={{ marginTop: 8 }}>
+          Este vertical apresenta um sistema de visualização aberta da execução de
+          emendas parlamentares federais brasileiras (2014–presente), construído a
+          partir dos microdados do Portal da Transparência (CGU). Considerando a
+          crescente importância dessas emendas no orçamento federal — superando
+          R$ 50 bilhões anuais nas modalidades de execução obrigatória (RP6 individual
+          e RP7 bancada) — e o impacto das mudanças institucionais recentes
+          (EC 86/2015, EC 100/2019, decisões do STF de 2022 sobre RP9), o trabalho
+          disponibiliza agregados por unidade federativa, ano e modalidade,
+          deflacionados a preços de 2021 (IPCA-BCB) e normalizados per capita
+          (IBGE/SIDRA). A arquitetura medallion (bronze/silver/gold) e o pipeline
+          open-source habilitam reprodutibilidade por jornalistas, pesquisadores e
+          órgãos de controle social. Os indicadores produzidos — distribuição
+          geográfica, taxa de execução (pago/empenhado), composição por tipo de RP
+          e evolução temporal — possibilitam análises de equidade fiscal,
+          accountability eleitoral e mensuração dos efeitos de mudanças regulatórias
+          na transparência orçamentária federal.
         </p>
-        <p>
-          A Constituição classifica três tipos principais de emendas pelo <b>Resultado
-          Primário (RP)</b> usado no orçamento:
+        <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>
+          <b>Palavras-chave:</b> emendas parlamentares; transparência fiscal; execução
+          orçamentária; orçamento público federal; controle social; gestão pública.
         </p>
-        <ul>
-          <li><b>RP6 — Emendas individuais</b>: cada parlamentar tem cota fixa anual (~R$30M
-            em 2024). Execução obrigatória pelo governo desde EC 86/2015.</li>
-          <li><b>RP7 — Emendas de bancada estadual</b>: deputados de cada estado decidem em
-            conjunto. Também de execução obrigatória.</li>
-          <li><b>RP9 — Emendas do relator</b> (extintas pelo STF em 2022): valores controlados
-            pelo relator-geral do orçamento, distribuídos sem regra clara. Origem do
-            chamado "orçamento secreto".</li>
-        </ul>
-      </div>
 
-      <div className="doc-block">
-        <div className="kicker">Objetivos do vertical</div>
-        <h2 className="doc-h2">O que esta análise mostra</h2>
-        <ol>
-          <li><b>Distribuição geográfica</b> — quanto cada UF recebeu por ano, em valores
-            reais (R$ 2021) e per capita. Permite comparar acesso ao recurso público
-            federal entre estados pequenos e grandes em base equivalente.</li>
-          <li><b>Taxa de execução</b> — quanto do empenhado virou pagamento de fato. Empenhado
-            sem execução vira "restos a pagar" — promessa orçamentária que pode nunca chegar
-            ao destino.</li>
-          <li><b>Composição por tipo (RP6/RP7/RP9)</b> — quanto da execução vem de cada
-            modalidade. Permite ver o peso histórico das emendas de relator e o impacto
-            da decisão do STF de 2022.</li>
-          <li><b>Evolução temporal 2014–presente</b> — captura o crescimento expressivo das
-            emendas no orçamento federal nos últimos anos e momentos-chave (EC 86,
-            decisão do STF, Auxílio Brasil → Bolsa Família).</li>
-        </ol>
-      </div>
+        <button
+          type="button"
+          className="doc-toggle"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+        >
+          {open ? '▴ Ocultar documentação completa' : '▾ Ver documentação completa'}
+        </button>
 
-      <div className="doc-block">
-        <div className="kicker">Por que isso importa</div>
-        <h2 className="doc-h2">Razões para a análise pública</h2>
-        <ul>
-          <li>
-            <b>Transparência:</b> emendas individuais e de bancada hoje somam mais de
-            R$ 50 bilhões/ano — equivalente a um dos maiores ministérios. Consolidar esse
-            dado em uma visualização única, navegável por qualquer cidadão, é prestação
-            de contas básica.
-          </li>
-          <li>
-            <b>Accountability eleitoral:</b> permite ao eleitor saber quanto recurso federal
-            o conjunto de parlamentares da sua UF efetivamente direcionou ao estado, e
-            cobrar quando há subutilização ou subexecução.
-          </li>
-          <li>
-            <b>Análise de equidade:</b> per capita revela se estados com menos representação
-            (UFs pequenas) recebem proporcionalmente mais ou menos do que os mais populosos.
-            Cruzar com indicadores sociais ajuda a entender se o gasto está alinhado às
-            necessidades.
-          </li>
-          <li>
-            <b>Controle social do "orçamento secreto":</b> antes da decisão do STF, RP9 era
-            opaco. Esses dados, embora oficiais, ficavam dispersos. Agregar e expor o
-            histórico ajuda a documentar o problema e medir os efeitos de mudanças
-            institucionais.
-          </li>
-          <li>
-            <b>Pesquisa e jornalismo de dados:</b> o JSON gold (versionado neste repo) e o
-            pipeline open-source permitem que jornalistas, pesquisadores e ONGs reproduzam
-            cruzamentos próprios sem precisar baixar 10+ GB do Portal da Transparência.
-          </li>
-        </ul>
-      </div>
-
-      <div className="doc-block doc-block-meta">
-        <div className="kicker">Notas técnicas e limitações</div>
-        <ul style={{ fontSize: 13 }}>
-          <li>
-            Fonte primária: <b>Portal da Transparência (CGU)</b>. A CGU às vezes revisa
-            valores retroativamente (decisões judiciais, ajustes contábeis) — números
-            podem mudar minimamente entre refreshes.
-          </li>
-          <li>
-            <b>UF de favorecido</b>: identificamos pelo município beneficiário. Emendas que
-            financiam órgãos federais (ministérios) sem destino estadual claro entram
-            como "OUTRO" e não aparecem na agregação por UF.
-          </li>
-          <li>
-            <b>Deflação para R$ 2021</b>: usa IPCA acumulado anual (BCB SGS 433),
-            normalizado em dezembro/2021 — mesmo método aplicado em Bolsa Família.
-          </li>
-          <li>
-            <b>Per capita</b>: divide pelo total da população residente da UF (IBGE/SIDRA
-            tabela 6579). Não considera fluxo migratório interno nem população flutuante.
-          </li>
-        </ul>
+        {open && <DocFull />}
       </div>
     </section>
+  );
+}
+
+function DocFull() {
+  return (
+    <div className="doc-full">
+      <h3 className="doc-h3">Introdução · O que são emendas parlamentares</h3>
+      <p>
+        Emendas parlamentares são alterações que deputados federais e senadores fazem na
+        proposta de orçamento da União, redirecionando recursos para áreas e regiões
+        escolhidas por eles — saúde, educação, infraestrutura, cultura. São o principal
+        instrumento que o Legislativo tem para influenciar onde o dinheiro federal chega.
+      </p>
+      <p>
+        A Constituição classifica três tipos principais de emendas pelo <b>Resultado
+        Primário (RP)</b> usado no orçamento:
+      </p>
+      <ul>
+        <li><b>RP6 — Emendas individuais</b>: cada parlamentar tem cota fixa anual (~R$30M
+          em 2024). Execução obrigatória pelo governo desde EC 86/2015.</li>
+        <li><b>RP7 — Emendas de bancada estadual</b>: deputados de cada estado decidem em
+          conjunto. Também de execução obrigatória.</li>
+        <li><b>RP9 — Emendas do relator</b> (extintas pelo STF em 2022): valores controlados
+          pelo relator-geral do orçamento, distribuídos sem regra clara. Origem do
+          chamado "orçamento secreto".</li>
+      </ul>
+
+      <h3 className="doc-h3">Objetivos · O que esta análise mostra</h3>
+      <ol>
+        <li><b>Distribuição geográfica</b> — quanto cada UF recebeu por ano, em valores
+          reais (R$ 2021) e per capita. Permite comparar acesso ao recurso público
+          federal entre estados pequenos e grandes em base equivalente.</li>
+        <li><b>Taxa de execução</b> — quanto do empenhado virou pagamento de fato. Empenhado
+          sem execução vira "restos a pagar" — promessa orçamentária que pode nunca chegar
+          ao destino.</li>
+        <li><b>Composição por tipo (RP6/RP7/RP9)</b> — quanto da execução vem de cada
+          modalidade. Permite ver o peso histórico das emendas de relator e o impacto
+          da decisão do STF de 2022.</li>
+        <li><b>Evolução temporal 2014–presente</b> — captura o crescimento expressivo das
+          emendas no orçamento federal nos últimos anos e momentos-chave (EC 86,
+          decisão do STF, Auxílio Brasil → Bolsa Família).</li>
+      </ol>
+
+      <h3 className="doc-h3">Razões · Por que isso importa</h3>
+      <ul>
+        <li><b>Transparência:</b> emendas individuais e de bancada hoje somam mais de
+          R$ 50 bilhões/ano — equivalente a um dos maiores ministérios. Consolidar esse
+          dado em uma visualização única, navegável por qualquer cidadão, é prestação
+          de contas básica.</li>
+        <li><b>Accountability eleitoral:</b> permite ao eleitor saber quanto recurso federal
+          o conjunto de parlamentares da sua UF efetivamente direcionou ao estado, e
+          cobrar quando há subutilização ou subexecução.</li>
+        <li><b>Análise de equidade:</b> per capita revela se estados com menos representação
+          (UFs pequenas) recebem proporcionalmente mais ou menos do que os mais populosos.
+          Cruzar com indicadores sociais ajuda a entender se o gasto está alinhado às
+          necessidades.</li>
+        <li><b>Controle social do "orçamento secreto":</b> antes da decisão do STF, RP9 era
+          opaco. Esses dados, embora oficiais, ficavam dispersos. Agregar e expor o
+          histórico ajuda a documentar o problema e medir os efeitos de mudanças
+          institucionais.</li>
+        <li><b>Pesquisa e jornalismo de dados:</b> o JSON gold (versionado neste repo) e o
+          pipeline open-source permitem que jornalistas, pesquisadores e ONGs reproduzam
+          cruzamentos próprios sem precisar baixar 10+ GB do Portal da Transparência.</li>
+      </ul>
+
+      <h3 className="doc-h3">Notas técnicas e limitações</h3>
+      <ul>
+        <li>Fonte primária: <b>Portal da Transparência (CGU)</b>. A CGU às vezes revisa
+          valores retroativamente (decisões judiciais, ajustes contábeis) — números
+          podem mudar minimamente entre refreshes.</li>
+        <li><b>UF de favorecido</b>: identificamos pelo município beneficiário. Emendas que
+          financiam órgãos federais (ministérios) sem destino estadual claro entram
+          como "OUTRO" e não aparecem na agregação por UF.</li>
+        <li><b>Deflação para R$ 2021</b>: usa IPCA acumulado anual (BCB SGS 433),
+          normalizado em dezembro/2021 — mesmo método aplicado em Bolsa Família.</li>
+        <li><b>Per capita</b>: divide pelo total da população residente da UF (IBGE/SIDRA
+          tabela 6579). Não considera fluxo migratório interno nem população flutuante.</li>
+        <li><b>Ano corrente parcial</b>: o ano em curso é omitido automaticamente quando
+          os pagamentos acumulados representam menos de 70% do total do ano anterior
+          (CGU publica dados mensalmente acumulando).</li>
+      </ul>
+    </div>
   );
 }
 
