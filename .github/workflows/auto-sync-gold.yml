@@ -81,28 +81,27 @@ jobs:
 
           BASE="dbfs:/Volumes/mirante_prd/gold/exports"
 
-          # Diagnostic: dump the entire Volume listing as seen from CI.
-          # If this is empty/permission-denied, that's our root cause —
-          # the runner's DATABRICKS_TOKEN lacks Volume READ.
-          echo "=== DIAGNOSTIC: full Volume listing from CI runner ==="
-          echo "BASE = $BASE"
-          databricks fs ls "$BASE" 2>&1 || echo "  (databricks fs ls returned non-zero)"
-          echo "=== END DIAGNOSTIC ==="
+          # Critical: `databricks fs ls` only works on DIRECTORIES.
+          # On a file path it errors with "not a directory" even when
+          # the file exists — making per-file probes useless. So we
+          # list the parent directory ONCE and check membership.
+          echo "=== Volume listing (single source of truth) ==="
+          LISTING=$(databricks fs ls "$BASE" 2>&1)
+          echo "$LISTING"
+          echo "==="
           echo
 
           pull() {
             local src_file="$1"
             local dst_path="$2"
-            # Probe existence + show the actual error output for transparency
-            local probe
-            if probe=$(databricks fs ls "$BASE/$src_file" 2>&1); then
+            if echo "$LISTING" | grep -qx "$src_file"; then
               echo "  → pulling $src_file"
               databricks fs cp "$BASE/$src_file" "$dst_path" --overwrite
               local sz
               sz=$(stat -c %s "$dst_path" 2>/dev/null || echo "?")
               echo "  ✓ pulled $src_file ($sz bytes)"
             else
-              echo "  ⚠ $src_file: probe failed → $probe"
+              echo "  ⚠ $src_file not in Volume listing (skip)"
             fi
           }
 
