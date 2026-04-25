@@ -67,21 +67,29 @@ jobs:
             esac
           done
 
-      - name: Pull gold JSON + platform stats from Volume
+      - name: Pull gold JSONs + platform stats from Volume
         run: |
           set -euo pipefail
           mkdir -p data/gold data/stats
+          # PBF gold
           databricks fs cp \
             "dbfs:/Volumes/mirante_prd/gold/exports/gold_pbf_estados_df.json" \
             "data/gold/gold_pbf_estados_df.json" \
-            --overwrite
+            --overwrite || echo "(PBF gold not yet generated, skip)"
+          # MRI gold
+          databricks fs cp \
+            "dbfs:/Volumes/mirante_prd/gold/exports/gold_mri_estados_ano.json" \
+            "data/gold/gold_mri_estados_ano.json" \
+            --overwrite || echo "(MRI gold not yet generated, skip)"
+          # Platform stats
           databricks fs cp \
             "dbfs:/Volumes/mirante_prd/gold/exports/platform_stats.json" \
             "data/stats/platform_stats.json" \
-            --overwrite || echo "(platform_stats.json optional, skipping if missing)"
+            --overwrite || echo "(platform_stats optional, skip)"
           ls -la data/gold/ data/stats/
           echo "---"
-          python3 -c "import json; d=json.load(open('data/gold/gold_pbf_estados_df.json')); print(f'gold rows={len(d)}, sample={d[0] if d else None}')"
+          python3 -c "import json; d=json.load(open('data/gold/gold_pbf_estados_df.json')); print(f'PBF gold rows={len(d)}')"
+          python3 -c "import json,os; p='data/gold/gold_mri_estados_ano.json'; print(f'MRI gold rows={len(json.load(open(p)))}') if os.path.exists(p) else print('MRI gold absent')"
 
       - name: Commit & push if changed
         run: |

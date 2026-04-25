@@ -164,3 +164,54 @@ resources:
         quartz_cron_expression: "0 0 6 20 * ?"  # monthly: day 20 6h UTC
         timezone_id: UTC
         pause_status: PAUSED
+
+    # ─── Vertical: MRI (DATASUS CNES Equipamentos) ──────────────────────────
+    job_mri_refresh:
+      name: mirante · refresh MRI (ingest → bronze → silver → gold → export)
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: ingest_datasus_cnes_eq
+          notebook_task:
+            notebook_path: ./notebooks/ingest/datasus_cnes_eq.py
+            base_parameters:
+              max_year:   "2025"
+              max_month:  "12"
+              volume_dir: "/Volumes/${var.catalog}/bronze/raw/datasus/cnes_eq"
+              workers:    "100"
+
+        - task_key: bronze_cnes_equipamentos
+          depends_on: [{ task_key: ingest_datasus_cnes_eq }]
+          notebook_task:
+            notebook_path: ./notebooks/bronze/cnes_equipamentos.py
+            base_parameters:
+              catalog:     "${var.catalog}"
+              dbc_dir:     "/Volumes/${var.catalog}/bronze/raw/datasus/cnes_eq"
+              parquet_dir: "/Volumes/${var.catalog}/bronze/raw/datasus/cnes_eq_parquet"
+              workers:     "8"
+
+        - task_key: silver_mri_uf_ano
+          depends_on: [{ task_key: bronze_cnes_equipamentos }]
+          notebook_task:
+            notebook_path: ./notebooks/silver/mri_uf_ano.py
+            base_parameters:
+              catalog: "${var.catalog}"
+
+        - task_key: gold_mri_estados_ano
+          depends_on: [{ task_key: silver_mri_uf_ano }]
+          notebook_task:
+            notebook_path: ./notebooks/gold/mri_estados_ano.py
+            base_parameters:
+              catalog: "${var.catalog}"
+
+        - task_key: export_mri_estados_ano_json
+          depends_on: [{ task_key: gold_mri_estados_ano }]
+          notebook_task:
+            notebook_path: ./notebooks/export/mri_estados_ano_json.py
+            base_parameters:
+              catalog:     "${var.catalog}"
+              output_path: "/Volumes/${var.catalog}/gold/exports/gold_mri_estados_ano.json"
+
+      schedule:
+        quartz_cron_expression: "0 0 6 22 * ?"  # monthly: day 22 6h UTC (após PBF)
+        timezone_id: UTC
+        pause_status: PAUSED
