@@ -198,7 +198,8 @@ if use_batch:
 
     df = (
         spark.read.parquet(PARQUET_DIR)
-            .withColumn("_source_file", F.input_file_name())
+            # Unity Catalog não suporta input_file_name(); usar _metadata.file_path
+            .withColumn("_source_file", F.col("_metadata.file_path"))
             .withColumn("_ingest_ts",   F.current_timestamp())
     )
     (
