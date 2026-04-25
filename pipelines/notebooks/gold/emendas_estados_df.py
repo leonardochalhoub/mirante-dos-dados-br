@@ -133,15 +133,19 @@ ufs = gold_df.select("uf").distinct().count()
 years = gold_df.select("Ano").distinct().count()
 print(f"gold rows={n}  ufs={ufs}  years={years}")
 
-# Spot-check 2024 brasil aggregate
-y_recent = max(r["Ano"] for r in gold_df.select("Ano").distinct().collect())
-recent = gold_df.where(F.col("Ano") == y_recent)
-sums = recent.agg(
-    F.sum("valor_empenhado_nominal").alias("emp"),
-    F.sum("valor_pago_nominal").alias("pago"),
-    F.sum("n_emendas").alias("n"),
-).first()
-print(f"Brasil {y_recent}: empenhado=R${sums['emp']/1e9:.2f}bi  pago=R${sums['pago']/1e9:.2f}bi  n_emendas={sums['n']:,}")
+# Spot-check most-recent brasil aggregate (defensive: handle empty / null-only Ano)
+years = [r["Ano"] for r in gold_df.select("Ano").distinct().collect() if r["Ano"] is not None]
+if years:
+    y_recent = max(years)
+    recent = gold_df.where(F.col("Ano") == y_recent)
+    sums = recent.agg(
+        F.sum("valor_empenhado_nominal").alias("emp"),
+        F.sum("valor_pago_nominal").alias("pago"),
+        F.sum("n_emendas").alias("n"),
+    ).first()
+    print(f"Brasil {y_recent}: empenhado=R${sums['emp']/1e9:.2f}bi  pago=R${sums['pago']/1e9:.2f}bi  n_emendas={sums['n']:,}")
+else:
+    print("⚠ gold sem Anos válidos — verifique se silver.emendas_uf_ano tem coluna Ano populada")
 
 # COMMAND ----------
 
