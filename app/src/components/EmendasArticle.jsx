@@ -1,3 +1,5 @@
+import { BRAZIL_PATHS, VIEW_W as BR_W, VIEW_H as BR_H } from './brazil-paths';
+
 // Artigo acadêmico completo sobre Emendas Parlamentares.
 // Estilo: padrão FGV/RBFin/RAP — título bilíngue, Resumo+Abstract, seções numeradas,
 // figuras SVG, referências em ABNT. Renderizado dentro do toggle "Ver artigo completo"
@@ -486,6 +488,83 @@ function FigureCV() {
   );
 }
 
+function FigureChoropleth() {
+  // Mapa coroplético REAL do Brasil — usa caminhos SVG simplificados extraídos do
+  // GeoJSON oficial (IBGE), projeção equirretangular. Cores em escala Cividis pelo
+  // valor pago per capita 2025. Centroide aproximado de cada UF para o rótulo.
+  const VAL = {
+    AP: 737.81, RR: 462.29, AC: 385.14, TO: 278.15, SE: 258.62, PI: 228.98, RO: 216.26,
+    AL: 185.13, PB: 165.73, AM: 160.44, RN: 154.20, MS: 148.11, MA: 142.50, CE: 138.92,
+    MT: 132.41, GO: 121.85, PE: 118.72, PA: 110.65, BA: 105.30, ES: 102.18, SC: 92.40,
+    RS: 88.66, MG: 81.39, PR: 71.75, RJ: 66.77, SP: 42.97, DF: 24.87,
+  };
+  const max = Math.max(...Object.values(VAL));
+  // Centroide aproximado (em coordenadas SVG, derivado do bounding box de cada path).
+  // Calculado uma vez offline; os valores aqui são pixel-x,pixel-y na viewBox 700x656.
+  const CENT = {
+    AC: [120, 280], AM: [220, 200], AP: [395, 140], BA: [505, 350], CE: [555, 220],
+    DF: [430, 380], ES: [555, 460], GO: [415, 410], MA: [475, 235], MG: [495, 445],
+    MS: [355, 470], MT: [330, 360], PA: [375, 230], PB: [605, 245], PE: [580, 270],
+    PI: [510, 245], PR: [410, 530], RJ: [535, 490], RN: [605, 220], RO: [225, 335],
+    RR: [240, 100], RS: [385, 605], SC: [410, 565], SE: [580, 320], SP: [445, 510],
+    TO: [415, 300],
+  };
+  const W = 760, H = 700;
+  return (
+    <figure className="article-figure">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Choropleth Brazil — per capita 2025">
+        <rect x="0" y="0" width={W} height={H} fill="white" />
+        <text x={W / 2} y="22" fontSize="13" fontWeight="bold" textAnchor="middle" fill="#000">
+          Per capita 2025 — R$/hab (2021)
+        </text>
+        {/* Translate map to leave room for title */}
+        <g transform={`translate(${(W - BR_W) / 2}, 36)`}>
+          {Object.keys(BRAZIL_PATHS).map((sigla) => {
+            const v = VAL[sigla];
+            const fill = v != null ? cividis(v / max) : '#eee';
+            return (
+              <path key={sigla} d={BRAZIL_PATHS[sigla]} fill={fill}
+                    stroke="white" strokeWidth="0.6" />
+            );
+          })}
+          {/* UF labels */}
+          {Object.entries(CENT).map(([sigla, [cx, cy]]) => {
+            const v = VAL[sigla];
+            const norm = v != null ? v / max : 0;
+            const txt = norm > 0.55 ? '#fff' : '#000';
+            return (
+              <text key={sigla} x={cx} y={cy} fontSize="10" fontWeight="bold"
+                    textAnchor="middle" fill={txt} fontFamily="monospace"
+                    pointerEvents="none">{sigla}</text>
+            );
+          })}
+        </g>
+        {/* Color legend */}
+        <g transform={`translate(${(W - 280) / 2}, ${H - 30})`}>
+          {Array.from({ length: 70 }, (_, i) => (
+            <rect key={i} x={i * 4} y="0" width="4" height="9" fill={cividis(i / 69)} />
+          ))}
+          <text x="0" y="-4" fontSize="10" fill="#222">R$ 0</text>
+          <text x="140" y="-4" fontSize="10" fill="#222" textAnchor="middle">
+            menor → maior
+          </text>
+          <text x="280" y="-4" fontSize="10" fill="#222" textAnchor="end">
+            R$ {Math.round(max)}
+          </text>
+        </g>
+      </svg>
+      <figcaption className="article-figure-caption">
+        <b>Figura 12.</b> Mapa coroplético do Brasil — valor pago per capita em
+        emendas parlamentares por unidade federativa (R$/hab, 2021), exercício
+        2025. Caminhos vetoriais derivados do GeoJSON oficial (IBGE), projeção
+        equirretangular. Cores em escala Cividis (perceptualmente uniforme,
+        legível para daltônicos). <i>Fonte:</i> elaboração própria a partir
+        dos microdados CGU + IBGE/SIDRA tabela 6579.
+      </figcaption>
+    </figure>
+  );
+}
+
 function FigureMap() {
   // Tile-grid map: coordenadas geográficas aproximadas (col, row) para 27 UFs.
   // Padrão comum em data viz (FT, NYT, Economist) — preserva orientação geográfica
@@ -658,7 +737,7 @@ function FigureMapComparison() {
         </g>
       </svg>
       <figcaption className="article-figure-caption">
-        <b>Figura 8.</b> Comparação cartogramada do per capita por UF entre 2018
+        <b>Figura 13.</b> Comparação cartogramada do per capita por UF entre 2018
         (antes do salto pós-STF) e 2025 (patamar atual), em escala Cividis
         compartilhada. O escurecimento generalizado do painel direito evidencia
         o crescimento absoluto observado em todas as UFs no período, com
@@ -1061,6 +1140,9 @@ export default function EmendasArticle() {
           <TocRow level={1} num="Figura 8"  page="26" label="Heatmap UF × Ano: per capita (R$/hab, 2021), 2018–2025" />
           <TocRow level={1} num="Figura 9"  page="26" label="Ranking horizontal: per capita por UF (R$/hab, 2021), 2025" />
           <TocRow level={1} num="Figura 10" page="27" label="Coef. de variação anual da distribuição per capita por UF, 2016–2025" />
+          <TocRow level={1} num="Figura 11" page="28" label="Diagrama de bolhas: população × per capita × valor absoluto, 2025" />
+          <TocRow level={1} num="Figura 12" page="25" label="Mapa coroplético do Brasil — per capita por UF (R$/hab, 2021), 2025" />
+          <TocRow level={1} num="Figura 13" page="26" label="Cartogramas comparados — per capita por UF, 2018 vs 2025" />
         </ul>
       </section>
 
@@ -1969,6 +2051,37 @@ export default function EmendasArticle() {
           Tabela&nbsp;4.
         </p>
 
+        <FigureChoropleth />
+
+        <p>
+          O mapa coroplético da Figura&nbsp;12 utiliza os contornos
+          geográficos reais das 27 unidades federativas (extraídos do
+          GeoJSON oficial do IBGE, simplificados para inclusão inline).
+          A representação é informacionalmente equivalente ao cartograma
+          tile-grid da Figura&nbsp;7 — cores em escala Cividis sobre o
+          mesmo conjunto de valores per capita 2025 — mas oferece ao
+          leitor familiarizado com a geografia brasileira uma camada
+          adicional de reconhecimento visual: é mais fácil identificar,
+          de relance, a concentração da intensidade cromática nos
+          estados de menor área populacional do Norte e parte do
+          Nordeste.
+        </p>
+
+        <FigureMapComparison />
+
+        <p>
+          A Figura&nbsp;13 confronta a configuração de 2018 (antes do
+          salto pós-STF) com a de 2025, mantendo a mesma escala
+          cromática Cividis nos dois painéis. O escurecimento
+          generalizado do painel direito é evidência visual direta do
+          crescimento absoluto observado em todas as UFs no período;
+          a hierarquia relativa, contudo, é preservada — mesma
+          ordenação das unidades federativas em ambos os exercícios.
+          Esse padrão reforça a conclusão de que a impositividade
+          ampliou volumes sem reorganizar a alocação geográfica
+          subjacente.
+        </p>
+
         <FigurePerCapita />
 
         <p>
@@ -2101,6 +2214,26 @@ export default function EmendasArticle() {
           emendas opera em patamar substancialmente superior ao das
           transferências sociais — em média 3 a 4 vezes mais desigual
           entre UFs.
+        </p>
+
+        <FigureBubble />
+
+        <p>
+          O diagrama de bolhas da Figura&nbsp;11 sintetiza graficamente
+          a relação que a Tabela&nbsp;5 capturou estatisticamente. Cada
+          UF aparece como uma bolha cuja posição horizontal é a
+          população residente (escala logarítmica), a posição vertical
+          é o per capita pago em 2025 e o tamanho é proporcional ao
+          valor absoluto acumulado 2015–2025. O eixo X em escala
+          logarítmica revela a relação claramente: existe correlação
+          negativa entre população e per capita — quanto maior a UF,
+          menor o valor recebido por habitante. Essa visualização
+          torna explícita a tensão estrutural do sistema: as UFs que
+          recebem mais per capita são as que recebem menos em valor
+          absoluto, e vice-versa. O Distrito Federal aparece como
+          outlier inferior — apesar de população intermediária, recebe
+          o menor per capita —, possivelmente por receber recursos
+          federais via outras rubricas que não emendas parlamentares.
         </p>
 
         <p>

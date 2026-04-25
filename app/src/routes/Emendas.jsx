@@ -228,28 +228,45 @@ export default function Emendas() {
       )}
 
       <Footer />
-
-      {/* Sempre renderizado mas escondido na tela; visível apenas quando window.print() é chamado.
-          Garante que o artigo seja exportado em PDF mesmo se o toggle "Ver artigo completo"
-          não tiver sido aberto pelo usuário. */}
-      <PrintableArticle />
     </>
   );
 }
 
 // ─── Documentação ────────────────────────────────────────────────────────
 // Resumo (estilo abstract de artigo científico em Gestão Pública) sempre visível;
-// artigo acadêmico completo (~20 páginas, padrão FGV/RBFin/RAP) atrás de toggle,
-// com botão de download em PDF formatado conforme regras ABNT.
+// artigo acadêmico completo atrás de toggle. Botão "Baixar PDF" abre o toggle
+// (se ainda fechado) e dispara window.print(). O CSS @media print esconde o
+// resto da página, deixando apenas o artigo visível formatado em ABNT.
 function DocSection() {
   const [open, setOpen] = useState(false);
+
+  const handlePrint = () => {
+    // 1) Garante que o artigo está montado e renderizado na DOM
+    setOpen(true);
+    // 2) Define document.title para o nome sugerido do PDF
+    const orig = document.title;
+    const today = new Date().toISOString().slice(0, 10);
+    document.title = `Mirante-Emendas-Parlamentares-Chalhoub-${today}`;
+    // 3) Restaura o título quando o diálogo de impressão fechar
+    const restore = () => {
+      document.title = orig;
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+    // 4) Aguarda 2 frames pra React montar o EmendasArticle e o browser
+    //    calcular layout/SVGs antes de abrir o diálogo de impressão
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => window.print());
+    });
+  };
+
   return (
-    <section className="emendas-abstract no-print">
-      <div className="doc-block">
+    <section className="emendas-abstract">
+      <div className="doc-block no-print">
         <div className="kicker">Resumo · Gestão Pública</div>
         <p style={{ marginTop: 8 }}>
           Este vertical apresenta um sistema de visualização aberta da execução de
-          emendas parlamentares federais brasileiras (2014–presente), construído a
+          emendas parlamentares federais brasileiras (2015–presente), construído a
           partir dos microdados do Portal da Transparência (CGU). Considerando a
           crescente importância dessas emendas no orçamento federal — superando
           R$ 50 bilhões anuais nas modalidades de execução obrigatória (RP6 individual
@@ -259,11 +276,7 @@ function DocSection() {
           deflacionados a preços de 2021 (IPCA-BCB) e normalizados per capita
           (IBGE/SIDRA). A arquitetura medallion (bronze/silver/gold) e o pipeline
           open-source habilitam reprodutibilidade por jornalistas, pesquisadores e
-          órgãos de controle social. Os indicadores produzidos — distribuição
-          geográfica, taxa de execução (pago/empenhado), composição por tipo de RP
-          e evolução temporal — possibilitam análises de equidade fiscal,
-          accountability eleitoral e mensuração dos efeitos de mudanças regulatórias
-          na transparência orçamentária federal.
+          órgãos de controle social.
         </p>
         <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>
           <b>Palavras-chave:</b> emendas parlamentares; transparência fiscal; execução
@@ -283,45 +296,23 @@ function DocSection() {
           <button
             type="button"
             className="doc-toggle doc-toggle-primary"
-            onClick={() => {
-              // Browser usa document.title como nome sugerido do PDF.
-              // Salvamos o original e restauramos após o diálogo fechar.
-              const orig = document.title;
-              const today = new Date().toISOString().slice(0, 10);
-              document.title = `Mirante-Emendas-Parlamentares-Chalhoub-${today}`;
-              const restore = () => {
-                document.title = orig;
-                window.removeEventListener('afterprint', restore);
-              };
-              window.addEventListener('afterprint', restore);
-              // Pequeno delay garante que o título atualizado é capturado pelo dialog.
-              setTimeout(() => window.print(), 50);
-            }}
-            title="Imprimir / salvar como PDF (formatado em padrão ABNT)"
+            onClick={handlePrint}
+            title="Salvar como PDF (formatado em padrão ABNT)"
           >
             ⤓ Baixar PDF (ABNT)
           </button>
         </div>
       </div>
 
+      {/* O artigo é montado quando aberto (visível na tela) E é também o que
+          window.print() captura via @media print. Renderizar só quando aberto
+          evita o custo dos 10 SVGs no carregamento inicial da página. */}
       {open && (
-        <div className="emendas-article-wrapper">
+        <div className="emendas-article-wrapper print-only-article">
           <EmendasArticle />
         </div>
       )}
     </section>
-  );
-}
-
-// Wrapper invisível na tela que SEMPRE renderiza o artigo, mas escondido. Quando
-// window.print() é chamado, o CSS @media print esconde o resto da página e mostra
-// apenas este wrapper, permitindo "salvar como PDF" o artigo formatado em ABNT
-// independentemente do toggle estar aberto na tela.
-function PrintableArticle() {
-  return (
-    <div className="print-only-article" aria-hidden="true">
-      <EmendasArticle />
-    </div>
   );
 }
 

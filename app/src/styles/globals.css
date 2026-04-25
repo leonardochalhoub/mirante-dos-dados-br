@@ -1016,8 +1016,9 @@ button.primary:hover { filter: brightness(1.05); }
 }
 
 /* TOC / lista de figuras / lista de tabelas — estilo ABNT
-   Grid 3 colunas:  [num fixo] [label flex + dots] [page fixo]
-   Garante alinhamento perfeito mesmo com larguras diferentes ("1.1.1" vs "Figura 10"). */
+   Layout: 4 itens em flex inline:
+     [num — largura fixa] [label — auto, NO WRAP] [dots — flex:1] [page — auto, à direita]
+   Sem nested grids, sem ::after duplicado. */
 .article-toc { margin: 20px 0 28px; }
 .article-toc-list {
   list-style: none;
@@ -1027,62 +1028,65 @@ button.primary:hover { filter: brightness(1.05); }
 }
 .toc-row {
   font-variant-numeric: tabular-nums;
-  padding: 0;
-  margin: 0;
-}
-.toc-row a,
-.toc-row > span:first-child + span,
-.toc-row {
-  display: grid;
-  grid-template-columns: 88px 1fr 44px;
+  display: flex;
   align-items: baseline;
   gap: 0;
   width: 100%;
+  padding: 5px 0;
+  margin: 0;
   color: var(--text);
-  text-decoration: none;
-  padding: 4px 0;
 }
 .toc-row a {
-  padding: 0;  /* parent <li> já paga o padding */
-}
-.toc-row a:hover .toc-label { color: var(--link); }
-.toc-row-l1 .toc-num,
-.toc-row-l1 .toc-label { font-weight: 600; color: var(--text); }
-.toc-row-l2 { padding-left: 18px; }
-.toc-row-l2 .toc-num,
-.toc-row-l2 .toc-label { font-weight: 400; color: var(--text); font-size: 12.5px; }
-
-.toc-num {
-  text-align: left;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding-right: 8px;
-}
-/* Numbers like "Figura 10" / "Tabela 5" need more space */
-.article-list-figures .toc-num,
-.article-list-tables .toc-num { min-width: 84px; }
-
-.toc-label {
   display: flex;
   align-items: baseline;
+  width: 100%;
+  color: var(--text);
+  text-decoration: none;
+}
+.toc-row a:hover .toc-label { color: var(--link); }
+
+.toc-row-l1 .toc-num,
+.toc-row-l1 .toc-label { font-weight: 700; }
+.toc-row-l2 { padding-left: 22px; }
+.toc-row-l2 .toc-num,
+.toc-row-l2 .toc-label { font-weight: 400; font-size: 12.5px; }
+
+.toc-num {
+  flex: 0 0 auto;
+  min-width: 36px;
+  text-align: left;
+  white-space: nowrap;
+  padding-right: 10px;
+  color: var(--text);
+}
+/* "Figura 10" / "Tabela 5" precisam de mais espaço */
+.article-list-figures .toc-num,
+.article-list-tables .toc-num {
+  min-width: 80px;
+  font-weight: 700;
+}
+
+.toc-label {
+  flex: 0 1 auto;
+  white-space: nowrap;     /* impede quebra do título */
   overflow: hidden;
-  min-width: 0;
+  text-overflow: ellipsis;
+  color: var(--text);
 }
-.toc-label::after {
-  content: "";
-  flex: 1 1 auto;
+
+.toc-leader {
+  display: block;
+  flex: 1 1 0;
+  min-width: 14px;
+  margin: 0 8px;
   border-bottom: 1.5px dotted var(--faint);
-  height: 0.5em;
-  margin: 0 6px 0 8px;
-  min-width: 16px;
+  height: 0.6em;
+  align-self: end;
 }
-/* When .toc-leader span is also there (legacy), hide it — ::after handles it now */
-.toc-leader { display: none; }
 
 .toc-page {
+  flex: 0 0 auto;
+  min-width: 28px;
   text-align: right;
   font-weight: 700;
   color: var(--text);
@@ -1117,62 +1121,73 @@ button.primary:hover { filter: brightness(1.05); }
 @media print {
   .print-only-article .article-figure svg { border: 0.5pt solid #000; border-radius: 0; }
 
-  /* Sumário / Lista de Figuras / Lista de Tabelas (ABNT print) */
+  /* TOC/Listas (print): mesmo flex layout do screen, mas em pt e mais compacto */
   .print-only-article .article-toc-list {
     list-style: none;
     padding: 0;
     margin: 0;
-    font-size: 12pt;
+    font-size: 11pt;
   }
-  .print-only-article .toc-row,
-  .print-only-article .toc-row a {
-    display: grid !important;
-    grid-template-columns: 90pt 1fr 36pt;
+  .print-only-article .toc-row {
+    display: flex;
     align-items: baseline;
     gap: 0;
-    padding: 3pt 0;
-    color: #000 !important;
-    text-decoration: none;
+    padding: 2pt 0;
+    margin: 0;
+    color: #000;
     line-height: 1.2;
     page-break-inside: avoid;
   }
-  .print-only-article .toc-row a { padding: 0; }
+  .print-only-article .toc-row a {
+    display: flex;
+    align-items: baseline;
+    width: 100%;
+    color: #000;
+    text-decoration: none;
+  }
   .print-only-article .toc-row-l1 .toc-num,
   .print-only-article .toc-row-l1 .toc-label { font-weight: bold; }
-  .print-only-article .toc-row-l2 { padding-left: 18pt; }
+  .print-only-article .toc-row-l2 { padding-left: 22pt; }
   .print-only-article .toc-row-l2 .toc-num,
   .print-only-article .toc-row-l2 .toc-label { font-weight: normal; }
   .print-only-article .article-list-figures .toc-num,
-  .print-only-article .article-list-tables .toc-num { font-weight: bold; }
-
+  .print-only-article .article-list-tables .toc-num {
+    min-width: 64pt;
+    font-weight: bold;
+  }
   .print-only-article .toc-num {
-    text-align: left;
+    flex: 0 0 auto;
+    min-width: 30pt;
     color: #000;
     white-space: nowrap;
     padding-right: 8pt;
   }
   .print-only-article .toc-label {
-    display: flex;
-    align-items: baseline;
-    overflow: hidden;
+    flex: 0 1 auto;
     color: #000;
-    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .print-only-article .toc-label::after {
-    content: "";
-    flex: 1 1 auto;
+  .print-only-article .toc-leader {
+    display: block;
+    flex: 1 1 0;
+    min-width: 14pt;
+    margin: 0 6pt;
     border-bottom: 0.5pt dotted #000;
-    height: 0.5em;
-    margin: 0 6pt 0 8pt;
-    min-width: 16pt;
+    height: 0.6em;
+    align-self: end;
   }
   .print-only-article .toc-page {
+    flex: 0 0 auto;
+    min-width: 24pt;
     text-align: right;
     color: #000;
     font-weight: bold;
     white-space: nowrap;
   }
-  .print-only-article .toc-leader { display: none; }
+  /* Force overflow visible — ancestor reset above might miss .print-only-article itself */
+  .print-only-article { overflow: visible !important; }
 }
 
 .article-footnote {
@@ -1184,19 +1199,8 @@ button.primary:hover { filter: brightness(1.05); }
 }
 .article-footnote p { margin: 0 0 8px; }
 
-/* Element kept rendered for print() but hidden on screen.
-   IMPORTANT: NOT display:none — that would prevent SVGs/tables from being
-   measured properly during print rendering. We move it off-screen with
-   position absolute and aria-hidden the content. */
-.print-only-article {
-  position: absolute;
-  left: -100000px;
-  top: 0;
-  width: 800px;     /* approximate A4 content width — gives SVG viewBoxes room */
-  height: auto;
-  overflow: hidden;
-  pointer-events: none;
-}
+/* .print-only-article é o mesmo wrapper visível do toggle na tela.
+   Em print mode, escondemos tudo o resto e mostramos só ele formatado em ABNT. */
 
 /* ─── ABNT-compliant print rules ──────────────────────────────────────────
    NBR 14724 / NBR 6022 (artigo científico):
