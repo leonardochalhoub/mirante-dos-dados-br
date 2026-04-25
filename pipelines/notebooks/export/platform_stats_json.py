@@ -102,6 +102,10 @@ raw = {
     "datasus_sih_rd_dbc":     folder_stats_filtered(f"{RAW_ROOT}/datasus/sih_rd",          (".dbc",)),
     "datasus_sih_rd_parquet": folder_stats_filtered(f"{RAW_ROOT}/datasus/sih_rd_parquet",  (".parquet",)),
 
+    # RAIS (MTE/PDET): .7z files → .txt extraídos
+    "mte_rais_7z":            folder_stats_filtered(f"{RAW_ROOT}/mte/rais",                (".7z",)),
+    "mte_rais_txt":           folder_stats_filtered(f"{RAW_ROOT}/mte/rais_txt_extracted",  (".txt",)),
+
     # APIs (lightweight JSON)
     "ibge_json":              folder_stats_filtered(f"{RAW_ROOT}/ibge",                   (".json",)),
     "bcb_json":               folder_stats_filtered(f"{RAW_ROOT}/bcb",                    (".json",)),
@@ -185,6 +189,16 @@ verticals = {
         "intermediate_label":   "Parquet",
         "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "sih_aih_rd_uropro"), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "sih_aih_rd_uropro"), 0),
+    },
+    "rais": {
+        "raw_compressed_files": raw["mte_rais_7z"]["files"],
+        "raw_compressed_bytes": raw["mte_rais_7z"]["bytes"],
+        "raw_compressed_label": "7Z",
+        "intermediate_files":   raw["mte_rais_txt"]["files"],
+        "intermediate_bytes":   raw["mte_rais_txt"]["bytes"],
+        "intermediate_label":   "TXT",
+        "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "rais_vinculos"), 0),
+        "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "rais_vinculos"), 0),
     },
 }
 

@@ -1,0 +1,129 @@
+% =====================================================================
+% Mirante dos Dados — Working Paper #3
+% RAIS, FAIRness e Lakehouse: replicação e extensão
+% Autor: Leonardo Chalhoub  ·  Abril/2026
+%
+% NOTA: este é um SKELETON inicial. Será expandido com tabelas e figuras
+% reais após a primeira execução do pipeline RAIS no Databricks.
+% Spec completa em docs/vertical-rais-fair-lakehouse-spec.md
+% =====================================================================
+\documentclass[12pt,a4paper,oneside]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazilian]{babel}
+\usepackage{lmodern}
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{float}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\titleformat{\section}{\normalfont\bfseries\large\uppercase}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{0.6em}{}
+
+\newcommand{\rs}{R\$\,}
+
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+    \vspace*{1.5cm}
+    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 3}}\\
+    {\small Versão 0.1 (skeleton) \textemdash{} Abril de 2026}
+
+    \vfill
+
+    {\LARGE\bfseries
+     RAIS, FAIRNESS E LAKEHOUSE: REPLICAÇÃO E EXTENSÃO DE COMPARAÇÃO
+     EMPÍRICA DE FORMATOS PARA BIG DATA PÚBLICO BRASILEIRO
+     (2020\textendash 2025)}
+
+    \vspace{1cm}
+    {\large\itshape
+     RAIS, FAIRness and Lakehouse: empirical replication and extension
+     of format comparison for Brazilian public Big Data (2020\textendash 2025)}
+
+    \vfill
+
+    {\large\textbf{Leonardo Chalhoub}}\\[4pt]
+    {\small Pesquisador independente \textemdash{} Engenharia de dados aplicada à transparência fiscal}\\[2pt]
+    {\small\href{mailto:leonardochalhoub@gmail.com}{leonardochalhoub@gmail.com}}\\
+    {\small\href{https://github.com/leonardochalhoub}{github.com/leonardochalhoub}}
+
+    \vfill
+
+    {\small Brasil \\ Abril de 2026}
+  \end{center}
+\end{titlepage}
+
+\section*{Resumo}
+Este artigo replica e estende a monografia de especialização do autor
+\textit{"O Papel dos Metadados em Arquiteturas de Nuvem: FAIRness e
+Governança de Dados em Big Data"} (UFRJ MBA Engenharia de Dados, 2023,
+não publicada), atualizando-a com (i) instrumentos consagrados de
+mensuração de FAIRness (FAIR Data Maturity Model do Research Data
+Alliance), (ii) ampliação do conjunto de formatos comparados,
+incluindo Apache Iceberg e Apache Hudi além de CSV, Apache Parquet e
+Delta Lake, (iii) controle estatístico de variância nas medições de
+desempenho (média, mediana, p95, IC 95\%) sobre múltiplas configurações
+de cluster, e (iv) discussão crítica balanceada incluindo
+\textit{when-not-to-use} para arquiteturas Lakehouse. O dataset é o
+mesmo da monografia original — RAIS Vínculos Públicos
+(\textasciitilde{}136 milhões de linhas, \textasciitilde{}62 GB
+brutos), processado em arquitetura medallion sobre Databricks Free
+Edition.
+
+\vspace{0.4cm}\noindent\textbf{Palavras-chave:}
+RAIS; FAIR principles; Lakehouse; Delta Lake; Apache Iceberg; Apache
+Hudi; engenharia de dados; reprodutibilidade.
+
+\section*{Status deste documento}
+\textbf{Este é o esqueleto inicial} (versão 0.1). O conteúdo
+substantivo (resultados empíricos, tabelas, figuras, discussão)
+será expandido após a primeira execução do pipeline RAIS no
+Databricks. Vide \texttt{docs/vertical-rais-fair-lakehouse-spec.md}
+no repositório do projeto para a especificação detalhada das
+extensões previstas.
+
+\section{Introdução}\label{sec:intro}
+[A ser escrito após a 1ª execução do pipeline.]
+
+\section{Referencial Teórico}\label{sec:teoria}
+[A ser escrito.]
+
+\section{Metodologia}\label{sec:metodo}
+[A ser escrito.]
+
+\section{Resultados}\label{sec:resultados}
+[A ser escrito após coleta empírica.]
+
+\section{Discussão}\label{sec:discussao}
+[A ser escrito.]
+
+\section{Considerações Finais}\label{sec:conclusao}
+[A ser escrito.]
+
+\section*{Referências}
+\addcontentsline{toc}{section}{Referências}
+\begin{singlespace}\small
+\noindent ARMBRUST, M. et al. Lakehouse: a new generation of open
+platforms... \textbf{CIDR}, 2021.\par\smallskip
+\noindent KUKREJA, M. \textit{Data Engineering with Apache Spark,
+Delta Lake, and Lakehouse}. Packt, 2021.\par\smallskip
+\noindent REIS, J.; HOUSLEY, M. \textit{Fundamentals of Data
+Engineering}. O'Reilly, 2022.\par\smallskip
+\noindent WILKINSON, M. D. et al. The FAIR Guiding Principles...
+\textbf{Scientific Data}, v. 3, 2016.\par\smallskip
+\noindent ZAHARIA, M. et al. Apache Spark: a unified engine for big
+data processing. \textbf{CACM}, v. 59, n. 11, 2016.
+\end{singlespace}
+
+\end{document}

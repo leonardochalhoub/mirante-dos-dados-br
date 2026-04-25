@@ -37,6 +37,14 @@ const VERTICAIS = [
     period: '2015 – 2025',
     available: true,
   },
+  {
+    to: '/rais',
+    eyebrow: 'Mercado de trabalho · governança de dados',
+    title: 'RAIS — Vínculos Públicos',
+    desc: 'Replica e estende a monografia do autor (UFRJ MBA Eng. Dados, 2023) — comparação de formatos Lakehouse (CSV / Parquet / Delta / Iceberg / Hudi) e scoring FAIR sobre microdados RAIS. Fontes: PDET/MTE · IBGE · BCB.',
+    period: '2020 – 2025',
+    available: true,
+  },
 ];
 
 const MEDALLION = [
@@ -152,7 +160,7 @@ function BigDataStrip({ stats }) {
   const verticals = stats.verticals || {};
   // Ordem preferida; verticais não listadas aparecem no fim por ordem alfabética.
   // Default genérico pra que novas verticais apareçam automaticamente.
-  const PREFERRED_ORDER = ['pbf', 'equipamentos', 'equipamentos-sus', 'emendas', 'uropro'];
+  const PREFERRED_ORDER = ['pbf', 'equipamentos', 'equipamentos-sus', 'emendas', 'uropro', 'rais'];
   const orderedVerticals = [
     ...PREFERRED_ORDER.filter((k) => verticals[k]),
     ...Object.keys(verticals).filter((k) => !PREFERRED_ORDER.includes(k)).sort(),
@@ -165,6 +173,7 @@ function BigDataStrip({ stats }) {
     'equipamentos-sus':  'Equipamentos SUS',
     emendas:             'Emendas Parlamentares',
     uropro:              'Incontinência Urinária (SIH)',
+    rais:                'RAIS — Vínculos Públicos',
   };
   const labelOf = (k) => verticalLabel[k]
     || k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ');

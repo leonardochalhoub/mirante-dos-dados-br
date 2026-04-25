@@ -6,6 +6,7 @@ import Equipamentos from './routes/Equipamentos';
 import Emendas from './routes/Emendas';
 import UroPro from './routes/UroPro';
 import UroProArticleStandalone from './routes/UroProArticleStandalone';
+import Rais from './routes/Rais';
 import NotFound from './routes/NotFound';
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/equipamentos"           element={<Equipamentos />} />
         <Route path="/emendas"                element={<Emendas />} />
         <Route path="/incontinencia-urinaria" element={<UroPro />} />
+        <Route path="/rais"                   element={<Rais />} />
         <Route path="*"                       element={<NotFound />} />
       </Route>
     </Routes>

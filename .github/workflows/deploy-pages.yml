@@ -47,11 +47,20 @@ jobs:
           latexmk_use_xelatex: false
           args: -pdf -interaction=nonstopmode -file-line-error
 
+      - name: Compile RAIS LaTeX → PDF
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: rais-fair-lakehouse.tex
+          working_directory: articles
+          latexmk_use_xelatex: false
+          args: -pdf -interaction=nonstopmode -file-line-error
+
       - name: Stage PDFs for Vite
         run: |
           mkdir -p app/public/articles
           cp articles/emendas-parlamentares.pdf app/public/articles/
           cp articles/bolsa-familia.pdf         app/public/articles/
+          cp articles/rais-fair-lakehouse.pdf   app/public/articles/
           ls -la app/public/articles/
 
       # ─── Front-end build ─────────────────────────────────────────────

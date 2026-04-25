@@ -21,6 +21,7 @@ const VERTICALS = [
   { to: '/equipamentos',           label: 'Equipamentos',           goldTable: 'equipamentos_estados_ano', defaultTag: 'v1', firstPublished: '2026-04-24T11:47:55-03:00' },
   { to: '/emendas',                label: 'Emendas Parlamentares',  goldTable: 'emendas_estados_df',       defaultTag: 'v1', firstPublished: '2026-04-25T02:29:21-03:00' },
   { to: '/incontinencia-urinaria', label: 'Incontinência Urinária', goldTable: 'uropro_estados_ano',       defaultTag: 'v1', firstPublished: '2026-04-25T15:26:34-03:00' },
+  { to: '/rais',                   label: 'RAIS — Vínculos Públicos', goldTable: 'rais_estados_ano',       defaultTag: 'v1', firstPublished: '2026-04-25T17:00:00-03:00' },
 ].sort((a, b) => a.firstPublished.localeCompare(b.firstPublished));
 
 // Format ISO datetime as "24/abr/2026 · 11h47 BRT".
