@@ -81,6 +81,11 @@ jobs:
             "dbfs:/Volumes/mirante_prd/gold/exports/gold_mri_estados_ano.json" \
             "data/gold/gold_mri_estados_ano.json" \
             --overwrite || echo "(MRI gold not yet generated, skip)"
+          # Emendas gold
+          databricks fs cp \
+            "dbfs:/Volumes/mirante_prd/gold/exports/gold_emendas_estados_df.json" \
+            "data/gold/gold_emendas_estados_df.json" \
+            --overwrite || echo "(Emendas gold not yet generated, skip)"
           # Platform stats
           databricks fs cp \
             "dbfs:/Volumes/mirante_prd/gold/exports/platform_stats.json" \

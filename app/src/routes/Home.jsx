@@ -23,11 +23,11 @@ const VERTICAIS = [
   },
   {
     to: '/emendas',
-    eyebrow: 'Em construção',
+    eyebrow: 'Transparência fiscal',
     title: 'Emendas Parlamentares',
-    desc: 'Próximo vertical: rastreamento de emendas (RP6/RP9), favorecidos e cidades-alvo.',
-    period: '— · em breve',
-    available: false,
+    desc: 'Execução de emendas parlamentares por UF (RP6 individual, RP7 bancada, RP9 relator). Fontes: Portal da Transparência (CGU) · IBGE · BCB.',
+    period: '2014 – 2025',
+    available: true,
   },
 ];
 
