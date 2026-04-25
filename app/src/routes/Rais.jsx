@@ -129,6 +129,8 @@ export default function Rais() {
         }
       />
 
+      <ScoreCard />
+
       <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
         <div className="doc-block">
           <div className="kicker">Working Paper n. 3 — Mirante dos Dados</div>
@@ -250,6 +252,111 @@ export default function Rais() {
 
       <Footer />
     </>
+  );
+}
+
+// ─── Parecer crítico (atualizado a cada deploy pelo avaliador) ──────────
+// Esta seção NÃO é auto-avaliação gerada pela página. É o parecer do
+// avaliador externo (IA atuando como professor de pós-graduação),
+// calibrado contra o original (monografia 2023, Score 8/10) e
+// atualizado manualmente a cada deploy quando o trabalho evolui.
+//
+// Master's level signal: quando o trabalho atingir nível stricto sensu,
+// MASTER_LEVEL = true e o componente exibe destaque + nota 10.
+const SCORE_ATUAL = 5.0;
+const SCORE_ORIGINAL = 8.0;
+const MASTER_LEVEL = false;
+
+const PARECER_RAIS = {
+  ultimaAtualizacao: '2026-04-25T17:30 BRT',
+  versao: '0.1 (skeleton inicial)',
+  melhorias_vs_original: [
+    'Pipeline open-source versionado em Git (vs scripts isolados sem versionamento)',
+    'Arquitetura medallion bronze/silver/gold canônica (vs notebooks por formato)',
+    'Padrão híbrido batch + Auto Loader incremental (vs full-overwrite manual)',
+    'Schema-coerce float64 desde a primeira execução (lição aprendida em CNES)',
+    'Spec doc registrando lições do parecer da monografia em docs/',
+  ],
+  pendencias_para_aprovacao_lato_sensu: [
+    'Pipeline RAIS ainda não rodou — silver/gold sem dados para análise',
+    'URL do PDET/MTE não confirmada — ingest pode falhar em ambiente real',
+    'Artigo (.tex) está em estado SKELETON — todas as seções substantivas vazias',
+    'Sem execução empírica das 3 métricas (size/write/read) ainda',
+    'Sem scoring FAIR via RDA Maturity Model implementado',
+  ],
+  pendencias_para_nivel_mestrado: [
+    'Multi-formato (Iceberg + Hudi além de Delta) NÃO implementado',
+    'Variância controlada (desvio padrão, IC 95%, n) NÃO reportada',
+    'Múltiplas configurações de cluster NÃO comparadas',
+    'Análise crítica when-not-to-use Lakehouse NÃO escrita',
+    'Cruzamento RAIS × indicadores socioeconômicos NÃO feito',
+    'Comparação com warehouses (BigQuery/Snowflake/Redshift) ausente',
+  ],
+};
+
+function ScoreCard() {
+  const trend = SCORE_ATUAL - SCORE_ORIGINAL;
+  const trendIcon = trend > 0 ? '▲' : trend < 0 ? '▼' : '●';
+  const trendColor = trend > 0 ? '#059669' : trend < 0 ? '#dc2626' : 'var(--muted)';
+
+  return (
+    <section className="panel no-print" style={{ marginBottom: 14, borderLeft: `4px solid ${MASTER_LEVEL ? '#059669' : '#b45309'}` }}>
+      <div className="panelHead">
+        <span className="panelLabel">Parecer crítico — avaliador externo (IA, modo professor de pós-graduação)</span>
+        <span className="kicker">Atualizado em {PARECER_RAIS.ultimaAtualizacao} · v{PARECER_RAIS.versao}</span>
+      </div>
+
+      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 14 }}>
+        <div>
+          <div className="kicker" style={{ marginBottom: 4 }}>Score atual</div>
+          <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1, color: MASTER_LEVEL ? '#059669' : 'var(--text)' }}>
+            {SCORE_ATUAL.toFixed(1)}<span style={{ fontSize: 18, color: 'var(--muted)', fontWeight: 600 }}> /10</span>
+          </div>
+        </div>
+        <div>
+          <div className="kicker" style={{ marginBottom: 4 }}>Score original (monografia 2023)</div>
+          <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, color: 'var(--muted)' }}>
+            {SCORE_ORIGINAL.toFixed(1)}<span style={{ fontSize: 16, color: 'var(--faint)', fontWeight: 600 }}> /10</span>
+          </div>
+        </div>
+        <div style={{ color: trendColor, fontSize: 14, fontWeight: 700 }}>
+          {trendIcon} {trend >= 0 ? '+' : ''}{trend.toFixed(1)} vs original
+        </div>
+        {MASTER_LEVEL && (
+          <div style={{ marginLeft: 'auto', padding: '6px 12px', background: '#059669', color: 'white',
+                        borderRadius: 999, fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            ★ NÍVEL STRICTO SENSU (MESTRADO) ATINGIDO
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14, fontSize: 12.5 }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#059669', marginBottom: 6 }}>
+            ✓ Melhorias vs. monografia original
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
+            {PARECER_RAIS.melhorias_vs_original.map((m, i) => <li key={i}>{m}</li>)}
+          </ul>
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b45309', marginBottom: 6 }}>
+            ⚠ Pendências para aprovação lato sensu
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
+            {PARECER_RAIS.pendencias_para_aprovacao_lato_sensu.map((p, i) => <li key={i}>{p}</li>)}
+          </ul>
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#1d4ed8', marginBottom: 6 }}>
+            ★ Pendências adicionais para nível stricto sensu
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
+            {PARECER_RAIS.pendencias_para_nivel_mestrado.map((p, i) => <li key={i}>{p}</li>)}
+          </ul>
+        </div>
+      </div>
+    </section>
   );
 }
 
