@@ -187,10 +187,14 @@ use_batch = (not table_exists) or (existing_rows == 0) or (not checkpoint_initia
 
 if use_batch:
     # ─── MODO BATCH (carga inicial / reset) ──────────────────────────
+    # NB: serverless do Free Edition NÃO aceita
+    # `partitionOverwriteMode=dynamic`. Como esse caminho roda apenas na
+    # primeira carga (tabela não existe ou vazia), full overwrite é OK —
+    # não há dados a preservar. Atualizações incrementais ficam pra Auto
+    # Loader (caminho de baixo).
     print(f"▸ MODO BATCH — table_exists={table_exists}  rows={existing_rows:,}  "
           f"checkpoint_initialized={checkpoint_initialized}")
-    print("  Lendo parquets em batch e reescrevendo Delta com dynamic partition overwrite.")
-    spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
+    print("  Lendo parquets em batch e reescrevendo Delta (full overwrite — primeira carga).")
 
     df = (
         spark.read.parquet(PARQUET_DIR)
@@ -201,7 +205,7 @@ if use_batch:
         df.write
             .format("delta")
             .mode("overwrite")
-            .option("mergeSchema", "true")
+            .option("overwriteSchema", "true")
             .partitionBy("estado", "ano")
             .saveAsTable(BRONZE_TABLE)
     )
