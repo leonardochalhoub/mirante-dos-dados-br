@@ -153,19 +153,25 @@ def convert_one(dbc_path_str: str, out_dir_str: str) -> tuple[str, str]:
 dbc_dir     = Path(DBC_DIR)
 parquet_dir = Path(PARQUET_DIR)
 
-# Force-reconvert: wipe existing parquets so all .dbc files re-convert
-# with the unified float64 schema (fixes BIGINT vs DOUBLE merge errors
-# from older parquets written before the schema-coerce fix).
-if FORCE_RECONVERT:
-    print(f"⚠ FORCE_RECONVERT=true → apagando {PARQUET_DIR} antes de re-converter…")
+# Self-healing schema-version marker: parquets escritos antes do fix de
+# coerce-to-float64 têm schemas heterogêneos (BIGINT vs DOUBLE) e Spark
+# falha ao mergeSchema. Marcador `_schema_version_v2` indica que TODOS
+# os parquets foram escritos com o novo código. Se ausente OU
+# FORCE_RECONVERT=true, wipe + re-convert automático.
+SCHEMA_VERSION_MARKER = parquet_dir / "_schema_version_v2"
+needs_full_reconvert = FORCE_RECONVERT or not SCHEMA_VERSION_MARKER.exists()
+
+if needs_full_reconvert and parquet_dir.exists():
+    reason = "FORCE_RECONVERT=true" if FORCE_RECONVERT else "schema-version marker ausente"
+    print(f"⚠ {reason} → apagando {PARQUET_DIR} pra re-converter com schema unificado float64…")
     try:
         dbutils.fs.rm(PARQUET_DIR, True)
         print(f"  apagado.")
     except Exception as e:
-        print(f"  (tentativa via dbutils falhou: {e}; tentando via Path…)")
+        print(f"  (dbutils.fs.rm falhou: {e}; tentando shutil…)")
         import shutil
-        if parquet_dir.exists():
-            shutil.rmtree(parquet_dir)
+        try: shutil.rmtree(parquet_dir)
+        except Exception: pass
 
 parquet_dir.mkdir(parents=True, exist_ok=True)
 
@@ -183,6 +189,19 @@ with ProcessPoolExecutor(max_workers=WORKERS) as ex:
 
 print(f"Convert done: {results}")
 print(f"Total .parquet now: {len(list(parquet_dir.glob('*.parquet')))}")
+
+# Grava marker de versão do schema — sinaliza pra futuras execuções
+# que TODOS os parquets foram escritos com o código novo (float64
+# coerce). Próxima execução não vai re-converter desnecessariamente.
+try:
+    SCHEMA_VERSION_MARKER.write_text(
+        "schema_version=v2\n"
+        "all numeric columns coerced to float64 in convert_one() before to_parquet\n"
+        f"written_after_run_with_results={results}\n"
+    )
+    print(f"✓ marker {SCHEMA_VERSION_MARKER.name} gravado.")
+except Exception as e:
+    print(f"⚠ não consegui gravar marker {SCHEMA_VERSION_MARKER}: {e}")
 
 # COMMAND ----------
 
@@ -207,10 +226,12 @@ print(f"Total .parquet now: {len(list(parquet_dir.glob('*.parquet')))}")
 
 from pyspark.sql import functions as F
 
-# Em FORCE_RECONVERT, também derrubamos a tabela bronze + checkpoint
-# pra forçar re-criação from scratch com o schema novo unificado.
-if FORCE_RECONVERT:
-    print("⚠ FORCE_RECONVERT=true → derrubando tabela bronze + checkpoint do Auto Loader…")
+# Quando re-convertemos parquets com schema novo, a tabela bronze e o
+# checkpoint do Auto Loader também precisam ser zerados — senão Auto
+# Loader tenta processar parquets antigos com schema preservado, ou
+# o BATCH path lê uma tabela bronze que ainda tem o schema antigo.
+if needs_full_reconvert:
+    print("⚠ Re-conversão total iniciada → derrubando tabela bronze + checkpoint Auto Loader…")
     try:
         spark.sql(f"DROP TABLE IF EXISTS {BRONZE_TABLE}")
         print(f"  tabela {BRONZE_TABLE} apagada.")
