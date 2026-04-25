@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 50" width="220" height="50" role="img" aria-label="Claude Code">
+  <!-- Anthropic mark (stylized asterisk) in brand orange -->
+  <g transform="translate(8, 25)">
+    <path d="M 0 -12 L 0 12 M -10.4 -6 L 10.4 6 M -10.4 6 L 10.4 -6"
+          stroke="#D97757" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </g>
+  <!-- Wordmark — uses currentColor so it adapts to light/dark theme -->
+  <text x="32" y="32"
+        font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif"
+        font-size="20" font-weight="600" letter-spacing="-0.01em"
+        fill="currentColor">Claude Code</text>
+</svg>

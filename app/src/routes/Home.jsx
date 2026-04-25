@@ -93,6 +93,9 @@ export default function Home() {
             <a className="hero-logo-card" href="https://spark.apache.org/" target="_blank" rel="noreferrer" title="Powered by Apache Spark">
               <img src={`${import.meta.env.BASE_URL}spark-logo.svg`.replace(/\/{2,}/g, '/')} alt="Apache Spark" />
             </a>
+            <a className="hero-logo-card" href="https://www.anthropic.com/claude-code" target="_blank" rel="noreferrer" title="Built with Claude Code (Anthropic)">
+              <img src={`${import.meta.env.BASE_URL}claude-code-logo.svg`.replace(/\/{2,}/g, '/')} alt="Claude Code" style={{ height: 56, width: 'auto' }} />
+            </a>
           </div>
         </div>
       </section>
