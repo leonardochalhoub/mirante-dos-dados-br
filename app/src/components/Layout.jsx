@@ -11,23 +11,33 @@ const NAV = [
 // `delta_version` for the listed gold table. Falls back to `defaultTag` while
 // stats are loading or if the table is missing.
 //
-// `firstPublished` is the date the vertical first went to production
-// (derived from git log of each route file). Ordering is chronological,
-// oldest first → reflects the platform's evolution over time.
+// `firstPublished` is the precise ISO datetime when the vertical first
+// went to production (derived from `git log --diff-filter=A` of each
+// route file). Ordering is chronological, oldest first.
 const VERTICALS = [
-  { to: '/bolsa-familia',          label: 'Bolsa Família',          goldTable: 'pbf_estados_df',           defaultTag: 'v1', firstPublished: '2026-04-24' },
-  { to: '/equipamentos',           label: 'Equipamentos',           goldTable: 'equipamentos_estados_ano', defaultTag: 'v1', firstPublished: '2026-04-24' },
-  { to: '/emendas',                label: 'Emendas Parlamentares',  goldTable: 'emendas_estados_df',       defaultTag: 'v1', firstPublished: '2026-04-25' },
-  { to: '/incontinencia-urinaria', label: 'Incontinência Urinária', goldTable: 'uropro_estados_ano',       defaultTag: 'v1', firstPublished: '2026-04-25' },
+  { to: '/bolsa-familia',          label: 'Bolsa Família',          goldTable: 'pbf_estados_df',           defaultTag: 'v1', firstPublished: '2026-04-24T11:47:55-03:00' },
+  { to: '/equipamentos',           label: 'Equipamentos',           goldTable: 'equipamentos_estados_ano', defaultTag: 'v1', firstPublished: '2026-04-25T10:46:44-03:00' },
+  { to: '/emendas',                label: 'Emendas Parlamentares',  goldTable: 'emendas_estados_df',       defaultTag: 'v1', firstPublished: '2026-04-25T02:29:21-03:00' },
+  { to: '/incontinencia-urinaria', label: 'Incontinência Urinária', goldTable: 'uropro_estados_ano',       defaultTag: 'v1', firstPublished: '2026-04-25T15:26:34-03:00' },
 ].sort((a, b) => a.firstPublished.localeCompare(b.firstPublished));
 
-// Format ISO date as "24/abr/2026"
+// Format ISO datetime as "24/abr/2026 · 11h47 BRT".
+// Garantia de UTC-3: usa toLocaleString com timeZone='America/Sao_Paulo'
+// (independente da fuso do navegador do leitor → sempre BRT).
 const MONTHS_PT = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun',
                    'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 function fmtPubDate(iso) {
   if (!iso) return '';
-  const [y, m, d] = iso.split('-');
-  return `${d}/${MONTHS_PT[parseInt(m, 10) - 1]}/${y}`;
+  const dt = new Date(iso);
+  if (isNaN(dt)) return iso;
+  // Converte para UTC-3 explicitamente
+  const partsArr = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(dt);
+  const p = Object.fromEntries(partsArr.map((x) => [x.type, x.value]));
+  return `${p.day}/${MONTHS_PT[parseInt(p.month, 10) - 1]}/${p.year} · ${p.hour}h${p.minute} BRT`;
 }
 
 const flagSrc = `${import.meta.env.BASE_URL}brazil-flag.svg`.replace(/\/{2,}/g, '/');
