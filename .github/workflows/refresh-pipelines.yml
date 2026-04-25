@@ -27,11 +27,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Databricks CLI
+        # Official install script — the older `/releases/latest/download/`
+        # asset URL stopped working when Databricks added versions to the
+        # asset filenames. Installs to /usr/local/bin/databricks (on PATH).
         run: |
-          mkdir -p "$HOME/.local/bin"
-          curl -fsSL https://github.com/databricks/cli/releases/latest/download/databricks_cli_linux_amd64.tar.gz \
-            | tar -xz -C "$HOME/.local/bin"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sudo sh
           databricks --version
 
       - name: Trigger Databricks job + wait
