@@ -317,7 +317,11 @@ function ScoreCard() {
   return (
     <section className="panel no-print" style={{ marginBottom: 14, borderLeft: `4px solid ${MASTER_LEVEL ? '#059669' : '#b45309'}` }}>
       <div className="panelHead">
-        <span className="panelLabel">Parecer crítico — avaliador externo (IA, modo professor de pós-graduação)</span>
+        <span className="panelLabel">
+          Parecer crítico — Avaliador externo independente
+          (IA Claude Opus 4.7, modo Professor de Programa de Mestrado e Doutorado
+          em Finanças e Engenharia de Software)
+        </span>
         <span className="kicker">Atualizado em {PARECER_RAIS.ultimaAtualizacao} · v{PARECER_RAIS.versao}</span>
       </div>
 
