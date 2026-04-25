@@ -88,6 +88,37 @@ df = (
     .drop("vempenhado_str", "vpago_str", "vrap_str")
 )
 
+# CGU envia UF como nome completo em pt-BR ("CEARÁ", "MINAS GERAIS"). Mapear pra 2-letter.
+# Strip accents + upper() na lookup pra não depender de variação de acento na fonte.
+UF_NAME_TO_CODE = {
+    "ACRE": "AC", "ALAGOAS": "AL", "AMAZONAS": "AM", "AMAPA": "AP",
+    "BAHIA": "BA", "CEARA": "CE", "DISTRITO FEDERAL": "DF",
+    "ESPIRITO SANTO": "ES", "GOIAS": "GO", "MARANHAO": "MA",
+    "MINAS GERAIS": "MG", "MATO GROSSO DO SUL": "MS", "MATO GROSSO": "MT",
+    "PARA": "PA", "PARAIBA": "PB", "PERNAMBUCO": "PE", "PIAUI": "PI",
+    "PARANA": "PR", "RIO DE JANEIRO": "RJ", "RIO GRANDE DO NORTE": "RN",
+    "RONDONIA": "RO", "RORAIMA": "RR", "RIO GRANDE DO SUL": "RS",
+    "SANTA CATARINA": "SC", "SERGIPE": "SE", "SAO PAULO": "SP",
+    "TOCANTINS": "TO",
+}
+
+# Strip accents in Spark via translate() (não há unidecode no cluster).
+ACCENT_FROM = "ÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇáàâãäéèêëíìîïóòôõöúùûüç"
+ACCENT_TO   = "AAAAAEEEEIIIIOOOOOUUUUCaaaaaeeeeiiiiooooouuuuc"
+uf_norm = F.upper(F.translate(F.col("uf"), ACCENT_FROM, ACCENT_TO))
+
+# Build mapping expression: chained F.when() based on the dict
+uf_mapping = F.lit(None).cast("string")
+for full_name, code in UF_NAME_TO_CODE.items():
+    uf_mapping = F.when(uf_norm == full_name, F.lit(code)).otherwise(uf_mapping)
+
+# If "uf" already came as 2-letter code (some downstream tools normalize this),
+# keep as-is. Otherwise apply the mapping.
+df = df.withColumn(
+    "uf",
+    F.when(F.length(F.col("uf")) == 2, F.upper(F.col("uf"))).otherwise(uf_mapping),
+)
+
 # Defensive filter: keep only valid (Ano, uf, tipo_emenda) rows
 VALID_UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
              "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"]
