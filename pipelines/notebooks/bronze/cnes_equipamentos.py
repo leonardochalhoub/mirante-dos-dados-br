@@ -12,6 +12,23 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ## Step 1 — install pyreaddbc + dbfread (in-notebook)
+# MAGIC
+# MAGIC `pyreaddbc` é o pacote standalone que bundles o C `blast_decoder`
+# MAGIC pra descomprimir DBC (anteriormente vivia em `pysus.utilities.readdbc`,
+# MAGIC removido em PySUS 1.x+). Mantido pelo time AlertaDengue/PySUS.
+# MAGIC
+# MAGIC ⚠️ `restartPython()` reinicia o interpretador e **apaga todas as variáveis**
+# MAGIC definidas antes — por isso widgets/parâmetros são lidos depois.
+
+# COMMAND ----------
+
+# MAGIC %pip install --quiet pyreaddbc dbfread pandas pyarrow
+# MAGIC dbutils.library.restartPython()
+
+# COMMAND ----------
+
 dbutils.widgets.text("catalog",        "mirante_prd")
 dbutils.widgets.text("dbc_dir",        "/Volumes/mirante_prd/bronze/raw/datasus/cnes_eq")
 dbutils.widgets.text("parquet_dir",    "/Volumes/mirante_prd/bronze/raw/datasus/cnes_eq_parquet")
@@ -27,20 +44,6 @@ CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/cnes_equipamentos/_
 SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/cnes_equipamentos/_schema"
 
 print(f"dbc_dir={DBC_DIR}  parquet_dir={PARQUET_DIR}  target={BRONZE_TABLE}")
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Step 1 — install pyreaddbc + dbfread (in-notebook)
-# MAGIC
-# MAGIC `pyreaddbc` é o pacote standalone que bundles o C `blast_decoder`
-# MAGIC pra descomprimir DBC (anteriormente vivia em `pysus.utilities.readdbc`,
-# MAGIC removido em PySUS 1.x+). Mantido pelo time AlertaDengue/PySUS.
-
-# COMMAND ----------
-
-# MAGIC %pip install --quiet pyreaddbc dbfread pandas pyarrow
-# MAGIC dbutils.library.restartPython()
 
 # COMMAND ----------
 
