@@ -36,13 +36,26 @@ print(f"years={YEARS_EXPR}  dest={VOLUME_DIR}  workers={WORKERS}")
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+import urllib.request
 import requests
+import urllib3
 
-# RAIS PDET — URL pattern por ano. Ministério do Trabalho mudou a estrutura
-# algumas vezes; mantemos uma lista de templates a tentar.
-URL_TEMPLATES = [
-    "ftp://ftp.mtps.gov.br/pdet/microdados/RAIS/{year}/RAIS_VINC_PUB_{uf}.7z",
+# Sites .gov.br raramente têm cadeia SSL completa — desligamos verificação
+# pra evitar SSLCertVerificationError em massa. Risco aceitável: dados
+# públicos (não há nada sensível pra interceptar) e o checksum/tamanho
+# do arquivo é validado posteriormente na bronze.
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# RAIS PDET — Ministério do Trabalho migrou várias vezes:
+#   2017-2022: pdet.mte.gov.br
+#   2023+:     pdet.trabalho.gov.br  (após split MT vs MPS)
+#   FTP histórico: ftp.mtps.gov.br (gerenciado por urllib, não requests)
+URL_TEMPLATES_HTTPS = [
+    "https://pdet.trabalho.gov.br/images/Microdados/RAIS/{year}/RAIS_VINC_PUB_{uf}.7z",
     "https://pdet.mte.gov.br/images/Microdados/RAIS/{year}/RAIS_VINC_PUB_{uf}.7z",
+]
+URL_TEMPLATES_FTP = [
+    "ftp://ftp.mtps.gov.br/pdet/microdados/RAIS/{year}/RAIS_VINC_PUB_{uf}.7z",
 ]
 HEADERS = {"User-Agent": "mirante-dos-dados/1.0"}
 
@@ -62,6 +75,37 @@ def parse_years(expr: str) -> list[int]:
     return sorted(out)
 
 
+def _fetch_https(url: str, tmp: Path) -> tuple[bool, str]:
+    """Returns (ok, err_msg). Uses requests.get with verify=False."""
+    try:
+        with requests.get(url, headers=HEADERS, stream=True, timeout=600, verify=False) as r:
+            if r.status_code != 200:
+                return False, f"HTTP {r.status_code}"
+            written = 0
+            with tmp.open("wb") as f:
+                for chunk in r.iter_content(chunk_size=1 << 22):
+                    if chunk:
+                        f.write(chunk); written += len(chunk)
+            if written < 1024:
+                tmp.unlink(missing_ok=True)
+                return False, "too small (<1KB)"
+            return True, ""
+    except Exception as e:
+        return False, f"{type(e).__name__}: {str(e)[:120]}"
+
+
+def _fetch_ftp(url: str, tmp: Path) -> tuple[bool, str]:
+    """Returns (ok, err_msg). urllib handles ftp:// natively."""
+    try:
+        urllib.request.urlretrieve(url, str(tmp))
+        if tmp.exists() and tmp.stat().st_size >= 1024:
+            return True, ""
+        tmp.unlink(missing_ok=True)
+        return False, "too small (<1KB) or missing"
+    except Exception as e:
+        return False, f"{type(e).__name__}: {str(e)[:120]}"
+
+
 def fetch(year: int, uf: str, dest_dir: Path, retries: int = 3) -> tuple[str, str]:
     label = f"RAIS_{year}_{uf}"
     dest = dest_dir / f"RAIS_VINC_PUB_{uf}_{year}.7z"
@@ -69,28 +113,31 @@ def fetch(year: int, uf: str, dest_dir: Path, retries: int = 3) -> tuple[str, st
         return label, "cached"
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix(dest.suffix + ".part")
-    last_err = None
-    for url_tmpl in URL_TEMPLATES:
+    last_err = "never tried"
+
+    # Try HTTPS templates first (most reliable)
+    for url_tmpl in URL_TEMPLATES_HTTPS:
         url = url_tmpl.format(year=year, uf=uf)
         for attempt in range(1, retries + 1):
-            try:
-                with requests.get(url, headers=HEADERS, stream=True, timeout=600) as r:
-                    if r.status_code != 200:
-                        last_err = f"HTTP {r.status_code}"
-                        break  # try next URL template
-                    written = 0
-                    with tmp.open("wb") as f:
-                        for chunk in r.iter_content(chunk_size=1 << 22):
-                            if chunk:
-                                f.write(chunk); written += len(chunk)
-                    if written < 1024:
-                        tmp.unlink(missing_ok=True); last_err = "too small"; break
-                    tmp.replace(dest)
-                    return label, "ok"
-            except Exception as e:
-                last_err = f"{type(e).__name__}: {e}"
-                if attempt < retries:
-                    time.sleep(2.0)
+            ok, err = _fetch_https(url, tmp)
+            if ok:
+                tmp.replace(dest)
+                return label, "ok"
+            last_err = err
+            if "HTTP 404" in err or "HTTP 403" in err:
+                break  # don't retry, try next URL template
+            if attempt < retries:
+                time.sleep(2.0)
+
+    # Fallback: FTP
+    for url_tmpl in URL_TEMPLATES_FTP:
+        url = url_tmpl.format(year=year, uf=uf)
+        ok, err = _fetch_ftp(url, tmp)
+        if ok:
+            tmp.replace(dest)
+            return label, "ok"
+        last_err = err
+
     if tmp.exists():
         tmp.unlink()
     print(f"  ✗ {label} — last err: {last_err}")
