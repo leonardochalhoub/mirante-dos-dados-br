@@ -2,11 +2,13 @@
   "generated_at_utc": "2026-04-25T00:00:00Z",
   "catalog": "mirante_prd",
   "raw": {
-    "total_files": 6772,
-    "total_bytes": 46247075000,
+    "total_files": 6774,
+    "total_bytes": 46323552000,
     "by_source": {
       "cgu_pbf_zips":            {"files": 158,  "bytes": 44740000000},
       "cgu_pbf_csv_extracted":   {"files": 158,  "bytes": 274700000000},
+      "cgu_emendas_zips":        {"files": 2,    "bytes": 60955000},
+      "cgu_emendas_csv":         {"files": 2,    "bytes": 91643930},
       "datasus_cnes_eq_dbc":     {"files": 6614, "bytes": 1507000000},
       "datasus_cnes_eq_parquet": {"files": 252,  "bytes": 4500000000},
       "ibge_json":               {"files": 1,    "bytes": 50000},
@@ -33,20 +35,32 @@
       "intermediate_label":   "Parquet",
       "delta_bronze_bytes":   2470000000,
       "delta_bronze_rows":    18500000
+    },
+    "emendas": {
+      "raw_compressed_files": 2,
+      "raw_compressed_bytes": 60955000,
+      "raw_compressed_label": "ZIP",
+      "intermediate_files":   2,
+      "intermediate_bytes":   91643930,
+      "intermediate_label":   "CSV",
+      "delta_bronze_bytes":   38000000,
+      "delta_bronze_rows":    183324
     }
   },
   "tables": {
     "bronze": [
-      {"table": "pbf_pagamentos",      "full_name": "mirante_prd.bronze.pbf_pagamentos",      "rows": 2200000000, "bytes": 73000000000, "delta_version": 1},
-      {"table": "cnes_equipamentos",   "full_name": "mirante_prd.bronze.cnes_equipamentos",   "rows": 18500000,   "bytes": 2470000000,  "delta_version": 1},
-      {"table": "ibge_populacao_raw",  "full_name": "mirante_prd.bronze.ibge_populacao_raw",  "rows": 1,          "bytes": 50000,       "delta_version": 1},
-      {"table": "bcb_ipca_raw",        "full_name": "mirante_prd.bronze.bcb_ipca_raw",        "rows": 552,        "bytes": 25000,       "delta_version": 1}
+      {"table": "pbf_pagamentos",        "full_name": "mirante_prd.bronze.pbf_pagamentos",        "rows": 2200000000, "bytes": 73000000000, "delta_version": 1},
+      {"table": "cnes_equipamentos",     "full_name": "mirante_prd.bronze.cnes_equipamentos",     "rows": 18500000,   "bytes": 2470000000,  "delta_version": 1},
+      {"table": "emendas_pagamentos",    "full_name": "mirante_prd.bronze.emendas_pagamentos",    "rows": 183324,     "bytes": 38000000,    "delta_version": 1},
+      {"table": "ibge_populacao_raw",    "full_name": "mirante_prd.bronze.ibge_populacao_raw",    "rows": 1,          "bytes": 50000,       "delta_version": 1},
+      {"table": "bcb_ipca_raw",          "full_name": "mirante_prd.bronze.bcb_ipca_raw",          "rows": 552,        "bytes": 25000,       "delta_version": 1}
     ],
     "silver": [
       {"table": "populacao_uf_ano",      "full_name": "mirante_prd.silver.populacao_uf_ano",      "rows": 378,    "bytes": 8000,   "delta_version": 1},
       {"table": "ipca_deflators_2021",   "full_name": "mirante_prd.silver.ipca_deflators_2021",   "rows": 14,     "bytes": 2000,   "delta_version": 1},
       {"table": "pbf_total_uf_mes",      "full_name": "mirante_prd.silver.pbf_total_uf_mes",      "rows": 4263,   "bytes": 90000,  "delta_version": 1},
-      {"table": "equipamentos_uf_ano",   "full_name": "mirante_prd.silver.equipamentos_uf_ano",   "rows": 28000,  "bytes": 250000, "delta_version": 1}
+      {"table": "equipamentos_uf_ano",   "full_name": "mirante_prd.silver.equipamentos_uf_ano",   "rows": 28000,  "bytes": 250000, "delta_version": 1},
+      {"table": "emendas_uf_ano",        "full_name": "mirante_prd.silver.emendas_uf_ano",        "rows": 800,    "bytes": 60000,  "delta_version": 1}
     ],
     "gold": [
       {"table": "pbf_estados_df",            "full_name": "mirante_prd.gold.pbf_estados_df",            "rows": 351,   "bytes": 35000,  "delta_version": 1},
@@ -54,8 +68,8 @@
       {"table": "emendas_estados_df",        "full_name": "mirante_prd.gold.emendas_estados_df",        "rows": 297,   "bytes": 28000,  "delta_version": 1}
     ],
     "totals": {
-      "bronze_bytes": 75520075000,
-      "silver_bytes": 350000,
+      "bronze_bytes": 75558075000,
+      "silver_bytes": 410000,
       "gold_bytes":   313000
     }
   },

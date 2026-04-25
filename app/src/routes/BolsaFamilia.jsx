@@ -187,6 +187,13 @@ export default function BolsaFamilia() {
   if (error) return <div className="error-block">Erro ao carregar dados: {error}</div>;
   if (!rows) return <div className="loading-block">Carregando dados…</div>;
 
+  // Caminhos do artigo Working Paper #2 (Bolsa Família)
+  const base = import.meta.env.BASE_URL || '/';
+  const pdfUrl     = `${base}articles/bolsa-familia.pdf`.replace(/\/{2,}/g, '/');
+  const texUrl     = `${base}articles/bolsa-familia.tex`.replace(/\/{2,}/g, '/');
+  const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
+    encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
+
   return (
     <>
       <PageHeader
@@ -203,6 +210,40 @@ export default function BolsaFamilia() {
           </div>
         }
       />
+
+      <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
+        <div className="doc-block">
+          <div className="kicker">Working Paper n. 2 — Mirante dos Dados</div>
+          <p style={{ marginTop: 6, fontSize: 13.5 }}>
+            <b>"Programa Bolsa Família, Auxílio Brasil e Novo Bolsa Família
+            (2013–2025): transformações institucionais, expansão da cobertura
+            e desigualdade territorial"</b> — análise empírica completa
+            (PT-BR, padrão ABNT) deste vertical, com 12 figuras, 3 mapas
+            coropléticos e ~9 mil palavras.
+          </p>
+          <div className="doc-actions">
+            <a className="doc-toggle doc-toggle-primary"
+               href={pdfUrl}
+               download="Mirante-BolsaFamilia-Chalhoub-2026.pdf"
+               title="PDF compilado em LaTeX, padrão ABNT">
+              ⤓ Baixar PDF (ABNT)
+            </a>
+            <a className="doc-toggle"
+               href={texUrl}
+               download="bolsa-familia.tex"
+               title="Fonte LaTeX (.tex)">
+              ⤓ Baixar fonte (.tex)
+            </a>
+            <a className="doc-toggle"
+               href={overleafUrl}
+               target="_blank"
+               rel="noreferrer"
+               title="Compilação online em 1 clique no Overleaf">
+              ↗ Abrir no Overleaf
+            </a>
+          </div>
+        </div>
+      </section>
 
       <div className="kpiRow" data-export-id="pbf-kpis">
         <KpiCard

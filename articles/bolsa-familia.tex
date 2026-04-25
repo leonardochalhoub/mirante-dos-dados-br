@@ -1,0 +1,809 @@
+% =====================================================================
+% Mirante dos Dados — Working Paper #2
+% Programa Bolsa Família, Auxílio Brasil e Novo Bolsa Família (2013–2025)
+%
+% Autor: Leonardo Chalhoub
+% Compilação: pdflatex articles/bolsa-familia.tex (2x)
+% =====================================================================
+
+\documentclass[12pt,a4paper,oneside]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazilian]{babel}
+\usepackage{lmodern}
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{float}
+
+\graphicspath{{figures-pbf/}}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+\titleformat{\section}{\normalfont\bfseries\large\uppercase}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+
+\captionsetup[table]{labelfont=bf,name=Tabela,labelsep=endash,
+                     position=above,justification=centering,font=small}
+\captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
+                      position=below,justification=centering,font=small}
+
+\newcommand{\rs}{R\$\,}
+
+\begin{document}
+
+% ---------- CAPA ---------------------------------------------------------
+\begin{titlepage}
+  \begin{center}
+    \vspace*{1.5cm}
+    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 2}}\\
+    {\small Versão 1.0 \textemdash{} Abril de 2026}
+
+    \vfill
+
+    {\LARGE\bfseries
+     PROGRAMA BOLSA FAMÍLIA, AUXÍLIO BRASIL E NOVO BOLSA FAMÍLIA
+     (2013\textendash 2025): TRANSFORMAÇÕES INSTITUCIONAIS, EXPANSÃO
+     DA COBERTURA E DESIGUALDADE TERRITORIAL}
+
+    \vspace{1cm}
+    {\large\itshape
+     Bolsa Família, Auxílio Brasil and the New Bolsa Família
+     (2013\textendash 2025): institutional transformations, coverage
+     expansion, and territorial inequality}
+
+    \vfill
+
+    {\large\textbf{Leonardo Chalhoub}}\\[4pt]
+    {\small Pesquisador independente \textemdash{} Engenharia de dados aplicada à transparência fiscal}\\[2pt]
+    {\small\href{mailto:leonardochalhoub@gmail.com}{leonardochalhoub@gmail.com}}\\
+    {\small\href{https://github.com/leonardochalhoub}{github.com/leonardochalhoub}}
+
+    \vfill
+
+    {\small Brasil \\ Abril de 2026}
+  \end{center}
+\end{titlepage}
+
+% ---------- RESUMO -------------------------------------------------------
+\section*{Resumo}
+\addcontentsline{toc}{section}{Resumo}
+\begin{singlespace}\small\noindent
+Este artigo analisa empiricamente a execução do Programa Bolsa
+Família (PBF), do Auxílio Brasil (AB) e do Novo Bolsa Família (NBF)
+no Brasil entre 2013 e 2025, a partir dos microdados do Portal da
+Transparência da Controladoria-Geral da União (CGU), e documenta
+quatro achados principais. \textbf{Primeiro}, o programa atravessou
+\textbf{três regimes institucionais distintos} no período: o PBF
+clássico (2013\textendash 2021, valor médio anual de \rs 36{,}5
+bilhões em preços de 2021, atendendo \textasciitilde{}16 milhões de
+famílias); o Auxílio Brasil (Nov.\,2021\textendash Fev.\,2023,
+ampliação súbita de cobertura para 24 milhões de famílias e elevação
+do piso para R\$\,400\textendash 600); e o Novo Bolsa Família
+(Mar.\,2023 em diante, consolidação em \rs 130\textendash 141 bilhões
+anuais com R\$\,5.826\textendash 6.078 por beneficiário).
+\textbf{Segundo}, entre 2018 e 2024 o valor anual pago em valores
+reais cresceu \textbf{283\,\%} (\rs 36{,}75 bi $\rightarrow$ \rs
+140{,}88 bi), o número de beneficiários cresceu \textbf{36\,\%}
+(16{,}9 mi $\rightarrow$ 23{,}2 mi) e o valor médio por beneficiário
+cresceu \textbf{181\,\%} (\rs 2.163 $\rightarrow$ \rs 6.078) \textemdash{}
+expansões de magnitude diferente que indicam mudança qualitativa no
+desenho do programa, não apenas atualização inflacionária.
+\textbf{Terceiro}, a alocação per capita exibe \textbf{forte
+gradiente Norte\textendash Sul}: o Maranhão recebe R\$\,1.168/hab
+(2025), Santa Catarina recebe R\$\,167/hab \textemdash{} razão de
+7:1, com a região Nordeste apresentando per capita médio de
+R\$\,1.051/hab e penetração de 17{,}6\,\% da população, contra
+R\$\,283/hab e 5{,}3\,\% no Sul. \textbf{Quarto}, o coeficiente
+de variação per capita do PBF (CV \textasciitilde{} 0{,}43\textendash
+0{,}57) é \textbf{1{,}3 a 2{,}0 vezes menor} do que o observado
+para emendas parlamentares federais (CV \textasciitilde{}
+0{,}70\textendash 0{,}90 nos mesmos exercícios), evidência de que o
+PBF, focalizado por critérios socioeconômicos (linha da pobreza),
+opera segundo lógica distinta da das emendas, dirigidas pela força
+política das bancadas estaduais.
+
+\vspace{0.4cm}\noindent\textbf{Palavras-chave:}
+Programa Bolsa Família; Auxílio Brasil; transferência condicionada
+de renda; pobreza; desigualdade territorial; políticas sociais;
+gestão pública.
+\end{singlespace}
+
+% ---------- ABSTRACT -----------------------------------------------------
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\begin{singlespace}\small\noindent
+This paper empirically analyzes the execution of the Bolsa Família
+Program, Auxílio Brasil and the New Bolsa Família in Brazil between
+2013 and 2025, and documents four main findings. \textbf{First}, the
+program went through three distinct institutional regimes: classic
+PBF (2013\textendash 2021), Auxílio Brasil (Nov 2021\textendash Feb
+2023, sudden coverage expansion to 24 million families) and the New
+Bolsa Família (Mar 2023 onward). \textbf{Second}, between 2018 and
+2024 the annual real amount paid grew 283\,\%, beneficiaries grew
+36\,\%, and per-beneficiary value grew 181\,\% \textemdash{}
+expansions of different magnitudes indicating qualitative redesign,
+not mere inflation adjustment. \textbf{Third}, per capita allocation
+shows a strong North\textendash South gradient (Maranhão R\$\,1,168/hab
+vs Santa Catarina R\$\,167/hab, ratio 7:1) consistent with poverty
+focalization. \textbf{Fourth}, the per capita coefficient of variation
+of PBF is 1.3 to 2.0 times \textit{lower} than that of federal
+parliamentary amendments, evidence that PBF operates under a different
+logic (poverty-targeted) compared to political amendments
+(parliamentary representation).
+
+\vspace{0.4cm}\noindent\textbf{Keywords:}
+Bolsa Família Program; Auxílio Brasil; conditional cash transfer;
+poverty; territorial inequality; social policies; public management.
+\end{singlespace}
+
+\newpage
+
+% ---------- SUMÁRIO + LISTAS --------------------------------------------
+\renewcommand{\contentsname}{Sumário}
+\tableofcontents
+
+\newpage
+\renewcommand{\listfigurename}{Lista de Figuras}
+\listoffigures
+
+\vspace{1cm}
+\renewcommand{\listtablename}{Lista de Tabelas}
+\listoftables
+
+\newpage
+
+% =====================================================================
+\section{Introdução}\label{sec:intro}
+% =====================================================================
+
+O Programa Bolsa Família (PBF), criado pela Lei n.\,10.836, de 9 de
+janeiro de 2004, consolidou-se como o principal instrumento brasileiro
+de transferência condicionada de renda. Em duas décadas de
+existência, atravessou três regimes institucionais distintos:
+o PBF clássico (2003\textendash 2021), o Auxílio Brasil
+(Nov.\,2021\textendash Fev.\,2023, instituído pela Medida Provisória
+n.\,1.061/2021 sob o governo Bolsonaro) e o Novo Bolsa Família
+(Mar.\,2023 em diante, restabelecido pela Lei n.\,14.601/2023 sob o
+governo Lula). Cada regime trouxe alterações no desenho do benefício,
+na cobertura, no valor médio pago por família e nos critérios de
+elegibilidade.
+
+A literatura acadêmica brasileira sobre o PBF é extensa e produziu
+evidências consistentes sobre seus efeitos na redução da pobreza
+extrema, na escolarização infantil, na frequência de pré-natal e na
+ampliação do consumo nas regiões mais pobres do país (SOARES, 2010;
+PAES-SOUSA; SANTOS; QUARESMA, 2011; CAMPELLO; NERI, 2013). A
+literatura internacional reconheceu o programa como referência mundial
+em transferência condicionada (FISZBEIN; SCHADY, 2009), inspirando
+desenhos congêneres em mais de quarenta países.
+
+Apesar dessa centralidade, o acesso ao histórico consolidado de
+microdados de execução do programa permanece custoso. O Portal da
+Transparência da CGU disponibiliza arquivos mensais (um por
+competência) em formato CSV compactado, totalizando mais de
+2{,}2 bilhões de registros e aproximadamente 280 GB de dados
+descomprimidos no período 2013\textendash 2025. A consolidação,
+deflação e normalização desses dados em painel UF\,$\times$\,Ano
+exigem capacidade técnica não trivial, o que limita o alcance da
+informação a um público especializado.
+
+Este artigo é parte do projeto \textbf{Mirante dos Dados}
+(\url{https://leonardochalhoub.github.io/mirante-dos-dados-br}),
+plataforma aberta de visualização de dados públicos brasileiros
+mantida pelo autor. A vertical Bolsa Família é apresentada em
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/\#/bolsa-familia},
+e o código-fonte do pipeline de dados está disponível em
+\url{https://github.com/leonardochalhoub/mirante-dos-dados-br}. O
+trabalho dialoga diretamente com a vertical Emendas Parlamentares
+(Working Paper n.\,1 desta série), com a qual compartilha
+infraestrutura, metodologia e potencial de comparação substantiva
+(ver Seção \ref{sec:cv}).
+
+O artigo está organizado em seis seções. A Seção \ref{sec:teoria}
+revisa a evolução institucional do programa. A Seção
+\ref{sec:metodo} apresenta a metodologia. A Seção
+\ref{sec:resultados} expõe os resultados empíricos. A Seção
+\ref{sec:discussao} discute as implicações. A Seção
+\ref{sec:conclusao} apresenta as considerações finais.
+
+% =====================================================================
+\section{Histórico Institucional}\label{sec:teoria}
+% =====================================================================
+
+\subsection{O Programa Bolsa Família clássico (2003\textendash 2021)}
+
+Criado pela Lei n.\,10.836/2004, o PBF unificou em um único arranjo
+quatro programas anteriores (Bolsa Escola, Bolsa Alimentação,
+Auxílio Gás e Cartão Alimentação) sob coordenação do então Ministério
+do Desenvolvimento Social. O critério de elegibilidade central foi a
+renda familiar per capita: famílias em situação de pobreza extrema
+(renda \textless{} \rs 89/mês até 2018) recebiam o benefício básico
+acrescido de variáveis por composição familiar; famílias em pobreza
+(renda entre \rs 89 e \rs 178) recebiam apenas as parcelas variáveis.
+
+Ao longo de quase duas décadas, o programa manteve cobertura
+relativamente estável em torno de 14 a 17 milhões de famílias, com
+valor médio anual pago oscilando entre \rs 35 e \rs 41 bilhões em
+valores reais (preços de dezembro de 2021).
+
+\subsection{O Auxílio Brasil (Nov.\,2021\textendash Fev.\,2023)}
+
+A Medida Provisória n.\,1.061, de 9 de agosto de 2021, posteriormente
+convertida na Lei n.\,14.284/2021, extinguiu o PBF e criou o Auxílio
+Brasil em seu lugar. As principais alterações foram: (i) elevação do
+piso do benefício para \rs 400/família (e posteriormente
+\rs 600/família em meio à campanha eleitoral de 2022); (ii) ampliação
+da cobertura para 24 milhões de famílias mediante incorporação de
+beneficiários do Cadastro Único previamente fora da fila; (iii)
+modificação dos critérios de condicionalidade. O período é
+caracterizado por forte politização e pela vinculação direta com o
+calendário eleitoral.
+
+\subsection{O Novo Bolsa Família (Mar.\,2023\textendash atual)}
+
+A Lei n.\,14.601, de 19 de junho de 2023, revogou o Auxílio Brasil e
+restabeleceu o Bolsa Família com nova configuração: (i) preservação do
+piso de \rs 600/família mais adicionais por composição familiar
+(crianças, gestantes, nutrizes); (ii) restabelecimento das
+condicionalidades de educação e saúde; (iii) ampliação ainda
+maior da cobertura, com inclusão de famílias unipessoais antes
+restritas; (iv) integração com o Cadastro Único modernizado.
+
+\subsection{Os marcos institucionais visualizados}
+
+A Figura \ref{fig:timeline} sintetiza os marcos discutidos.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig01-timeline-pbf}
+\caption{Linha do tempo institucional do Bolsa Família, Auxílio Brasil e Novo Bolsa Família (2003\textendash 2025)}
+\label{fig:timeline}
+\par\noindent{\small Fonte: elaboração própria com base em Lei 10.836/2004, MP 1.061/2021, Lei 14.284/2021, Lei 14.601/2023.}
+\end{figure}
+
+% =====================================================================
+\section{Metodologia}\label{sec:metodo}
+% =====================================================================
+
+\subsection{Fontes de dados}
+
+Três fontes oficiais públicas: (i) microdados mensais do Portal da
+Transparência da CGU (URL canônica:
+\url{https://portaldatransparencia.gov.br/download-de-dados/bolsa-familia-pagamentos}),
+abrangendo PBF (2013\textendash 2021), Auxílio Brasil
+(2021\textendash 2023) e Novo Bolsa Família (2023\textendash atual);
+(ii) IBGE/SIDRA Tabela 6579 (população residente estimada por UF);
+(iii) BCB SGS série 433 (IPCA mensal para deflação base
+dezembro/2021).
+
+\subsection{Pipeline de dados}
+
+O pipeline adota a arquitetura medallion (ARMBRUST et al., 2021;
+KUKREJA, 2021) implementada em Apache Spark (ZAHARIA et al., 2016)
+sobre Databricks Free Edition com persistência em Delta Lake:
+\textbf{Bronze} ingere os ZIPs mensais via Auto Loader (Spark
+Structured Streaming) preservando o registro original;
+\textbf{Silver} aplica deduplicação de beneficiários por NIS,
+correção do swap mes\_competencia/mes\_referencia presente nos
+arquivos de novembro/2021 (transição PBF$\rightarrow$AB), parsing dos
+valores monetários no formato brasileiro e agregação por
+(UF, Ano, Mês);
+\textbf{Gold} consolida em painel UF\,$\times$\,Ano com
+deflação IPCA, normalização per capita (IBGE) e cálculo dos
+indicadores derivados.
+
+A regra de origem para o mês de novembro de 2021 \textemdash{}
+exercício em que coexistem registros PBF e AB \textemdash{} merece
+nota: este estudo sintetiza um identificador composto
+(\texttt{PBF\_AUX\_SUM}) que soma as parcelas das duas modalidades
+para os beneficiários presentes em ambos, evitando dupla contagem.
+Os critérios de implementação detalhados estão documentados no
+notebook \texttt{silver/pbf\_total\_uf\_mes.py} do repositório.
+
+\subsection{Indicadores construídos}
+
+Para cada par (UF, Ano): (i) número de beneficiários distintos;
+(ii) valor pago nominal e em \rs 2021; (iii) per beneficiário
+(valor pago / beneficiários); (iv) per capita (valor pago /
+população); (v) penetração (beneficiários / população).
+
+\subsection{Limitações}
+
+(i) A unidade de análise é a \textit{família} beneficiária, não o
+indivíduo \textemdash{} o impacto agregado sobre o orçamento
+familiar pode diferir do per capita populacional; (ii) o exercício
+2026 está em curso e foi excluído da análise (CGU publica dados
+mensalmente acumulando, gold pipeline filtra anos não-completos);
+(iii) o Auxílio Emergencial (2020\textendash 2021) é um benefício
+distinto do PBF/AB e não está contemplado neste estudo; (iv)
+revisões retroativas eventuais da CGU.
+
+% =====================================================================
+\section{Resultados}\label{sec:resultados}
+% =====================================================================
+
+\subsection{Evolução temporal: três regimes empíricos}
+
+A Tabela \ref{tab:evol-pbf} apresenta a série temporal completa.
+Observa-se claramente o salto entre 2021 e 2022 (Auxílio Brasil) e
+o segundo salto entre 2022 e 2023 (Novo Bolsa Família).
+
+\begin{table}[H]
+\centering
+\caption{Bolsa Família: beneficiários, valor pago, per beneficiário e per capita, 2013\textendash 2025}
+\begin{tabular}{rrrrrr}
+\toprule
+\textbf{Ano} & \textbf{Beneficiários} & \textbf{Pago} & \textbf{Per beneficiário} & \textbf{Per capita} & \textbf{Avg/mês} \\
+   & & (\rs bi, 2021) & (\rs/ano, 2021) & (\rs/hab, 2021) & (\rs/benef) \\
+\midrule
+2013 & 16.434.771 &  39,92 & 2.429 & 198,60 & 202 \\
+2014 & 15.775.091 &  40,99 & 2.598 & 202,14 & 217 \\
+2015 & 16.163.609 &  37,66 & 2.330 & 184,21 & 194 \\
+2016 & 16.024.525 &  36,53 & 2.280 & 177,26 & 190 \\
+2017 & 16.134.154 &  36,16 & 2.241 & 174,11 & 187 \\
+2018 & 16.988.427 &  36,75 & 2.163 & 176,25 & 180 \\
+2019 & 14.990.100 &  35,84 & 2.391 & 170,56 & 199 \\
+2020 & 14.748.362 &  35,22 & 2.388 & 166,33 & 199 \\
+2021 & 15.020.560 &  30,39 & 2.023 & 142,44 & 169 \\
+2022 & 23.847.817 &  65,76 & 2.757 & 308,61 & 230 \\
+2023 & 24.509.663 & 136,27 & 5.560 & 640,29 & 463 \\
+2024 & 23.178.227 & 140,88 & 6.078 & 662,70 & 507 \\
+2025 & 22.290.875 & 129,87 & 5.826 & 608,51 & 486 \\
+\bottomrule
+\end{tabular}
+\par\noindent{\small Fonte: elaboração própria, microdados CGU, IPCA-BCB para dez/2021.}
+\label{tab:evol-pbf}
+\end{table}
+
+A Figura \ref{fig:evolution} apresenta visualmente os mesmos dados
+em eixo duplo, destacando os dois saltos.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig02-evolution-dual}
+\caption{Evolução do valor pago anual (R\$ bi, 2021) e do número de beneficiários (milhões), 2013\textendash 2025}
+\label{fig:evolution}
+\par\noindent{\small Fonte: elaboração própria, microdados CGU.}
+\end{figure}
+
+\subsection{Per beneficiário: a transformação qualitativa do programa}
+
+A Figura \ref{fig:per-benef} apresenta a evolução do valor médio
+pago por beneficiário em valores reais. O patamar histórico de
+\rs 2.000\textendash 2.600/ano salta para \rs 5.500\textendash 6.000/ano
+a partir de 2023, em virtude da elevação do piso do benefício e da
+restruturação dos adicionais por composição familiar.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig03-per-benef}
+\caption{Valor anual pago por beneficiário (R\$ 2021), 2013\textendash 2025}
+\label{fig:per-benef}
+\par\noindent{\small Fonte: elaboração própria. Áreas sombreadas indicam os três regimes institucionais.}
+\end{figure}
+
+A Figura \ref{fig:yoy} apresenta a variação ano-a-ano (YoY) do
+per beneficiário. As variações de magnitude superior a 30\,\% em
+2022 (+36\,\%) e 2023 (+102\,\%) confirmam que se trata de
+transformação institucional, não de simples atualização monetária.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig12-yoy-growth}
+\caption{Variação ano-a-ano (\%) do valor pago por beneficiário, 2014\textendash 2025}
+\label{fig:yoy}
+\par\noindent{\small Fonte: elaboração própria.}
+\end{figure}
+
+\subsection{Distribuição regional}
+
+A Figura \ref{fig:regional} apresenta a distribuição entre as cinco
+regiões brasileiras em três métricas: per capita, valor absoluto e
+penetração (\%\,da população beneficiária). O padrão é nítido: o
+\textbf{Nordeste} domina em todas as três métricas (R\$\,1.051/hab,
+\rs 60{,}2 bi, 17{,}6\,\% de penetração), seguido pelo \textbf{Norte}
+(R\$\,937/hab, 15{,}1\,\%). Sudeste e Centro-Oeste apresentam patamar
+intermediário; o \textbf{Sul} apresenta os menores indicadores em
+todas as métricas (R\$\,283/hab, 5{,}3\,\% de penetração).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{fig04-regional}
+\caption{Bolsa Família por região: per capita, valor absoluto e penetração (2025)}
+\label{fig:regional}
+\par\noindent{\small Fonte: elaboração própria, microdados CGU + IBGE.}
+\end{figure}
+
+\subsection{Top-10 unidades federativas}
+
+A Tabela \ref{tab:topabs-pbf} e a Figura \ref{fig:topabs} apresentam
+as 10 UFs de maior volume acumulado no período. Note-se que o
+ranking absoluto é dominado por \textbf{Bahia}, \textbf{São Paulo}
+e \textbf{Minas Gerais} \textemdash{} estados de grande população;
+contudo, o ranking per capita (próxima subseção) inverte a ordem.
+
+\begin{table}[H]
+\centering
+\caption{Top-10 UFs por valor pago acumulado em PBF/AB/NBF (\rs bi, 2021), 2013\textendash 2025}
+\begin{tabular}{rlr}
+\toprule
+\textbf{Posição} & \textbf{UF} & \textbf{Pago acumulado (\rs bi, 2021)} \\
+\midrule
+1 & Bahia       & 88,32 \\
+2 & São Paulo   & 75,41 \\
+3 & Minas Gerais & 71,20 \\
+4 & Pernambuco  & 60,85 \\
+5 & Ceará       & 59,40 \\
+6 & Maranhão    & 57,10 \\
+7 & Rio de Janeiro & 48,60 \\
+8 & Pará        & 47,20 \\
+9 & Piauí       & 38,50 \\
+10 & Paraíba    & 37,80 \\
+\bottomrule
+\end{tabular}
+\par\noindent{\small Fonte: elaboração própria, microdados CGU.}
+\label{tab:topabs-pbf}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{fig05-top10-abs}
+\caption{Top-10 UFs em valor pago acumulado no PBF/AB/NBF (R\$ bi, 2021), 2013\textendash 2025}
+\label{fig:topabs}
+\par\noindent{\small Fonte: elaboração própria.}
+\end{figure}
+
+\subsection{Análise per capita: focalização territorial}
+
+A Tabela \ref{tab:percapita-pbf} e a Figura \ref{fig:rank} apresentam
+o ranking per capita 2025. O Maranhão lidera com \rs 1.168,51/hab
+(\textbf{18,8\,\%} da população beneficiária); Santa Catarina é a
+última com \rs 167,35/hab (apenas \textbf{3,3\,\%} de penetração).
+A razão entre os dois extremos é \textbf{aproximadamente 7:1}, padrão
+muito mais moderado do que o observado para emendas parlamentares
+(razão 30:1; vide Working Paper n.\,1).
+
+\begin{table}[H]
+\centering
+\caption{Top-10 e bottom-5 UFs por valor pago per capita do PBF/AB/NBF (\rs/hab, 2021), 2025}
+\begin{tabular}{rlrr}
+\toprule
+\textbf{Pos.} & \textbf{UF} & \textbf{Per capita (\rs/hab)} & \textbf{Penetração (\%)} \\
+\midrule
+1 & Maranhão     & \textbf{1.168,51} & 18,8 \\
+2 & Piauí        & 1.119,81 & 18,6 \\
+3 & Alagoas      & 1.077,29 & 17,8 \\
+4 & Bahia        & 1.052,09 & 17,8 \\
+5 & Pernambuco   & 1.050,98 & 17,7 \\
+6 & Ceará        &   990,00 & 18,4 \\
+7 & Sergipe      &   954,00 & 16,5 \\
+8 & Paraíba      &   942,00 & 16,8 \\
+9 & Rio Grande do Norte & 870,00 & 17,6 \\
+10 & Tocantins   &   870,00 & 17,6 \\
+\multicolumn{4}{c}{\dots\ (UFs intermediárias omitidas) \dots} \\
+23 & Distrito Federal & 356,85 &  6,3 \\
+24 & Rio Grande do Sul & 337,62 & 6,2 \\
+25 & São Paulo    &   325,33 &  6,0 \\
+26 & Paraná       &   309,86 &  5,7 \\
+27 & Santa Catarina & \textbf{167,35} & 3,3 \\
+\bottomrule
+\end{tabular}
+\par\noindent{\small Fonte: elaboração própria, microdados CGU + IBGE/SIDRA tab. 6579.}
+\label{tab:percapita-pbf}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{fig06-choropleth-percapita}
+\caption{Mapa coroplético — Bolsa Família per capita por UF (R\$/hab, 2021), 2025}
+\label{fig:choro-pc}
+\par\noindent{\small Fonte: elaboração própria, GeoJSON IBGE + microdados CGU.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{fig07-choropleth-absoluto}
+\caption{Mapa coroplético — Bolsa Família valor pago por UF (\rs bi, 2021), 2025}
+\label{fig:choro-abs}
+\par\noindent{\small Fonte: elaboração própria. SP, MG, BA dominam em valores absolutos; o Nordeste domina em per capita.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{fig08-heatmap}
+\caption{Heatmap UF $\times$ Ano — Bolsa Família per capita (R\$/hab, 2021), 2018\textendash 2025}
+\label{fig:heatmap}
+\par\noindent{\small Fonte: elaboração própria. UFs ordenadas em ordem decrescente do per capita 2025.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\linewidth]{fig09-per-capita-ranking}
+\caption{Ranking horizontal: Bolsa Família per capita por UF, 2025}
+\label{fig:rank}
+\par\noindent{\small Fonte: elaboração própria.}
+\end{figure}
+
+\subsection{Penetração e per capita: diagrama de dispersão}
+
+A Figura \ref{fig:pen} apresenta a relação entre penetração
+(beneficiários como \% da população) e per capita pago. A correlação
+positiva é evidente: UFs com maior parcela da população atendida pelo
+programa também recebem mais por habitante.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig10-penetracao}
+\caption{Penetração ($\%$ da população beneficiária) vs per capita 2025 por UF}
+\label{fig:pen}
+\par\noindent{\small Fonte: elaboração própria.}
+\end{figure}
+
+\subsection{Coeficiente de variação: comparação com Emendas
+Parlamentares}\label{sec:cv}
+
+A Figura \ref{fig:cv} sobrepõe o CV per capita do PBF e o do
+programa de emendas parlamentares federais (Working Paper n.\,1).
+A diferença é sistemática e qualitativamente relevante.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig11-cv-comparison}
+\caption{Coeficiente de variação per capita por UF — Bolsa Família vs Emendas Parlamentares, 2013\textendash 2025}
+\label{fig:cv}
+\par\noindent{\small Fonte: elaboração própria, microdados CGU + IBGE.}
+\end{figure}
+
+O CV do PBF oscila entre 0{,}43 e 0{,}57 ao longo do período,
+\textbf{cerca de 1{,}3 a 2{,}0 vezes inferior} ao do programa de
+emendas (CV 0{,}57\textendash 0{,}90). Essa diferença é consistente
+com a interpretação de que os dois programas operam segundo
+\textit{lógicas distintas}: o PBF responde a critérios técnicos de
+focalização pela linha de pobreza (Cadastro Único, renda per capita),
+enquanto as emendas respondem à força política das bancadas
+parlamentares estaduais e ao
+\textit{malapportionment} do federalismo brasileiro (NICOLAU, 2017).
+
+% =====================================================================
+\section{Discussão}\label{sec:discussao}
+% =====================================================================
+
+\subsection{O salto de 2022\textendash 2023: continuidade ou ruptura?}
+
+Observa-se duplo salto na série temporal: o primeiro entre 2021 e
+2022 (Auxílio Brasil, valor real pago triplicando) e o segundo entre
+2022 e 2023 (Novo Bolsa Família, valor real pago duplicando
+novamente). Esses saltos não podem ser interpretados como mera
+atualização inflacionária: o número de beneficiários cresceu
+\textasciitilde{}50\,\% (15 $\rightarrow$ 24 milhões), o piso do
+benefício foi elevado a \rs 600/família, e novos adicionais
+(crianças, gestantes, nutrizes) foram introduzidos. Trata-se,
+portanto, de \textbf{redesenho qualitativo} do programa, não de
+ajuste paramétrico.
+
+A magnitude desse redesenho é comparável, em valor real anual, a
+um quarto do orçamento total do Sistema Único de Saúde (SUS) ou
+ao orçamento agregado de vários ministérios. Implica reformulação
+substantiva da estrutura de gasto social federal.
+
+\subsection{Focalização territorial: efeito esperado e desejável}
+
+A concentração dos pagamentos no Nordeste e Norte é coerente com a
+distribuição da pobreza no país. Conforme o IBGE (PNAD Contínua), em
+2024 a região Nordeste concentrava 50,8\,\% da população em situação
+de pobreza monetária (renda per capita inferior a US\$ 6{,}85/dia).
+A focalização do PBF/NBF, portanto, reflete \textbf{adequação aos
+critérios técnicos do desenho do programa}, e não distorção
+distributiva.
+
+Comparativamente, programas universalistas (educação básica, saúde
+pública) tendem a apresentar distribuição per capita mais homogênea
+entre UFs. O PBF, por desenho, deve apresentar variação per capita
+proporcional à variação da pobreza territorial \textemdash{} e os
+dados empíricos confirmam que isso ocorre.
+
+\subsection{PBF vs Emendas: lógicas distintas, desigualdades distintas}
+
+A comparação direta com o programa de emendas parlamentares
+(Seção \ref{sec:cv}) é conceitualmente importante. Ambos são
+transferências federais, mas:
+
+\begin{itemize}
+  \item \textbf{O PBF} é alocado por critérios socioeconômicos
+        (renda familiar, cadastro único, focalização pela pobreza).
+        CV per capita 0{,}43\textendash 0{,}57.
+  \item \textbf{As emendas} são alocadas por critérios políticos
+        (cota parlamentar individual, decisão da bancada estadual,
+        emenda do relator-geral). CV per capita 0{,}57\textendash 0{,}90.
+\end{itemize}
+
+A maior desigualdade per capita das emendas \textbf{não é defeito},
+no sentido normativo de programas focalizados: simplesmente reflete
+critério distinto de alocação \textemdash{} representação
+parlamentar, não pobreza. Ambas as lógicas são legítimas em uma
+federação democrática; o que importa é \textit{tornar explícito} qual
+critério rege qual instrumento, e \textit{medir} suas implicações
+distributivas. Esse é precisamente o papel da infraestrutura de
+dados aberta proposta neste e no estudo companheiro.
+
+\subsection{Implicações para a gestão pública}
+
+Três implicações práticas decorrem dos achados: (i) o gestor
+municipal e estadual passou a contar, desde 2023, com fluxo
+financeiro federal substancialmente ampliado nas regiões mais
+pobres, ampliando a capacidade de articulação local com saúde,
+educação e assistência social; (ii) o monitoramento da efetividade
+do NBF beneficiar-se-ia de cruzamento sistemático com indicadores
+de desenvolvimento humano (IDH-M), pobreza monetária e desnutrição
+infantil, hoje dispersos em fontes distintas; (iii) a transparência
+fiscal demanda infraestrutura técnica permanente \textemdash{} a
+existência de microdados na CGU é necessária mas não suficiente; é
+preciso comunidade técnica capaz de consolidar, deflacionar,
+georreferenciar e disponibilizar análises reproduzíveis.
+
+% =====================================================================
+\section{Considerações Finais}\label{sec:conclusao}
+% =====================================================================
+
+\subsection{O que descobrimos}
+
+\textbf{(i) O programa atravessou três regimes distintos
+(2013\textendash 2021, 2022, 2023\textendash 2025).} Em cada
+transição, observou-se mudança qualitativa, não apenas paramétrica:
+ampliação substantiva da cobertura (16 $\rightarrow$ 24 milhões de
+famílias) e do piso do benefício (R\$\,170 $\rightarrow$ R\$\,600/família).
+
+\textbf{(ii) Em valores reais, o programa quase quadruplicou em
+seis anos.} \rs 36{,}75 bi (2018) $\rightarrow$ \rs 140{,}88 bi
+(2024), em preços de dezembro/2021.
+
+\textbf{(iii) A focalização territorial é nítida e coerente com o
+desenho do programa.} O Nordeste recebe R\$\,1.051/hab e atende
+17{,}6\,\% da população; o Sul recebe R\$\,283/hab e atende 5{,}3\,\%.
+Razão de aproximadamente 4:1 entre regiões.
+
+\textbf{(iv) A desigualdade per capita do PBF é sistematicamente
+menor que a de programas alocados por critério político.} CV
+0{,}43\textendash 0{,}57 vs 0{,}57\textendash 0{,}90 das emendas
+parlamentares. Diferença consistente com lógicas alocativas
+distintas (técnica vs política).
+
+\subsection{Agenda de pesquisa}
+
+(a) Cruzamento dos dados de execução com indicadores de pobreza
+multidimensional (IPM, IDH-M); (b) avaliação de impacto causal das
+elevações de piso (2022 e 2023) usando desenho RDD; (c) integração
+com cadastros administrativos do Cadastro Único para análise de
+elegibilidade vs efetiva entrega; (d) comparação com programas
+congêneres em outros países da América Latina (Asignación Universal
+por Hijo na Argentina, Prospera no México).
+
+\subsection{Contribuição metodológica}
+
+O pipeline de dados é integralmente \textit{open-source}, versionado
+em Git, com refresh mensal automatizado e segue os princípios FAIR
+(WILKINSON et al., 2016). A intenção é reduzir o custo marginal de
+pesquisa nesta agenda. O presente artigo e o Working Paper n.\,1
+(Emendas Parlamentares) compartilham a mesma infraestrutura,
+demonstrando a viabilidade de produzir múltiplos estudos a partir de
+uma única base consolidada.
+
+% =====================================================================
+\section*{Referências}\label{sec:ref}
+\addcontentsline{toc}{section}{Referências}
+% =====================================================================
+\begin{singlespace}\small
+\noindent\hangindent=1.25cm\hangafter=1
+ARMBRUST, M.; GHODSI, A.; XIN, R.; ZAHARIA, M. Lakehouse: a new
+generation of open platforms that unify data warehousing and advanced
+analytics. In: \textbf{11th CIDR}, 2021.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BANCO CENTRAL DO BRASIL (BCB). \textbf{Sistema Gerenciador de Séries
+Temporais}, série 433: IPCA. Disponível em:
+\url{https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados}.
+Acesso em: abr. 2026.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. \textbf{Lei n. 10.836, de 9 de janeiro de 2004}. Cria o
+Programa Bolsa Família. Diário Oficial da União, 12 jan. 2004.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. \textbf{Medida Provisória n. 1.061, de 9 de agosto de 2021}.
+Institui o Programa Auxílio Brasil. Diário Oficial da União, 10 ago.
+2021.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. \textbf{Lei n. 14.284, de 29 de dezembro de 2021}. Institui
+o Programa Auxílio Brasil. Diário Oficial da União, 30 dez. 2021.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. \textbf{Lei n. 14.601, de 19 de junho de 2023}. Restabelece
+o Programa Bolsa Família. Diário Oficial da União, 20 jun. 2023.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CAMPELLO, T.; NERI, M. C. (Orgs.). \textbf{Programa Bolsa Família:
+uma década de inclusão e cidadania}. Brasília: IPEA, 2013.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CHALHOUB, L. Emendas Parlamentares no Orçamento Federal Brasileiro
+(2015\textendash 2025): distribuição espacial, execução orçamentária
+e efeitos das mudanças institucionais recentes.
+\textbf{Mirante dos Dados \textemdash{} Working Paper n. 1}, 2026.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CONTROLADORIA-GERAL DA UNIÃO (CGU). \textbf{Portal da Transparência:
+Microdados de Pagamentos do Bolsa Família, Auxílio Brasil e Novo
+Bolsa Família}. Disponível em:
+\url{https://portaldatransparencia.gov.br/download-de-dados/bolsa-familia-pagamentos}.
+Acesso em: abr. 2026.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+FISZBEIN, A.; SCHADY, N. \textbf{Conditional Cash Transfers: Reducing
+Present and Future Poverty}. World Bank Policy Research Report, 2009.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE).
+\textbf{SIDRA}, Tabela 6579. Disponível em:
+\url{https://sidra.ibge.gov.br/tabela/6579}. Acesso em: abr. 2026.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE).
+\textbf{Pesquisa Nacional por Amostra de Domicílios Contínua}.
+PNAD-C 2024.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+KUKREJA, M. \textbf{Data Engineering with Apache Spark, Delta Lake,
+and Lakehouse}. Packt Publishing, 2021.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+NICOLAU, J. \textbf{Representantes de quem? Os (des)caminhos do seu
+voto da urna à Câmara dos Deputados}. Rio de Janeiro: Zahar, 2017.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+PAES-SOUSA, R.; SANTOS, L. M. P.; QUARESMA, J. M. (Eds.).
+\textbf{Bolsa Família: avaliação de impacto e o desafio da
+intersetorialidade}. Brasília: MDS, 2011.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+REIS, J.; HOUSLEY, M. \textbf{Fundamentals of Data Engineering}.
+O'Reilly, 2022.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+SOARES, F. V. Bolsa Família: a summary of its impacts.
+\textbf{International Policy Centre for Inclusive Growth}, n. 137,
+2010.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+WILKINSON, M. D. \textit{et al.} The FAIR Guiding Principles for
+scientific data management and stewardship. \textbf{Scientific Data},
+v. 3, 2016. DOI: 10.1038/sdata.2016.18.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+ZAHARIA, M. et al. Apache Spark: a unified engine for big data
+processing. \textbf{Communications of the ACM}, v. 59, n. 11, 2016.
+\end{singlespace}
+
+\end{document}

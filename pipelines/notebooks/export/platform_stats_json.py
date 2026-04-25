@@ -90,7 +90,11 @@ raw = {
     "cgu_pbf_zips":           folder_stats_filtered(f"{RAW_ROOT}/cgu/pbf",                 (".zip",)),
     "cgu_pbf_csv_extracted":  folder_stats_filtered(f"{RAW_ROOT}/cgu/pbf_csv_extracted",  (".csv",)),
 
-    # MRI (DATASUS/CNES): .dbc files (PKWARE-compressed DBF) → after conversion become .csv or .parquet
+    # Emendas Parlamentares (CGU): consolidated ZIP → after extraction one CSV per refresh
+    "cgu_emendas_zips":       folder_stats_filtered(f"{RAW_ROOT}/cgu/emendas",                  (".zip",)),
+    "cgu_emendas_csv":        folder_stats_filtered(f"{RAW_ROOT}/cgu/emendas_csv_extracted",   (".csv",)),
+
+    # Equipamentos (DATASUS/CNES): .dbc files (PKWARE-compressed DBF) → after conversion become .parquet
     "datasus_cnes_eq_dbc":    folder_stats_filtered(f"{RAW_ROOT}/datasus/cnes_eq",        (".dbc",)),
     "datasus_cnes_eq_parquet":folder_stats_filtered(f"{RAW_ROOT}/datasus/cnes_eq_converted", (".parquet", ".csv")),
 
@@ -148,15 +152,25 @@ verticals = {
         "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "pbf_pagamentos"), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "pbf_pagamentos"), 0),
     },
-    "mri": {
+    "equipamentos": {
         "raw_compressed_files": raw["datasus_cnes_eq_dbc"]["files"],
         "raw_compressed_bytes": raw["datasus_cnes_eq_dbc"]["bytes"],
         "raw_compressed_label": "DBC",
         "intermediate_files":   raw["datasus_cnes_eq_parquet"]["files"],
         "intermediate_bytes":   raw["datasus_cnes_eq_parquet"]["bytes"],
-        "intermediate_label":   "Parquet/CSV",
+        "intermediate_label":   "Parquet",
         "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] in ("cnes_equipamentos", "datasus_cnes_eq_raw")), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] in ("cnes_equipamentos", "datasus_cnes_eq_raw")), 0),
+    },
+    "emendas": {
+        "raw_compressed_files": raw["cgu_emendas_zips"]["files"],
+        "raw_compressed_bytes": raw["cgu_emendas_zips"]["bytes"],
+        "raw_compressed_label": "ZIP",
+        "intermediate_files":   raw["cgu_emendas_csv"]["files"],
+        "intermediate_bytes":   raw["cgu_emendas_csv"]["bytes"],
+        "intermediate_label":   "CSV",
+        "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "emendas_pagamentos"), 0),
+        "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "emendas_pagamentos"), 0),
     },
 }
 
