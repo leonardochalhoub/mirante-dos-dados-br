@@ -1,31 +1,23 @@
 name: Auto-sync gold from Databricks Volume
 
-# Closes the loop "Databricks job done → site updated" without any
-# Databricks-side changes (no webhooks, no PATs).
+# Closes the loop "Databricks job done → site updated".
+# Polls every 30 minutes (free for public repos), pulls gold JSONs from
+# the Databricks UC Volume into data/gold/ and data/stats/, then commits
+# + pushes IF anything changed. The push triggers deploy-pages.yml.
 #
-# Strategy: poll. Every 30 minutes (free for public repos), pull the
-# current state of gold/exports from the Databricks UC Volume into
-# data/gold/ and data/stats/, then commit + push IF anything changed.
-# That commit triggers deploy-pages.yml automatically (its path filter
-# includes data/gold/**), so the site rebuilds.
+# Idempotent — `git diff --quiet` short-circuits when nothing changed.
 #
-# Idempotent: if no JSON changed since last run, the diff check
-# short-circuits and nothing is committed. Safe to run frequently.
-#
-# Manual trigger: also available via workflow_dispatch (Actions UI →
-# Run workflow) for "I just ran a Databricks job, sync now please".
+# Manual trigger via workflow_dispatch for "I just ran a job, sync now".
 
 on:
   schedule:
-    # Every 30 minutes. Cron in UTC. GitHub Actions cron is "best-effort" —
-    # actual fire time can drift up to ~10min during high load.
     - cron: "*/30 * * * *"
   workflow_dispatch: {}
 
 permissions:
-  contents: write    # commit data/gold/ and data/stats/ back to main
+  contents: write
 
-# Don't run two sync jobs at once — queue them. Avoids race on git push.
+# Queue concurrent runs to avoid git push races.
 concurrency:
   group: gold-sync
   cancel-in-progress: false
@@ -38,7 +30,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Databricks CLI
         run: |
@@ -48,33 +40,43 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           databricks --version
 
+      # Mirrors the proven cp pattern from refresh-pipelines.yml — file
+      # destination (not directory), explicit `|| echo`. NO `set -e` here
+      # because we WANT each cp to be allowed to fail (not all golds exist
+      # yet on every run, e.g., uropro on first iteration).
       - name: Pull gold JSONs + platform stats from Volume
         run: |
-          set -euo pipefail
           mkdir -p data/gold data/stats
 
-          # Each `cp` is wrapped in `|| true` because not every gold table
-          # exists yet (e.g., uropro on first run). We don't want a single
-          # missing file to kill the whole sync.
-          for f in \
-              gold_pbf_estados_df.json \
-              gold_equipamentos_estados_ano.json \
-              gold_emendas_estados_df.json \
-              gold_uropro_estados_ano.json \
-              gold_rais_estados_ano.json
-          do
-            databricks fs cp \
-              "dbfs:/Volumes/mirante_prd/gold/exports/$f" \
-              "data/gold/" --overwrite \
-              && echo "  ✓ pulled $f" \
-              || echo "  ⚠ $f not in Volume yet (skip)"
-          done
+          databricks fs cp \
+            "dbfs:/Volumes/mirante_prd/gold/exports/gold_pbf_estados_df.json" \
+            "data/gold/gold_pbf_estados_df.json" \
+            --overwrite || echo "(PBF gold not yet generated, skip)"
+
+          databricks fs cp \
+            "dbfs:/Volumes/mirante_prd/gold/exports/gold_equipamentos_estados_ano.json" \
+            "data/gold/gold_equipamentos_estados_ano.json" \
+            --overwrite || echo "(Equipamentos gold not yet generated, skip)"
+
+          databricks fs cp \
+            "dbfs:/Volumes/mirante_prd/gold/exports/gold_emendas_estados_df.json" \
+            "data/gold/gold_emendas_estados_df.json" \
+            --overwrite || echo "(Emendas gold not yet generated, skip)"
+
+          databricks fs cp \
+            "dbfs:/Volumes/mirante_prd/gold/exports/gold_uropro_estados_ano.json" \
+            "data/gold/gold_uropro_estados_ano.json" \
+            --overwrite || echo "(UroPro gold not yet generated, skip)"
+
+          databricks fs cp \
+            "dbfs:/Volumes/mirante_prd/gold/exports/gold_rais_estados_ano.json" \
+            "data/gold/gold_rais_estados_ano.json" \
+            --overwrite || echo "(RAIS gold not yet generated, skip)"
 
           databricks fs cp \
             "dbfs:/Volumes/mirante_prd/gold/exports/platform_stats.json" \
-            "data/stats/" --overwrite \
-            && echo "  ✓ pulled platform_stats.json" \
-            || echo "  ⚠ platform_stats.json not in Volume yet (skip)"
+            "data/stats/platform_stats.json" \
+            --overwrite || echo "(platform_stats not yet generated, skip)"
 
           echo "---"
           ls -la data/gold/ data/stats/
@@ -90,15 +92,14 @@ jobs:
             exit 0
           fi
 
-          # Show what changed (helpful in Action logs)
           echo "Changes detected:"
           git diff --stat -- data/gold/ data/stats/
 
           DATESTAMP=$(date -u +"%Y-%m-%dT%H:%MZ")
           git add data/gold/ data/stats/
           git commit -m "chore(data): auto-sync gold from Volume (${DATESTAMP})" \
-                     -m "Pulled by auto-sync-gold workflow. Each JSON only changes when its underlying Databricks job emits a new export." \
+                     -m "Pulled by auto-sync-gold workflow." \
                      -m "Co-Authored-By: mirante-sync-bot <noreply@github.com>"
           git push
 
-          echo "✓ Pushed — deploy-pages.yml will pick it up and rebuild the site."
+          echo "✓ Pushed — deploy-pages.yml will rebuild the site."
