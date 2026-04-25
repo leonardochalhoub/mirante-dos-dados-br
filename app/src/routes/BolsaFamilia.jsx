@@ -68,6 +68,19 @@ const METRICS = {
 const DEFAULT_METRIC = 'pbfPerCapita';
 const DEFAULT_COLOR  = 'Cividis';
 
+// Drop the latest year if it's clearly partial (heuristic: < 70% of prior year's total).
+// CGU publishes monthly cumulative data, so the current calendar year always shows up
+// as a tiny stub (e.g. R$31bi for jan-mar 2026 vs R$130bi full 2025) until December.
+function lastFullYear(rows) {
+  const totals = new Map();
+  for (const r of rows) totals.set(r.Ano, (totals.get(r.Ano) || 0) + (r.valor_2021 || 0));
+  const yrs = Array.from(totals.keys()).sort((a, b) => a - b);
+  if (yrs.length < 2) return yrs[yrs.length - 1];
+  const last = yrs[yrs.length - 1];
+  const prev = yrs[yrs.length - 2];
+  return totals.get(last) < 0.7 * totals.get(prev) ? prev : last;
+}
+
 // ── Aggregation helpers ───────────────────────────────────────────────────
 
 // Compute Brasil-wide value for one (year, metric) using the original app.js rule.
@@ -106,7 +119,10 @@ export default function BolsaFamilia() {
 
   useEffect(() => {
     loadGold('gold_pbf_estados_df.json')
-      .then(setRows)
+      .then((all) => {
+        const cap = lastFullYear(all);
+        setRows(all.filter((r) => r.Ano <= cap));
+      })
       .catch((e) => setError(e.message));
   }, []);
 
@@ -116,6 +132,8 @@ export default function BolsaFamilia() {
     () => (rows ? Array.from(new Set(rows.map((r) => r.Ano))).sort() : []),
     [rows],
   );
+  const maxYear = years.length ? years[years.length - 1] : null;
+  const minYear = years.length ? years[0] : null;
 
   // UF map values for the selected year (or weighted aggregate across all years for AGG).
   const filtered = useMemo(() => {
@@ -241,7 +259,7 @@ export default function BolsaFamilia() {
               <div className="control">
                 <label htmlFor="year">Ano</label>
                 <select id="year" value={year} onChange={(e) => setYear(e.target.value)}>
-                  <option value="AGG">Acumulado / média 2013–2025</option>
+                  <option value="AGG">{`Acumulado / média ${minYear ?? ''}–${maxYear ?? ''}`}</option>
                   {years.map((y) => (<option key={y} value={y}>{y}</option>))}
                 </select>
               </div>
