@@ -11,9 +11,10 @@ const NAV = [
 // `delta_version` for the listed gold table. Falls back to `defaultTag` while
 // stats are loading or if the table is missing.
 const VERTICALS = [
-  { to: '/bolsa-familia', label: 'Bolsa Família',         goldTable: 'pbf_estados_df',           defaultTag: 'v1' },
-  { to: '/equipamentos',  label: 'Equipamentos',          goldTable: 'equipamentos_estados_ano', defaultTag: 'v1' },
-  { to: '/emendas',       label: 'Emendas Parlamentares', goldTable: 'emendas_estados_df',       defaultTag: 'v1' },
+  { to: '/bolsa-familia',          label: 'Bolsa Família',          goldTable: 'pbf_estados_df',           defaultTag: 'v1' },
+  { to: '/equipamentos',           label: 'Equipamentos',           goldTable: 'equipamentos_estados_ano', defaultTag: 'v1' },
+  { to: '/emendas',                label: 'Emendas Parlamentares',  goldTable: 'emendas_estados_df',       defaultTag: 'v1' },
+  { to: '/incontinencia-urinaria', label: 'Incontinência Urinária', goldTable: 'uropro_estados_ano',       defaultTag: 'v1' },
 ];
 
 const flagSrc = `${import.meta.env.BASE_URL}brazil-flag.svg`.replace(/\/{2,}/g, '/');

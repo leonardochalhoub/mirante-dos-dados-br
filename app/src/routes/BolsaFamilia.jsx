@@ -222,6 +222,13 @@ export default function BolsaFamilia() {
             coropléticos e ~9 mil palavras.
           </p>
           <div className="doc-actions">
+            <a className="doc-toggle"
+               href={pdfUrl}
+               target="_blank"
+               rel="noreferrer"
+               title="Ler o PDF dentro do navegador">
+              ▾ Ler artigo na tela
+            </a>
             <a className="doc-toggle doc-toggle-primary"
                href={pdfUrl}
                download="Mirante-BolsaFamilia-Chalhoub-2026.pdf"

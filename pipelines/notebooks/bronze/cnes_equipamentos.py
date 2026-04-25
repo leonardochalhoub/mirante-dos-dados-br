@@ -39,9 +39,7 @@ DBC_DIR     = dbutils.widgets.get("dbc_dir")
 PARQUET_DIR = dbutils.widgets.get("parquet_dir")
 WORKERS     = int(dbutils.widgets.get("workers"))
 
-BRONZE_TABLE   = f"{CATALOG}.bronze.cnes_equipamentos"
-CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/cnes_equipamentos/_checkpoint"
-SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/cnes_equipamentos/_schema"
+BRONZE_TABLE = f"{CATALOG}.bronze.cnes_equipamentos"
 
 print(f"dbc_dir={DBC_DIR}  parquet_dir={PARQUET_DIR}  target={BRONZE_TABLE}")
 
@@ -153,34 +151,42 @@ print(f"Total .parquet now: {len(list(parquet_dir.glob('*.parquet')))}")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Step 3 — Auto Loader sobre os Parquet → Delta append
+# MAGIC ## Step 3 — Batch read Parquet → Delta (dynamic partition overwrite)
+# MAGIC
+# MAGIC Auto Loader (`cloudFiles`) era usado aqui mas tinha overhead **enorme**
+# MAGIC pra 6614 arquivos pequenos no Free Edition: schema inference por arquivo
+# MAGIC + coordenação de micro-batch + checkpoint maintenance ~~ 20+ minutos.
+# MAGIC
+# MAGIC Padrão batch (matching o repo original Parkinson-BR-Stats):
+# MAGIC - `spark.read.parquet(...)` lê tudo em uma operação
+# MAGIC - `mode("overwrite") + partitionOverwriteMode=dynamic` reescreve só
+# MAGIC   partições que mudaram (idempotente, atômico)
+# MAGIC - Sem checkpoint, sem schema location, sem streaming
+# MAGIC
+# MAGIC Esperado: < 3 minutos pro mesmo workload. Subsequent runs ainda mais
+# MAGIC rápidas (convert_one cache + dynamic overwrite só toca novas partições).
 
 # COMMAND ----------
 
 from pyspark.sql import functions as F
 
-stream = (
-    spark.readStream
-        .format("cloudFiles")
-        .option("cloudFiles.format", "parquet")
-        .option("cloudFiles.inferColumnTypes", "true")
-        .option("cloudFiles.schemaLocation", SCHEMA_LOC)
-        .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
-        .load(PARQUET_DIR)
-        .withColumn("_source_file", F.col("_metadata.file_path"))
+# Dynamic partition overwrite: só (estado, ano) com dados novos são reescritos
+spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
+
+df = (
+    spark.read.parquet(PARQUET_DIR)
+        .withColumn("_source_file", F.input_file_name())
         .withColumn("_ingest_ts",   F.current_timestamp())
 )
 
-query = (
-    stream.writeStream
+(
+    df.write
         .format("delta")
-        .option("checkpointLocation", CHECKPOINT_LOC)
+        .mode("overwrite")
         .option("mergeSchema", "true")
         .partitionBy("estado", "ano")
-        .trigger(availableNow=True)
-        .toTable(BRONZE_TABLE)
+        .saveAsTable(BRONZE_TABLE)
 )
-query.awaitTermination()
 
 # COMMAND ----------
 
