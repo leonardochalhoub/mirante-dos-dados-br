@@ -838,8 +838,13 @@ button.primary:hover { filter: brightness(1.05); }
   text-align: justify;
   margin: 0;
 }
-.doc-toggle {
+.doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 16px;
+}
+.doc-toggle {
   height: 32px;
   padding: 0 14px;
   font-size: 12px;
@@ -851,6 +856,360 @@ button.primary:hover { filter: brightness(1.05); }
   cursor: pointer;
 }
 .doc-toggle:hover { border-color: var(--accent); }
+.doc-toggle-primary {
+  background: var(--accent);
+  color: var(--panel);
+  border-color: transparent;
+}
+[data-theme="dark"] .doc-toggle-primary { color: var(--bg); }
+.doc-toggle-primary:hover { filter: brightness(1.05); }
+
+/* ─── Article rendering (screen — academic look) ──────────────────────── */
+.emendas-article-wrapper {
+  margin-top: 16px;
+  padding: 32px clamp(20px, 4vw, 56px);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  max-width: 880px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.article {
+  font-family: Georgia, "Times New Roman", "Liberation Serif", serif;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--text);
+}
+.article-header {
+  text-align: center;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.article-meta {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+.article-meta-sep { color: var(--faint); }
+.article-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin: 0 0 12px;
+  text-transform: uppercase;
+}
+.article-title-en {
+  font-size: 15px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--muted);
+  margin: 0 0 22px;
+  line-height: 1.35;
+}
+.article-author { margin-top: 14px; }
+.article-author-name { font-weight: 700; font-size: 15px; }
+.article-author-affiliation {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.article-abstract-block {
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  background: var(--bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+}
+.article-abstract-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.article-abstract-body {
+  font-size: 13.5px;
+  line-height: 1.6;
+  text-align: justify;
+  margin: 0 0 8px;
+}
+.article-abstract-keywords {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+
+.article-section { margin: 28px 0; }
+.article-section p { text-align: justify; margin: 0 0 12px; }
+.article-h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 28px 0 16px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.article-h3 {
+  font-size: 15.5px;
+  font-weight: 700;
+  margin: 22px 0 10px;
+}
+.article-section ul, .article-section ol {
+  margin: 0 0 14px;
+  padding-left: 28px;
+}
+.article-section li { margin-bottom: 6px; }
+
+.article-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 6px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.article-table-caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 12px;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.article-table th, .article-table td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: right;
+}
+.article-table th {
+  background: var(--bg);
+  font-weight: 700;
+  font-size: 11.5px;
+  text-align: center;
+}
+.article-table td:first-child, .article-table th:first-child {
+  text-align: left;
+}
+.article-figure-caption {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 4px 0 18px;
+  text-align: left;
+}
+
+.article-references .article-ref {
+  font-size: 12.5px;
+  text-indent: -28px;
+  padding-left: 28px;
+  margin: 0 0 10px;
+  text-align: justify;
+  line-height: 1.45;
+}
+
+.article-footnote {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.article-footnote p { margin: 0 0 8px; }
+
+/* Element kept rendered for print() but hidden on screen. */
+.print-only-article { display: none; }
+
+/* ─── ABNT-compliant print rules ──────────────────────────────────────────
+   NBR 14724 / NBR 6022 (artigo científico):
+   - A4
+   - Margens: 3cm sup, 3cm esq, 2cm inf, 2cm dir
+   - Times New Roman 12pt corpo, 14pt títulos, 10pt notas/referências
+   - Espaçamento 1,5 corpo · 1,0 entre referências, citações longas, tabelas
+   - Tabelas centralizadas, fonte abaixo
+   - Referências alinhadas à esquerda com 1 linha em branco entre elas
+─────────────────────────────────────────────────────────────────────── */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 3cm 2cm 2cm 3cm;   /* sup dir inf esq */
+  }
+
+  /* Hide everything except the printable article */
+  body * { visibility: hidden; }
+  .print-only-article, .print-only-article * { visibility: visible; }
+  .print-only-article {
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    background: white;
+    color: black;
+  }
+  .no-print, .no-print * { display: none !important; }
+
+  /* ABNT typography */
+  .print-only-article .article {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+    line-height: 1.5;
+    color: black;
+    background: white;
+    text-align: justify;
+  }
+
+  .print-only-article .article-header {
+    text-align: center;
+    margin-bottom: 1.2cm;
+    padding-bottom: 0.4cm;
+    border-bottom: 1pt solid black;
+  }
+  .print-only-article .article-meta { color: #444; font-size: 10pt; }
+  .print-only-article .article-title {
+    font-size: 14pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    line-height: 1.3;
+    margin: 0 0 0.4cm;
+  }
+  .print-only-article .article-title-en {
+    font-size: 12pt;
+    font-style: italic;
+    color: black;
+    margin: 0 0 0.6cm;
+  }
+  .print-only-article .article-author-name { font-size: 12pt; font-weight: bold; }
+  .print-only-article .article-author-affiliation {
+    font-size: 10pt;
+    color: black;
+    margin-top: 0.2cm;
+  }
+
+  /* Resumo / Abstract: ABNT pede espaçamento simples no resumo */
+  .print-only-article .article-abstract-block {
+    margin: 0 0 0.6cm;
+    padding: 0;
+    background: transparent;
+    border-left: none;
+  }
+  .print-only-article .article-abstract-label {
+    font-size: 12pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0 0 0.2cm;
+    color: black;
+    letter-spacing: 0;
+  }
+  .print-only-article .article-abstract-body {
+    font-size: 12pt;
+    line-height: 1.0;        /* simples conforme ABNT */
+    text-align: justify;
+    text-indent: 0;
+    margin: 0 0 0.2cm;
+  }
+  .print-only-article .article-abstract-keywords {
+    font-size: 12pt;
+    color: black;
+    margin: 0.3cm 0 0;
+  }
+
+  .print-only-article .article-section {
+    margin: 0.6cm 0;
+    page-break-inside: auto;
+  }
+  .print-only-article .article-h2 {
+    font-size: 12pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0.8cm 0 0.4cm;
+    padding-bottom: 0;
+    border-bottom: none;
+    page-break-after: avoid;
+  }
+  .print-only-article .article-h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0.5cm 0 0.3cm;
+    page-break-after: avoid;
+  }
+  .print-only-article .article-section p {
+    text-indent: 1.25cm;     /* recuo de parágrafo ABNT */
+    margin: 0 0 0;
+    text-align: justify;
+    orphans: 3; widows: 3;
+  }
+  .print-only-article .article-section ul,
+  .print-only-article .article-section ol {
+    margin: 0.2cm 0 0.3cm 1.25cm;
+    padding-left: 0.5cm;
+  }
+  .print-only-article .article-section li { margin-bottom: 0.15cm; }
+
+  /* Tabelas ABNT: título acima, fonte abaixo, sem bordas verticais externas */
+  .print-only-article .article-table {
+    margin: 0.4cm auto;
+    font-size: 10pt;
+    border-collapse: collapse;
+    page-break-inside: avoid;
+  }
+  .print-only-article .article-table-caption {
+    text-align: center;
+    font-size: 10pt;
+    margin-bottom: 0.15cm;
+    color: black;
+  }
+  .print-only-article .article-table th,
+  .print-only-article .article-table td {
+    border: 0.5pt solid black;
+    padding: 4pt 6pt;
+  }
+  .print-only-article .article-table th { background: #eee; }
+  .print-only-article .article-figure-caption {
+    text-align: center;
+    font-size: 10pt;
+    color: black;
+    margin: 0.1cm 0 0.5cm;
+  }
+
+  /* Referências ABNT: alinhadas à esquerda, espaçamento simples, separadas por linha em branco */
+  .print-only-article .article-references .article-h2 {
+    text-align: center;
+    margin-top: 1cm;
+  }
+  .print-only-article .article-references .article-ref {
+    font-size: 12pt;
+    text-indent: 0;
+    padding-left: 0;
+    margin: 0 0 0.4cm;
+    text-align: left;
+    line-height: 1.0;
+  }
+
+  .print-only-article .article-footnote {
+    margin-top: 0.8cm;
+    padding-top: 0.4cm;
+    border-top: 0.5pt solid black;
+    font-size: 10pt;
+    color: black;
+  }
+
+  /* Force page break before references */
+  .print-only-article .article-references { page-break-before: always; }
+
+  /* Hide all links' URL after text in print */
+  .print-only-article a { color: black; text-decoration: none; }
+}
+
+/* ── Documentação textual (vertical Emendas) ─────────────────────────── */
 
 .doc-full {
   margin-top: 18px;

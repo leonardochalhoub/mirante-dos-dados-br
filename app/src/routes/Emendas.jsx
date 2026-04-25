@@ -13,6 +13,7 @@ import StateRanking   from '../components/StateRanking';
 import EvolutionBar   from '../components/charts/EvolutionBar';
 import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
+import EmendasArticle  from '../components/EmendasArticle';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
 import { COLORSCALES } from '../lib/scales';
@@ -227,17 +228,23 @@ export default function Emendas() {
       )}
 
       <Footer />
+
+      {/* Sempre renderizado mas escondido na tela; visível apenas quando window.print() é chamado.
+          Garante que o artigo seja exportado em PDF mesmo se o toggle "Ver artigo completo"
+          não tiver sido aberto pelo usuário. */}
+      <PrintableArticle />
     </>
   );
 }
 
 // ─── Documentação ────────────────────────────────────────────────────────
 // Resumo (estilo abstract de artigo científico em Gestão Pública) sempre visível;
-// detalhamento completo (introdução, objetivos, razões, notas) atrás de toggle.
+// artigo acadêmico completo (~20 páginas, padrão FGV/RBFin/RAP) atrás de toggle,
+// com botão de download em PDF formatado conforme regras ABNT.
 function DocSection() {
   const [open, setOpen] = useState(false);
   return (
-    <section className="emendas-abstract">
+    <section className="emendas-abstract no-print">
       <div className="doc-block">
         <div className="kicker">Resumo · Gestão Pública</div>
         <p style={{ marginTop: 8 }}>
@@ -263,99 +270,44 @@ function DocSection() {
           orçamentária; orçamento público federal; controle social; gestão pública.
         </p>
 
-        <button
-          type="button"
-          className="doc-toggle"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-        >
-          {open ? '▴ Ocultar documentação completa' : '▾ Ver documentação completa'}
-        </button>
+        <div className="doc-actions">
+          <button
+            type="button"
+            className="doc-toggle"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+          >
+            {open ? '▴ Ocultar artigo completo' : '▾ Ver artigo completo'}
+          </button>
 
-        {open && <DocFull />}
+          <button
+            type="button"
+            className="doc-toggle doc-toggle-primary"
+            onClick={() => window.print()}
+            title="Imprimir / salvar como PDF (formatado em padrão ABNT)"
+          >
+            ⤓ Baixar PDF (ABNT)
+          </button>
+        </div>
       </div>
+
+      {open && (
+        <div className="emendas-article-wrapper">
+          <EmendasArticle />
+        </div>
+      )}
     </section>
   );
 }
 
-function DocFull() {
+// Wrapper invisível na tela que SEMPRE renderiza o artigo, mas escondido. Quando
+// window.print() é chamado, o CSS @media print esconde o resto da página e mostra
+// apenas este wrapper, permitindo "salvar como PDF" o artigo formatado em ABNT
+// independentemente do toggle estar aberto na tela.
+function PrintableArticle() {
   return (
-    <div className="doc-full">
-      <h3 className="doc-h3">Introdução · O que são emendas parlamentares</h3>
-      <p>
-        Emendas parlamentares são alterações que deputados federais e senadores fazem na
-        proposta de orçamento da União, redirecionando recursos para áreas e regiões
-        escolhidas por eles — saúde, educação, infraestrutura, cultura. São o principal
-        instrumento que o Legislativo tem para influenciar onde o dinheiro federal chega.
-      </p>
-      <p>
-        A Constituição classifica três tipos principais de emendas pelo <b>Resultado
-        Primário (RP)</b> usado no orçamento:
-      </p>
-      <ul>
-        <li><b>RP6 — Emendas individuais</b>: cada parlamentar tem cota fixa anual (~R$30M
-          em 2024). Execução obrigatória pelo governo desde EC 86/2015.</li>
-        <li><b>RP7 — Emendas de bancada estadual</b>: deputados de cada estado decidem em
-          conjunto. Também de execução obrigatória.</li>
-        <li><b>RP9 — Emendas do relator</b> (extintas pelo STF em 2022): valores controlados
-          pelo relator-geral do orçamento, distribuídos sem regra clara. Origem do
-          chamado "orçamento secreto".</li>
-      </ul>
-
-      <h3 className="doc-h3">Objetivos · O que esta análise mostra</h3>
-      <ol>
-        <li><b>Distribuição geográfica</b> — quanto cada UF recebeu por ano, em valores
-          reais (R$ 2021) e per capita. Permite comparar acesso ao recurso público
-          federal entre estados pequenos e grandes em base equivalente.</li>
-        <li><b>Taxa de execução</b> — quanto do empenhado virou pagamento de fato. Empenhado
-          sem execução vira "restos a pagar" — promessa orçamentária que pode nunca chegar
-          ao destino.</li>
-        <li><b>Composição por tipo (RP6/RP7/RP9)</b> — quanto da execução vem de cada
-          modalidade. Permite ver o peso histórico das emendas de relator e o impacto
-          da decisão do STF de 2022.</li>
-        <li><b>Evolução temporal 2014–presente</b> — captura o crescimento expressivo das
-          emendas no orçamento federal nos últimos anos e momentos-chave (EC 86,
-          decisão do STF, Auxílio Brasil → Bolsa Família).</li>
-      </ol>
-
-      <h3 className="doc-h3">Razões · Por que isso importa</h3>
-      <ul>
-        <li><b>Transparência:</b> emendas individuais e de bancada hoje somam mais de
-          R$ 50 bilhões/ano — equivalente a um dos maiores ministérios. Consolidar esse
-          dado em uma visualização única, navegável por qualquer cidadão, é prestação
-          de contas básica.</li>
-        <li><b>Accountability eleitoral:</b> permite ao eleitor saber quanto recurso federal
-          o conjunto de parlamentares da sua UF efetivamente direcionou ao estado, e
-          cobrar quando há subutilização ou subexecução.</li>
-        <li><b>Análise de equidade:</b> per capita revela se estados com menos representação
-          (UFs pequenas) recebem proporcionalmente mais ou menos do que os mais populosos.
-          Cruzar com indicadores sociais ajuda a entender se o gasto está alinhado às
-          necessidades.</li>
-        <li><b>Controle social do "orçamento secreto":</b> antes da decisão do STF, RP9 era
-          opaco. Esses dados, embora oficiais, ficavam dispersos. Agregar e expor o
-          histórico ajuda a documentar o problema e medir os efeitos de mudanças
-          institucionais.</li>
-        <li><b>Pesquisa e jornalismo de dados:</b> o JSON gold (versionado neste repo) e o
-          pipeline open-source permitem que jornalistas, pesquisadores e ONGs reproduzam
-          cruzamentos próprios sem precisar baixar 10+ GB do Portal da Transparência.</li>
-      </ul>
-
-      <h3 className="doc-h3">Notas técnicas e limitações</h3>
-      <ul>
-        <li>Fonte primária: <b>Portal da Transparência (CGU)</b>. A CGU às vezes revisa
-          valores retroativamente (decisões judiciais, ajustes contábeis) — números
-          podem mudar minimamente entre refreshes.</li>
-        <li><b>UF de favorecido</b>: identificamos pelo município beneficiário. Emendas que
-          financiam órgãos federais (ministérios) sem destino estadual claro entram
-          como "OUTRO" e não aparecem na agregação por UF.</li>
-        <li><b>Deflação para R$ 2021</b>: usa IPCA acumulado anual (BCB SGS 433),
-          normalizado em dezembro/2021 — mesmo método aplicado em Bolsa Família.</li>
-        <li><b>Per capita</b>: divide pelo total da população residente da UF (IBGE/SIDRA
-          tabela 6579). Não considera fluxo migratório interno nem população flutuante.</li>
-        <li><b>Ano corrente parcial</b>: o ano em curso é omitido automaticamente quando
-          os pagamentos acumulados representam menos de 70% do total do ano anterior
-          (CGU publica dados mensalmente acumulando).</li>
-      </ul>
+    <div className="print-only-article" aria-hidden="true">
+      <EmendasArticle />
     </div>
   );
 }
