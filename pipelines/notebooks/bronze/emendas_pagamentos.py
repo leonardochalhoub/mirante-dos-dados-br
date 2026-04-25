@@ -2,9 +2,14 @@
 # MAGIC %md
 # MAGIC # bronze · emendas_pagamentos
 # MAGIC
-# MAGIC Mesma esteira do PBF: extrai ZIPs do CGU em CSVs, Auto Loader → Delta append.
-# MAGIC Cada CSV vira N rows na bronze, com metadados (ano, _source_file, _ingest_ts).
-# MAGIC Headers normalizados pra ASCII snake_case (Delta não aceita acentos/espaços).
+# MAGIC Pipeline em 2 estágios:
+# MAGIC
+# MAGIC 1. **Extract**: para cada `emendas_parlamentares__{ts}.zip` novo, descomprime
+# MAGIC    APENAS `EmendasParlamentares.csv` (principal) — ignora os auxiliares
+# MAGIC    (`_Convenios.csv`, `_PorFavorecido.csv`).
+# MAGIC 2. **Auto Loader CSV → Delta append**, com headers normalizados pra ASCII snake_case.
+# MAGIC    Ano vem da coluna `ano_da_emenda` (não do filename, já que CGU publica um único
+# MAGIC    ZIP consolidado cobrindo todos os anos).
 
 # COMMAND ----------
 
@@ -20,72 +25,66 @@ BRONZE_TABLE   = f"{CATALOG}.bronze.emendas_pagamentos"
 CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/emendas_pagamentos/_checkpoint"
 SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/emendas_pagamentos/_schema"
 
+PRINCIPAL_INNER = "EmendasParlamentares.csv"   # nome canônico dentro do ZIP
+
 print(f"zips_dir={ZIPS_DIR}  csv_extracted={CSV_EXTRACTED}  target={BRONZE_TABLE}")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Step 1 — extrair ZIPs novos para CSVs (idempotente)
+# MAGIC ## Step 1 — extrair `EmendasParlamentares.csv` de cada ZIP novo (idempotente)
 
 # COMMAND ----------
 
 import re
 import zipfile
 from pathlib import Path
-from typing import Optional
 
-RE_YEAR = re.compile(r"(?P<year>20\d{2})", re.IGNORECASE)
-
-
-def year_of(name: str) -> Optional[int]:
-    m = RE_YEAR.search(name)
-    return int(m.group("year")) if m else None
+# Filename pattern: emendas_parlamentares__YYYYMMDDTHHMMSSZ.zip → keep ts as suffix on output
+RE_TS = re.compile(r"__(?P<ts>\d{8}T\d{6}Z)", re.IGNORECASE)
 
 
-def find_inner_csv(zip_path: Path) -> Optional[str]:
-    with zipfile.ZipFile(zip_path) as zf:
-        names = [n for n in zf.namelist() if n.lower().endswith(".csv")]
-    if not names: return None
-    if len(names) == 1: return names[0]
-    with zipfile.ZipFile(zip_path) as zf:
-        return max(names, key=lambda n: zf.getinfo(n).file_size)
+def ts_of(name: str) -> str | None:
+    m = RE_TS.search(name)
+    return m.group("ts") if m else None
 
 
 extracted = 0
 skipped = 0
 Path(CSV_EXTRACTED).mkdir(parents=True, exist_ok=True)
 
-zips_found = sorted(Path(ZIPS_DIR).glob("*.zip"))
+zips_found = sorted(Path(ZIPS_DIR).glob("emendas_parlamentares__*.zip"))
 print(f"ZIPs em {ZIPS_DIR}: {len(zips_found)}")
 
 for zp in zips_found:
-    year = year_of(zp.name)
-    if not year:
-        continue
-    inner = find_inner_csv(zp)
-    if not inner:
-        continue
-    out = Path(CSV_EXTRACTED) / f"emendas__{year}__{Path(inner).name}"
+    ts = ts_of(zp.name) or "unknown"
+    out = Path(CSV_EXTRACTED) / f"emendas_parlamentares__{ts}.csv"
     if out.exists() and out.stat().st_size > 0:
         skipped += 1
         continue
-    with zipfile.ZipFile(zp) as zf, open(out, "wb") as fout:
-        fout.write(zf.read(inner))
-    extracted += 1
+    try:
+        with zipfile.ZipFile(zp) as zf:
+            names = zf.namelist()
+            if PRINCIPAL_INNER not in names:
+                print(f"  ⚠ {zp.name}: sem {PRINCIPAL_INNER} (achei {names}); pulando.")
+                continue
+            with zf.open(PRINCIPAL_INNER) as src, open(out, "wb") as fout:
+                while chunk := src.read(1 << 20):
+                    fout.write(chunk)
+        extracted += 1
+    except zipfile.BadZipFile as e:
+        print(f"  ✗ {zp.name} corrupto: {e}")
 
-csvs_now = sorted(Path(CSV_EXTRACTED).glob("*.csv"))
+csvs_now = sorted(Path(CSV_EXTRACTED).glob("emendas_parlamentares__*.csv"))
 print(f"Extracted {extracted} new CSVs (skipped {skipped} already extracted). "
       f"Total CSVs: {len(csvs_now)}")
 
-# Guard: if no CSVs in folder, skip the Auto Loader step gracefully.
-# This happens when the upstream ingest task didn't successfully download any
-# CGU ZIPs (URL changed, network issue, dataset moved). Without this guard,
-# Auto Loader fails with CF_EMPTY_DIR_FOR_SCHEMA_INFERENCE.
+# Guard: if no CSVs in folder, skip Auto Loader gracefully (avoids
+# CF_EMPTY_DIR_FOR_SCHEMA_INFERENCE when upstream ingest failed).
 if not csvs_now:
     print("⚠ No CSVs to process. Bronze table NOT updated. Investigate the ingest task:")
-    print("  - Verify URL pattern at https://portaldatransparencia.gov.br/download-de-dados/emendas")
-    print("  - Check the ingest_cgu_emendas task output for HTTP errors")
-    print("  - Once URLs are fixed, re-run this job.")
+    print(f"  - ls {ZIPS_DIR}")
+    print("  - URL pattern: https://portaldatransparencia.gov.br/download-de-dados/emendas-parlamentares/2024")
     dbutils.notebook.exit("SKIPPED: no CSV files in source folder")
 
 # COMMAND ----------
@@ -95,17 +94,17 @@ if not csvs_now:
 
 # COMMAND ----------
 
-import re as _re
 from pyspark.sql import functions as F
 
-_ACCENTS = {"Á":"A","À":"A","Â":"A","Ã":"A","É":"E","Ê":"E","Í":"I","Ó":"O","Ô":"O","Õ":"O","Ú":"U","Ç":"C"}
+_ACCENTS = {"Á":"A","À":"A","Â":"A","Ã":"A","É":"E","Ê":"E","Í":"I",
+            "Ó":"O","Ô":"O","Õ":"O","Ú":"U","Ç":"C"}
 
 
 def normalize_col(c: str) -> str:
-    raw = c.strip().upper().replace("MÊS", "MES")
+    raw = c.strip().upper()
     for a, r in _ACCENTS.items():
         raw = raw.replace(a, r)
-    new = _re.sub(r"[^A-Z0-9]+", "_", raw).strip("_").lower()
+    new = re.sub(r"[^A-Z0-9]+", "_", raw).strip("_").lower()
     return new or c.lower().replace(" ", "_")
 
 
@@ -126,18 +125,21 @@ raw_stream = (
         .load(CSV_EXTRACTED)
 )
 
-# Rename CSV columns to snake_case BEFORE adding metadata
+# Rename CSV columns to snake_case BEFORE writing — Delta doesn't accept accents/spaces.
 new_names = [normalize_col(c) for c in raw_stream.columns]
 stream = raw_stream.toDF(*new_names)
 
 stream = (
     stream
     .withColumn("_source_file", F.col("_metadata.file_path"))
-    .withColumn("_fname",       F.element_at(F.split(F.col("_source_file"), "/"), -1))
-    .withColumn("ano_arquivo",  F.split(F.col("_fname"), "__").getItem(1).cast("int"))
     .withColumn("_ingest_ts",   F.current_timestamp())
-    .drop("_fname")
 )
+
+# Partition by ano_da_emenda when available; falls back to "unknown" partition otherwise.
+if "ano_da_emenda" in stream.columns:
+    stream = stream.withColumn("ano_arquivo", F.col("ano_da_emenda").cast("int"))
+else:
+    stream = stream.withColumn("ano_arquivo", F.lit(None).cast("int"))
 
 query = (
     stream.writeStream

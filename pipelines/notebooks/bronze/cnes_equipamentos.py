@@ -31,13 +31,15 @@ print(f"dbc_dir={DBC_DIR}  parquet_dir={PARQUET_DIR}  target={BRONZE_TABLE}")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Step 1 — install PySUS + dbfread (in-notebook)
+# MAGIC ## Step 1 — install pyreaddbc + dbfread (in-notebook)
 # MAGIC
-# MAGIC PySUS bundles the C `blast_decoder` lib needed pra descomprimir DBC.
+# MAGIC `pyreaddbc` é o pacote standalone que bundles o C `blast_decoder`
+# MAGIC pra descomprimir DBC (anteriormente vivia em `pysus.utilities.readdbc`,
+# MAGIC removido em PySUS 1.x+). Mantido pelo time AlertaDengue/PySUS.
 
 # COMMAND ----------
 
-# MAGIC %pip install --quiet pysus dbfread pandas pyarrow
+# MAGIC %pip install --quiet pyreaddbc dbfread pandas pyarrow
 # MAGIC dbutils.library.restartPython()
 
 # COMMAND ----------
@@ -56,7 +58,7 @@ from pathlib import Path
 
 import pandas as pd
 from dbfread import DBF
-from pysus.utilities.readdbc import dbc2dbf
+from pyreaddbc import dbc2dbf
 
 RE_EQ_FILE = re.compile(r"^EQ(?P<uf>[A-Z]{2})(?P<yy>\d{2})(?P<mm>\d{2})\.dbc$", re.IGNORECASE)
 

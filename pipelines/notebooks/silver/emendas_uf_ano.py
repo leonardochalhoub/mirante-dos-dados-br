@@ -53,19 +53,26 @@ def first_existing(df, *candidates: str):
     return F.lit(None)
 
 
-# Map possible field names to canonical names
+# Map possible field names to canonical names.
+# Atual schema CGU EmendasParlamentares.csv (2026-04): ano_da_emenda, tipo_de_emenda,
+# codigo_da_emenda, codigo_municipio_ibge, uf, valor_empenhado, valor_pago,
+# valor_restos_a_pagar_inscritos. Aliases extras cobrem renames históricos.
 df = src.select(
-    first_existing(src, "ano",  "ano_emenda", "exercicio").cast("int").alias("Ano"),
-    first_existing(src, "uf_favorecido", "uf_beneficiario", "favorecido_uf",
-                        "estado_favorecido", "uf").cast("string").alias("uf"),
-    first_existing(src, "tipo_emenda", "tipo", "rp", "resultado_primario").cast("string").alias("tipo_emenda"),
-    first_existing(src, "codigo_emenda", "id_emenda", "numero_emenda").cast("string").alias("codigo_emenda"),
+    first_existing(src, "ano_da_emenda", "ano", "ano_emenda", "exercicio").cast("int").alias("Ano"),
+    first_existing(src, "uf", "uf_favorecido", "uf_beneficiario", "favorecido_uf",
+                        "estado_favorecido").cast("string").alias("uf"),
+    first_existing(src, "tipo_de_emenda", "tipo_emenda", "tipo", "rp",
+                        "resultado_primario").cast("string").alias("tipo_emenda"),
+    first_existing(src, "codigo_da_emenda", "codigo_emenda", "id_emenda",
+                        "numero_da_emenda", "numero_emenda").cast("string").alias("codigo_emenda"),
     first_existing(src, "valor_empenhado", "vl_empenhado", "empenhado",
                         "valor_total_empenhado").cast("string").alias("vempenhado_str"),
     first_existing(src, "valor_pago", "vl_pago", "pago", "valor_pago_total").cast("string").alias("vpago_str"),
-    first_existing(src, "valor_restos_a_pagar", "valor_resto_pagar", "vl_resto_pagar",
+    first_existing(src, "valor_restos_a_pagar_inscritos", "valor_restos_a_pagar",
+                        "valor_resto_pagar", "vl_resto_pagar",
                         "valor_restos_pagar_pagos").cast("string").alias("vrap_str"),
-    first_existing(src, "codigo_municipio_siafi", "codigo_ibge_municipio", "municipio_codigo").cast("string").alias("cod_municipio"),
+    first_existing(src, "codigo_municipio_ibge", "codigo_municipio_siafi",
+                        "codigo_ibge_municipio", "municipio_codigo").cast("string").alias("cod_municipio"),
 )
 
 # Convert BR numeric strings ("1.234,56") → double
@@ -89,13 +96,15 @@ df = df.where(
     & F.col("uf").isin(VALID_UFS)
 )
 
-# Normalize tipo_emenda to one of {RP6, RP7, RP9, OUTRO}
+# Normalize tipo_emenda to one of {RP6, RP7, RP8, RP9, OUTRO}.
+# CGU values são mixed case ("Emenda Individual - Transferências...") — upper() antes do contains.
+te = F.upper(F.coalesce(F.col("tipo_emenda"), F.lit("")))
 df = df.withColumn(
     "tipo_emenda",
-    F.when(F.col("tipo_emenda").contains("RP-6") | F.col("tipo_emenda").contains("RP6") | F.col("tipo_emenda").contains("INDIVIDUAL"), F.lit("RP6"))
-     .when(F.col("tipo_emenda").contains("RP-7") | F.col("tipo_emenda").contains("RP7") | F.col("tipo_emenda").contains("BANCADA"),    F.lit("RP7"))
-     .when(F.col("tipo_emenda").contains("RP-9") | F.col("tipo_emenda").contains("RP9") | F.col("tipo_emenda").contains("RELATOR"),    F.lit("RP9"))
-     .when(F.col("tipo_emenda").contains("RP-8") | F.col("tipo_emenda").contains("RP8") | F.col("tipo_emenda").contains("COMISSAO"),   F.lit("RP8"))
+    F.when(te.contains("RP-6") | te.contains("RP6") | te.contains("INDIVIDUAL"), F.lit("RP6"))
+     .when(te.contains("RP-7") | te.contains("RP7") | te.contains("BANCADA"),    F.lit("RP7"))
+     .when(te.contains("RP-9") | te.contains("RP9") | te.contains("RELATOR"),    F.lit("RP9"))
+     .when(te.contains("RP-8") | te.contains("RP8") | te.contains("COMISSAO"),   F.lit("RP8"))
      .otherwise(F.lit("OUTRO"))
 )
 
