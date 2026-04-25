@@ -37,6 +37,36 @@ defl   = spark.read.table(SILVER_DEFLATORS).select("Ano", "deflator_to_2021")
 
 print(f"silver_pbf rows={silver.count():,}  populacao rows={pop.count()}  deflators rows={defl.count()}")
 
+# ─── Diagnostics: detect duplicates in dim tables (would multiply gold rows) ──
+print("\n--- DUPLICATE DETECTION ---")
+
+dup_pop = pop.groupBy("Ano", "uf").count().where(F.col("count") > 1)
+n_dup_pop = dup_pop.count()
+print(f"populacao_uf_ano: rows duplicated by (Ano, uf): {n_dup_pop}")
+if n_dup_pop > 0:
+    dup_pop.orderBy("Ano", "uf").show(20, truncate=False)
+
+dup_defl = defl.groupBy("Ano").count().where(F.col("count") > 1)
+n_dup_defl = dup_defl.count()
+print(f"ipca_deflators_2021: rows duplicated by Ano: {n_dup_defl}")
+if n_dup_defl > 0:
+    dup_defl.orderBy("Ano").show(20, truncate=False)
+
+dup_silver_naano = silver.groupBy("Ano", "uf").agg(F.countDistinct("n_ano").alias("distinct_n_ano")).where(F.col("distinct_n_ano") > 1)
+n_dup_naano = dup_silver_naano.count()
+print(f"silver pbf_total_uf_mes: (Ano, uf) groups with multiple distinct n_ano: {n_dup_naano}")
+if n_dup_naano > 0:
+    dup_silver_naano.orderBy("Ano", "uf").show(20, truncate=False)
+
+# Defensive deduplication if any dim was bloated (silver populacao should be unique
+# by construction; if not, take any one row per (Ano, uf))
+if n_dup_pop > 0:
+    print(f"⚠ collapsing pop to 1 row per (Ano, uf) via min")
+    pop = pop.groupBy("Ano", "uf").agg(F.min("populacao").alias("populacao"))
+if n_dup_defl > 0:
+    print(f"⚠ collapsing defl to 1 row per Ano via min")
+    defl = defl.groupBy("Ano").agg(F.min("deflator_to_2021").alias("deflator_to_2021"))
+
 # COMMAND ----------
 
 # Aggregate UF×Ano values from silver (which is UF×Ano×Mes)
@@ -44,15 +74,12 @@ valores = (
     silver.groupBy("Ano", "uf")
           .agg((F.sum("total_estado") / F.lit(1e9)).cast("double").alias("valor_nominal"))
 )
-# NOTE: silver.n_ano can vary across (mes_competencia, uf) rows for the same
-# (Ano, uf) when bronze has multiple origins (PBF + AUX + NBF) for the same
-# filename year. distinct() would keep all variants and multiply the gold rows.
-# Aggregate-collapse to one row per (Ano, uf) using max — the highest count of
-# distinct beneficiaries is the most accurate (others undercount due to
-# origin-restricted scans).
+# silver.n_ano is now guaranteed unique per (Ano, uf) since silver computes it on
+# competency year. distinct gives 1 row per (Ano, uf).
 benef = (
-    silver.groupBy("Ano", "uf")
-          .agg(F.max("n_ano").cast("long").alias("n_benef"))
+    silver.select("Ano", "uf", "n_ano").distinct()
+          .withColumnRenamed("n_ano", "n_benef")
+          .withColumn("n_benef", F.col("n_benef").cast("long"))
 )
 
 df = (

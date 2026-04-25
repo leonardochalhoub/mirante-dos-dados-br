@@ -27,12 +27,20 @@ from pyspark.sql import functions as F, Window
 
 # Read latest bronze snapshot (one BCB refresh = many IPCA-month rows; we want only the latest set)
 bronze = spark.read.table(BRONZE_TABLE)
-latest_ts = bronze.agg(F.max("_ingest_ts")).first()[0]
-if latest_ts is None:
+if bronze.head(1) == []:
     raise ValueError(f"{BRONZE_TABLE} is empty — run the bronze task first.")
 
-src = bronze.where(F.col("_ingest_ts") == latest_ts)
-print(f"Reading bronze snapshot from _ingest_ts={latest_ts} ({src.count()} rows)")
+# Pick ONLY the latest single source_file (same reason as populacao silver: multiple
+# files in the same Auto Loader micro-batch share _ingest_ts).
+latest_file = (
+    bronze
+    .orderBy(F.desc("_ingest_ts"), F.desc("_source_file"))
+    .select("_source_file")
+    .first()[0]
+)
+src = bronze.where(F.col("_source_file") == latest_file)
+latest_ts = src.agg(F.max("_ingest_ts")).first()[0]
+print(f"Reading bronze snapshot from {latest_file} (_ingest_ts={latest_ts}, {src.count()} rows)")
 
 # COMMAND ----------
 

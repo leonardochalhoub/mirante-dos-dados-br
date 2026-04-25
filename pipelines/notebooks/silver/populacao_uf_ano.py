@@ -50,12 +50,22 @@ UF_ID_TO_SIGLA = {
 # COMMAND ----------
 
 bronze = spark.read.table(BRONZE_TABLE)
-latest_ts = bronze.agg(F.max("_ingest_ts")).first()[0]
-if latest_ts is None:
+if bronze.head(1) == []:
     raise ValueError(f"{BRONZE_TABLE} is empty — run the bronze task first.")
 
-src = bronze.where(F.col("_ingest_ts") == latest_ts)
-print(f"Reading bronze snapshot from _ingest_ts={latest_ts} ({src.count()} rows)")
+# Pick ONLY the latest single source_file. Filtering by max(_ingest_ts) alone
+# is NOT enough: if multiple files were ingested in the same Auto Loader
+# micro-batch, they share the same _ingest_ts and the snapshot would have
+# duplicates (3 rows per UF if you ran ingest 3× for example).
+latest_file = (
+    bronze
+    .orderBy(F.desc("_ingest_ts"), F.desc("_source_file"))
+    .select("_source_file")
+    .first()[0]
+)
+src = bronze.where(F.col("_source_file") == latest_file)
+latest_ts = src.agg(F.max("_ingest_ts")).first()[0]
+print(f"Reading bronze snapshot from {latest_file} (_ingest_ts={latest_ts}, {src.count()} rows)")
 
 # COMMAND ----------
 

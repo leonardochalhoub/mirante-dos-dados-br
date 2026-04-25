@@ -92,21 +92,29 @@ df = df.withColumn(
 df = df.withColumn("_benef_id", F.regexp_replace(F.trim(F.col("nis_favorecido")), r"\D", ""))
 df = df.where(F.length(F.col("_benef_id")) > 0)
 
-# Annual distinct beneficiaries by (ano, uf), replicated on each month
+# Add Ano (competency year) at the bronze level so all aggregations are consistent.
+# IMPORTANT: this Ano comes from mes_competencia (the COMPETENCY year — what the
+# payment was FOR), not from bronze.ano (which is the FILE year — when the file
+# was published). For PBF/AUX/NBF transition periods, these can differ.
+df = (
+    df.withColumn("Ano", F.substring(F.col("mes_competencia"), 1, 4).cast("int"))
+      .withColumn("Mes", F.substring(F.col("mes_competencia"), 5, 2).cast("int"))
+)
+
+# Annual distinct beneficiaries by (Ano, uf) — competency year, NOT file year.
+# This guarantees ONE n_ano per (Ano, uf) regardless of how many origins (PBF, AUX,
+# NBF) contributed to that competency year.
 df_year = (
-    df.groupBy("ano", "uf")
+    df.groupBy("Ano", "uf")
       .agg(F.countDistinct("_benef_id").cast("long").alias("n_ano"))
-      .select(F.col("ano").cast("int").alias("Ano"), "uf", "n_ano")
 )
 
 silver_df = (
-    df.groupBy("mes_competencia", "uf")
+    df.groupBy("Ano", "Mes", "uf", "mes_competencia")
       .agg(
           F.countDistinct("_benef_id").cast("long").alias("n"),
           F.sum(F.col("valor_parcela_dec")).alias("total_estado"),
       )
-      .withColumn("Ano", F.substring(F.col("mes_competencia"), 1, 4).cast("int"))
-      .withColumn("Mes", F.substring(F.col("mes_competencia"), 5, 2).cast("int"))
       .join(df_year, on=["Ano", "uf"], how="left")
       .select("Ano", "Mes", "uf", "mes_competencia",
               F.col("n").cast("long"),
