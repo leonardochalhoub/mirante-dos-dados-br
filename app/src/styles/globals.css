@@ -864,6 +864,15 @@ button.primary:hover { filter: brightness(1.05); }
 [data-theme="dark"] .doc-toggle-primary { color: var(--bg); }
 .doc-toggle-primary:hover { filter: brightness(1.05); }
 
+/* When .doc-toggle is an <a> (download links), preserve button styling */
+a.doc-toggle {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  line-height: 32px;
+}
+a.doc-toggle:hover { text-decoration: none; }
+
 /* ─── Article rendering (screen — academic look) ──────────────────────── */
 .emendas-article-wrapper {
   margin-top: 16px;

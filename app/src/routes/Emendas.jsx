@@ -240,25 +240,12 @@ export default function Emendas() {
 function DocSection() {
   const [open, setOpen] = useState(false);
 
-  const handlePrint = () => {
-    // 1) Garante que o artigo está montado e renderizado na DOM
-    setOpen(true);
-    // 2) Define document.title para o nome sugerido do PDF
-    const orig = document.title;
-    const today = new Date().toISOString().slice(0, 10);
-    document.title = `Mirante-Emendas-Parlamentares-Chalhoub-${today}`;
-    // 3) Restaura o título quando o diálogo de impressão fechar
-    const restore = () => {
-      document.title = orig;
-      window.removeEventListener('afterprint', restore);
-    };
-    window.addEventListener('afterprint', restore);
-    // 4) Aguarda 2 frames pra React montar o EmendasArticle e o browser
-    //    calcular layout/SVGs antes de abrir o diálogo de impressão
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => window.print());
-    });
-  };
+  // Caminhos dos artefatos. BASE_URL respeita o subpath do GH Pages.
+  const base = import.meta.env.BASE_URL || '/';
+  const pdfUrl     = `${base}articles/emendas-parlamentares.pdf`.replace(/\/{2,}/g, '/');
+  const texUrl     = `${base}articles/emendas-parlamentares.tex`.replace(/\/{2,}/g, '/');
+  const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
+    encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
 
   return (
     <section className="emendas-abstract">
@@ -290,17 +277,36 @@ function DocSection() {
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
           >
-            {open ? '▴ Ocultar artigo completo' : '▾ Ver artigo completo'}
+            {open ? '▴ Ocultar artigo na tela' : '▾ Ler artigo na tela'}
           </button>
 
-          <button
-            type="button"
+          <a
             className="doc-toggle doc-toggle-primary"
-            onClick={handlePrint}
-            title="Salvar como PDF (formatado em padrão ABNT)"
+            href={pdfUrl}
+            download="Mirante-Emendas-Chalhoub-2026.pdf"
+            title="Baixar PDF compilado em LaTeX (formatado em padrão ABNT)"
           >
             ⤓ Baixar PDF (ABNT)
-          </button>
+          </a>
+
+          <a
+            className="doc-toggle"
+            href={texUrl}
+            download="emendas-parlamentares.tex"
+            title="Baixar fonte LaTeX (.tex) — recompilável em qualquer ambiente TeX"
+          >
+            ⤓ Baixar fonte (.tex)
+          </a>
+
+          <a
+            className="doc-toggle"
+            href={overleafUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Abrir no Overleaf (compilação online em 1 clique)"
+          >
+            ↗ Abrir no Overleaf
+          </a>
         </div>
       </div>
 

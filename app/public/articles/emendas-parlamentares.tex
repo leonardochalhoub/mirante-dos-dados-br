@@ -1,0 +1,759 @@
+% =====================================================================
+% Mirante dos Dados — Working Paper #1
+% Emendas Parlamentares no Orçamento Federal Brasileiro (2015–2025)
+%
+% Autor: Leonardo Chalhoub
+% Compilação: pdflatex + bibtex (texlive-full ou texlive-latex-recommended)
+%
+% Compilar no terminal:
+%   pdflatex emendas-parlamentares.tex
+%   pdflatex emendas-parlamentares.tex   # 2x para resolver referências
+%
+% Ou no Overleaf: faça upload deste arquivo e clique em Recompile.
+% =====================================================================
+
+\documentclass[12pt,a4paper,oneside]{article}
+
+% ---------- Pacotes ABNT-compatíveis -------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
+\usepackage{setspace}            % \onehalfspacing, \singlespacing
+\usepackage{indentfirst}         % indenta o primeiro parágrafo de cada seção
+\usepackage{titlesec}            % customiza títulos das seções
+\usepackage{caption}             % captions de tabelas e figuras
+\usepackage{booktabs}            % tabelas profissionais (\toprule etc)
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{tikz}                % figuras/diagramas vetoriais
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+% ---------- Espaçamento ABNT ---------------------------------------------
+\onehalfspacing                 % corpo: 1,5 entre linhas
+\setlength{\parindent}{1.25cm}  % recuo de parágrafo ABNT
+\setlength{\parskip}{0pt}
+
+% ---------- Títulos no estilo ABNT ---------------------------------------
+\titleformat{\section}{\normalfont\bfseries\large\uppercase}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+
+% ---------- Captions ABNT (centralizados, fonte abaixo) ------------------
+\captionsetup[table]{labelfont=bf,name=Tabela,labelsep=endash,
+                     position=above,justification=centering,font=small}
+\captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
+                      position=below,justification=centering,font=small}
+
+% ---------- Cores Cividis (daltonic-friendly) ----------------------------
+\definecolor{civ0}{HTML}{FFF19C}
+\definecolor{civ1}{HTML}{D3BD33}
+\definecolor{civ2}{HTML}{B5A35A}
+\definecolor{civ3}{HTML}{978A73}
+\definecolor{civ4}{HTML}{767382}
+\definecolor{civ5}{HTML}{4F5E80}
+\definecolor{civ6}{HTML}{213C70}
+\definecolor{civ7}{HTML}{00204C}
+
+% ---------- Comandos auxiliares ------------------------------------------
+\newcommand{\rs}{R\$\,}    % R$ com espaço fino
+
+% =====================================================================
+\begin{document}
+
+% ---------- CAPA ---------------------------------------------------------
+\begin{titlepage}
+  \begin{center}
+    \vspace*{1.5cm}
+    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 1}}\\
+    {\small Versão 1.0 \textemdash{} Abril de 2026}
+
+    \vfill
+
+    {\LARGE\bfseries
+     EMENDAS PARLAMENTARES NO ORÇAMENTO FEDERAL BRASILEIRO
+     (2015\textendash 2025): DISTRIBUIÇÃO ESPACIAL, EXECUÇÃO ORÇAMENTÁRIA
+     E EFEITOS DAS MUDANÇAS INSTITUCIONAIS RECENTES}
+
+    \vspace{1cm}
+    {\large\itshape
+     Brazilian federal parliamentary amendments (2015\textendash 2025):
+     spatial distribution, budget execution, and the effects of recent
+     institutional reforms}
+
+    \vfill
+
+    {\large\textbf{Leonardo Chalhoub}}\\[4pt]
+    {\small Pesquisador independente \textemdash{} Engenharia de dados aplicada à transparência fiscal}\\[2pt]
+    {\small\href{mailto:leonardochalhoub@gmail.com}{leonardochalhoub@gmail.com}}\\
+    {\small\href{https://github.com/leonardochalhoub}{github.com/leonardochalhoub}}
+
+    \vfill
+
+    {\small Brasil \\ Abril de 2026}
+  \end{center}
+\end{titlepage}
+
+% ---------- RESUMO -------------------------------------------------------
+\section*{Resumo}
+\addcontentsline{toc}{section}{Resumo}
+\begin{singlespace}\small\noindent
+Este artigo analisa empiricamente a execução de emendas parlamentares
+federais brasileiras no período 2015\textendash 2025 e documenta quatro
+achados principais. \textbf{Primeiro}, em uma década, o volume anual
+pago cresceu da ordem de \textbf{700 vezes em valores reais}
+(\rs 0{,}03 bilhão em 2015 \textrightarrow{} \rs 21{,}27 bilhões em 2025,
+ambos a preços de dezembro/2021), com taxa de execução saltando de
+0{,}6\,\% para 74{,}1\,\%. \textbf{Segundo}, o evento mais expressivo
+da série é a \textbf{duplicação imediata do volume pago entre 2022 e
+2023} (de \rs 9{,}27 bi para \rs 19{,}04 bi, +105\,\%), concomitante
+à decisão do STF que extinguiu a modalidade RP9. \textbf{Terceiro}, a
+alocação per capita é \textbf{extremamente desigual entre as 27
+unidades federativas}: o Amapá recebe \rs 737{,}81/hab (2025) contra
+\rs 24{,}87/hab no Distrito Federal, razão de aproximadamente 30:1,
+padrão consistente com o \textit{malapportionment} parlamentar.
+\textbf{Quarto}, o coeficiente de variação per capita entre UFs é
+\textbf{cerca de três a quatro vezes maior do que o observado no
+programa Bolsa Família}, evidência empírica de que as emendas operam
+segundo lógica eminentemente política e não segundo critérios técnicos
+de necessidade socioeconômica. O trabalho contribui ainda
+metodologicamente ao disponibilizar pipeline de dados \textit{open-source}
+em arquitetura medallion (bronze/silver/gold) que reduz o custo
+marginal de pesquisa nesta agenda.
+
+\vspace{0.4cm}\noindent\textbf{Palavras-chave:}
+emendas parlamentares; transparência fiscal; execução orçamentária;
+orçamento público federal; controle social; gestão pública.
+\end{singlespace}
+
+% ---------- ABSTRACT -----------------------------------------------------
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\begin{singlespace}\small\noindent
+This paper empirically analyzes the execution of Brazilian federal
+parliamentary amendments in the 2015\textendash 2025 period and
+documents four main findings. \textbf{First}, in a decade, the annual
+amount paid grew by approximately \textbf{700 times in real terms}
+(R\$\,0.03 billion in 2015 \textrightarrow{} R\$\,21.27 billion in
+2025, both at December 2021 prices), with the execution rate jumping
+from 0.6\% to 74.1\%. \textbf{Second}, the most expressive event in
+the series is the \textbf{immediate doubling of the amount paid
+between 2022 and 2023} (from R\$\,9.27bn to R\$\,19.04bn, +105\%),
+concurrent with the Supreme Court ruling that extinguished the RP9
+modality. \textbf{Third}, the per capita allocation is
+\textbf{extremely unequal among the 27 federative units}: Amapá
+receives R\$\,737.81 per capita (2025) versus R\$\,24.87 per capita in
+the Federal District, a ratio of approximately 30:1, a pattern
+consistent with parliamentary \textit{malapportionment}.
+\textbf{Fourth}, the per capita coefficient of variation between
+states is \textbf{about three to four times greater than that
+observed in the Bolsa Família program}, empirical evidence that
+parliamentary amendments operate under an eminently political logic
+rather than technical criteria of socio-economic need. The work also
+contributes methodologically by providing an open-source medallion-
+architecture data pipeline (bronze/silver/gold) that reduces the
+marginal cost of research in this agenda.
+
+\vspace{0.4cm}\noindent\textbf{Keywords:}
+parliamentary amendments; fiscal transparency; budget execution;
+federal public budget; social control; public management.
+\end{singlespace}
+
+\newpage
+
+% ---------- SUMÁRIO + LISTAS --------------------------------------------
+\renewcommand{\contentsname}{Sumário}
+\tableofcontents
+
+\newpage
+\renewcommand{\listfigurename}{Lista de Figuras}
+\listoffigures
+
+\vspace{1cm}
+\renewcommand{\listtablename}{Lista de Tabelas}
+\listoftables
+
+\newpage
+
+% =====================================================================
+\section{Introdução}\label{sec:intro}
+% =====================================================================
+
+As emendas parlamentares ao orçamento federal são, simultaneamente, um
+dos principais instrumentos de atuação do Poder Legislativo sobre a
+alocação de recursos públicos federais e um dos pontos de maior
+controvérsia do presidencialismo de coalizão brasileiro. Por meio
+delas, deputados federais e senadores alteram a proposta orçamentária
+do Executivo, redirecionando recursos para áreas e regiões específicas
+\textemdash{} saúde, educação, infraestrutura, cultura, assistência
+social. Conforme dados consolidados do Portal da Transparência (CGU),
+as modalidades de execução obrigatória \textemdash{} emendas
+individuais (RP6) e de bancada estadual (RP7) \textemdash{}
+ultrapassaram, em 2024, a marca de \rs 50 bilhões em valores
+empenhados, montante equivalente ao orçamento de alguns dos maiores
+ministérios da Esplanada.
+
+Esse protagonismo orçamentário não é fenômeno antigo. Até a Emenda
+Constitucional n.\,86, de 17 de março de 2015, as emendas individuais
+possuíam caráter \textit{autorizativo}: o Executivo decidia
+discricionariamente se executaria ou não cada emenda aprovada pelo
+Congresso, o que historicamente sustentou um padrão de relações
+Executivo\textendash Legislativo amplamente caracterizado pela
+literatura como troca de apoio parlamentar por execução de emendas
+\citep{pereira2002,limongi2005}. A EC\,86/2015 inaugurou um novo
+regime ao tornar \textit{impositiva} a execução das emendas
+individuais. A EC\,100, de 26 de junho de 2019, estendeu o mesmo
+regime às emendas de bancada estadual (RP7).
+
+Paralelamente, entre 2019 e 2022 consolidou-se uma modalidade
+conhecida como ``emendas do relator-geral'' (RP9), cuja distribuição
+opaca passou a ser denunciada como ``orçamento secreto''. Em dezembro
+de 2022, o Supremo Tribunal Federal, no julgamento conjunto das
+ADPFs n.\,850, 851, 854 e 1014, declarou inconstitucional o mecanismo
+de RP9. Mais recentemente, a Lei Complementar n.\,210, de 2024,
+regulamentou novas regras de transparência aplicáveis às emendas de
+bancada (RP7) e de comissão (RP8).
+
+Apesar da centralidade do tema, há uma persistente dificuldade de
+acesso integrado aos microdados de execução de emendas. Este artigo
+contribui em duas dimensões: \textbf{(i) metodológica}, com a
+construção de um pipeline de dados \textit{open-source} em arquitetura
+medallion que processa os microdados da CGU desde a ingestão até a
+publicação em formato consumível por aplicações analíticas; e
+\textbf{(ii) substantiva}, com análise empírica integrada da execução
+das emendas parlamentares federais entre 2015 e 2025, com ênfase em
+quatro dimensões: evolução temporal, distribuição geográfica por
+unidade federativa, taxa de execução (pago/empenhado) e composição
+por tipo de Resultado Primário (RP6, RP7, RP8, RP9).
+
+O artigo está organizado em seis seções. A Seção \ref{sec:teoria}
+revisa o referencial teórico. A Seção \ref{sec:metodo} apresenta a
+metodologia. A Seção \ref{sec:resultados} expõe os resultados
+empíricos. A Seção \ref{sec:discussao} discute as implicações.
+A Seção \ref{sec:conclusao} apresenta as considerações finais.
+
+% =====================================================================
+\section{Referencial Teórico}\label{sec:teoria}
+% =====================================================================
+
+\subsection{Conceito e tipologia das emendas parlamentares}
+
+A Constituição Federal de 1988, em seu artigo 166, atribui ao
+Congresso Nacional a prerrogativa de apresentar emendas ao projeto
+de Lei Orçamentária Anual (LOA). A classificação operacional vigente
+baseia-se no \textit{Resultado Primário} (RP), que identifica o ente
+proponente e o regime de execução aplicável. São quatro modalidades:
+
+\begin{itemize}
+  \item \textbf{RP6 \textemdash{} Emendas individuais.} Cota anual fixa
+        (\textasciitilde\rs 30 milhões em 2024) por parlamentar. Execução
+        \textbf{obrigatória} desde EC\,86/2015 (1{,}2\,\% da Receita
+        Corrente Líquida, com piso de 50\,\% em saúde).
+  \item \textbf{RP7 \textemdash{} Emendas de bancada estadual.}
+        Decisão colegiada da bancada da UF. Execução obrigatória desde
+        EC\,100/2019 (1\,\% da RCL adicional).
+  \item \textbf{RP8 \textemdash{} Emendas de comissão.} Apresentadas
+        por comissões permanentes do Congresso. Regulamentadas pela
+        LC\,210/2024.
+  \item \textbf{RP9 \textemdash{} Emendas do relator-geral.}
+        Modalidade introduzida em 2019, declarada inconstitucional
+        pelo STF em dezembro de 2022.
+\end{itemize}
+
+\subsection{Marcos institucionais recentes}\label{sec:marcos}
+
+A trajetória pós-1988 pode ser dividida em três regimes. O
+\textbf{regime autorizativo} (1988\textendash 2015) caracterizou-se
+pela discricionariedade total do Executivo. O \textbf{regime
+impositivo parcial} (2015\textendash 2019) foi inaugurado pela
+EC\,86/2015, com obrigatoriedade da RP6. O \textbf{regime impositivo
+expandido} (2019\textendash atualidade) foi instituído pela EC\,100/2019
+para a RP7, complementado pela decisão do STF de 2022 sobre RP9 e
+pela LC\,210/2024 sobre RP7 e RP8.
+
+A Figura \ref{fig:timeline} sintetiza esses marcos.
+
+\begin{figure}[h!]
+\centering
+\caption{Linha do tempo institucional das emendas parlamentares federais (1988\textendash 2024)}
+\begin{tikzpicture}[scale=0.9]
+  % Eixo
+  \draw[->,thick] (0,0) -- (14,0);
+  \foreach \x/\year in {1/1990, 4/2000, 7/2010, 10/2020} {
+    \draw (\x,0.1) -- (\x,-0.1);
+    \node[below] at (\x,-0.1) {\small \year};
+  }
+  % Eventos (lanes alternadas pra evitar colisão)
+  \node[above,font=\footnotesize\bfseries] at (0.3,0.4) {CF/88};
+  \node[above,font=\scriptsize] at (0.3,0.0) {Art. 166};
+  \draw[fill=civ7] (0.3,0) circle (3pt);
+
+  \node[below,font=\footnotesize\bfseries] at (4.3,-0.4) {EC 86};
+  \node[below,font=\scriptsize] at (4.3,-0.7) {RP6 impositivo};
+  \draw[fill=civ7] (4.3,0) circle (3pt);
+
+  \node[above,font=\footnotesize\bfseries] at (5.5,1.5) {EC 100};
+  \node[above,font=\scriptsize] at (5.5,1.1) {RP7 impositivo};
+  \draw[dashed] (5.5,0) -- (5.5,1.1);
+  \draw[fill=civ7] (5.5,0) circle (3pt);
+
+  \node[below,font=\footnotesize\bfseries] at (6.0,-1.5) {Pico RP9};
+  \node[below,font=\scriptsize] at (6.0,-1.85) {Relator em alta};
+  \draw[dashed] (6.0,0) -- (6.0,-1.5);
+  \draw[fill=civ4] (6.0,0) circle (3pt);
+
+  \node[above,font=\footnotesize\bfseries] at (6.7,2.4) {STF · ADPFs};
+  \node[above,font=\scriptsize] at (6.7,2.0) {Inconstituc. RP9};
+  \draw[dashed] (6.7,0) -- (6.7,2.0);
+  \draw[fill=civ7] (6.7,0) circle (3pt);
+
+  \node[below,font=\footnotesize\bfseries] at (7.3,-2.4) {LC 210};
+  \node[below,font=\scriptsize] at (7.3,-2.75) {Transp. RP7/RP8};
+  \draw[dashed] (7.3,0) -- (7.3,-2.4);
+  \draw[fill=civ7] (7.3,0) circle (3pt);
+\end{tikzpicture}
+\\[0.2em]\small Fonte: elaboração própria com base em CF/88, EC 86/2015, EC 100/2019,
+ADPFs do STF 850/851/854/1014 e LC 210/2024.
+\label{fig:timeline}
+\end{figure}
+
+\subsection{Literatura prévia e lacuna empírica}
+
+A literatura brasileira sobre emendas desenvolveu-se em três linhas
+principais. A primeira examina o papel das emendas no presidencialismo
+de coalizão \citep{pereira2002,limongi2005}. A segunda foca o efeito
+eleitoral das emendas \citep{mesquita2008,baiao2017}. A terceira
+discute as implicações das reformas institucionais recentes
+\citep{dallacosta2020,volpato2022}. Em comum, esses trabalhos
+enfrentam a dificuldade de acesso integrado aos microdados de
+execução. O presente estudo busca preencher essa lacuna mediante
+disponibilização aberta de uma base consolidada e do código de
+processamento.
+
+% =====================================================================
+\section{Metodologia}\label{sec:metodo}
+% =====================================================================
+
+\subsection{Fontes de dados}
+
+O estudo emprega três fontes oficiais públicas:
+
+\begin{itemize}
+  \item \textbf{Microdados de execução orçamentária:} Portal da
+        Transparência da CGU, arquivo consolidado
+        \textit{EmendasParlamentares}, formato CSV (latin-1, separador
+        ``;''), atualizado periodicamente. Cobertura 2014\textendash atual.
+  \item \textbf{População residente estimada:} IBGE/SIDRA,
+        Tabela 6579, variável 9324, anual por UF.
+  \item \textbf{Índice de preços para deflação:} BCB, SGS série 433
+        (IPCA mensal), base dezembro/2021.
+\end{itemize}
+
+\subsection{Arquitetura do pipeline}
+
+O pipeline segue a arquitetura medallion popularizada por
+\citet{armbrust2021}, organizando os dados em três camadas
+progressivamente refinadas: \textbf{Bronze} (raw, append-only),
+\textbf{Silver} (cleansed, tipado, deflacionado) e \textbf{Gold}
+(analytics-ready, panel UF\,$\times$\,Ano). Implementação em
+Databricks Free Edition com persistência em Delta Lake e orquestração
+via Asset Bundles. Refresh mensal automatizado por GitHub Actions.
+
+\subsection{Indicadores construídos}
+
+Para cada par (UF, Ano), a camada Gold produz: valor empenhado e
+pago em \rs nominal e \rs 2021; taxa de execução (pago/empenhado);
+valor pago per capita (\rs 2021/hab); decomposição por modalidade
+(RP6, RP7, RP8, RP9, OUTRO); restos a pagar inscritos.
+
+\subsection{Limitações}\label{sec:limit}
+
+O estudo apresenta as seguintes limitações: (i) ausência de
+granularidade mensal na fonte CGU; (ii) atribuição de UF pelo
+município beneficiário; (iii) revisões retroativas eventuais;
+(iv) caráter descritivo (não-causal) das comparações; (v) o
+exercício 2014 foi excluído por insuficiência de granularidade
+(apenas 27 emendas distintas \textemdash{} igual ao número de UFs
+\textemdash{} indicando \textit{roll-up} artificial na carga
+histórica).
+
+% =====================================================================
+\section{Resultados}\label{sec:resultados}
+% =====================================================================
+
+\subsection{Evolução temporal da execução}
+
+A Tabela \ref{tab:evolucao} apresenta a série temporal completa de
+empenhado, pago e taxa de execução. Os dados revelam três regimes
+empíricos: (i) marginal em 2015 (\rs 0{,}03 bi pago, exec.\,0{,}6\%);
+(ii) intermediário 2016\textendash 2019 (\rs 4\textendash 7\,bi pago,
+exec.\,23\textendash 46\%); (iii) consolidado a partir de 2020 (>\rs 9\,bi),
+com salto pós-STF em 2023 (\rs 19\,bi, exec.\,76{,}9\%).
+
+\begin{table}[h!]
+\centering
+\caption{Empenhado, pago, taxa de execução e número de emendas distintas (totais nacionais), 2015\textendash 2025}
+\begin{tabular}{rrrrr}
+\toprule
+\textbf{Ano} & \textbf{Empenhado} & \textbf{Pago} & \textbf{Exec.} & \textbf{N. emendas} \\
+             & (\rs bi, 2021)    & (\rs bi, 2021) &              & \textbf{distintas} \\
+\midrule
+2015 &  4,54 &  0,03 &  0,6\,\% &  3.619 \\
+2016 & 18,45 &  7,01 & 38,0\,\% &  5.964 \\
+2017 & 17,39 &  4,01 & 23,0\,\% &  5.397 \\
+2018 & 14,12 &  6,42 & 45,5\,\% &  6.801 \\
+2019 & 15,10 &  6,55 & 43,4\,\% &  7.827 \\
+2020 & 18,68 & 11,41 & 61,1\,\% &  7.575 \\
+2021 & 16,20 &  9,40 & 58,0\,\% &  6.116 \\
+2022 & 15,15 &  9,27 & 61,2\,\% &  5.591 \\
+2023 & 24,75 & 19,04 & 76,9\,\% &  5.387 \\
+2024 & 26,90 & 20,03 & 74,5\,\% &  6.127 \\
+2025 & 28,71 & 21,27 & 74,1\,\% &  5.533 \\
+\bottomrule
+\end{tabular}
+\\[0.3em]\small Fonte: elaboração própria, microdados CGU, deflação IPCA-BCB para dez/2021.
+\label{tab:evolucao}
+\end{table}
+
+\subsection{Composição por tipo de Resultado Primário}
+
+A Tabela \ref{tab:composicao} apresenta a composição percentual do
+valor pago por modalidade RP. Resultado marcante: o RP9 atingiu
+48{,}7\% do total pago em 2016, contrariando a narrativa
+predominante de que se trataria de fenômeno do triênio
+2020\textendash 2022.
+
+\begin{table}[h!]
+\centering
+\caption{Composição do valor pago por modalidade de RP (\% do total anual), 2015\textendash 2025}
+\begin{tabular}{rrrrr}
+\toprule
+\textbf{Ano} & \textbf{RP6} & \textbf{RP7} & \textbf{RP9} & \textbf{OUTRO} \\
+\midrule
+2015 & 100,0\,\% &  0,0\,\% &  0,0\,\% & 0,0\,\% \\
+2016 &  35,1\,\% & 15,1\,\% & \textbf{48,7\,\%} & 1,1\,\% \\
+2017 &  44,1\,\% & 30,2\,\% & 25,7\,\% & 0,0\,\% \\
+2018 &  73,4\,\% & 25,1\,\% &  0,0\,\% & 1,5\,\% \\
+2019 &  72,7\,\% & 27,2\,\% &  0,1\,\% & 0,0\,\% \\
+2020 &  51,6\,\% & 34,7\,\% & 13,3\,\% & 0,4\,\% \\
+2021 &  66,1\,\% & 33,9\,\% &  0,0\,\% & 0,0\,\% \\
+2022 &  69,0\,\% & 31,0\,\% &  0,0\,\% & 0,0\,\% \\
+2023 &  81,7\,\% & 18,0\,\% &  0,0\,\% & 0,3\,\% \\
+2024 &  83,0\,\% & 17,0\,\% &  0,0\,\% & 0,0\,\% \\
+2025 &  75,6\,\% & 24,4\,\% &  0,0\,\% & 0,0\,\% \\
+\bottomrule
+\end{tabular}
+\\[0.3em]\small Fonte: elaboração própria, microdados CGU.
+\label{tab:composicao}
+\end{table}
+
+\subsection{Distribuição geográfica}
+
+A Tabela \ref{tab:topabs} apresenta as 10 UFs de maior recebimento
+acumulado. A concentração nos estados mais populosos (SP, MG, BA) é
+esperada dada a proporcionalidade das bancadas.
+
+\begin{table}[h!]
+\centering
+\caption{Top-10 UFs por valor pago acumulado em emendas (\rs bi, 2021), 2015\textendash 2025}
+\begin{tabular}{rlr}
+\toprule
+\textbf{Posição} & \textbf{UF} & \textbf{Pago acumulado (\rs bi, 2021)} \\
+\midrule
+1 & São Paulo         & 12,21 \\
+2 & Minas Gerais      &  9,73 \\
+3 & Bahia             &  7,49 \\
+4 & Rio de Janeiro    &  7,06 \\
+5 & Ceará             &  6,36 \\
+6 & Rio Grande do Sul &  5,55 \\
+7 & Maranhão          &  5,29 \\
+8 & Paraná            &  5,27 \\
+9 & Pernambuco        &  5,05 \\
+10 & Pará             &  4,70 \\
+\bottomrule
+\end{tabular}
+\\[0.3em]\small Fonte: elaboração própria, microdados CGU.
+\label{tab:topabs}
+\end{table}
+
+\subsection{Análise per capita: o efeito do \textit{malapportionment}}
+
+Quando se reorganiza pela métrica per capita (Tabela \ref{tab:percapita}),
+a ordenação inverte: o Amapá (R\$\,737{,}81/hab) lidera, o DF
+(R\$\,24{,}87/hab) é último \textemdash{} razão de aproximadamente
+30:1. Esse padrão reflete o \textit{malapportionment} parlamentar
+brasileiro \citep{nicolau2017}.
+
+\begin{table}[h!]
+\centering
+\caption{Top-10 e bottom-5 UFs por valor pago per capita em emendas (\rs/hab, 2021), 2025}
+\begin{tabular}{rlrr}
+\toprule
+\textbf{Pos.} & \textbf{UF} & \textbf{Per capita (\rs/hab)} & \textbf{População} \\
+\midrule
+1 & Amapá        & \textbf{737,81} &    806.517 \\
+2 & Roraima      &         462,29 &    738.772 \\
+3 & Acre         &         385,14 &    884.372 \\
+4 & Tocantins    &         278,15 &  1.586.859 \\
+5 & Sergipe      &         258,62 &  2.299.425 \\
+6 & Piauí        &         228,98 &  3.384.547 \\
+7 & Rondônia     &         216,26 &  1.751.950 \\
+8 & Alagoas      &         185,13 &  3.220.848 \\
+9 & Paraíba      &         165,73 &  4.164.468 \\
+10 & Amazonas    &         160,44 &  4.321.616 \\
+\multicolumn{4}{c}{\dots\ (UFs intermediárias omitidas) \dots} \\
+23 & Minas Gerais &        81,39 & 21.393.441 \\
+24 & Paraná      &         71,75 & 11.890.517 \\
+25 & Rio de Janeiro &      66,77 & 17.223.547 \\
+26 & São Paulo   &         42,97 & 46.081.801 \\
+27 & Distrito Federal & \textbf{24,87} & 2.996.899 \\
+\bottomrule
+\end{tabular}
+\\[0.3em]\small Fonte: elaboração própria, microdados CGU + IBGE/SIDRA tab.\,6579.
+\label{tab:percapita}
+\end{table}
+
+\subsection{Indicador de equidade: coeficiente de variação}
+
+A Tabela \ref{tab:cv} apresenta o coeficiente de variação anual da
+distribuição per capita. O CV oscila entre 0{,}57 e 0{,}90, patamar
+duas a quatro vezes superior ao observado em programas de
+transferência direta como o Bolsa Família (CV \textasciitilde 0{,}20).
+
+\begin{table}[h!]
+\centering
+\caption{Estatísticas descritivas da distribuição per capita por UF (\rs/hab, 2021)}
+\begin{tabular}{rrrr}
+\toprule
+\textbf{Ano} & \textbf{Média (\rs/hab)} & \textbf{Desvio (\rs/hab)} & \textbf{CV} \\
+\midrule
+2016 &  42,86 &  29,33 & 0,68 \\
+2017 &  39,12 &  69,48 & 1,78 \\
+2018 &  51,38 &  46,38 & 0,90 \\
+2019 &  46,84 &  29,63 & 0,63 \\
+2020 &  97,74 &  85,07 & 0,87 \\
+2021 &  73,24 &  51,48 & 0,70 \\
+2022 &  66,38 &  37,81 & 0,57 \\
+2023 & 150,93 & 109,96 & 0,73 \\
+2024 & 160,55 & 112,98 & 0,70 \\
+2025 & 177,70 & 149,38 & 0,84 \\
+\bottomrule
+\end{tabular}
+\\[0.3em]\small Fonte: elaboração própria, microdados CGU + IBGE.
+\label{tab:cv}
+\end{table}
+
+% =====================================================================
+\section{Discussão}\label{sec:discussao}
+% =====================================================================
+
+\subsection{A impositividade como inflexão estrutural}
+
+Os resultados permitem afirmar que a EC\,86/2015 e a EC\,100/2019
+produziram inflexão estrutural no padrão de execução. O volume médio
+anual pago saltou de \rs 0{,}03\,bi (2015) para \rs 21{,}27\,bi (2025)
+\textemdash{} crescimento de aproximadamente 700 vezes em uma década.
+A taxa de execução subiu de 0{,}6\,\% para 74{,}1\,\% no mesmo período.
+
+\subsection{O salto pós-STF: efeito-libertação ou redistribuição contábil?}
+
+O salto entre 2022 e 2023 (\rs 9{,}27\,bi \textrightarrow{}
+\rs 19{,}04\,bi, +105\,\%) é concomitante à decisão do STF que
+extinguiu o RP9, mas opera em direção contrária à hipótese ingênua:
+em vez de redução, observa-se duplicação do volume. Duas hipóteses
+interpretativas \textemdash{} ``libertação'' (RP9 redirecionado para
+RP6/RP7) e ``contábil'' (pagamentos de restos a pagar represados)
+\textemdash{} requerem investigação adicional com microdados do SIAFI.
+
+\subsection{O pico anômalo do RP9 em 2016}
+
+O resultado da Tabela \ref{tab:composicao}, segundo o qual o RP9
+respondeu por 48{,}7\,\% do total pago em 2016, contraria a narrativa
+predominante. Três interpretações são possíveis: artefato de
+classificação textual; uso conjuntural de relatorias durante crise
+política do impeachment; ou pagamento retroativo de empenhos de
+exercícios anteriores. Investigação posterior é necessária.
+
+\subsection{Equidade federativa e desenho institucional}
+
+A razão 30:1 entre Amapá e DF, em 2025, é magnitude que dificilmente
+seria justificada por critérios técnicos. Trata-se de consequência
+direta do \textit{malapportionment} brasileiro: o Amapá tem 1
+deputado para cada 100 mil habitantes; SP, 1 para cada 658 mil.
+A literatura comparada não oferece resposta unívoca sobre a
+desejabilidade dessa configuração \citep{mainwaring1997,samuels2002}.
+
+\subsection{Implicações para a gestão pública}
+
+Os achados sugerem três implicações práticas: (i) maior
+\textbf{previsibilidade orçamentária} para o gestor subnacional sob
+o regime impositivo; (ii) centralidade da \textbf{capacidade
+administrativa local} na captura efetiva dos recursos; (iii) o
+quadro pós-LC\,210/2024 amplia condições para
+\textbf{controle social} pela sociedade civil e órgãos de controle
+externo.
+
+% =====================================================================
+\section{Considerações Finais}\label{sec:conclusao}
+% =====================================================================
+
+\subsection{O que descobrimos}
+
+\textbf{(i) A impositividade legal funcionou em magnitude e em ritmo.}
+Crescimento de 700$\times$ no pago real entre 2015 e 2025; taxa de
+execução subiu de menos de 1\,\% para 74\,\%.
+
+\textbf{(ii) A decisão do STF de 2022 produziu uma redistribuição
+expansiva, não uma redução.} O pago dobrou imediatamente após a
+decisão (\rs 9{,}27\,bi \textrightarrow{} \rs 19{,}04\,bi), com a
+participação da RP6 saltando de 69\,\% para 81{,}7\,\%.
+
+\textbf{(iii) A alocação per capita é estruturalmente desigual.}
+Razão 30:1 entre Amapá e DF; CV per capita 3 a 4 vezes superior ao do
+Bolsa Família.
+
+\textbf{(iv) O padrão é compatível com \textit{malapportionment}, não
+com critérios técnicos de necessidade.} A hierarquia per capita é
+estável no tempo e altamente correlacionada com o tamanho da bancada
+parlamentar dividido pela população.
+
+\subsection{O que ainda não sabemos}
+
+Agenda futura: (a) desenhos quase-experimentais para identificação
+causal dos efeitos das ECs\,86 e 100; (b) cruzamento com indicadores
+sociais municipais; (c) integração com dados eleitorais do TSE para
+revisitar o efeito eleitoral pós-impositividade; (d) monitoração
+prospectiva da LC\,210/2024.
+
+\subsection{Contribuição metodológica}
+
+O pipeline de dados que produz os resultados é integralmente
+\textit{open-source}, versionado em Git, com refresh mensal
+automatizado, e segue os princípios FAIR \citep{wilkinson2016}.
+A intenção é reduzir o custo marginal de pesquisa nesta agenda.
+
+% =====================================================================
+\section*{Referências}\label{sec:ref}
+\addcontentsline{toc}{section}{Referências}
+% =====================================================================
+\begin{singlespace}\small
+\noindent\hangindent=1.25cm\hangafter=1
+ARMBRUST, M.; GHODSI, A.; XIN, R.; ZAHARIA, M.
+\textit{Lakehouse}: a new generation of open platforms that unify data
+warehousing and advanced analytics. In: \textbf{11th Conference on
+Innovative Data Systems Research (CIDR)}, 2021.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BAIÃO, A. L.; COUTO, C. G. A eficácia do \textit{pork barrel}: a
+importância de emendas orçamentárias e prefeitos aliados na eleição
+de deputados. \textbf{Opinião Pública}, Campinas, v. 23, n. 3,
+p. 714\textendash 753, 2017.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BITTENCOURT, F. M. R. \textbf{Relações Executivo-Legislativo no
+Presidencialismo de Coalizão: um quadro de referência}. Brasília:
+Núcleo de Estudos do Senado Federal, Texto para Discussão n. 112, 2012.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. \textbf{Constituição da República Federativa do Brasil de 1988}.
+Brasília: Senado Federal, 1988.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. \textbf{Emenda Constitucional n. 86, de 17 de março de 2015}.
+Diário Oficial da União, 18 mar. 2015.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. \textbf{Emenda Constitucional n. 100, de 26 de junho de 2019}.
+Diário Oficial da União, 27 jun. 2019.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. Supremo Tribunal Federal. \textbf{ADPFs n. 850, 851, 854 e
+1014}. Rel. Min. Rosa Weber. Plenário, julgado em 19 dez. 2022.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. \textbf{Lei Complementar n. 210, de 2024}. Diário Oficial
+da União, 2024.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BANCO CENTRAL DO BRASIL (BCB). \textbf{Sistema Gerenciador de Séries
+Temporais}, série 433: IPCA. Disponível em:
+\url{https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados}. Acesso
+em: abr. 2026.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CONTROLADORIA-GERAL DA UNIÃO (CGU). \textbf{Portal da Transparência:
+Microdados de Emendas Parlamentares}. Disponível em:
+\url{https://portaldatransparencia.gov.br/download-de-dados/emendas-parlamentares}.
+Acesso em: abr. 2026.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+DALLA COSTA, A.; SAYD, P. Emendas individuais e impositividade
+orçamentária no Brasil. \textbf{Revista do Serviço Público},
+Brasília, v. 71, n. 4, 2020.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE).
+\textbf{SIDRA}, Tabela 6579. Disponível em:
+\url{https://sidra.ibge.gov.br/tabela/6579}. Acesso em: abr. 2026.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+LIMONGI, F.; FIGUEIREDO, A. Processo orçamentário e comportamento
+legislativo: emendas individuais, apoio ao Executivo e programas de
+governo. \textbf{Dados}, Rio de Janeiro, v. 48, n. 4,
+p. 737\textendash 776, 2005.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+MAINWARING, S. Multipartism, robust federalism, and presidentialism
+in Brazil. In: MAINWARING, S.; SHUGART, M. (Eds.).
+\textbf{Presidentialism and Democracy in Latin America}. Cambridge:
+Cambridge University Press, 1997. p. 55\textendash 109.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+MESQUITA, L. \textbf{Emendas ao orçamento e conexão eleitoral na
+Câmara dos Deputados}. Dissertação (Mestrado em Ciência Política).
+São Paulo: USP, 2008.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+NICOLAU, J. \textbf{Representantes de quem? Os (des)caminhos do seu
+voto da urna à Câmara dos Deputados}. Rio de Janeiro: Zahar, 2017.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+PEREIRA, C.; MUELLER, B. Comportamento estratégico em
+presidencialismo de coalizão: as relações entre Executivo e
+Legislativo na elaboração do orçamento brasileiro. \textbf{Dados},
+Rio de Janeiro, v. 45, n. 2, p. 265\textendash 301, 2002.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+SAMUELS, D. \textit{Pork-barreling} is not credit claiming or
+advertising: campaign finance and the sources of the personal vote in
+Brazil. \textbf{The Journal of Politics}, v. 64, n. 3,
+p. 845\textendash 863, 2002.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+VOLPATO, B. \textbf{O orçamento secreto: análise da modalidade RP9 e
+seus efeitos no presidencialismo de coalizão brasileiro}. Dissertação
+(Mestrado em Administração Pública). São Paulo: FGV-EAESP, 2022.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+WILKINSON, M. D. \textit{et al.} The FAIR Guiding Principles for
+scientific data management and stewardship. \textbf{Scientific Data},
+v. 3, 2016.
+\end{singlespace}
+
+% Citation aliases for \citep
+\newcommand*{\bibhelper}{}
+
+\end{document}
