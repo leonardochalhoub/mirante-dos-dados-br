@@ -15,7 +15,8 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: write
+  contents: write    # commit data/gold/ + data/stats/ back to main
+  actions:  write    # gh workflow run deploy-pages.yml (via dispatch API)
 
 # Queue concurrent runs to avoid git push races.
 concurrency:
