@@ -29,6 +29,12 @@ env:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    # The DATABRICKS_HOST/TOKEN secrets live on the `github-pages`
+    # environment (Settings → Environments → github-pages), not at
+    # repo level. Without `environment:` here, those secrets are
+    # invisible to the job — leading to "default auth: cannot
+    # configure default credentials" errors.
+    environment: github-pages
     steps:
       - uses: actions/checkout@v5
 

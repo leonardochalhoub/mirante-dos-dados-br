@@ -23,6 +23,9 @@ env:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    # Same secret-scoping fix as auto-sync-gold.yml: DATABRICKS_HOST
+    # and DATABRICKS_TOKEN live on the `github-pages` environment.
+    environment: github-pages
     steps:
       - uses: actions/checkout@v4
 
