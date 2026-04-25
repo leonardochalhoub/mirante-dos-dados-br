@@ -97,14 +97,21 @@ alocação per capita é \textbf{extremamente desigual entre as 27
 unidades federativas}: o Amapá recebe \rs 737{,}81/hab (2025) contra
 \rs 24{,}87/hab no Distrito Federal, razão de aproximadamente 30:1,
 padrão consistente com o \textit{malapportionment} parlamentar.
-\textbf{Quarto}, o coeficiente de variação per capita entre UFs é
-\textbf{cerca de três a quatro vezes maior do que o observado no
-programa Bolsa Família}, evidência empírica de que as emendas operam
-segundo lógica eminentemente política e não segundo critérios técnicos
-de necessidade socioeconômica. O trabalho contribui ainda
-metodologicamente ao disponibilizar pipeline de dados \textit{open-source}
-em arquitetura medallion (bronze/silver/gold) que reduz o custo
-marginal de pesquisa nesta agenda.
+\textbf{Quarto}, o coeficiente de variação per capita entre UFs (CV
+\textasciitilde{} 0{,}73 em 2023 para emendas) é \textbf{cerca de
+1{,}5 a 2 vezes maior do que o observado no programa Bolsa Família}
+nos mesmos exercícios (CV \textasciitilde{} 0{,}43 em 2023, calculado
+sobre os mesmos microdados consolidados em
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/\#/bolsa-familia}).
+A despeito de ambos serem programas de transferência federal, a
+desigualdade territorial das emendas é sistematicamente superior à do
+principal programa de transferência direta de renda do país,
+evidência empírica de que as emendas operam segundo lógica
+eminentemente política e não segundo critérios técnicos de
+necessidade socioeconômica. O trabalho contribui ainda
+metodologicamente ao disponibilizar pipeline de dados
+\textit{open-source} em arquitetura medallion (bronze/silver/gold)
+que reduz o custo marginal de pesquisa nesta agenda.
 
 \vspace{0.4cm}\noindent\textbf{Palavras-chave:}
 emendas parlamentares; transparência fiscal; execução orçamentária;
@@ -190,6 +197,20 @@ de RP9. Mais recentemente, a Lei Complementar n.\,210, de 2024,
 regulamentou novas regras de transparência aplicáveis às emendas de
 bancada (RP7) e de comissão (RP8).
 
+Este artigo é parte do projeto \textbf{Mirante dos Dados}
+(\url{https://leonardochalhoub.github.io/mirante-dos-dados-br}),
+plataforma aberta de visualização de dados públicos brasileiros
+mantida pelo autor. Outras verticais já disponíveis na plataforma
+incluem \textit{Bolsa Família} (execução do Programa Bolsa Família,
+Auxílio Brasil e Novo Bolsa Família, 2013\textendash 2025;
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/\#/bolsa-familia})
+e \textit{Equipamentos Médicos} (Cadastro Nacional de
+Estabelecimentos de Saúde, DATASUS/CNES, 2005\textendash 2025).
+Todas as verticais compartilham a mesma infraestrutura de dados
+descrita na Seção \ref{sec:metodo} e têm seu código-fonte disponível
+no repositório
+\url{https://github.com/leonardochalhoub/mirante-dos-dados-br}.
+
 Este artigo contribui em duas dimensões: \textbf{(i) metodológica},
 com a construção de um pipeline de dados \textit{open-source} em
 arquitetura medallion que processa os microdados da CGU desde a
@@ -266,11 +287,32 @@ para deflação base dezembro/2021).
 
 \subsection{Arquitetura do pipeline}
 
-O pipeline segue a arquitetura medallion popularizada por Armbrust
-et al.\ (2021), organizando os dados em três camadas: \textbf{Bronze}
-(raw, append-only), \textbf{Silver} (cleansed, tipado, deflacionado)
-e \textbf{Gold} (analytics-ready, panel UF\,$\times$\,Ano). A Figura
-\ref{fig:arquitetura} apresenta o esquema.
+O pipeline adota a arquitetura medallion descrita por Armbrust et
+al.\ (2021) e detalhada operacionalmente por Kukreja (2021),
+organizando os dados em três camadas progressivamente refinadas:
+\textbf{Bronze} (raw, append-only), \textbf{Silver} (cleansed, tipado,
+deflacionado) e \textbf{Gold} (analytics-ready, panel
+UF\,$\times$\,Ano). A escolha do padrão lakehouse responde a uma
+preocupação central documentada por Reis e Housley (2022) sobre o
+ciclo de vida da engenharia de dados: a separação clara entre as
+fases de ingestão, transformação e disponibilização permite governança
+granular, reprocessamento idempotente e auditoria de \textit{data
+lineage}, propriedades particularmente relevantes para dados
+governamentais cuja revisão retroativa é frequente.
+
+A camada de processamento utiliza \textbf{Apache Spark} (Zaharia et
+al.\ 2016), arcabouço de processamento distribuído de código aberto
+sob licença Apache 2.0, executado neste estudo na plataforma
+Databricks Free Edition. A escolha do Spark é deliberada e tem três
+fundamentos: (i) abertura do código-fonte e neutralidade
+\textit{vendor}-agnóstica, alinhada ao princípio de reprodutibilidade
+científica; (ii) maturidade do ecossistema, com suporte nativo a
+\textit{streaming} (Auto Loader), tipagem schema-on-read e integração
+com o formato Delta Lake (Armbrust et al.\ 2021); (iii) familiaridade
+da comunidade brasileira de engenharia de dados, reduzindo a barreira
+de entrada para colaboradores externos.
+
+A Figura \ref{fig:arquitetura} apresenta o esquema completo.
 
 \begin{figure}[H]
 \centering
@@ -431,6 +473,20 @@ A Tabela \ref{tab:topabs} e a Figura \ref{fig:topabs} apresentam as
 \par\noindent{\small Fonte: elaboração própria.}
 \end{figure}
 
+A representação cartográfica da mesma variável (Figura
+\ref{fig:choro-abs}) reforça visualmente a concentração nas três
+maiores unidades federativas e contrasta com a representação per
+capita das figuras subsequentes, na qual a hierarquia se inverte
+radicalmente.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{fig13-choropleth-absolute}
+\caption{Mapa coroplético — valor pago acumulado em emendas por UF (R\$ bi, 2021), 2015\textendash 2025}
+\label{fig:choro-abs}
+\par\noindent{\small Fonte: elaboração própria, GeoJSON IBGE + microdados CGU. São Paulo aparece como o maior recipiente em valores absolutos (\rs 12{,}21\,bi).}
+\end{figure}
+
 \subsection{Análise per capita: o efeito do \textit{malapportionment}}
 
 Quando se reorganiza pela métrica per capita (Tabela
@@ -504,9 +560,17 @@ geográficas complementares dessa desigualdade.
 \subsection{Indicador de equidade: coeficiente de variação}
 
 A Tabela \ref{tab:cv} e a Figura \ref{fig:cv} apresentam o
-coeficiente de variação anual da distribuição per capita. O CV
-oscila entre 0{,}57 e 0{,}90, patamar duas a quatro vezes superior
-ao observado no Bolsa Família (CV \textasciitilde 0{,}20).
+coeficiente de variação anual da distribuição per capita das
+emendas. O CV oscila entre 0{,}57 e 0{,}90 ao longo do período
+analisado (excluído o atípico exercício 2017). Para
+contextualização, computou-se o mesmo indicador para o programa
+Bolsa Família, a partir dos microdados consolidados na vertical
+companheira do projeto Mirante dos Dados (vide
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/\#/bolsa-familia}).
+Os valores observados para o PBF nos mesmos exercícios são:
+0{,}54 (2016), 0{,}57 (2017\textendash 2019), 0{,}55 (2020), 0{,}54
+(2021), 0{,}46 (2022), 0{,}43 (2023\textendash 2024) e 0{,}45 (2025).
+A Figura \ref{fig:cv} sobrepõe as duas séries para comparação direta.
 
 \begin{table}[H]
 \centering
@@ -534,10 +598,20 @@ ao observado no Bolsa Família (CV \textasciitilde 0{,}20).
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\linewidth]{fig11-cv}
-\caption{Coeficiente de variação anual da distribuição per capita por UF, 2016\textendash 2025}
+\caption{Coeficiente de variação anual da distribuição per capita por UF — Emendas vs Bolsa Família, 2016\textendash 2025}
 \label{fig:cv}
-\par\noindent{\small Fonte: elaboração própria. Linha tracejada: nível típico do Bolsa Família.}
+\par\noindent{\small Fonte: elaboração própria, microdados CGU + IBGE para emendas; microdados CGU/Portal da Transparência para Bolsa Família, consolidados na vertical companheira do projeto Mirante dos Dados.}
 \end{figure}
+
+A diferença observada \textemdash{} CV das emendas
+1{,}3 a 2{,}0 vezes superior ao do PBF, dependendo do exercício
+\textemdash{} é menor do que sugeririam as primeiras impressões,
+mas estatisticamente expressiva e sustentada ao longo do período.
+A interpretação se mantém qualitativamente: a alocação per capita das
+emendas segue lógica distinta da das transferências sociais, e a
+diferença de magnitude reflete a sobreposição entre desenho político
+(emendas) e critério socioeconômico (Bolsa Família, focalizado pela
+linha de pobreza).
 
 \begin{figure}[H]
 \centering
@@ -585,6 +659,27 @@ cada 100 mil habitantes; SP, 1 para cada 658 mil. A literatura
 comparada não oferece resposta unívoca sobre a desejabilidade dessa
 configuração (MAINWARING, 1997; SAMUELS, 2002).
 
+Comparação direta com o Bolsa Família é instrutiva. Em 2025, o PBF
+distribuiu R\$\,129{,}87 bilhões (em valores de 2021) a 22{,}29 milhões
+de beneficiários, totalizando R\$\,5.826/benef e R\$\,608{,}51/hab no
+agregado nacional. As cinco UFs com maior per capita do PBF em 2025
+foram \textbf{Maranhão} (R\$\,1.168{,}51/hab), \textbf{Piauí}
+(R\$\,1.119{,}81/hab), \textbf{Alagoas} (R\$\,1.077{,}29/hab),
+\textbf{Bahia} (R\$\,1.052{,}09/hab) e \textbf{Pernambuco}
+(R\$\,1.050{,}98/hab) \textemdash{} todas no Nordeste, em padrão
+coerente com a focalização territorial pela linha de pobreza. As
+cinco UFs de menor per capita do PBF foram Santa Catarina
+(R\$\,167{,}35/hab), Paraná (R\$\,309{,}86), São Paulo (R\$\,325{,}33),
+Rio Grande do Sul (R\$\,337{,}62) e Distrito Federal (R\$\,356{,}85).
+Comparado com o ranking per capita das emendas (Tabela
+\ref{tab:percapita}), há \textbf{sobreposição parcial mas não plena}:
+o Nordeste recebe per capita elevado em ambos os instrumentos, mas
+o Norte (AP, RR, AC) é privilegiado nas emendas e não no PBF, e o DF
+está no fundo de ambos. Isso sugere que os dois instrumentos
+respondem a lógicas distintas: o PBF, à pobreza mensurada por
+indicadores socioeconômicos; as emendas, à representação parlamentar
+e à força política das bancadas.
+
 \subsection{Implicações para a gestão pública}
 
 (i) Maior \textbf{previsibilidade orçamentária} para o gestor
@@ -609,13 +704,23 @@ decisão (\rs 9{,}27\,bi \textrightarrow{} \rs 19{,}04\,bi), com a
 participação da RP6 saltando de 69\,\% para 81{,}7\,\%.
 
 \textbf{(iii) A alocação per capita é estruturalmente desigual.}
-Razão 30:1 entre Amapá e DF; CV per capita 3 a 4 vezes superior ao
-do Bolsa Família.
+Razão 30:1 entre Amapá (R\$\,737{,}81/hab) e DF (R\$\,24{,}87/hab) em
+2025. CV per capita das emendas (\textasciitilde 0{,}73) é
+1{,}3 a 2{,}0 vezes superior ao do Bolsa Família
+(\textasciitilde 0{,}43\textendash 0{,}45 nos exercícios 2023\textendash 2025),
+calculado sobre os mesmos microdados consolidados na vertical
+companheira do projeto Mirante dos Dados.
 
 \textbf{(iv) O padrão é compatível com \textit{malapportionment}, não
 com critérios técnicos de necessidade.} A hierarquia per capita é
 estável no tempo e altamente correlacionada com o tamanho da bancada
-parlamentar dividido pela população.
+parlamentar dividido pela população. A comparação direta com o
+ranking per capita do Bolsa Família \textemdash{} liderado em 2025
+por Maranhão, Piauí, Alagoas, Bahia e Pernambuco, todas no Nordeste
+e com indicadores socioeconômicos compatíveis com a focalização
+\textemdash{} reforça que os dois programas operam segundo lógicas
+distintas: o PBF responde à pobreza mensurada; as emendas, à força
+política da bancada estadual.
 
 \subsection{O que ainda não sabemos}
 
@@ -692,10 +797,26 @@ orçamentária no Brasil. \textbf{Revista do Serviço Público},
 Brasília, v. 71, n. 4, 2020.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
+DAMA INTERNATIONAL. \textbf{The DAMA Guide to The Data Management Body
+of Knowledge (DAMA-DMBOK Guide)}. 2nd edition. Technics Publications,
+2017.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
 INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE).
 \textbf{SIDRA}, Tabela 6579. Disponível em:
 \url{https://sidra.ibge.gov.br/tabela/6579}. Acesso em: abr. 2026.
 \par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+KIMBALL, R.; ROSS, M. \textbf{The Data Warehouse Toolkit: The
+Definitive Guide to Dimensional Modeling}. 3rd edition. Wiley, 2013.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+KUKREJA, M. \textbf{Data Engineering with Apache Spark, Delta Lake,
+and Lakehouse: Create scalable pipelines that ingest, curate, and
+aggregate complex data in a timely and secure way}. Packt Publishing,
+2021.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
 LIMONGI, F.; FIGUEIREDO, A. Processo orçamentário e comportamento
@@ -738,9 +859,19 @@ seus efeitos no presidencialismo de coalizão brasileiro}. Dissertação
 \par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
+REIS, J.; HOUSLEY, M. \textbf{Fundamentals of Data Engineering: Plan
+and Build Robust Data Systems}. 1st ed. O'Reilly Media, 2022.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
 WILKINSON, M. D. \textit{et al.} The FAIR Guiding Principles for
 scientific data management and stewardship. \textbf{Scientific Data},
-v. 3, 2016.
+v. 3, 2016. DOI: 10.1038/sdata.2016.18.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+ZAHARIA, M. et al. Apache Spark: a unified engine for big data
+processing. \textbf{Communications of the ACM}, v. 59, n. 11,
+p. 56\textendash 65, 2016. DOI: 10.1145/2934664.
 \end{singlespace}
 
 \end{document}

@@ -142,13 +142,23 @@ function BigDataStrip({ stats }) {
   const largest = stats.largest_table;
 
   const verticals = stats.verticals || {};
-  const orderedVerticals = ['pbf', 'mri', 'equipamentos'].filter((k) => verticals[k]);
+  // Ordem preferida; verticais não listadas aparecem no fim por ordem alfabética.
+  // Default genérico pra que novas verticais apareçam automaticamente.
+  const PREFERRED_ORDER = ['pbf', 'equipamentos', 'mri', 'emendas'];
+  const orderedVerticals = [
+    ...PREFERRED_ORDER.filter((k) => verticals[k]),
+    ...Object.keys(verticals).filter((k) => !PREFERRED_ORDER.includes(k)).sort(),
+  ];
 
+  // Label legível por chave; fallback humaniza a chave caso novo vertical não liste aqui
   const verticalLabel = {
-    pbf: 'Bolsa Família',
-    mri: 'Ressonância Magnética',
-    equipamentos: 'Equipamentos médicos (CNES)',
+    pbf:           'Bolsa Família',
+    mri:           'Ressonância Magnética',
+    equipamentos:  'Equipamentos médicos (CNES)',
+    emendas:       'Emendas Parlamentares',
   };
+  const labelOf = (k) => verticalLabel[k]
+    || k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ');
 
   return (
     <section className="bigdata-strip">

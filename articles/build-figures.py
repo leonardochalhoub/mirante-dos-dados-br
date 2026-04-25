@@ -205,26 +205,46 @@ def fig_exec_rate():
 
 # ─── Figura 5 — Composição RP empilhada ─────────────────────────────────────
 def fig_composition():
-    fig, ax = plt.subplots(figsize=(7, 3.5))
-    years = [s["ano"] for s in SERIES]
-    rp6 = [s["rp6"] for s in SERIES]
-    rp7 = [s["rp7"] for s in SERIES]
-    rp9 = [s["rp9"] for s in SERIES]
-    out_ = [s["outro"] for s in SERIES]
-    width = 0.65
-    ax.bar(years, rp6, width, label="RP6 (individual)",  color=CIVIDIS(0.95))
-    ax.bar(years, rp7, width, bottom=rp6, label="RP7 (bancada)",
-           color=CIVIDIS(0.65))
-    ax.bar(years, rp9, width, bottom=[a+b for a, b in zip(rp6, rp7)],
-           label="RP9 (relator)", color=CIVIDIS(0.40))
-    ax.bar(years, out_, width,
-           bottom=[a+b+c for a, b, c in zip(rp6, rp7, rp9)],
-           label="OUTRO", color=CIVIDIS(0.10))
-    ax.set_xlabel("Ano")
-    ax.set_ylabel("% do valor pago no exercício")
+    # Stacked area chart: mais elegante que stacked bars pra séries
+    # composicionais. Legenda fora do plot pra não sobrepor as áreas.
+    # Anotações apontam diretamente os pontos relevantes (pico RP9 2016,
+    # transição pós-STF 2023).
+    fig, ax = plt.subplots(figsize=(7.2, 4.0))
+    years = np.array([s["ano"] for s in SERIES])
+    rp6 = np.array([s["rp6"]   for s in SERIES])
+    rp7 = np.array([s["rp7"]   for s in SERIES])
+    rp9 = np.array([s["rp9"]   for s in SERIES])
+    out_ = np.array([s["outro"] for s in SERIES])
+
+    ax.stackplot(years, rp6, rp7, rp9, out_,
+                 labels=["RP6 (individual)", "RP7 (bancada)",
+                         "RP9 (relator)",   "OUTRO"],
+                 colors=[CIVIDIS(0.95), CIVIDIS(0.65),
+                         CIVIDIS(0.40), CIVIDIS(0.10)],
+                 alpha=0.92, edgecolor="white", linewidth=0.6)
+
+    # Anotações textuais dentro do plot (em áreas com espaço)
+    # Pico RP9 em 2016 (48,7%)
+    ax.annotate("Pico RP9: 48,7%\nem 2016",
+                xy=(2016, 75), xytext=(2016.4, 88),
+                fontsize=8, color="#1a1a1a", fontweight="bold",
+                arrowprops=dict(arrowstyle="->", color="#444", lw=0.7))
+    # RP6 cresce pós-STF
+    ax.annotate("RP6 → 81–83%\npós-decisão STF",
+                xy=(2024, 40), xytext=(2020.5, 18),
+                fontsize=8, color="white", fontweight="bold",
+                arrowprops=dict(arrowstyle="->", color="white", lw=0.7))
+
+    ax.set_xlabel("Ano", fontsize=9)
+    ax.set_ylabel("% do valor pago no exercício", fontsize=9)
     ax.set_xticks(years)
-    ax.set_ylim(0, 105)
-    ax.legend(loc="lower left", frameon=False, ncol=4, fontsize=8)
+    ax.set_xlim(years.min(), years.max())
+    ax.set_ylim(0, 100)
+    ax.set_yticks([0, 25, 50, 75, 100])
+    # Legenda EM CIMA do plot, fora da área de dados
+    ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.02),
+              ncol=4, fontsize=8, frameon=False, handlelength=1.4)
+    ax.grid(axis="y", linestyle=":", linewidth=0.4, alpha=0.5, color="white")
     save(fig, "fig05-composition")
 
 
@@ -381,20 +401,32 @@ def fig_per_capita_ranking():
 
 # ─── Figura 11 — Coef. de variação ──────────────────────────────────────────
 def fig_cv():
-    fig, ax = plt.subplots(figsize=(7, 3))
+    # CV per capita observado para Bolsa Família (gold_pbf_estados_df.json),
+    # mesmos exercícios. Diferença Emendas vs PBF é ~1,3-1,6×, não 3-4× como
+    # hipótese inicial sugeria — checagem empírica corrigiu o claim.
+    PBF_CV = {2016: 0.54, 2017: 0.57, 2018: 0.57, 2019: 0.57, 2020: 0.55,
+              2021: 0.54, 2022: 0.46, 2023: 0.43, 2024: 0.43, 2025: 0.45}
+    fig, ax = plt.subplots(figsize=(7, 3.2))
     years = [y for y, _ in CV]
     cvs   = [c for _, c in CV]
+    pbf_y = [y for y in years if y in PBF_CV]
+    pbf_v = [PBF_CV[y] for y in pbf_y]
+    # Emendas line
     ax.plot(years, cvs, color=CIVIDIS(0.95), linewidth=2.2,
-            marker="o", markersize=7, markeredgecolor="white", markeredgewidth=1.5)
+            marker="o", markersize=7, markeredgecolor="white",
+            markeredgewidth=1.5, label="Emendas Parlamentares")
+    # Bolsa Família comparison line
+    ax.plot(pbf_y, pbf_v, color=CIVIDIS(0.35), linewidth=2.0,
+            marker="s", markersize=6, markeredgecolor="white",
+            markeredgewidth=1.2, linestyle="--",
+            label="Bolsa Família (referência)")
     for y, c in zip(years, cvs):
         ax.text(y, c + 0.07, f"{c:.2f}", ha="center", fontsize=7.5, color="#444")
-    ax.axhline(0.20, color="#888", linestyle="--", linewidth=0.8)
-    ax.text(years[-1], 0.20 + 0.03, "referência: Bolsa Família ≈ 0,20",
-            ha="right", fontsize=7.5, color="#666", style="italic")
     ax.set_xlabel("Ano")
     ax.set_ylabel("Coeficiente de variação per capita")
     ax.set_xticks(years)
     ax.set_ylim(0, 2.0)
+    ax.legend(loc="upper right", frameon=False, fontsize=8)
     ax.grid(axis="y", linestyle=":", linewidth=0.4, alpha=0.6)
     save(fig, "fig11-cv")
 
@@ -430,6 +462,36 @@ def fig_bubble():
     save(fig, "fig12-bubble")
 
 
+# ─── Figura 13 — Choropleth de valores ABSOLUTOS acumulados ─────────────────
+# Pedido explícito: mapa onde SP aparece como o maior recipiente.
+def fig_choropleth_absolute():
+    states = load_brazil_geojson()
+    # Valor absoluto acumulado 2015-2025 por UF (R$ bi, 2021)
+    ABS_ACC = {
+        "SP": 12.21, "MG": 9.73, "BA": 7.49, "RJ": 7.06, "CE": 6.36,
+        "RS":  5.55, "MA": 5.29, "PR": 5.27, "PE": 5.05, "PA": 4.70,
+        "GO":  4.50, "AM": 4.20, "SC": 4.20, "PB": 4.10, "PI": 3.85,
+        "AL":  3.55, "MT": 3.40, "RN": 3.30, "MS": 2.85, "ES": 2.80,
+        "SE":  2.50, "RO": 2.30, "TO": 2.18, "AC": 1.45, "AP": 1.21,
+        "RR":  0.82, "DF": 0.55,
+    }
+    fig, ax = plt.subplots(figsize=(6, 6.5))
+    norm = _draw_choropleth(ax, states, ABS_ACC)
+    all_pts = np.concatenate([r for rings in states.values() for r in rings])
+    ax.set_xlim(all_pts[:, 0].min() - 1, all_pts[:, 0].max() + 1)
+    ax.set_ylim(all_pts[:, 1].min() - 1, all_pts[:, 1].max() + 1)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    ax.set_title("Valor pago acumulado 2015–2025 — R$ bi (2021)",
+                 fontsize=11, fontweight="bold")
+    sm = mpl.cm.ScalarMappable(cmap=CIVIDIS, norm=norm)
+    cb = fig.colorbar(sm, ax=ax, orientation="horizontal", fraction=0.04,
+                      pad=0.02, shrink=0.7)
+    cb.set_label("R$ bi acumulado (2021)", fontsize=8)
+    cb.ax.tick_params(labelsize=8)
+    save(fig, "fig13-choropleth-absolute")
+
+
 def main():
     fig_timeline()
     fig_architecture()
@@ -443,6 +505,7 @@ def main():
     fig_per_capita_ranking()
     fig_cv()
     fig_bubble()
+    fig_choropleth_absolute()
     print(f"\n{len(list(FIG_DIR.glob('*.pdf')))} PDFs geradas em {FIG_DIR}")
 
 
