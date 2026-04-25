@@ -10,7 +10,7 @@
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[brazil]{babel}
+\usepackage[brazilian]{babel}
 \usepackage{lmodern}
 \usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 \usepackage{setspace}
@@ -240,7 +240,7 @@ marcos.
 \includegraphics[width=0.95\linewidth]{fig01-timeline}
 \caption{Linha do tempo institucional das emendas parlamentares federais (1988\textendash 2026)}
 \label{fig:timeline}
-\\[-0.2em]\small Fonte: elaboração própria.
+\par\noindent{\small Fonte: elaboração própria.}
 \end{figure}
 
 \subsection{Literatura prévia}
@@ -277,7 +277,7 @@ e \textbf{Gold} (analytics-ready, panel UF\,$\times$\,Ano). A Figura
 \includegraphics[width=0.95\linewidth]{fig02-architecture}
 \caption{Arquitetura medallion adotada no pipeline de dados}
 \label{fig:arquitetura}
-\\[-0.2em]\small Fonte: elaboração própria, baseada em Armbrust et al.\ (2021).
+\par\noindent{\small Fonte: elaboração própria, baseada em Armbrust et al.\ (2021).}
 \end{figure}
 
 Implementação em Databricks Free Edition com persistência em Delta
@@ -328,7 +328,7 @@ A Tabela \ref{tab:evolucao} apresenta a série temporal completa.
 2025 & 28,71 & 21,27 & 74,1\,\% &  5.533 \\
 \bottomrule
 \end{tabular}
-\\[0.3em]\small Fonte: elaboração própria, microdados CGU, IPCA-BCB para dez/2021.
+\par\noindent{\small Fonte: elaboração própria, microdados CGU, IPCA-BCB para dez/2021.}
 \label{tab:evolucao}
 \end{table}
 
@@ -340,7 +340,7 @@ Tabela \ref{tab:evolucao}.
 \includegraphics[width=0.95\linewidth]{fig03-evolution}
 \caption{Evolução do empenhado e pago em emendas parlamentares federais (R\$ bi, 2021), 2015\textendash 2025}
 \label{fig:evolucao}
-\\[-0.2em]\small Fonte: elaboração própria, microdados CGU.
+\par\noindent{\small Fonte: elaboração própria, microdados CGU.}
 \end{figure}
 
 A Figura \ref{fig:exec} mostra a evolução da taxa de execução em
@@ -352,7 +352,7 @@ formato de série temporal: o salto de menos de 1\,\% (2015) para
 \includegraphics[width=0.95\linewidth]{fig04-exec-rate}
 \caption{Taxa de execução das emendas (pago/empenhado), 2015\textendash 2025}
 \label{fig:exec}
-\\[-0.2em]\small Fonte: elaboração própria.
+\par\noindent{\small Fonte: elaboração própria.}
 \end{figure}
 
 \subsection{Composição por tipo de Resultado Primário}
@@ -383,7 +383,7 @@ predominante de que o RP9 seria fenômeno apenas do triênio
 2025 &  75,6\,\% & 24,4\,\% &  0,0\,\% & 0,0\,\% \\
 \bottomrule
 \end{tabular}
-\\[0.3em]\small Fonte: elaboração própria, microdados CGU.
+\par\noindent{\small Fonte: elaboração própria, microdados CGU.}
 \label{tab:composicao}
 \end{table}
 
@@ -392,7 +392,7 @@ predominante de que o RP9 seria fenômeno apenas do triênio
 \includegraphics[width=0.95\linewidth]{fig05-composition}
 \caption{Composição percentual do valor pago por modalidade RP, 2015\textendash 2025}
 \label{fig:composicao}
-\\[-0.2em]\small Fonte: elaboração própria.
+\par\noindent{\small Fonte: elaboração própria.}
 \end{figure}
 
 \subsection{Distribuição geográfica}
@@ -419,7 +419,7 @@ A Tabela \ref{tab:topabs} e a Figura \ref{fig:topabs} apresentam as
 10 & Pará              &  4,70 \\
 \bottomrule
 \end{tabular}
-\\[0.3em]\small Fonte: elaboração própria, microdados CGU.
+\par\noindent{\small Fonte: elaboração própria, microdados CGU.}
 \label{tab:topabs}
 \end{table}
 
@@ -428,7 +428,7 @@ A Tabela \ref{tab:topabs} e a Figura \ref{fig:topabs} apresentam as
 \includegraphics[width=0.85\linewidth]{fig06-top10-abs}
 \caption{Top-10 UFs em valor pago acumulado (R\$ bi, 2021), 2015\textendash 2025}
 \label{fig:topabs}
-\\[-0.2em]\small Fonte: elaboração própria.
+\par\noindent{\small Fonte: elaboração própria.}
 \end{figure}
 
 \subsection{Análise per capita: o efeito do \textit{malapportionment}}
@@ -445,7 +445,7 @@ geográficas complementares dessa desigualdade.
 \includegraphics[width=0.85\linewidth]{fig07-choropleth}
 \caption{Mapa coroplético do Brasil — per capita por UF (R\$/hab, 2021), 2025}
 \label{fig:choropleth}
-\\[-0.2em]\small Fonte: elaboração própria, GeoJSON IBGE + microdados CGU.
+\par\noindent{\small Fonte: elaboração própria, GeoJSON IBGE + microdados CGU.}
 \end{figure}
 
 \begin{figure}[H]
@@ -453,7 +453,7 @@ geográficas complementares dessa desigualdade.
 \includegraphics[width=\linewidth]{fig08-choropleth-compare}
 \caption{Comparação cartogramada — per capita por UF, 2018 vs 2025}
 \label{fig:choro-cmp}
-\\[-0.2em]\small Fonte: elaboração própria. Escala de cores compartilhada.
+\par\noindent{\small Fonte: elaboração própria. Escala de cores compartilhada.}
 \end{figure}
 
 \begin{figure}[H]
@@ -461,7 +461,7 @@ geográficas complementares dessa desigualdade.
 \includegraphics[width=0.85\linewidth]{fig09-heatmap}
 \caption{Heatmap UF $\times$ Ano — per capita (R\$/hab, 2021), 2018\textendash 2025}
 \label{fig:heatmap}
-\\[-0.2em]\small Fonte: elaboração própria. UFs ordenadas em ordem decrescente do per capita 2025.
+\par\noindent{\small Fonte: elaboração própria. UFs ordenadas em ordem decrescente do per capita 2025.}
 \end{figure}
 
 \begin{table}[H]
@@ -489,7 +489,7 @@ geográficas complementares dessa desigualdade.
 27 & Distrito Federal  & \textbf{ 24,87} & 2.996.899 \\
 \bottomrule
 \end{tabular}
-\\[0.3em]\small Fonte: elaboração própria, microdados CGU + IBGE/SIDRA tab.\,6579.
+\par\noindent{\small Fonte: elaboração própria, microdados CGU + IBGE/SIDRA tab.\,6579.}
 \label{tab:percapita}
 \end{table}
 
@@ -498,7 +498,7 @@ geográficas complementares dessa desigualdade.
 \includegraphics[width=0.7\linewidth]{fig10-per-capita-ranking}
 \caption{Ranking horizontal: per capita por UF, 2025}
 \label{fig:rank}
-\\[-0.2em]\small Fonte: elaboração própria.
+\par\noindent{\small Fonte: elaboração própria.}
 \end{figure}
 
 \subsection{Indicador de equidade: coeficiente de variação}
@@ -527,7 +527,7 @@ ao observado no Bolsa Família (CV \textasciitilde 0{,}20).
 2025 & 177,70 & 149,38 & 0,84 \\
 \bottomrule
 \end{tabular}
-\\[0.3em]\small Fonte: elaboração própria, microdados CGU + IBGE.
+\par\noindent{\small Fonte: elaboração própria, microdados CGU + IBGE.}
 \label{tab:cv}
 \end{table}
 
@@ -536,7 +536,7 @@ ao observado no Bolsa Família (CV \textasciitilde 0{,}20).
 \includegraphics[width=0.95\linewidth]{fig11-cv}
 \caption{Coeficiente de variação anual da distribuição per capita por UF, 2016\textendash 2025}
 \label{fig:cv}
-\\[-0.2em]\small Fonte: elaboração própria. Linha tracejada: nível típico do Bolsa Família.
+\par\noindent{\small Fonte: elaboração própria. Linha tracejada: nível típico do Bolsa Família.}
 \end{figure}
 
 \begin{figure}[H]
@@ -544,7 +544,7 @@ ao observado no Bolsa Família (CV \textasciitilde 0{,}20).
 \includegraphics[width=0.95\linewidth]{fig12-bubble}
 \caption{Diagrama de bolhas: população (log) $\times$ per capita 2025 $\times$ valor absoluto acumulado}
 \label{fig:bubble}
-\\[-0.2em]\small Fonte: elaboração própria.
+\par\noindent{\small Fonte: elaboração própria.}
 \end{figure}
 
 % =====================================================================
