@@ -427,31 +427,33 @@ function DocSection() {
 
         <div className="doc-actions">
           <a
-            className="doc-toggle"
-            href={articleUrl}
-            target="_blank"
-            rel="noreferrer"
-            title="Abrir o artigo completo em uma nova aba"
-          >
-            ▾ Ler artigo na tela
-          </a>
-
-          <a
             className="doc-toggle doc-toggle-primary"
             href={articleUrl}
             target="_blank"
             rel="noreferrer"
-            title="Abrir artigo e usar Ctrl+P / Cmd+P para gerar PDF (formatado em padrão ABNT)"
+            title="Abrir o artigo em nova aba (visualizador integrado, equivalente ao PDF)"
+          >
+            📖 Ler artigo (PDF)
+          </a>
+
+          <a
+            className="doc-toggle"
+            href={articleUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Abrir artigo em nova aba e usar Ctrl+P / Cmd+P para salvar como PDF (padrão ABNT)"
           >
             ⤓ Baixar PDF (ABNT)
           </a>
         </div>
 
         <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8, marginBottom: 0 }}>
-          O artigo abre em nova aba (rota standalone <code>/incontinencia-urinaria/artigo</code>),
-          equivalente UX ao "PDF em nova aba" das demais verticais. Para gerar
-          um PDF, basta usar a função de impressão do navegador (Ctrl+P / Cmd+P) —
-          o CSS <code>@media print</code> formata o artigo em padrão ABNT.
+          O artigo desta vertical é gerado dinamicamente a partir do gold JSON
+          (não há .tex estático — daí ausência dos botões "Baixar fonte" e
+          "Abrir no Overleaf" do template Mirante). Abre em nova aba na rota
+          standalone <code>/incontinencia-urinaria/artigo</code>; para salvar
+          como PDF use Ctrl+P / Cmd+P (CSS <code>@media print</code> aplica
+          formatação ABNT).
         </p>
       </div>
     </section>
