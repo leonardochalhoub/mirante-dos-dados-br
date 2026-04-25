@@ -11,12 +11,14 @@ const NAV = [
 // `delta_version` for the listed gold table. Falls back to `defaultTag` while
 // stats are loading or if the table is missing.
 //
-// `firstPublished` is the precise ISO datetime when the vertical first
-// went to production (derived from `git log --diff-filter=A` of each
-// route file). Ordering is chronological, oldest first.
+// `firstPublished` é o ISO datetime da primeira versão da vertical em
+// produção. Para Equipamentos, usamos a data do scaffold original como
+// "Ressonância Magnética / SaudeMri.jsx" (commit ef311b9) — não a data
+// do rename para Equipamentos.jsx (63ce79b), que foi só uma expansão
+// do mesmo vertical. O usuário desenvolveu Equipamentos ANTES de Emendas.
 const VERTICALS = [
   { to: '/bolsa-familia',          label: 'Bolsa Família',          goldTable: 'pbf_estados_df',           defaultTag: 'v1', firstPublished: '2026-04-24T11:47:55-03:00' },
-  { to: '/equipamentos',           label: 'Equipamentos',           goldTable: 'equipamentos_estados_ano', defaultTag: 'v1', firstPublished: '2026-04-25T10:46:44-03:00' },
+  { to: '/equipamentos',           label: 'Equipamentos',           goldTable: 'equipamentos_estados_ano', defaultTag: 'v1', firstPublished: '2026-04-24T11:47:55-03:00' },
   { to: '/emendas',                label: 'Emendas Parlamentares',  goldTable: 'emendas_estados_df',       defaultTag: 'v1', firstPublished: '2026-04-25T02:29:21-03:00' },
   { to: '/incontinencia-urinaria', label: 'Incontinência Urinária', goldTable: 'uropro_estados_ano',       defaultTag: 'v1', firstPublished: '2026-04-25T15:26:34-03:00' },
 ].sort((a, b) => a.firstPublished.localeCompare(b.firstPublished));
