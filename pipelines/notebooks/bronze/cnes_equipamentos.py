@@ -52,11 +52,11 @@ print(f"dbc_dir={DBC_DIR}  parquet_dir={PARQUET_DIR}  target={BRONZE_TABLE}")
 
 # COMMAND ----------
 
-import contextlib
-import io
+import os
 import re
 import tempfile
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from contextlib import contextmanager
 from pathlib import Path
 
 import pandas as pd
@@ -64,6 +64,20 @@ from dbfread import DBF
 from pyreaddbc import dbc2dbf
 
 RE_EQ_FILE = re.compile(r"^EQ(?P<uf>[A-Z]{2})(?P<yy>\d{2})(?P<mm>\d{2})\.dbc$", re.IGNORECASE)
+
+
+@contextmanager
+def silence_fd_stdout():
+    # The C decoder writes to fd 1 directly; redirect at the OS level.
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    saved = os.dup(1)
+    try:
+        os.dup2(devnull, 1)
+        yield
+    finally:
+        os.dup2(saved, 1)
+        os.close(devnull)
+        os.close(saved)
 
 
 def parse_filename(name: str) -> dict | None:
@@ -75,8 +89,13 @@ def parse_filename(name: str) -> dict | None:
     return {"estado": m.group("uf").upper(), "ano": 2000 + yy, "mes": f"{mm:02d}"}
 
 
-def convert_one(dbc_path: Path, out_dir: Path) -> tuple[str, str]:
-    """Returns (filename, status) ∈ {'ok','cached','empty','error'}."""
+def convert_one(dbc_path_str: str, out_dir_str: str) -> tuple[str, str]:
+    """Returns (filename, status) ∈ {'ok','cached','empty','error'}.
+
+    Args are strings (not Path) so they pickle cheaply for ProcessPoolExecutor.
+    """
+    dbc_path = Path(dbc_path_str)
+    out_dir = Path(out_dir_str)
     out_path = out_dir / (dbc_path.stem + ".parquet")
     if out_path.exists() and out_path.stat().st_size > 0:
         return dbc_path.name, "cached"
@@ -88,7 +107,7 @@ def convert_one(dbc_path: Path, out_dir: Path) -> tuple[str, str]:
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             dbf_path = Path(tmpdir) / dbc_path.with_suffix(".dbf").name
-            with contextlib.redirect_stdout(io.StringIO()):
+            with silence_fd_stdout():
                 dbc2dbf(str(dbc_path), str(dbf_path))
             df = pd.DataFrame(iter(DBF(str(dbf_path), encoding="latin-1")))
 
@@ -120,12 +139,12 @@ dbc_files = sorted(dbc_dir.glob("*.dbc"))
 print(f"Found {len(dbc_files)} .dbc files. Parallel convert workers={WORKERS}…")
 
 results = {"ok": 0, "cached": 0, "empty": 0, "error": 0}
-with ThreadPoolExecutor(max_workers=WORKERS) as ex:
-    futures = [ex.submit(convert_one, p, parquet_dir) for p in dbc_files]
+with ProcessPoolExecutor(max_workers=WORKERS) as ex:
+    futures = [ex.submit(convert_one, str(p), str(parquet_dir)) for p in dbc_files]
     for i, fut in enumerate(as_completed(futures), 1):
         _, status = fut.result()
         results[status] += 1
-        if i % 500 == 0 or i == len(dbc_files):
+        if i % 250 == 0 or i == len(dbc_files):
             print(f"  [{i:5d}/{len(dbc_files)}] {results}")
 
 print(f"Convert done: {results}")

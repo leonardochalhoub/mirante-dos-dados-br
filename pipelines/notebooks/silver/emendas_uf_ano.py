@@ -132,6 +132,22 @@ df = df.where(
     & F.col("uf").isin(VALID_UFS)
 )
 
+# Data-quality guard: drop years with very few distinct emendas (e.g. 2014, which
+# CGU appears to have loaded as roll-up by UF only — exactly 27 records).
+# Threshold of 200 distinct emendas allows legitimate low-volume years through
+# while catching obvious aggregation artifacts.
+emendas_per_year = (
+    df.groupBy("Ano").agg(F.countDistinct("codigo_emenda").alias("n_em"))
+)
+DQ_MIN_EMENDAS = 200
+keep_years = [r["Ano"] for r in emendas_per_year.where(F.col("n_em") >= DQ_MIN_EMENDAS).collect()]
+all_dq = sorted([(r["Ano"], r["n_em"]) for r in emendas_per_year.collect()])
+print(f"emendas distintas por Ano: {all_dq}")
+dropped_dq = sorted(set(y for y, _ in all_dq) - set(keep_years))
+if dropped_dq:
+    print(f"⚠ anos com <{DQ_MIN_EMENDAS} emendas distintas (descartados por DQ): {dropped_dq}")
+df = df.where(F.col("Ano").isin(keep_years))
+
 # Normalize tipo_emenda to one of {RP6, RP7, RP8, RP9, OUTRO}.
 # CGU values são mixed case ("Emenda Individual - Transferências...") — upper() antes do contains.
 te = F.upper(F.coalesce(F.col("tipo_emenda"), F.lit("")))

@@ -1015,6 +1015,86 @@ button.primary:hover { filter: brightness(1.05); }
   line-height: 1.45;
 }
 
+/* TOC / lista de figuras / lista de tabelas — estilo ABNT */
+.article-toc { margin: 18px 0 24px; }
+.article-toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+}
+.toc-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 0;
+  font-variant-numeric: tabular-nums;
+}
+.toc-row a {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  color: var(--text);
+  text-decoration: none;
+}
+.toc-row a:hover { color: var(--link); }
+.toc-row-l1 { font-weight: 600; }
+.toc-row-l2 { padding-left: 18px; font-weight: 400; font-size: 12.5px; }
+.toc-num {
+  flex: 0 0 auto;
+  min-width: 70px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.toc-row-l2 .toc-num { min-width: 36px; }
+.toc-label { flex: 0 1 auto; }
+.toc-leader {
+  flex: 1 1 auto;
+  border-bottom: 1px dotted var(--faint);
+  height: 0.65em;
+  min-width: 12px;
+}
+.toc-page {
+  flex: 0 0 auto;
+  min-width: 28px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.article-glossary {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 4px 12px;
+  font-size: 12.5px;
+  margin: 0;
+}
+.article-glossary dt { font-weight: 700; color: var(--text); }
+.article-glossary dd { margin: 0; color: var(--text); }
+
+/* Figures (screen + print) */
+.article-figure {
+  margin: 18px 0;
+  page-break-inside: avoid;
+}
+.article-figure svg {
+  width: 100%;
+  height: auto;
+  max-width: 700px;
+  display: block;
+  margin: 0 auto;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+@media print {
+  .print-only-article .article-figure svg { border: 0.5pt solid #000; border-radius: 0; }
+  .print-only-article .toc-leader { border-bottom: 0.5pt dotted #555; }
+  .print-only-article .toc-num,
+  .print-only-article .toc-page { color: #000; }
+}
+
 .article-footnote {
   margin-top: 32px;
   padding-top: 16px;
