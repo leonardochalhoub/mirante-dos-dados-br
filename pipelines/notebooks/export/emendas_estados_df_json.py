@@ -22,8 +22,18 @@ print(f"gold={GOLD_TABLE}  out={OUTPUT_PATH}")
 import json
 from pathlib import Path
 
+# Defensive: gold pode não existir ainda se silver estava vazia (cascade do upstream).
+# Sai gracefully sem TABLE_OR_VIEW_NOT_FOUND.
+if not spark.catalog.tableExists(GOLD_TABLE):
+    print(f"⚠ {GOLD_TABLE} não existe — provavelmente o gold pulou por silver vazia.")
+    print("  Investigue o upstream (ingest_cgu_emendas → bronze → silver) antes de rodar export.")
+    dbutils.notebook.exit(f"SKIPPED: {GOLD_TABLE} does not exist")
+
 df = spark.read.table(GOLD_TABLE).drop("_gold_built_ts").orderBy("Ano", "uf")
 pdf = df.toPandas()
+if pdf.empty:
+    print(f"⚠ {GOLD_TABLE} existe mas está vazia — nada pra exportar.")
+    dbutils.notebook.exit(f"SKIPPED: {GOLD_TABLE} is empty")
 
 for c in ("Ano", "populacao", "n_emendas", "n_municipios"):
     if c in pdf.columns:
