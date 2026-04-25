@@ -27,7 +27,6 @@ import StateRanking   from '../components/StateRanking';
 import EvolutionBar   from '../components/charts/EvolutionBar';
 import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
-import UroProArticle   from '../components/UroProArticle';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
 import { COLORSCALES } from '../lib/scales';
@@ -392,14 +391,17 @@ function ProcedureMultiSelect({ selected, onChange }) {
   );
 }
 
-// ─── Doc section: abstract + buttons + toggle inline article ─────────────
+// ─── Doc section: abstract + buttons ─────────────────────────────────────
+// CONVENÇÃO Mirante (ver memory/feedback_article_buttons.md): "Ler artigo
+// na tela" SEMPRE abre em nova aba (target=_blank) — nunca toggle inline.
+// Como UroPro tem artigo data-driven (sem .pdf estático), abrimos a rota
+// standalone /incontinencia-urinaria/artigo, que renderiza o artigo
+// fora do <Layout> (sem sidebar). O usuário tem o equivalente UX de
+// "PDF aberto em nova aba" das outras verticais.
 function DocSection() {
-  const [open, setOpen] = useState(false);
   const base = import.meta.env.BASE_URL || '/';
-  const pdfUrl     = `${base}articles/uropro-incontinencia-urinaria.pdf`.replace(/\/{2,}/g, '/');
-  const texUrl     = `${base}articles/uropro-incontinencia-urinaria.tex`.replace(/\/{2,}/g, '/');
-  const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
-    encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
+  // HashRouter → o caminho "interno" precisa do prefixo #/.
+  const articleUrl = `${base}#/incontinencia-urinaria/artigo`.replace(/\/{2,}/g, '/');
 
   return (
     <section className="emendas-abstract">
@@ -414,11 +416,9 @@ function DocSection() {
           hospitalar e distribuição geográfica entre as 27 unidades federativas.
           A análise reproduz e estende a investigação original de Tatieli
           da Silva, conduzida como trabalho de conclusão de especialização
-          em Enfermagem (2022) com base em agregados pré-computados do
-          TabNet/DATASUS. A integração ao pipeline open-source{' '}
-          <i>Mirante dos Dados</i> viabiliza atualização mensal automatizada
-          e extensão a outros procedimentos cirúrgicos do SIGTAP por
-          modificação de um único parâmetro.
+          em Enfermagem (2022). O artigo é gerado dinamicamente a partir
+          da camada Gold — todos os números refletem o estado mais recente do
+          pipeline.
         </p>
         <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>
           <b>Palavras-chave:</b> incontinência urinária; SUS; SIH-SUS;
@@ -426,50 +426,34 @@ function DocSection() {
         </p>
 
         <div className="doc-actions">
-          <button
-            type="button"
+          <a
             className="doc-toggle"
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
+            href={articleUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Abrir o artigo completo em uma nova aba"
           >
-            {open ? '▴ Ocultar artigo na tela' : '▾ Ler artigo na tela'}
-          </button>
+            ▾ Ler artigo na tela
+          </a>
 
           <a
             className="doc-toggle doc-toggle-primary"
-            href={pdfUrl}
-            download="Mirante-UroPro-DaSilva-Chalhoub-2026.pdf"
-            title="Baixar PDF compilado em LaTeX (formatado em padrão ABNT)"
+            href={articleUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Abrir artigo e usar Ctrl+P / Cmd+P para gerar PDF (formatado em padrão ABNT)"
           >
             ⤓ Baixar PDF (ABNT)
           </a>
-
-          <a
-            className="doc-toggle"
-            href={texUrl}
-            download="uropro-incontinencia-urinaria.tex"
-            title="Baixar fonte LaTeX (.tex) — recompilável em qualquer ambiente TeX"
-          >
-            ⤓ Baixar fonte (.tex)
-          </a>
-
-          <a
-            className="doc-toggle"
-            href={overleafUrl}
-            target="_blank"
-            rel="noreferrer"
-            title="Abrir no Overleaf (compilação online em 1 clique)"
-          >
-            ↗ Abrir no Overleaf
-          </a>
         </div>
+
+        <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8, marginBottom: 0 }}>
+          O artigo abre em nova aba (rota standalone <code>/incontinencia-urinaria/artigo</code>),
+          equivalente UX ao "PDF em nova aba" das demais verticais. Para gerar
+          um PDF, basta usar a função de impressão do navegador (Ctrl+P / Cmd+P) —
+          o CSS <code>@media print</code> formata o artigo em padrão ABNT.
+        </p>
       </div>
-
-      {open && (
-        <div className="emendas-article-wrapper print-only-article">
-          <UroProArticle />
-        </div>
-      )}
     </section>
   );
 }
