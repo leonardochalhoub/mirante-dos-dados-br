@@ -68,18 +68,8 @@ const METRICS = {
 const DEFAULT_METRIC = 'pbfPerCapita';
 const DEFAULT_COLOR  = 'Cividis';
 
-// Drop the latest year if it's clearly partial (heuristic: < 70% of prior year's total).
-// CGU publishes monthly cumulative data, so the current calendar year always shows up
-// as a tiny stub (e.g. R$31bi for jan-mar 2026 vs R$130bi full 2025) until December.
-function lastFullYear(rows) {
-  const totals = new Map();
-  for (const r of rows) totals.set(r.Ano, (totals.get(r.Ano) || 0) + (r.valor_2021 || 0));
-  const yrs = Array.from(totals.keys()).sort((a, b) => a - b);
-  if (yrs.length < 2) return yrs[yrs.length - 1];
-  const last = yrs[yrs.length - 1];
-  const prev = yrs[yrs.length - 2];
-  return totals.get(last) < 0.7 * totals.get(prev) ? prev : last;
-}
+// Gold filtra anos parciais por contagem de meses (silver pbf_total_uf_mes tem Mes;
+// gold mantém só Anos com 12 meses distintos). Front confia no que o JSON entrega.
 
 // ── Aggregation helpers ───────────────────────────────────────────────────
 
@@ -119,10 +109,7 @@ export default function BolsaFamilia() {
 
   useEffect(() => {
     loadGold('gold_pbf_estados_df.json')
-      .then((all) => {
-        const cap = lastFullYear(all);
-        setRows(all.filter((r) => r.Ano <= cap));
-      })
+      .then(setRows)
       .catch((e) => setError(e.message));
   }, []);
 

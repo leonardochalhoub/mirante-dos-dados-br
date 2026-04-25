@@ -119,11 +119,16 @@ df = df.withColumn(
     F.when(F.length(F.col("uf")) == 2, F.upper(F.col("uf"))).otherwise(uf_mapping),
 )
 
-# Defensive filter: keep only valid (Ano, uf, tipo_emenda) rows
+# Defensive filter: keep only valid (Ano, uf, tipo_emenda) rows.
+# CGU consolidated CSV has NO month column — so we can't count months. The current
+# calendar year is always partial (CGU updates the consolidated dataset throughout
+# the year), so drop it. Other historic years are by definition complete.
 VALID_UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
              "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"]
 df = df.where(
-    F.col("Ano").isNotNull() & (F.col("Ano") >= 2014) & (F.col("Ano") <= F.year(F.current_date()))
+    F.col("Ano").isNotNull()
+    & (F.col("Ano") >= 2014)
+    & (F.col("Ano") < F.year(F.current_date()))   # strictly less than: drop current partial year
     & F.col("uf").isin(VALID_UFS)
 )
 

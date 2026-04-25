@@ -37,6 +37,21 @@ defl   = spark.read.table(SILVER_DEFLATORS).select("Ano", "deflator_to_2021")
 
 print(f"silver_pbf rows={silver.count():,}  populacao rows={pop.count()}  deflators rows={defl.count()}")
 
+# ─── Drop partial years (must have all 12 competency months) ────────────────
+# CGU publica mensalmente acumulando, então o ano corrente sempre aparece com 1-N
+# meses até dezembro. Mantemos somente Anos com 12 meses distintos em silver.
+months_per_year = (
+    silver.groupBy("Ano").agg(F.countDistinct("Mes").alias("n_months"))
+)
+full_years = [r["Ano"] for r in months_per_year.where(F.col("n_months") == 12).collect()]
+all_years  = sorted([r["Ano"] for r in months_per_year.collect()])
+dropped    = sorted(set(all_years) - set(full_years))
+print(f"meses por Ano: {sorted([(r['Ano'], r['n_months']) for r in months_per_year.collect()])}")
+print(f"anos completos (12 meses): {sorted(full_years)}")
+if dropped:
+    print(f"⚠ anos parciais descartados do gold: {dropped}")
+silver = silver.where(F.col("Ano").isin(full_years))
+
 # ─── Diagnostics: detect duplicates in dim tables (would multiply gold rows) ──
 print("\n--- DUPLICATE DETECTION ---")
 

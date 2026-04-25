@@ -51,18 +51,8 @@ const METRICS = {
 const DEFAULT_METRIC = 'emendaPerCapita2021';
 const DEFAULT_COLOR  = 'Cividis';
 
-// Mesma heurística do PBF: CGU publica dados acumulando mensalmente, então o ano
-// corrente sempre aparece como stub parcial (R$0.22bi para jan-mar/2026 vs R$21bi
-// para 2025 completo). Drop o último ano se < 70% do total do ano anterior.
-function lastFullYear(rows) {
-  const totals = new Map();
-  for (const r of rows) totals.set(r.Ano, (totals.get(r.Ano) || 0) + (r.valor_pago_2021 || 0));
-  const yrs = Array.from(totals.keys()).sort((a, b) => a - b);
-  if (yrs.length < 2) return yrs[yrs.length - 1];
-  const last = yrs[yrs.length - 1];
-  const prev = yrs[yrs.length - 2];
-  return totals.get(last) < 0.7 * totals.get(prev) ? prev : last;
-}
+// Silver já dropa o ano corrente (CGU consolidated CSV não tem mês — só dá pra
+// confiar que anos < ano corrente estão completos). Front consome direto.
 
 export default function Emendas() {
   const { theme } = useTheme();
@@ -75,10 +65,9 @@ export default function Emendas() {
   useEffect(() => {
     loadGold('gold_emendas_estados_df.json')
       .then((all) => {
-        const cap = lastFullYear(all);
-        const filtered = all.filter((r) => r.Ano <= cap);
-        setRows(filtered);
-        setYear(String(cap));
+        setRows(all);
+        const last = Math.max(...all.map((r) => r.Ano));
+        setYear(String(last));
       })
       .catch((e) => setError(e.message));
   }, []);

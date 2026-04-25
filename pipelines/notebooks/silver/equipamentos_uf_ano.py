@@ -117,6 +117,19 @@ df = (
     .where(F.col("codequip").isNotNull())
 )
 
+# ─── Drop partial years (must have all 12 monthly DBC files ingested) ──────
+# DATASUS publica EQ<UF><YY><MM>.dbc um por mês. Se o ano em curso só tem 8 meses,
+# ele entra como stub. Mantemos só Anos com 12 meses distintos no bronze.
+months_per_year = df.groupBy("ano").agg(F.countDistinct("mes").alias("n_months"))
+month_counts = sorted([(r["ano"], r["n_months"]) for r in months_per_year.collect()])
+print(f"meses por Ano: {month_counts}")
+full_years = [a for a, n in month_counts if n == 12]
+dropped    = [a for a, n in month_counts if n != 12]
+print(f"anos completos: {full_years}")
+if dropped:
+    print(f"⚠ anos parciais descartados: {dropped}")
+df = df.where(F.col("ano").isin(full_years))
+
 print("Top 10 codequips by row count:")
 df.groupBy("codequip").count().orderBy(F.desc("count")).show(10)
 
