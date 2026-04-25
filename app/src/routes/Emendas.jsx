@@ -238,8 +238,6 @@ export default function Emendas() {
 // (se ainda fechado) e dispara window.print(). O CSS @media print esconde o
 // resto da página, deixando apenas o artigo visível formatado em ABNT.
 function DocSection() {
-  const [open, setOpen] = useState(false);
-
   // Caminhos dos artefatos. BASE_URL respeita o subpath do GH Pages.
   const base = import.meta.env.BASE_URL || '/';
   const pdfUrl     = `${base}articles/emendas-parlamentares.pdf`.replace(/\/{2,}/g, '/');
@@ -250,20 +248,13 @@ function DocSection() {
   return (
     <section className="emendas-abstract">
       <div className="doc-block no-print">
-        <div className="kicker">Resumo · Gestão Pública</div>
+        <div className="kicker">Working Paper n. 1 — Mirante dos Dados</div>
         <p style={{ marginTop: 8 }}>
-          Este vertical apresenta um sistema de visualização aberta da execução de
-          emendas parlamentares federais brasileiras (2015–presente), construído a
-          partir dos microdados do Portal da Transparência (CGU). Considerando a
-          crescente importância dessas emendas no orçamento federal — superando
-          R$ 50 bilhões anuais nas modalidades de execução obrigatória (RP6 individual
-          e RP7 bancada) — e o impacto das mudanças institucionais recentes
-          (EC 86/2015, EC 100/2019, decisões do STF de 2022 sobre RP9), o trabalho
-          disponibiliza agregados por unidade federativa, ano e modalidade,
-          deflacionados a preços de 2021 (IPCA-BCB) e normalizados per capita
-          (IBGE/SIDRA). A arquitetura medallion (bronze/silver/gold) e o pipeline
-          open-source habilitam reprodutibilidade por jornalistas, pesquisadores e
-          órgãos de controle social.
+          <b>"Emendas Parlamentares no Orçamento Federal Brasileiro (2015–2025):
+          distribuição espacial, execução orçamentária e efeitos das mudanças
+          institucionais recentes"</b> — análise empírica completa (PT-BR,
+          padrão ABNT), com 13 figuras, 3 mapas coropléticos e ~10 mil palavras.
+          Fontes: Portal da Transparência (CGU), IBGE, BCB.
         </p>
         <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>
           <b>Palavras-chave:</b> emendas parlamentares; transparência fiscal; execução
@@ -271,17 +262,18 @@ function DocSection() {
         </p>
 
         <div className="doc-actions">
-          <button
-            type="button"
-            className="doc-toggle"
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
-          >
-            {open ? '▴ Ocultar artigo na tela' : '▾ Ler artigo na tela'}
-          </button>
-
           <a
             className="doc-toggle doc-toggle-primary"
+            href={pdfUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Abrir PDF em nova aba (visualizador nativo do navegador)"
+          >
+            📖 Ler artigo (PDF)
+          </a>
+
+          <a
+            className="doc-toggle"
             href={pdfUrl}
             download="Mirante-Emendas-Chalhoub-2026.pdf"
             title="Baixar PDF compilado em LaTeX (formatado em padrão ABNT)"
@@ -310,10 +302,9 @@ function DocSection() {
         </div>
       </div>
 
-      {/* O artigo é montado quando aberto (visível na tela) E é também o que
-          window.print() captura via @media print. Renderizar só quando aberto
-          evita o custo dos 10 SVGs no carregamento inicial da página. */}
-      {open && (
+      {/* (artigo React inline removido: o canônico agora é o PDF compilado
+           via LaTeX, aberto em nova aba pelo botão acima) */}
+      {false && (
         <div className="emendas-article-wrapper print-only-article">
           <EmendasArticle />
         </div>

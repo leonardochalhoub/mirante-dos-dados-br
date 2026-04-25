@@ -18,8 +18,8 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("min_year",   "2015")
-dbutils.widgets.text("max_year",   "2024")
+dbutils.widgets.text("min_year",   "2008")   # SIH-RD layout 200801_ começa jan/2008
+dbutils.widgets.text("max_year",   "2025")
 dbutils.widgets.text("max_month",  "12")
 dbutils.widgets.text("volume_dir", "/Volumes/mirante_prd/bronze/raw/datasus/sih_rd")
 dbutils.widgets.text("workers",    "100")

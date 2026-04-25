@@ -173,7 +173,7 @@ export default function UroPro() {
 
       <DocSection />
 
-      {!rows && (
+      {(!rows || rows.length === 0) && (
         <div className="panel" style={{ marginTop: 18 }}>
           <div className="panelHead">
             <span className="panelLabel">Status</span>
@@ -186,14 +186,11 @@ export default function UroPro() {
             ciclo mensal disparar (dia 26 às 6h UTC), ou manualmente via
             Workflows na UI do workspace. Quando o JSON gold for commitado em
             <code> /data/gold/gold_uropro_estados_ano.json</code>, esta página
-            renderiza automaticamente os KPIs, ranking e mapa.
+            renderiza automaticamente os KPIs, ranking e mapa. Enquanto isso,
+            o artigo acima já contém os achados centrais da pesquisa original
+            (Tatieli, 2022) cobrindo 2015–2020 — clique em <b>Ler artigo na tela</b>{' '}
+            ou <b>Baixar PDF (ABNT)</b>.
           </p>
-        </div>
-      )}
-
-      {rows && rows.length === 0 && (
-        <div className="panel" style={{ marginTop: 18 }}>
-          <p className="muted">Tabela gold publicada, mas sem registros para os procedimentos selecionados.</p>
         </div>
       )}
 
