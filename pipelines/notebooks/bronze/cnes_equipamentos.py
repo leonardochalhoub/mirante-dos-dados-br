@@ -39,7 +39,9 @@ DBC_DIR     = dbutils.widgets.get("dbc_dir")
 PARQUET_DIR = dbutils.widgets.get("parquet_dir")
 WORKERS     = int(dbutils.widgets.get("workers"))
 
-BRONZE_TABLE = f"{CATALOG}.bronze.cnes_equipamentos"
+BRONZE_TABLE   = f"{CATALOG}.bronze.cnes_equipamentos"
+CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/cnes_equipamentos/_checkpoint"
+SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/cnes_equipamentos/_schema"
 
 print(f"dbc_dir={DBC_DIR}  parquet_dir={PARQUET_DIR}  target={BRONZE_TABLE}")
 
@@ -151,42 +153,113 @@ print(f"Total .parquet now: {len(list(parquet_dir.glob('*.parquet')))}")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Step 3 — Batch read Parquet → Delta (dynamic partition overwrite)
+# MAGIC ## Step 3 — Parquet → Delta (modo híbrido: batch ou Auto Loader)
 # MAGIC
-# MAGIC Auto Loader (`cloudFiles`) era usado aqui mas tinha overhead **enorme**
-# MAGIC pra 6614 arquivos pequenos no Free Edition: schema inference por arquivo
-# MAGIC + coordenação de micro-batch + checkpoint maintenance ~~ 20+ minutos.
+# MAGIC **Decisão automática em runtime:**
+# MAGIC - Se a tabela bronze NÃO existe ainda OU está vazia OU o checkpoint do
+# MAGIC   Auto Loader não existe: **modo batch** (`spark.read.parquet` +
+# MAGIC   `mode("overwrite")` com `partitionOverwriteMode=dynamic`).
+# MAGIC   Carga inicial de 6614 arquivos completa em ~2-3 minutos.
+# MAGIC - Caso contrário: **Auto Loader** (`cloudFiles` streaming
+# MAGIC   `availableNow=True`). Detecta apenas os novos parquets convertidos
+# MAGIC   no refresh do mês via checkpoint persistente. Roda em segundos quando
+# MAGIC   há poucos arquivos novos.
 # MAGIC
-# MAGIC Padrão batch (matching o repo original Parkinson-BR-Stats):
-# MAGIC - `spark.read.parquet(...)` lê tudo em uma operação
-# MAGIC - `mode("overwrite") + partitionOverwriteMode=dynamic` reescreve só
-# MAGIC   partições que mudaram (idempotente, atômico)
-# MAGIC - Sem checkpoint, sem schema location, sem streaming
-# MAGIC
-# MAGIC Esperado: < 3 minutos pro mesmo workload. Subsequent runs ainda mais
-# MAGIC rápidas (convert_one cache + dynamic overwrite só toca novas partições).
+# MAGIC Justificativa: Auto Loader tem overhead alto pra carga inicial massiva
+# MAGIC mas é ótimo pra detectar deltas em refreshes mensais (~27 novos DBCs
+# MAGIC por mês, um por UF).
 
 # COMMAND ----------
 
 from pyspark.sql import functions as F
 
-# Dynamic partition overwrite: só (estado, ano) com dados novos são reescritos
-spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
-
-df = (
-    spark.read.parquet(PARQUET_DIR)
-        .withColumn("_source_file", F.input_file_name())
-        .withColumn("_ingest_ts",   F.current_timestamp())
+table_exists = spark.catalog.tableExists(BRONZE_TABLE)
+existing_rows = (
+    spark.read.table(BRONZE_TABLE).count() if table_exists else 0
 )
+checkpoint_initialized = False
+try:
+    checkpoint_initialized = bool(dbutils.fs.ls(CHECKPOINT_LOC))
+except Exception:
+    pass  # checkpoint dir doesn't exist yet
 
-(
-    df.write
-        .format("delta")
-        .mode("overwrite")
-        .option("mergeSchema", "true")
-        .partitionBy("estado", "ano")
-        .saveAsTable(BRONZE_TABLE)
-)
+use_batch = (not table_exists) or (existing_rows == 0) or (not checkpoint_initialized)
+
+if use_batch:
+    # ─── MODO BATCH (carga inicial / reset) ──────────────────────────
+    print(f"▸ MODO BATCH — table_exists={table_exists}  rows={existing_rows:,}  "
+          f"checkpoint_initialized={checkpoint_initialized}")
+    print("  Lendo parquets em batch e reescrevendo Delta com dynamic partition overwrite.")
+    spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
+
+    df = (
+        spark.read.parquet(PARQUET_DIR)
+            .withColumn("_source_file", F.input_file_name())
+            .withColumn("_ingest_ts",   F.current_timestamp())
+    )
+    (
+        df.write
+            .format("delta")
+            .mode("overwrite")
+            .option("mergeSchema", "true")
+            .partitionBy("estado", "ano")
+            .saveAsTable(BRONZE_TABLE)
+    )
+
+    # Após o batch inicial, criamos o checkpoint do Auto Loader vazio para que
+    # a próxima execução já entre no modo incremental. Listamos os arquivos
+    # atuais como "já vistos" via uma única passagem availableNow.
+    print("  Inicializando checkpoint do Auto Loader pra próximas execuções incrementais…")
+    init_stream = (
+        spark.readStream
+            .format("cloudFiles")
+            .option("cloudFiles.format", "parquet")
+            .option("cloudFiles.inferColumnTypes", "true")
+            .option("cloudFiles.schemaLocation", SCHEMA_LOC)
+            .option("cloudFiles.includeExistingFiles", "false")  # já carregados via batch
+            .load(PARQUET_DIR)
+            .withColumn("_source_file", F.col("_metadata.file_path"))
+            .withColumn("_ingest_ts",   F.current_timestamp())
+    )
+    # writeStream com count() vazio só pra o checkpoint registrar "já vi tudo"
+    (
+        init_stream.writeStream
+            .format("delta")
+            .option("checkpointLocation", CHECKPOINT_LOC)
+            .option("mergeSchema", "true")
+            .partitionBy("estado", "ano")
+            .trigger(availableNow=True)
+            .toTable(BRONZE_TABLE)
+            .awaitTermination()
+    )
+
+else:
+    # ─── MODO AUTO LOADER (incremental mensal) ───────────────────────
+    print(f"▸ MODO AUTO LOADER — table_exists={table_exists}  rows={existing_rows:,}  "
+          f"checkpoint pré-existente.")
+    print("  Detectando apenas parquets novos desde o último checkpoint.")
+
+    stream = (
+        spark.readStream
+            .format("cloudFiles")
+            .option("cloudFiles.format", "parquet")
+            .option("cloudFiles.inferColumnTypes", "true")
+            .option("cloudFiles.schemaLocation", SCHEMA_LOC)
+            .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
+            .load(PARQUET_DIR)
+            .withColumn("_source_file", F.col("_metadata.file_path"))
+            .withColumn("_ingest_ts",   F.current_timestamp())
+    )
+    (
+        stream.writeStream
+            .format("delta")
+            .option("checkpointLocation", CHECKPOINT_LOC)
+            .option("mergeSchema", "true")
+            .partitionBy("estado", "ano")
+            .trigger(availableNow=True)
+            .toTable(BRONZE_TABLE)
+            .awaitTermination()
+    )
 
 # COMMAND ----------
 
