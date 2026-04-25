@@ -263,29 +263,44 @@ export default function Rais() {
 //
 // Master's level signal: quando o trabalho atingir nível stricto sensu,
 // MASTER_LEVEL = true e o componente exibe destaque + nota 10.
-const SCORE_ATUAL = 5.0;
+// Calibragem: o vertical HERDA o trabalho conceitual da monografia
+// (referencial, hipóteses, metodologia documentada no spec doc), portanto
+// parte de 7,5 — ligeiramente abaixo do 8,0 original porque a execução
+// empírica ainda não foi feita nesta plataforma. À medida que (a) o
+// pipeline rodar e gerar resultados, (b) o .tex for escrito com dados
+// reais, (c) as extensões (multi-formato, FAIR scoring) forem entregues,
+// a nota sobe além de 8.
+const SCORE_ATUAL = 7.5;
 const SCORE_ORIGINAL = 8.0;
 const MASTER_LEVEL = false;
 
 const PARECER_RAIS = {
-  ultimaAtualizacao: '2026-04-25T17:30 BRT',
-  versao: '0.1 (skeleton inicial)',
+  ultimaAtualizacao: '2026-04-25T17:45 BRT',
+  versao: '0.1 (scaffold completo, execução empírica pendente)',
+  resumo_calibragem:
+    'Score parte de 7,5 (ligeiramente abaixo do 8,0 da monografia) porque ' +
+    'o vertical herda toda a base analítica da monografia — registrada em ' +
+    'docs/vertical-rais-fair-lakehouse-spec.md — e adiciona melhorias de ' +
+    'infraestrutura, mas a EXECUÇÃO EMPÍRICA (resultados quantitativos sobre ' +
+    'a plataforma Mirante) ainda não foi feita. Sobe a 8,0+ quando o pipeline ' +
+    'rodar e o artigo ganhar dados reais.',
   melhorias_vs_original: [
-    'Pipeline open-source versionado em Git (vs scripts isolados sem versionamento)',
+    'Pipeline open-source versionado em Git (vs scripts isolados sem versionamento na monografia)',
     'Arquitetura medallion bronze/silver/gold canônica (vs notebooks por formato)',
     'Padrão híbrido batch + Auto Loader incremental (vs full-overwrite manual)',
     'Schema-coerce float64 desde a primeira execução (lição aprendida em CNES)',
-    'Spec doc registrando lições do parecer da monografia em docs/',
+    'Spec doc registrando o parecer crítico da monografia + plano de extensões',
+    'Defensive guards em silver/gold/export (skip on missing upstream)',
   ],
-  pendencias_para_aprovacao_lato_sensu: [
-    'Pipeline RAIS ainda não rodou — silver/gold sem dados para análise',
-    'URL do PDET/MTE não confirmada — ingest pode falhar em ambiente real',
-    'Artigo (.tex) está em estado SKELETON — todas as seções substantivas vazias',
-    'Sem execução empírica das 3 métricas (size/write/read) ainda',
-    'Sem scoring FAIR via RDA Maturity Model implementado',
+  pendencias_para_aprovacao_plena_lato_sensu: [
+    'Pipeline RAIS ainda não rodou — bronze/silver/gold sem dados',
+    'URL do PDET/MTE não confirmada — ingest pode precisar de ajuste',
+    'Artigo (.tex) está em estado SKELETON — seções vazias',
+    'Sem execução empírica das 3 métricas (size/write/read) na plataforma Mirante',
   ],
   pendencias_para_nivel_mestrado: [
     'Multi-formato (Iceberg + Hudi além de Delta) NÃO implementado',
+    'FAIR scoring quantitativo via RDA Maturity Model NÃO implementado',
     'Variância controlada (desvio padrão, IC 95%, n) NÃO reportada',
     'Múltiplas configurações de cluster NÃO comparadas',
     'Análise crítica when-not-to-use Lakehouse NÃO escrita',
@@ -330,6 +345,12 @@ function ScoreCard() {
         )}
       </div>
 
+      {PARECER_RAIS.resumo_calibragem && (
+        <p style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 14, lineHeight: 1.6 }}>
+          <b>Calibragem:</b> {PARECER_RAIS.resumo_calibragem}
+        </p>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14, fontSize: 12.5 }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#059669', marginBottom: 6 }}>
@@ -341,15 +362,15 @@ function ScoreCard() {
         </div>
         <div>
           <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b45309', marginBottom: 6 }}>
-            ⚠ Pendências para aprovação lato sensu
+            ⚠ Pendências para alcançar plenamente o nível da monografia
           </div>
           <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-            {PARECER_RAIS.pendencias_para_aprovacao_lato_sensu.map((p, i) => <li key={i}>{p}</li>)}
+            {PARECER_RAIS.pendencias_para_aprovacao_plena_lato_sensu.map((p, i) => <li key={i}>{p}</li>)}
           </ul>
         </div>
         <div>
           <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#1d4ed8', marginBottom: 6 }}>
-            ★ Pendências adicionais para nível stricto sensu
+            ★ Pendências adicionais para atingir nível stricto sensu (mestrado)
           </div>
           <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
             {PARECER_RAIS.pendencias_para_nivel_mestrado.map((p, i) => <li key={i}>{p}</li>)}
