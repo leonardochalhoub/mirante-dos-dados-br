@@ -48,28 +48,87 @@ import py7zr
 
 extracted = 0; skipped = 0
 Path(TXT_EXTRACTED).mkdir(parents=True, exist_ok=True)
+
+# DIAGNÓSTICO: o que está no volume antes da extração
+print(f"\n=== DIAGNÓSTICO DOS VOLUMES ===")
+print(f"ZIPS_DIR    : {ZIPS_DIR}")
+try:
+    zips_listing = list(Path(ZIPS_DIR).iterdir())
+    print(f"  conteúdo total: {len(zips_listing)} entradas")
+    for f in sorted(zips_listing)[:20]:
+        size = f.stat().st_size if f.is_file() else 0
+        print(f"    {f.name:50s}  {size:>14,} bytes")
+    if len(zips_listing) > 20:
+        print(f"    ... +{len(zips_listing)-20} entradas")
+except FileNotFoundError:
+    print(f"  ⚠ folder não existe!")
+except Exception as e:
+    print(f"  ⚠ erro listando: {e}")
+
+print(f"\nTXT_EXTRACTED: {TXT_EXTRACTED}")
+try:
+    txts_listing = list(Path(TXT_EXTRACTED).iterdir())
+    print(f"  conteúdo total: {len(txts_listing)} entradas")
+    for f in sorted(txts_listing)[:20]:
+        size = f.stat().st_size if f.is_file() else 0
+        print(f"    {f.name:50s}  {size:>14,} bytes")
+    if len(txts_listing) > 20:
+        print(f"    ... +{len(txts_listing)-20} entradas")
+except Exception as e:
+    print(f"  (vazio ou erro: {e})")
+print(f"=== FIM DIAGNÓSTICO ===\n")
+
 zips = sorted(Path(ZIPS_DIR).glob("*.7z"))
-print(f"7z encontrados: {len(zips)}")
+print(f".7z encontrados pra extração: {len(zips)}")
+
+if not zips:
+    print(f"⚠ NENHUM .7z em {ZIPS_DIR}.")
+    print(f"  Causa provável: ingest_mte_rais não baixou nada (PDET URL errada/mudou).")
+    print(f"  Workarounds:")
+    print(f"  1. Investigar URL_TEMPLATES em pipelines/notebooks/ingest/mte_rais.py")
+    print(f"     (PDET reestruturou várias vezes desde 2023)")
+    print(f"  2. Fazer upload manual dos .7z direto no Volume:")
+    print(f"     UI Databricks → Catalog → mirante_prd → bronze → raw → mte/rais → Upload")
+    print(f"  3. Ou copiar via CLI:")
+    print(f"     databricks fs cp ./RAIS_VINC_PUB_BR_2021.7z dbfs:{ZIPS_DIR}/")
+    dbutils.notebook.exit("SKIPPED: no .7z files to extract")
 
 for zp in zips:
     # Marcador por arquivo: <stem>.done — se existe, pulamos
     marker = Path(TXT_EXTRACTED) / f"_{zp.stem}.done"
     if marker.exists() and not FORCE_RECONVERT:
         skipped += 1; continue
+    print(f"  extraindo {zp.name} ({zp.stat().st_size:,} bytes)...")
     try:
         with py7zr.SevenZipFile(zp, mode='r') as z:
             z.extractall(path=TXT_EXTRACTED)
         marker.write_text("ok")
         extracted += 1
+        print(f"    ✓ ok")
     except Exception as e:
-        print(f"  ✗ {zp.name}: {type(e).__name__}: {str(e)[:120]}")
+        print(f"    ✗ {type(e).__name__}: {str(e)[:200]}")
+
+# Lista TODAS extensões pós-extração — alguns .7z contém .csv, .TXT, .dat, etc.
+all_after = sorted(Path(TXT_EXTRACTED).iterdir())
+by_ext = {}
+for f in all_after:
+    if f.is_file():
+        by_ext.setdefault(f.suffix.lower(), 0)
+        by_ext[f.suffix.lower()] += 1
+print(f"\nApós extração ({extracted} novos, {skipped} skipped):")
+for ext, n in sorted(by_ext.items(), key=lambda kv: -kv[1]):
+    print(f"  {ext or '(no ext)':15s}: {n} arquivos")
 
 txts = sorted(Path(TXT_EXTRACTED).glob("*.txt"))
-print(f"Extraídos {extracted} novos (skipped {skipped}). Total .txt: {len(txts)}")
-
 if not txts:
-    print("⚠ Nenhum .txt processável. Verifique ingest_mte_rais.")
-    dbutils.notebook.exit("SKIPPED: no .txt to process")
+    # Tenta extensões alternativas comuns em datasets PDET históricos
+    for alt_ext in ('*.TXT', '*.csv', '*.CSV', '*.dat', '*.DAT'):
+        alts = sorted(Path(TXT_EXTRACTED).glob(alt_ext))
+        if alts:
+            print(f"  ⚠ encontrei {len(alts)} {alt_ext} (não .txt) — ajuste a glob no notebook")
+            break
+    print("⚠ Nenhum .txt processável. Verifique diagnóstico acima.")
+    dbutils.notebook.exit("SKIPPED: no .txt files after extraction")
 
 # COMMAND ----------
 
