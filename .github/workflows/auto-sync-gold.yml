@@ -55,20 +55,29 @@ jobs:
 
           BASE="dbfs:/Volumes/mirante_prd/gold/exports"
 
+          # Diagnostic: dump the entire Volume listing as seen from CI.
+          # If this is empty/permission-denied, that's our root cause —
+          # the runner's DATABRICKS_TOKEN lacks Volume READ.
+          echo "=== DIAGNOSTIC: full Volume listing from CI runner ==="
+          echo "BASE = $BASE"
+          databricks fs ls "$BASE" 2>&1 || echo "  (databricks fs ls returned non-zero)"
+          echo "=== END DIAGNOSTIC ==="
+          echo
+
           pull() {
             local src_file="$1"
             local dst_path="$2"
-            # Probe existence first
-            if ! databricks fs ls "$BASE/$src_file" >/dev/null 2>&1; then
-              echo "  ⚠ $src_file not in Volume yet (skip)"
-              return 0
+            # Probe existence + show the actual error output for transparency
+            local probe
+            if probe=$(databricks fs ls "$BASE/$src_file" 2>&1); then
+              echo "  → pulling $src_file"
+              databricks fs cp "$BASE/$src_file" "$dst_path" --overwrite
+              local sz
+              sz=$(stat -c %s "$dst_path" 2>/dev/null || echo "?")
+              echo "  ✓ pulled $src_file ($sz bytes)"
+            else
+              echo "  ⚠ $src_file: probe failed → $probe"
             fi
-            # Volume has it — cp must succeed, no fallback masking
-            echo "  → pulling $src_file"
-            databricks fs cp "$BASE/$src_file" "$dst_path" --overwrite
-            local sz
-            sz=$(stat -c %s "$dst_path" 2>/dev/null || echo "?")
-            echo "  ✓ pulled $src_file ($sz bytes)"
           }
 
           pull gold_pbf_estados_df.json           data/gold/gold_pbf_estados_df.json
