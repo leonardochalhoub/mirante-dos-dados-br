@@ -8,7 +8,7 @@ const NAV = [
 const VERTICALS = [
   { to: '/bolsa-familia',  label: 'Bolsa Família',           tag: 'V1' },
   { to: '/saude-mri',      label: 'Ressonância Magnética',   tag: 'V2' },
-  { to: '/emendas',        label: 'Emendas Parlamentares',   tag: 'V3' },
+  { to: '/emendas',        label: 'Emendas Parlamentares',   tag: 'v1' },
 ];
 
 const flagSrc = `${import.meta.env.BASE_URL}brazil-flag.svg`.replace(/\/{2,}/g, '/');
