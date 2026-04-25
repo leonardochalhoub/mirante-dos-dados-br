@@ -127,17 +127,17 @@ def convert_one(dbc_path_str: str, out_dir_str: str) -> tuple[str, str]:
         df["ano"]         = meta["ano"]
         df["mes"]         = meta["mes"]
 
-        # Schema-drift fix: pandas infere int64 quando todos valores são inteiros
-        # naquele mês, mas float64 quando há NaN. Spark falha ao ler parquets do
-        # mesmo diretório com tipos incompatíveis (LONG vs DOUBLE) na mesma
-        # coluna. Coercemos TODAS as colunas numéricas para float64 antes de
-        # escrever — float aceita qualquer int sem perda relevante p/ análise
-        # epidemiológica deste dataset (contagens de equipamentos, IDs).
+        # Padrão Mirante: BRONZE É STRING-ONLY.
+        # Vide memory/feedback_bronze_string_only.md — bronze é registro
+        # fiel da fonte, sem inferência de tipo. Todo cast acontece em
+        # silver+ onde há semântica de negócio. Substituiu o fix anterior
+        # de coerce-to-float64 (que era patch sobre patch).
+        # Particionadoras (estado/ano/mes/source_file) ficam como estão.
+        meta_cols = {"source_file", "estado", "ano", "mes"}
         for c in df.columns:
-            if c in ("source_file", "estado", "ano", "mes"):
+            if c in meta_cols:
                 continue
-            if pd.api.types.is_integer_dtype(df[c]) or pd.api.types.is_float_dtype(df[c]):
-                df[c] = df[c].astype("float64")
+            df[c] = df[c].astype("string").fillna("")
 
         df.to_parquet(out_path, index=False)
         return dbc_path.name, "ok"

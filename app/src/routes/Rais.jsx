@@ -263,49 +263,62 @@ export default function Rais() {
 //
 // Master's level signal: quando o trabalho atingir nível stricto sensu,
 // MASTER_LEVEL = true e o componente exibe destaque + nota 10.
-// Calibragem: o vertical HERDA o trabalho conceitual da monografia
-// (referencial, hipóteses, metodologia documentada no spec doc), portanto
-// parte de 7,5 — ligeiramente abaixo do 8,0 original porque a execução
-// empírica ainda não foi feita nesta plataforma. À medida que (a) o
-// pipeline rodar e gerar resultados, (b) o .tex for escrito com dados
-// reais, (c) as extensões (multi-formato, FAIR scoring) forem entregues,
-// a nota sobe além de 8.
-const SCORE_ATUAL = 7.5;
-const SCORE_ORIGINAL = 8.0;
+// Régua: STRICTO SENSU (Mestrado/Doutorado em Finanças e Eng. de Software).
+// Avaliador "casca grossa" — não distribui 8s e 9s. Vide
+// memory/feedback_rais_score_per_deploy.md pra critérios completos.
+//
+// Nota atual 6,8: o vertical herda a base da monografia 2023 (8,0 lato
+// sensu, mas ~6,5-7,0 se trazida para régua stricto sensu) e adiciona
+// melhorias de infraestrutura. Não está reprovado — está no patamar
+// "passaria mestrado com ressalvas substanciais SE entregasse o que
+// está prometido no spec". Como ainda não entregou (sem dados, sem
+// .tex escrito, sem extensões), fica por aqui.
+const SCORE_ATUAL = 6.8;
+const SCORE_ORIGINAL = 8.0;   // nota original na régua LATO SENSU MBA
 const MASTER_LEVEL = false;
 
 const PARECER_RAIS = {
-  ultimaAtualizacao: '2026-04-25T17:45 BRT',
-  versao: '0.1 (scaffold completo, execução empírica pendente)',
+  ultimaAtualizacao: '2026-04-25T17:55 BRT',
+  versao: '0.1 — scaffold sem execução empírica',
   resumo_calibragem:
-    'Score parte de 7,5 (ligeiramente abaixo do 8,0 da monografia) porque ' +
-    'o vertical herda toda a base analítica da monografia — registrada em ' +
-    'docs/vertical-rais-fair-lakehouse-spec.md — e adiciona melhorias de ' +
-    'infraestrutura, mas a EXECUÇÃO EMPÍRICA (resultados quantitativos sobre ' +
-    'a plataforma Mirante) ainda não foi feita. Sobe a 8,0+ quando o pipeline ' +
-    'rodar e o artigo ganhar dados reais.',
-  melhorias_vs_original: [
-    'Pipeline open-source versionado em Git (vs scripts isolados sem versionamento na monografia)',
-    'Arquitetura medallion bronze/silver/gold canônica (vs notebooks por formato)',
-    'Padrão híbrido batch + Auto Loader incremental (vs full-overwrite manual)',
-    'Schema-coerce float64 desde a primeira execução (lição aprendida em CNES)',
-    'Spec doc registrando o parecer crítico da monografia + plano de extensões',
-    'Defensive guards em silver/gold/export (skip on missing upstream)',
+    'Régua stricto sensu (Mestrado/Doutorado em Finanças e Engenharia de ' +
+    'Software). A nota original 8,0 da monografia foi atribuída em régua MBA; ' +
+    'na régua atual (mais dura), o mesmo trabalho ficaria em ~6,5-7,0. O ' +
+    'vertical RAIS herda essa base, ganha pontos por infraestrutura aberta e ' +
+    'reprodutível, mas ainda não entregou nenhuma extensão substantiva — sem ' +
+    'dados rodados, sem .tex escrito, sem método novo. 6,8 reflete isso. ' +
+    'Subir para 8,0 stricto sensu exige resultados empíricos REAIS na ' +
+    'plataforma Mirante; subir para 9,5+ (doutorado) exige contribuição ' +
+    'metodológica original — não basta replicar.',
+  pontos_fortes: [
+    'Infraestrutura open-source versionada em Git — atende parcialmente princípios FAIR sobre o próprio trabalho',
+    'Arquitetura medallion canônica (bronze/silver/gold) com padrão híbrido batch+Auto Loader',
+    'Bronze STRING-ONLY (regra de plataforma — nenhuma inferência de tipo em bronze, casts apenas em silver+)',
+    'Spec doc explícito (docs/vertical-rais-fair-lakehouse-spec.md) documenta parecer crítico da monografia + roadmap',
+    'Defensive guards em todas camadas downstream (skip on missing upstream) — evita cascade failures',
   ],
-  pendencias_para_aprovacao_plena_lato_sensu: [
-    'Pipeline RAIS ainda não rodou — bronze/silver/gold sem dados',
-    'URL do PDET/MTE não confirmada — ingest pode precisar de ajuste',
-    'Artigo (.tex) está em estado SKELETON — seções vazias',
-    'Sem execução empírica das 3 métricas (size/write/read) na plataforma Mirante',
+  problemas_que_impedem_nota_8: [
+    'Pipeline NUNCA RODOU — sem dados, qualquer "extensão" é apenas promessa em prosa',
+    'PDET URL não confirmada — risco de o ingest não funcionar em ambiente real',
+    'Artigo (.tex) é literalmente um esqueleto: 6 das 6 seções marcadas "[A ser escrito]"',
+    'Score só é 6,8 (e não 6,0) porque infraestrutura é genuinamente boa; senão seria reprovado',
   ],
-  pendencias_para_nivel_mestrado: [
-    'Multi-formato (Iceberg + Hudi além de Delta) NÃO implementado',
-    'FAIR scoring quantitativo via RDA Maturity Model NÃO implementado',
-    'Variância controlada (desvio padrão, IC 95%, n) NÃO reportada',
-    'Múltiplas configurações de cluster NÃO comparadas',
-    'Análise crítica when-not-to-use Lakehouse NÃO escrita',
-    'Cruzamento RAIS × indicadores socioeconômicos NÃO feito',
-    'Comparação com warehouses (BigQuery/Snowflake/Redshift) ausente',
+  problemas_que_impedem_nota_9_e_doutorado: [
+    'Replicação literal não constitui contribuição original — peso 15% da nota não está sendo atendido',
+    'Sem desenho experimental controlado: número de execuções, variância, IC 95%, teste de hipótese — todos ausentes',
+    'Sem comparação com formatos não-Delta (Iceberg, Hudi, parquet+iceberg, parquet+hudi) — sem isso, "comparação de formatos lakehouse" é falsa-promessa',
+    'FAIR scoring promete usar RDA Maturity Model mas não tem implementação sequer em planejamento detalhado',
+    'Análise when-not-to-use Lakehouse não tem nem outline — sinaliza que autor não conhece os limites do que defende',
+    'Sem teste de robustez: múltiplos clusters, múltiplos datasets, múltiplas seeds, sensibilidade a parâmetros',
+    'Bibliografia inicial é razoável mas vai precisar incluir os papers de comparação de formatos lakehouse 2023-2025 (Iceberg vs Delta vs Hudi benchmarks)',
+  ],
+  proximos_passos_concretos: [
+    '1. Confirmar URL PDET ou fazer upload manual de 1-2 anos de RAIS no Volume',
+    '2. Rodar pipeline end-to-end pra ter pelo menos um silver/gold com dados',
+    '3. Escrever a Seção 4 (Resultados) do .tex com números reais e tratamento estatístico desde o início',
+    '4. Implementar comparação com Iceberg E Hudi (não apenas mencionar)',
+    '5. Implementar FAIR scoring via algum dos frameworks consagrados (RDA, FAIRplus)',
+    '6. Escrever Seção 5 (Discussão) incluindo when-not-to-use Lakehouse honesto',
   ],
 };
 
@@ -334,8 +347,32 @@ function ScoreCard() {
         </div>
         <div>
           <div className="kicker" style={{ marginBottom: 4 }}>Score original (monografia 2023)</div>
-          <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, color: 'var(--muted)' }}>
-            {SCORE_ORIGINAL.toFixed(1)}<span style={{ fontSize: 16, color: 'var(--faint)', fontWeight: 600 }}> /10</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, color: 'var(--muted)' }}>
+              {SCORE_ORIGINAL.toFixed(1)}<span style={{ fontSize: 16, color: 'var(--faint)', fontWeight: 600 }}> /10</span>
+            </div>
+            <a
+              href="https://github.com/leonardochalhoub/CodingMBA_UFRJ/raw/main/Monografia_LeonardoChalhoub.pdf"
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--accent)',
+                background: 'var(--accent-soft)',
+                border: '1px solid var(--border)',
+                borderRadius: 999,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              }}
+              title="Abre o PDF da monografia original (UFRJ MBA Eng. Dados, 2023) em nova aba"
+            >
+              📄 Ler monografia original ↗
+            </a>
           </div>
         </div>
         <div style={{ color: trendColor, fontSize: 14, fontWeight: 700 }}>
