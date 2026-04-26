@@ -266,8 +266,9 @@ function Footer() {
           Esta vertical replica e estende a monografia de especialização
           do autor — <i>"O Papel dos Metadados em Arquiteturas de Nuvem:
           FAIRness e Governança de Dados em Big Data"</i> (Chalhoub, UFRJ
-          MBA Engenharia de Dados, apresentada à banca em set/2023, não
-          aprovada — vide nota 6,8 acima e contexto histórico no parecer).
+          MBA Engenharia de Dados, apresentada à banca em set/2023,
+          reprovada — sem nota atribuída pela banca; contexto histórico
+          no parecer acima).
           A versão Mirante adiciona scoring FAIR quantitativo,
           comparação multi-formato (Iceberg + Hudi além de Delta) e
           análise crítica balanceada — vide

@@ -357,21 +357,22 @@ export const PARECER_RAIS = {
   // GitHub `blob/...` URL renderiza o PDF inline no navegador.
   // `raw/...` força download via Content-Disposition, que não é o desejado aqui.
   originalUrl: 'https://github.com/leonardochalhoub/CodingMBA_UFRJ/blob/main/Monografia_LeonardoChalhoub.pdf',
-  ultimaAtualizacao: `${HOJE}T18:30 BRT`,
-  versao: '0.3 — pipeline scaffold + correção do contexto histórico (banca reprovou definitivamente)',
+  ultimaAtualizacao: `${HOJE}T18:45 BRT`,
+  versao: '0.4 — pipeline scaffold + contexto histórico (banca reprovou; sem nota atribuída)',
   resumoCalibragem:
-    'CONTEXTO HISTÓRICO: o autor foi REPROVADO 2 vezes na banca real ' +
-    'da monografia, e ao final NÃO obteve aprovação na UFRJ — o trabalho ' +
-    'foi reprovado mesmo. Curiosamente, defende Delta Lake como núcleo ' +
-    'do argumento — conteúdo que em 2023 era considerado vanguardista ' +
-    'e hoje (2026) virou mainstream de engenharia de dados. A nota 8,0 ' +
-    'mostrada como "Score original" NÃO é a nota da banca (que reprovou) ' +
-    '— é a avaliação posterior da monografia, em régua lato sensu, dada ' +
-    'pela IA do próprio Mirante (Claude Opus, modo professor de programa ' +
-    'de mestrado/doutorado). Em outras palavras: a banca histórica ' +
-    'reprovou; a IA reavalia hoje em 8,0; o conteúdo defendido virou ' +
-    'consenso técnico. — Avaliado como Lato sensu (deriva do MBA do autor, ' +
-    '2023). O vertical RAIS Mirante herda essa base, ganha pontos por ' +
+    'CONTEXTO HISTÓRICO: o autor foi REPROVADO pela banca da UFRJ ' +
+    '(MBA Engenharia de Dados, set/2023). A banca não atribuiu nota ' +
+    'numérica — apenas o veredicto de reprovação. Dois números aparecem ' +
+    'em telas como "scores", e ambos são posteriores e externos à banca: ' +
+    '(a) o "Score original" 8,0 é a reavaliação da monografia hoje pela ' +
+    'IA do próprio Mirante (Claude Opus, modo professor de programa de ' +
+    'mestrado/doutorado, régua lato sensu); (b) o "Score" 6,8 é a ' +
+    'avaliação da IA sobre o vertical RAIS desta plataforma — não da ' +
+    'monografia original, e não da banca. — Detalhe relevante: a ' +
+    'monografia defendia Delta Lake como núcleo do argumento, conteúdo ' +
+    'que em 2023 era considerado vanguardista e hoje (2026) virou ' +
+    'consenso técnico em engenharia de dados; a banca reprovou mesmo ' +
+    'assim. O vertical RAIS Mirante herda essa base, ganha pontos por ' +
     'infraestrutura aberta e reprodutível, mas ainda não entregou nenhuma ' +
     'extensão substantiva — sem dados rodados, sem .tex escrito, sem ' +
     'método novo. 6,8 lato sensu reflete isso. Subir para 8,0 lato sensu ' +
