@@ -21,7 +21,9 @@ print(f"gold={GOLD_TABLE}  out={OUTPUT_PATH}")
 import json
 from pathlib import Path
 
-df = spark.read.table(GOLD_TABLE).drop("_gold_built_ts").orderBy("estado", "ano", "codequip")
+df = spark.read.table(GOLD_TABLE).drop("_gold_built_ts").orderBy(
+    "estado", "ano", "tipequip", "codequip",
+)
 pdf = df.toPandas()
 
 for c in ("ano", "cnes_count", "sus_cnes_count", "priv_cnes_count",
@@ -39,5 +41,5 @@ print(f"✔ {dest}  ({dest.stat().st_size:,} bytes)")
 
 ufs = sorted({r["estado"] for r in records})
 years = sorted({r["ano"] for r in records})
-codequips = sorted({r["codequip"] for r in records})
-print(f"UFs: {len(ufs)}  Anos: {years[0]}..{years[-1]} ({len(years)})  Codequips: {len(codequips)}")
+combos = sorted({r["equipment_key"] for r in records})
+print(f"UFs: {len(ufs)}  Anos: {years[0]}..{years[-1]} ({len(years)})  Combos (TIPEQUIP:CODEQUIP): {len(combos)}")

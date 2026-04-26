@@ -1,0 +1,670 @@
+% =====================================================================
+% Mirante dos Dados — Working Paper #6
+% Panorama nacional da infraestrutura de equipamentos do CNES
+% (Brasil, 2024): mapeamento canônico de 129 (TIPEQUIP, CODEQUIP) e
+% análise agregada por categoria, equipamento e região.
+%
+% Autor: Leonardo Chalhoub (engenharia de dados, análise, redação)
+% Versão: 1.0 — Abril de 2026
+% Compilação: pdflatex articles/equipamentos-panorama-cnes.tex (2x)
+% =====================================================================
+
+\documentclass[12pt,a4paper,oneside]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazilian]{babel}
+\usepackage{lmodern}
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{float}
+
+\graphicspath{{figures-equipamentos-panorama/}}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+\titleformat{\section}{\normalfont\bfseries\large\uppercase}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+
+\captionsetup[table]{labelfont=bf,name=Tabela,labelsep=endash,
+                     position=above,justification=centering,font=small}
+\captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
+                      position=below,justification=centering,font=small}
+
+\begin{document}
+
+% ---------- CAPA ---------------------------------------------------------
+\begin{titlepage}
+  \begin{center}
+    \vspace*{1.5cm}
+    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 6}}\\
+    {\small Versão 1.0 \textemdash{} Abril de 2026}
+
+    \vfill
+
+    {\LARGE\bfseries
+     PANORAMA NACIONAL DA INFRAESTRUTURA
+     DE EQUIPAMENTOS DO CNES
+     (BRASIL, 2024):
+
+     MAPEAMENTO CANÔNICO DE 129
+     (TIPEQUIP, CODEQUIP) E ANÁLISE
+     AGREGADA POR CATEGORIA, EQUIPAMENTO
+     E REGIÃO}
+
+    \vspace{1cm}
+    {\large\itshape
+     A national snapshot of CNES equipment infrastructure (Brazil, 2024):
+     canonical mapping of 129 (TIPEQUIP, CODEQUIP) pairs and aggregate
+     analysis by category, equipment, and region}
+
+    \vfill
+
+    {\large\textbf{Leonardo Chalhoub}}\\[6pt]
+    {\small Engenharia de dados, análise quantitativa, redação}\\[6pt]
+    {\small\href{https://github.com/leonardochalhoub/mirante-dos-dados-br}{github.com/leonardochalhoub/mirante-dos-dados-br}}
+
+    \vfill
+
+    {\small Brasil \\ Abril de 2026}
+  \end{center}
+\end{titlepage}
+
+% ---------- RESUMO -------------------------------------------------------
+\section*{Resumo}
+\addcontentsline{toc}{section}{Resumo}
+\begin{singlespace}\small\noindent
+Este artigo apresenta um panorama nacional da infraestrutura de
+equipamentos de saúde cadastrados no Sistema CNES (Cadastro Nacional
+de Estabelecimentos de Saúde) do DATASUS, com base em snapshot
+completo de Dezembro de 2024 das 27 unidades federativas
+(1.123.809 registros), processado pelo pipeline aberto do projeto
+\textit{Mirante dos Dados}. Documentam-se cinco achados principais.
+\textbf{Primeiro}, o Brasil possuía em Dez/2024 cerca de 3,1 milhões
+de unidades de equipamento cadastradas, distribuídas entre nove
+categorias (\texttt{TIPEQUIP}): Manutenção da Vida (1,1 milhão, 35\,\%),
+Odontologia (804 mil, 26\,\%), Infraestrutura (394 mil, 13\,\%),
+Diagnóstico por Imagem (178 mil, 5,7\,\%), Métodos Ópticos (157 mil),
+Outros (135 mil), Telemedicina (113 mil), Métodos Gráficos (66 mil)
+e Audiologia (25 mil). \textbf{Segundo}, constrói-se e disponibiliza-se
+um dicionário canônico de 129 combinações (TIPEQUIP, CODEQUIP)
+extraído por parsing direto do HTML de
+\texttt{cnes2.datasus.gov.br/Mod\_Ind\_Equipamento.asp} e validado
+contra o snapshot empírico (cobertura 100\,\%). \textbf{Terceiro},
+detalha-se a composição interna da categoria Diagnóstico por Imagem
+(TIPEQUIP=1) — 18 códigos distintos, com Raio X Odontológico (07,
+55 mil un.), Ultrassom Convencional (15, 22.896), Ultrassom Doppler
+Colorido (13, 22.009) liderando, e Ressonância Magnética (12) com
+3.588 unidades em 3.011 estabelecimentos (densidade nacional de
+\,$\sim$\,17 RM/Mhab, exatamente na mediana OCDE). \textbf{Quarto},
+mapeia-se a distribuição regional do parque por categoria,
+revelando concentração severa do Sudeste em Diagnóstico por Imagem
+(52\,\% do parque nacional) e Telemedicina (47\,\%), e distribuição
+mais equilibrada em Manutenção da Vida e Infraestrutura.
+\textbf{Quinto}, decompõe-se a participação SUS vs.\ Privado por
+categoria — Manutenção da Vida (52\,\% SUS) e Infraestrutura
+(49\,\%) lideram em participação pública, enquanto Odontologia
+(28\,\% SUS) reflete o modelo brasileiro de odontologia
+predominantemente privada. O trabalho contribui ao ecossistema
+analítico de dados públicos brasileiros ao publicar (a) o pipeline
+aberto e auditável que materializa o snapshot reproduzível e (b) o
+dicionário canônico em formato CSV
+(\texttt{data/reference/cnes\_eq\_canonical.csv}).
+
+\vspace{0.4cm}\noindent\textbf{Palavras-chave:}
+CNES; DATASUS; equipamentos médicos; infraestrutura sanitária;
+medallion architecture; FAIR data; dados abertos; SUS;
+Diagnóstico por Imagem; Manutenção da Vida; Odontologia.
+\end{singlespace}
+
+% ---------- ABSTRACT -----------------------------------------------------
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\begin{singlespace}\small\noindent
+This paper presents a national snapshot of healthcare-equipment
+infrastructure registered in Brazil's CNES (Cadastro Nacional de
+Estabelecimentos de Saúde) system maintained by DATASUS, based on a
+complete December 2024 cross-section of all 27 federal units
+(1,123,809 records), processed through the open pipeline of the
+\textit{Mirante dos Dados} project. We document five main findings.
+\textbf{First}, Brazil held \,$\sim$\,3.1 million registered
+equipment units in Dec/2024, distributed across nine categories
+(\texttt{TIPEQUIP}): Life Maintenance (1.1M, 35\%), Dentistry (804K,
+26\%), Infrastructure (394K, 13\%), Diagnostic Imaging (178K, 5.7\%),
+Optical Methods (157K), Others (135K), Telemedicine (113K), Graphic
+Methods (66K), and Audiology (25K). \textbf{Second}, we build and
+publish a canonical dictionary of 129 (TIPEQUIP, CODEQUIP) pairs
+parsed directly from the official DATASUS HTML catalog
+(\texttt{cnes2.datasus.gov.br}), validated against the empirical
+snapshot at 100\% coverage. \textbf{Third}, we detail the internal
+composition of the Diagnostic Imaging category (TIPEQUIP=1) — 18
+distinct codes — with Dental X-Ray (07, 55K units), Conventional
+Ultrasound (15, 22,896), and Color Doppler Ultrasound (13, 22,009)
+leading, and MRI (12) holding 3,588 units across 3,011 facilities
+(national density \,$\sim$\,17 MRI/Mpop, matching the OECD median).
+\textbf{Fourth}, we map regional distribution of the equipment park
+by category, revealing severe Southeast concentration in Diagnostic
+Imaging (52\% of national park) and Telemedicine (47\%), with more
+balanced distributions in Life Maintenance and Infrastructure.
+\textbf{Fifth}, we decompose SUS vs.\ Private participation by
+category. The work contributes to the analytical ecosystem of
+Brazilian public data by publishing (a) an open auditable pipeline
+that materializes a reproducible snapshot and (b) the canonical
+dictionary in CSV format.
+
+\vspace{0.4cm}\noindent\textbf{Keywords:}
+CNES; DATASUS; medical equipment; healthcare infrastructure;
+medallion architecture; FAIR data; open data; SUS; Diagnostic Imaging.
+\end{singlespace}
+
+\newpage
+
+% ---------- SUMÁRIO + LISTAS --------------------------------------------
+\renewcommand{\contentsname}{Sumário}
+\tableofcontents
+
+\vspace{0.5cm}
+\renewcommand{\listfigurename}{Lista de Figuras}
+\listoffigures
+
+\newpage
+
+% =====================================================================
+\section{Introdução}\label{sec:intro}
+% =====================================================================
+
+A análise empírica de infraestrutura sanitária no Brasil depende
+criticamente da qualidade dos metadados que acompanham os microdados
+publicados pelo DATASUS. O Cadastro Nacional de Estabelecimentos de
+Saúde (CNES), em particular, mantém desde Agosto de 2005 um registro
+mensal granular de equipamentos médicos por estabelecimento, unidade
+federativa, tipo (\texttt{TIPEQUIP}) e código (\texttt{CODEQUIP}),
+totalizando atualmente cerca de 1,1 milhão de registros mensais
+distribuídos entre 27 UFs.
+
+Este Working Paper apresenta, com base em snapshot nacional completo
+de Dezembro de 2024, três contribuições principais:
+\textbf{(i)} um panorama agregado da infraestrutura de equipamentos
+do CNES no Brasil, decomposta em nove categorias e 129 códigos
+distintos; \textbf{(ii)} um dicionário canônico
+\texttt{(TIPEQUIP, CODEQUIP)} → nome de equipamento, extraído por
+parsing direto do catálogo HTML oficial do DATASUS e validado contra
+o snapshot empírico em cobertura 100\,\%; e \textbf{(iii)} análises
+focadas em recortes de interesse — composição da categoria
+Diagnóstico por Imagem, distribuição regional, e participação
+SUS vs.\ Privado.
+
+A motivação para este trabalho emerge do ecossistema de
+verticais analíticas do projeto \textit{Mirante dos Dados}, no qual
+o módulo de Equipamentos é uma das cinco verticais publicadas. As
+demais (Bolsa Família, Emendas Parlamentares, Incontinência Urinária
+no SUS, RAIS Vínculos Públicos) consomem outras bases do DATASUS,
+CGU, IBGE e MTE, integradas via pipeline medallion (bronze/silver/gold)
+em Apache Spark e Delta Lake. A análise multi-equipamento aqui
+apresentada demonstra a capacidade da infraestrutura de servir como
+plataforma reproduzível para investigações empíricas em política
+pública e saúde no Brasil.
+
+% =====================================================================
+\section{O CNES e o módulo de Equipamentos}\label{sec:cnes}
+% =====================================================================
+
+O CNES é mantido pelo DATASUS desde Agosto de 2005 como sistema
+oficial de cadastro de estabelecimentos de saúde no Brasil,
+independentemente de natureza jurídica ou integração com o SUS. Sua
+disseminação pública ocorre via FTP em
+\texttt{ftp.datasus.gov.br/dissemin/publicos/CNES/200508\_/Dados/EQ/},
+em arquivos mensais nomeados \texttt{EQ<UF><YY><MM>.dbc} (formato
+DBF comprimido proprietário do TabWin), totalizando aproximadamente
+6.614 arquivos cobrindo Jan/2005 até Dez/2025.
+
+\subsection{Schema do DBF de Equipamentos}
+
+Cada arquivo DBF de equipamentos contém 28 colunas (estável desde
+2015; antes contava com 27, sem \texttt{NAT\_JUR}), descritas no
+\textit{Informe Técnico CNES 2017-06}\,[\ref{ref:datasus-layout}].
+As colunas relevantes para análise agregada são:
+
+\begin{itemize}
+\item \texttt{CNES}: código do estabelecimento (CHAR 7);
+\item \texttt{TIPEQUIP}: \textbf{tipo} de equipamento (CHAR 1) — categoria;
+\item \texttt{CODEQUIP}: \textbf{código} de equipamento (CHAR 2) —
+identificador dentro da categoria;
+\item \texttt{QT\_EXIST}: quantidade existente cadastrada (NUMERIC 4);
+\item \texttt{QT\_USO}: quantidade efetivamente em uso (NUMERIC 4);
+\item \texttt{IND\_SUS}, \texttt{IND\_NSUS}: flags de disponibilidade
+para SUS / setor privado (CHAR 1);
+\item \texttt{COMPETEN}: competência mês/ano (CHAR 6).
+\end{itemize}
+
+\textbf{Nota importante}: \texttt{TIPEQUIP} e \texttt{CODEQUIP} são
+duas chaves complementares que, juntas, identificam univocamente o
+equipamento. As nove categorias TIPEQUIP (1–9) reusam a faixa
+numérica 01–99 para CODEQUIP. Por exemplo, \texttt{CODEQUIP=12} é
+Ressonância Magnética quando TIPEQUIP=1 (Diagnóstico por Imagem) e
+Eletrocardiograma de Telemedicina quando TIPEQUIP=9. Todo o pipeline
+e front-end do Mirante usam, portanto, a chave composta
+\texttt{equipment\_key = "TIPEQUIP:CODEQUIP"} (ex.\ \texttt{1:12}
+para RM) para evitar ambiguidade.
+
+\subsection{As nove categorias TIPEQUIP}
+
+Conforme catálogo oficial em
+\texttt{cnes2.datasus.gov.br/Mod\_Ind\_Equipamento.asp} (parseado
+diretamente do HTML), as nove categorias do CNES são:
+
+\begin{table}[H]
+\centering
+\caption{As nove categorias TIPEQUIP do CNES (catálogo oficial DATASUS)}
+\begin{tabular}{cll}
+\toprule
+\textbf{TIPEQUIP} & \textbf{Categoria} & \textbf{Faixa CODEQUIP utilizada} \\
+\midrule
+1 & Diagnóstico por Imagem        & 01--35 \\
+2 & Infraestrutura                 & 19--66 \\
+3 & Métodos Ópticos                & 31--51 \\
+4 & Métodos Gráficos               & 41--42 \\
+5 & Manutenção da Vida             & 51--65 \\
+6 & Outros Equipamentos            & 67--79 \\
+7 & Odontologia                    & 80--86 \\
+8 & Audiologia                     & 87--99 \\
+9 & Telemedicina                   & 01--12 \\
+\bottomrule
+\end{tabular}
+\par\noindent{\small Fonte: parsing direto de
+\texttt{cnes2.datasus.gov.br/Mod\_Ind\_Equipamento.asp?VEstado=00}.
+Vide Apêndice~\ref{sec:dict} para o dicionário completo.}
+\label{tab:tipequip-cats}
+\end{table}
+
+% =====================================================================
+\section{Aspectos metodológicos}\label{sec:metodo}
+% =====================================================================
+
+\subsection{Fonte de dados e arquitetura}
+
+Foi processado snapshot completo de Dezembro de 2024, consistindo de
+27 arquivos \texttt{EQ<UF>2412.dbc} descomprimidos via biblioteca
+\texttt{pyreaddbc} (PySUS) e lidos via \texttt{dbfread} em
+\texttt{pandas}. O snapshot integrado totaliza 1.123.809 linhas,
+uma por (estabelecimento, equipamento, mês).
+
+A arquitetura analítica adota o padrão medallion
+(ARMBRUST \textit{et al.}, 2021)\,[\ref{ref:armbrust}], implementada
+em Apache Spark sobre Delta Lake na plataforma Databricks Free
+Edition: \textbf{(i) bronze} converte cada DBC para Parquet (idempotente
+via PySUS) e materializa Delta com partição UF$\times$ano, preservando
+todas as colunas do DBF; \textbf{(ii) silver} agrega por
+\texttt{(estado, ano, tipequip, codequip)} com chave composta
+\texttt{equipment\_key} e join contra o dicionário canônico para
+nome do equipamento; \textbf{(iii) gold} é pass-through do silver,
+acrescentando metadata de build; \textbf{(iv) export} materializa
+JSON consumido pelo front (vertical Equipamentos do Mirante) e
+disponibilizado em \texttt{data/gold/}.
+
+\subsection{Construção do dicionário canônico}
+
+O dicionário (TIPEQUIP, CODEQUIP) → nome foi extraído por scraping
+direto do catálogo oficial DATASUS. A página
+\texttt{cnes2.datasus.gov.br/Mod\_Ind\_Equipamento.asp?VEstado=00}
+expõe links HTML do tipo
+\texttt{?VCod\_Equip=N\&VTipo\_Equip=M} — cada (M, N) mapeia
+inequivocamente para um nome de equipamento. O resultado contém 129
+entradas, cobrindo as 9 categorias principais e 4 categorias
+secundárias raras (Diálise, Radioterapia, Quimioterapia,
+Telemedicina-extra). Em validação contra o snapshot empírico Dez/2024,
+todas as 111 combinações observadas estão mapeadas (cobertura 100\,\%).
+O dicionário é publicado em formato CSV aberto em
+\texttt{data/reference/cnes\_eq\_canonical.csv} no repositório do
+Mirante.
+
+% =====================================================================
+\section{Resultados — panorama agregado}\label{sec:resultados}
+% =====================================================================
+
+\subsection{Distribuição por categoria TIPEQUIP}
+
+A Figura~\ref{fig:by-cat} apresenta a distribuição agregada do parque
+nacional de equipamentos por categoria TIPEQUIP. \textbf{Manutenção
+da Vida} domina com 1,1 milhão de unidades (35\,\% do total nacional),
+seguida por \textbf{Odontologia} (804 mil, 26\,\%) e
+\textbf{Infraestrutura} (394 mil, 13\,\%). \textbf{Diagnóstico por
+Imagem} — categoria de maior interesse clínico, onde estão CT, RM,
+Ultrassom e demais — representa apenas 178 mil unidades (5,7\,\% do
+total). Audiologia é a menor categoria (25 mil unidades, 0,8\,\%).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\linewidth]{fig02-by-category}
+\caption{Distribuição do parque nacional de equipamentos cadastrados
+por categoria TIPEQUIP, Brasil Dez/2024}
+\label{fig:by-cat}
+\par\noindent{\small Fonte: elaboração própria, snapshot Dez/2024,
+27 UFs, fonte FTP DATASUS/CNES.}
+\end{figure}
+
+\subsection{Top equipamentos individuais}
+
+A Figura~\ref{fig:top25} ranqueia os 25 equipamentos individuais com
+maior volume cadastrado nacional em Dez/2024. \textbf{Bomba de
+Infusão} (TIPEQUIP=5, CODEQUIP=52) lidera com 333 mil unidades —
+quase 11\,\% do parque total — seguida de longe por
+\textbf{Equipo Odontológico} (180 mil), \textbf{Reanimador
+Pulmonar/AMBU} (177 mil), \textbf{Ar Condicionado} (171 mil) e
+\textbf{Caneta de Alta Rotação} (170 mil). A análise revela que o
+parque cadastrado é dominado por equipamentos de baixa complexidade
+e alta replicabilidade (insumos clínicos, mobiliário hospitalar,
+infraestrutura predial) e \textbf{não} pelos equipamentos de
+diagnóstico por imagem que costumam dominar o imaginário público.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{fig03-top25}
+\caption{Top-25 equipamentos individuais por unidades cadastradas,
+Brasil Dez/2024 (cores indicam categoria TIPEQUIP)}
+\label{fig:top25}
+\par\noindent{\small Fonte: elaboração própria. Códigos exibidos no
+formato \texttt{TIPEQUIP.CODEQUIP}.}
+\end{figure}
+
+\subsection{TIPEQUIP=1 (Diagnóstico por Imagem) detalhado}
+
+Dada a centralidade de equipamentos de imagem para o debate de
+políticas de saúde, a Figura~\ref{fig:imagem} detalha a composição
+da categoria TIPEQUIP=1 em Dez/2024. \textbf{Raio X Odontológico}
+(CODEQUIP=07) lidera com 55 mil unidades, refletindo a alta
+penetração de odontologia. Em sequência: Ultrassom Convencional
+(15, 22.896 un), Ultrassom Doppler Colorido (13, 22.009),
+Raio X 100--500 mA (05, 15.228), Ultrassom Ecógrafo (14, 12.468),
+Raio X até 100 mA (04, 8.389), Gama Câmara (01, 8.136),
+Tomógrafo Computadorizado (11, 7.366), Raio X >500 mA (06, 5.290),
+Mamógrafo Cmd Simples (02, 4.927) e \textbf{Ressonância Magnética
+(12, 3.588)}. PET/CT (18) é o equipamento mais raro da categoria,
+com apenas 148 unidades em Dez/2024.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{fig06-imagem-breakdown}
+\caption{Composição interna da categoria TIPEQUIP=1 (Diagnóstico por
+Imagem) — todos os 18 códigos presentes em Dez/2024, com volumes
+nacionais cadastrados}
+\label{fig:imagem}
+\par\noindent{\small Fonte: elaboração própria.}
+\end{figure}
+
+\subsection{Distribuição regional por categoria}
+
+A Figura~\ref{fig:region-heatmap} apresenta heatmap da concentração
+regional do parque por categoria, expressa como percentual do
+parque nacional alocado a cada combinação (categoria × região). O
+\textbf{Sudeste} concentra 41--52\,\% do parque em quase todas as
+categorias, refletindo seu peso populacional e econômico. A
+distribuição regional é especialmente desigual em
+\textbf{Diagnóstico por Imagem} (52\,\% no Sudeste,
+2,1\,\% no Norte) e \textbf{Telemedicina} (47\,\% no Sudeste).
+Distribuições mais equilibradas aparecem em \textbf{Infraestrutura}
+e \textbf{Manutenção da Vida}, onde a presença regional reflete
+mais a densidade de leitos por UF do que concentração de capital.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\linewidth]{fig07-regional-heatmap}
+\caption{Heatmap — \% do parque nacional por categoria TIPEQUIP × Região, Brasil Dez/2024}
+\label{fig:region-heatmap}
+\par\noindent{\small Fonte: elaboração própria.}
+\end{figure}
+
+\subsection{Composição SUS vs. Privado}
+
+A Figura~\ref{fig:sus-share} apresenta a composição SUS vs. Privado
+por categoria. \textbf{Manutenção da Vida} (52\,\% SUS) e
+\textbf{Infraestrutura} (49\,\%) têm participação SUS mais alta,
+refletindo a presença histórica do setor público em UTI/CTI e
+infraestrutura predial. \textbf{Odontologia} é majoritariamente
+privada (apenas 28\,\% SUS), consistente com o modelo brasileiro
+de odontologia ainda hoje pouco integrado ao SUS para procedimentos
+fora da Atenção Básica. Diagnóstico por Imagem é equilibrado
+(45\,\% SUS), em linha com o histórico de parcerias público-privadas
+em radiologia diagnóstica.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\linewidth]{fig08-sus-share-by-category}
+\caption{Composição SUS vs. Privado das unidades cadastradas, por
+categoria TIPEQUIP — Brasil Dez/2024}
+\label{fig:sus-share}
+\par\noindent{\small Fonte: elaboração própria, IND\_SUS=1
+(disponível para SUS) vs.\ IND\_SUS=0 (privado).}
+\end{figure}
+
+\subsection{Recorte: Ressonância Magnética por UF}
+
+A Figura~\ref{fig:rm-uf} apresenta a distribuição da Ressonância
+Magnética (\texttt{equipment\_key=1:12}) por UF em Dez/2024, ordenada
+por densidade per capita. O Brasil agregado tem
+\textbf{16,9 RM/Mhab}, posicionado exatamente na mediana OCDE (17/Mhab,
+OECD Health Statistics 2021). \textbf{Distrito Federal} lidera com
+\,$\sim$\,32 RM/Mhab, seguido por Rondônia (\,$\sim$\,27), Rio de
+Janeiro (\,$\sim$\,25) e São Paulo (\,$\sim$\,18). O extremo oposto
+inclui Maranhão (9,1), Pará (11,3), Acre (6,6) e Roraima (7,1) —
+todos abaixo da mediana OCDE, configurando situação clinicamente
+preocupante para diagnóstico diferencial de condições
+neurodegenerativas e oncológicas.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{fig05-rm-corrected-by-uf}
+\caption{Brasil Dez/2024 — Ressonância Magnética por UF
+(TIPEQUIP=1, CODEQUIP=12), densidade por milhão de habitantes}
+\label{fig:rm-uf}
+\par\noindent{\small Fonte: elaboração própria. Linha vermelha
+tracejada = mediana OCDE 2021 (17/Mhab).}
+\end{figure}
+
+% =====================================================================
+\section{Discussão}\label{sec:discussao}
+% =====================================================================
+
+\subsection{O parque cadastrado é dominado por equipamentos de baixa complexidade}
+
+A composição agregada revela um padrão raramente discutido em debates
+de política pública: 70\,\% das 3,1 milhões de unidades de equipamento
+do CNES estão em Manutenção da Vida (1,1M), Odontologia (804K) e
+Infraestrutura (394K). Equipamentos de imagem de alta complexidade
+(RM, PET/CT) são uma fração pequena (\,$<$\,1\,\%) do volume
+cadastrado, embora absorvam a maior parte do investimento de capital
+e do debate público. Análises orçamentárias e de planejamento de saúde
+deveriam, portanto, considerar a magnitude relativa correta — o
+parque visível em fotos de hospitais (RM, CT, mamógrafos) é a ponta de
+um iceberg cuja base é bombas de infusão, monitores, equipos
+odontológicos e infraestrutura predial.
+
+\subsection{A desigualdade regional é categórica, não uniforme}
+
+O heatmap regional × categoria revela que a desigualdade Norte/Sudeste
+varia enormemente conforme o equipamento. Diagnóstico por Imagem e
+Telemedicina concentram \,$\sim$\,50\,\% do parque no Sudeste; já
+Infraestrutura e Manutenção da Vida têm distribuições muito mais
+equilibradas (refletindo a densidade hospitalar regional). Políticas
+de redução de desigualdade devem, portanto, focar em equipamentos
+específicos — não em ``equipamentos'' genericamente.
+
+\subsection{O dicionário canônico como infraestrutura pública}
+
+A publicação do dicionário
+\texttt{(TIPEQUIP, CODEQUIP) → equipamento} em formato CSV aberto é
+contribuição metodológica relevante. O DATASUS publica os microdados
+em DBF e expõe o catálogo de equipamentos via interface HTML
+(\texttt{cnes2.datasus.gov.br}), mas não disponibiliza o dicionário
+em formato consumível por pipelines analíticos. A ausência desse
+artefato força cada projeto a reconstruir o mapeamento — processo
+onde inferência manual ou inferência por IA pode introduzir erros
+que comprometem análises a jusante. Disponibilizar o dicionário
+auditável no repositório do Mirante elimina esse risco para
+trabalhos futuros.
+
+\subsection{Limitações}
+
+\textbf{Primeira}, o snapshot Dez/2024 é uma fotografia mensal e não
+captura a evolução temporal da infraestrutura. O pipeline do Mirante
+materializa série completa Jan/2005 a Dez/2025 e pode ser usado para
+análises longitudinais futuras.
+
+\textbf{Segunda}, a contagem reflete equipamentos \textit{cadastrados}
+(\texttt{QT\_EXIST}), não \textit{operacionais} (\texttt{QT\_USO}).
+Cruzamento futuro com produção (SIH-RD, SIA-RD) daria visão mais
+precisa de utilização efetiva.
+
+\textbf{Terceira}, a análise é descritiva e agregada. Não pretende
+estabelecer causalidade entre disponibilidade de equipamento e
+desfechos clínicos.
+
+% =====================================================================
+\section{Considerações finais}\label{sec:conclusao}
+% =====================================================================
+
+Este Working Paper apresentou um panorama nacional do parque de
+equipamentos cadastrados no CNES em Dezembro de 2024
+(3,1 milhões de unidades distribuídas em 9 categorias e 129 códigos
+distintos), construído a partir de pipeline aberto e auditável. As
+contribuições principais são: (i) o snapshot agregado em si, com
+decomposições por categoria, equipamento individual, região e setor;
+(ii) o dicionário canônico
+\texttt{(TIPEQUIP, CODEQUIP) → nome} extraído por parsing direto do
+catálogo oficial DATASUS, validado em cobertura 100\,\% contra a
+realidade empírica e publicado em formato CSV aberto; e (iii) a
+adoção de chave composta \texttt{equipment\_key} no pipeline e
+front-end, que viabiliza análise inequívoca de cada um dos
+equipamentos do catálogo.
+
+\subsection{Agenda}
+
+Quatro frentes destacam-se: \textbf{(a)} extensão da análise temporal
+2005--2025 com a chave composta, especialmente para identificar
+inflexões na composição do parque (ex.: avanço de Telemedicina
+pós-pandemia); \textbf{(b)} cruzamento com produção SIH-RD para
+mensurar utilização efetiva; \textbf{(c)} expansão do dicionário
+canônico para as categorias secundárias (TIPEQUIP=10, 12, 13);
+\textbf{(d)} análise per capita por categoria e região (densidade de
+Manutenção da Vida por leito, densidade de Odontologia por população,
+etc.) para sustentar comparações inter-UF mais robustas.
+
+% =====================================================================
+\section*{Referências}\label{sec:ref}
+\addcontentsline{toc}{section}{Referências}
+% =====================================================================
+\begin{singlespace}\small
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:datasus-layout}
+[1] DEPARTAMENTO DE INFORMÁTICA DO SISTEMA ÚNICO DE SAÚDE (DATASUS).
+\textbf{Disseminação de Informações do Sistema de Cadastro Nacional
+de Estabelecimentos do SUS — Informe Técnico 2017-06}.
+Ministério da Saúde, 2017. (Layout dos arquivos EQ*.dbf na
+seção 2.5.) Disponível via FTP DATASUS.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:cnes-catalog}
+[2] DEPARTAMENTO DE INFORMÁTICA DO SISTEMA ÚNICO DE SAÚDE (DATASUS).
+\textbf{CnesWeb — Indicadores de Equipamentos}. Disponível em:
+\url{https://cnes2.datasus.gov.br/Mod_Ind_Equipamento.asp?VEstado=00}.
+Acesso em: abr/2026.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:scnes-manual}
+[3] MINISTÉRIO DA SAÚDE — Coordenação Geral dos Sistemas de Informação.
+\textbf{Manual Técnico do Cadastro Nacional de Estabelecimentos de
+Saúde — Versão 2}. Atualizado em outubro de 2006. Folha n. 10/16
+(Módulo Equipamentos), seção 20.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:fair}
+[4] WILKINSON, M. D. \textit{et al.} The FAIR Guiding Principles for
+scientific data management and stewardship. \textbf{Scientific Data},
+v. 3, 2016. DOI: 10.1038/sdata.2016.18.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:armbrust}
+[5] ARMBRUST, M.; GHODSI, A.; XIN, R.; ZAHARIA, M. Lakehouse: a new
+generation of open platforms that unify data warehousing and advanced
+analytics. In: \textbf{11th CIDR}, 2021.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:ibge}
+[6] INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE).
+\textbf{Estimativas da População Residente para os Municípios e UFs}.
+Tabela 6579 SIDRA, atualizada em 2024.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:oecd}
+[7] OECD HEALTH STATISTICS. Magnetic resonance imaging units.
+\textbf{OECD Health Care Resources}, 2021. Mediana entre países OCDE:
+17 RM/milhão de habitantes.\par\smallskip
+
+\end{singlespace}
+
+% =====================================================================
+\appendix
+\section{Dicionário canônico (TIPEQUIP, CODEQUIP) → equipamento}\label{sec:dict}
+% =====================================================================
+
+O dicionário completo de 129 entradas, extraído por parsing direto
+do HTML de \texttt{cnes2.datasus.gov.br/Mod\_Ind\_Equipamento.asp},
+está publicado em formato CSV aberto no repositório do Mirante:
+
+\begin{center}
+\texttt{data/reference/cnes\_eq\_canonical.csv}
+\end{center}
+
+\noindent que pode ser carregado diretamente em qualquer pipeline
+analítico. As nove categorias principais com seus equipamentos mais
+volumosos estão sintetizadas na Tabela~\ref{tab:dict-summary}.
+
+\begin{table}[H]
+\centering
+\caption{Síntese do dicionário canônico — equipamento mais volumoso por categoria, Brasil Dez/2024}
+\begin{tabular}{clrr}
+\toprule
+\textbf{TIP} & \textbf{Equipamento (top da categoria)} & \textbf{CODEQUIP} & \textbf{Unidades} \\
+\midrule
+1 & Raio X Odontológico                                & 07 &  55.423 \\
+2 & Ar Condicionado                                    & 19 & 171.102 \\
+3 & Endoscópio Digestivo                               & 33 &  18.044 \\
+4 & Eletrocardiógrafo                                  & 41 &  57.212 \\
+5 & Bomba de Infusão                                   & 52 & 332.755 \\
+6 & Aparelho de Eletroestimulação                      & 72 &  39.298 \\
+7 & Equipo Odontológico                                & 80 & 180.264 \\
+8 & Cabine Acústica                                    & 95 &   5.638 \\
+9 & Kit Médico de Diagnóstico Audiológico (TAB)        & 07 &  55.423 \\
+\bottomrule
+\end{tabular}
+\par\noindent{\small Fonte: elaboração própria, snapshot Dez/2024.
+Para o dicionário completo, consultar
+\texttt{data/reference/cnes\_eq\_canonical.csv}.}
+\label{tab:dict-summary}
+\end{table}
+
+\vspace{1cm}
+
+\noindent\textbf{Citar como:}\\
+CHALHOUB, L. Panorama nacional da infraestrutura de equipamentos do
+CNES (Brasil, 2024): mapeamento canônico de 129 (TIPEQUIP, CODEQUIP)
+e análise agregada por categoria, equipamento e região.
+\textit{Mirante dos Dados — Working Paper n. 6}, v. 1.0,
+abr. 2026. Disponível em:
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
+
+\vspace{0.5cm}
+
+\noindent\textbf{Licença:} dados consolidados (camada Gold) e código
+do pipeline distribuídos sob licença MIT. Texto deste artigo
+distribuído sob licença Creative Commons Atribuição 4.0 Internacional
+(CC BY 4.0).
+
+\end{document}

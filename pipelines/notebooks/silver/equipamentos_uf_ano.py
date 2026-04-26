@@ -3,20 +3,37 @@
 # MAGIC # silver · equipamentos_uf_ano
 # MAGIC
 # MAGIC Lê `<catalog>.bronze.cnes_equipamentos`, agrega TODOS os equipamentos por
-# MAGIC `(estado, ano, codequip)` com split de setor (SUS / Privado / Total).
+# MAGIC `(estado, ano, tipequip, codequip)` com split de setor (SUS / Privado / Total).
 # MAGIC Junta com `silver.populacao_uf_ano` (dim compartilhada) pra completar grid.
 # MAGIC
-# MAGIC Em vez de filtrar `CODEQUIP=42` (só RM), guarda TUDO. O front deixa o usuário
-# MAGIC selecionar 1+ equipamentos e re-agregar client-side.
+# MAGIC ## Por que `tipequip` é obrigatório
+# MAGIC
+# MAGIC O DBF de origem (`/dissemin/publicos/CNES/200508_/Dados/EQ/EQ<UF><YYMM>.dbc`)
+# MAGIC carrega DUAS chaves de equipamento:
+# MAGIC
+# MAGIC - `TIPEQUIP CHAR(1)` — categoria (1=Imagem, 2=Infra, 3=Ópticos,
+# MAGIC   4=Gráficos, 5=Manutenção da Vida, 6=Outros, 7=Odontologia,
+# MAGIC   8=Audiologia, 9=Telemedicina)
+# MAGIC - `CODEQUIP CHAR(2)` — código DENTRO da categoria (não é namespace global)
+# MAGIC
+# MAGIC As 8 categorias REUSAM a faixa numérica `01–99`. Sem `tipequip`,
+# MAGIC `CODEQUIP=42` colapsa Eletroencefalógrafo (Cat 4) com qualquer outro
+# MAGIC item registrado nessa posição em outras categorias. Versões anteriores
+# MAGIC dessa silver descartavam `tipequip` e produziam um colapso silencioso
+# MAGIC (descoberto e documentado no Working Paper #7 — Mirante).
 # MAGIC
 # MAGIC ## Schema
 # MAGIC ```
-# MAGIC estado, ano, codequip, equipment_name, populacao,
+# MAGIC estado, ano, tipequip, codequip, equipment_key, equipment_name,
+# MAGIC equipment_category, populacao,
 # MAGIC cnes_count, total_avg, per_capita_scaled,
 # MAGIC sus_cnes_count, sus_total_avg, sus_per_capita_scaled,
 # MAGIC priv_cnes_count, priv_total_avg, priv_per_capita_scaled,
 # MAGIC per_capita_scale_pow10
 # MAGIC ```
+# MAGIC
+# MAGIC `equipment_key` é a string composta `"<tipequip>:<codequip>"` (ex. `"1:12"`
+# MAGIC para Ressonância Magnética). Use essa chave no front em vez de só `codequip`.
 
 # COMMAND ----------
 
@@ -33,93 +50,213 @@ print(f"bronze={BRONZE_TABLE}  silver={SILVER_TABLE}")
 
 # COMMAND ----------
 
-# DATASUS CNES — código → descrição. Lista cobre os equipamentos de diagnóstico,
-# terapia e infraestrutura mais relevantes. CODEQUIPs não mapeados aparecem como
-# "Cód. NN" via fallback no front.
+# DICIONÁRIO CANÔNICO (TIPEQUIP, CODEQUIP) → nome do equipamento.
+#
+# Fonte: SCNES Manual Técnico (versão 2 / out 2006) cruzado com o catálogo
+# de equipamentos do CnesWeb (cnes2.datasus.gov.br/Mod_Ind_Equipamento.asp).
+# Validado contra o snapshot Dez/2024 dos 27 UFs (1.123.809 linhas) — todas
+# as 111 combinações observadas no snapshot estão no dicionário.
+#
+# Padrão Mirante: este dicionário é o "vocabulário controlado" da camada
+# silver. Combinações ausentes do dicionário aparecem como
+# "Cód. <tip>.<cod> (não mapeado)" — sinal pra revisar quando aparecer.
 EQUIPMENT_NAMES = {
-    "1":  "Aparelho de Raio-X",
-    "2":  "Mamógrafo",
-    "3":  "Ultrassom Geral",
-    "4":  "Ultrassom Doppler",
-    "5":  "Equipamento de Hemodiálise",
-    "6":  "Eletrocardiógrafo (ECG)",
-    "7":  "Equipamento de Endoscopia",
-    "8":  "Eletroencefalógrafo (EEG)",
-    "9":  "Equipamento de Hemodinâmica",
-    "10": "Densitômetro Ósseo",
-    "11": "Câmara Hiperbárica",
-    "12": "Equipamento de Ondas de Choque",
-    "13": "Equipamento de Cobaltoterapia",
-    "14": "Acelerador Linear (Radioterapia)",
-    "15": "Equipamento de Braquiterapia",
-    "16": "Equipamento de Diagnóstico Cardiológico",
-    "17": "Equipamento de Litotripsia",
-    "18": "Bomba de Infusão",
-    "19": "Eletrocardiógrafo Computadorizado",
-    "20": "Equipamento de Ultrassonografia",
-    "21": "Equipamento de Polissonografia",
-    "22": "Equipamento de Audiometria",
-    "23": "Equipamento de Anestesia",
-    "24": "Aparelho de Eletrocardiografia",
-    "25": "Equipamento de Esterilização",
-    "26": "Aparelho de Tomografia Computadorizada",
-    "27": "Equipamento de Mamografia",
-    "28": "Equipamento de Mamografia Digital",
-    "29": "Tomógrafo Computadorizado",
-    "30": "Aparelho de Diatermia",
-    "31": "Equipamento de Eletrocirurgia",
-    "32": "Equipamento de Fototerapia",
-    "33": "Equipamento de Ortopedia",
-    "34": "Equipamento de Ergometria",
-    "35": "Equipamento de Holter",
-    "36": "Equipamento de MAPA",
-    "37": "Aparelho de Ultrassom 3D/4D",
-    "38": "Equipamento de Espirometria",
-    "39": "Litotriptor",
-    "40": "Equipamento de Cobaltoterapia",
-    "41": "Acelerador Linear de Partículas",
-    "42": "Ressonância Magnética",
-    "43": "Equipamento de Medicina Nuclear",
-    "44": "Tomografia por Emissão de Pósitrons (PET)",
-    "45": "Tomografia (SPECT)",
-    "46": "Equipamento de Radioterapia",
-    "47": "Tomografia Híbrida (PET-CT)",
-    "48": "Aparelho de Hemodiálise",
-    "49": "Equipamento de Quimioterapia",
-    "50": "Equipamento de Diálise Peritoneal",
+    # ── TIPEQUIP=1 — Diagnóstico por Imagem ─────────────────────────────
+    ("1","01"): "Gama Câmara",
+    ("1","02"): "Mamógrafo com Comando Simples",
+    ("1","03"): "Mamógrafo com Estereotaxia",
+    ("1","04"): "Raio X até 100 mA",
+    ("1","05"): "Raio X de 100 a 500 mA",
+    ("1","06"): "Raio X mais de 500 mA",
+    ("1","07"): "Raio X Odontológico",
+    ("1","08"): "Raio X com Fluoroscopia",
+    ("1","09"): "Raio X para Densitometria Óssea",
+    ("1","10"): "Raio X para Hemodinâmica",
+    ("1","11"): "Tomógrafo Computadorizado",
+    ("1","12"): "Ressonância Magnética",
+    ("1","13"): "Ultrassom Doppler Colorido",
+    ("1","14"): "Ultrassom Ecógrafo",
+    ("1","15"): "Ultrassom Convencional",
+    ("1","16"): "Processadora de Filme Exclusiva para Mamografia",
+    ("1","17"): "Mamógrafo Digital",
+    ("1","18"): "PET/CT",
+    ("1","19"): "Mamógrafo com Tomossíntese",
+    ("1","20"): "Raio X Analógico",
+    ("1","21"): "Raio X Digital",
+    ("1","22"): "Raio X Telecomandado",
+    ("1","23"): "Raio X Móvel",
+    ("1","24"): "Arco Cirúrgico",
+    ("1","25"): "Raio X Panorâmico",
+    ("1","26"): "Tomógrafo Computadorizado 4 Canais",
+    ("1","27"): "Tomógrafo Computadorizado 16 Canais",
+    ("1","28"): "Tomógrafo Computadorizado 32 Canais",
+    ("1","29"): "Tomógrafo Computadorizado 64 Canais",
+    ("1","30"): "Tomógrafo Computadorizado 128 Canais",
+    ("1","31"): "Tomógrafo Simulador para Radioterapia",
+    ("1","32"): "Ressonância Magnética 0,5 T",
+    ("1","33"): "Ressonância Magnética 1,5 T",
+    ("1","34"): "Ressonância Magnética 3 T",
+    ("1","35"): "Ressonância Magnética de Campo Aberto",
+
+    # ── TIPEQUIP=2 — Infraestrutura ─────────────────────────────────────
+    ("2","19"): "Ar Condicionado",
+    ("2","20"): "Câmara Frigorífica",
+    ("2","21"): "Controle Ambiental / Ar-condicionado Central",
+    ("2","22"): "Grupo Gerador",
+    ("2","23"): "Usina de Oxigênio",
+    ("2","24"): "Câmara para Conservação de Hemoderivados / Imuno / Termolábeis",
+    ("2","25"): "Câmara para Conservação de Imunobiológicos",
+    ("2","26"): "Condensador",
+    ("2","27"): "Freezer Científico",
+    ("2","28"): "Grupo Gerador (101 a 300 KVA)",
+    ("2","29"): "Grupo Gerador (8 a 100 KVA)",
+    ("2","30"): "Grupo Gerador (acima de 300 KVA)",
+    ("2","43"): "Grupo Gerador de 1.500 KVA (mínimo)",
+    ("2","65"): "Grupo Gerador Portátil (até 7 KVA)",
+    ("2","66"): "Refrigerador",
+
+    # ── TIPEQUIP=3 — Métodos Ópticos ────────────────────────────────────
+    ("3","31"): "Endoscópio das Vias Respiratórias",
+    ("3","32"): "Endoscópio das Vias Urinárias",
+    ("3","33"): "Endoscópio Digestivo",
+    ("3","34"): "Equipamentos para Optometria",
+    ("3","35"): "Laparoscópio / Vídeo",
+    ("3","36"): "Microscópio Cirúrgico",
+    ("3","37"): "Cadeira Oftalmológica",
+    ("3","38"): "Coluna Oftalmológica",
+    ("3","39"): "Refrator",
+    ("3","40"): "Lensômetro",
+    ("3","44"): "Projetor ou Tabela de Optotipos",
+    ("3","45"): "Retinoscópio",
+    ("3","46"): "Oftalmoscópio",
+    ("3","47"): "Ceratômetro",
+    ("3","48"): "Tonômetro de Aplanação",
+    ("3","49"): "Biomicroscópio (Lâmpada de Fenda)",
+    ("3","50"): "Campímetro",
+    ("3","51"): "Histeroscópio",
+
+    # ── TIPEQUIP=4 — Métodos Gráficos ───────────────────────────────────
+    ("4","41"): "Eletrocardiógrafo",
+    ("4","42"): "Eletroencefalógrafo",
+
+    # ── TIPEQUIP=5 — Manutenção da Vida ─────────────────────────────────
+    ("5","51"): "Bomba / Balão Intra-Aórtico",
+    ("5","52"): "Bomba de Infusão",
+    ("5","53"): "Berço Aquecido",
+    ("5","54"): "Bilirrubinômetro",
+    ("5","55"): "Debitômetro",
+    ("5","56"): "Desfibrilador",
+    ("5","57"): "Equipamento de Fototerapia",
+    ("5","58"): "Incubadora",
+    ("5","59"): "Marcapasso Temporário",
+    ("5","60"): "Monitor de ECG",
+    ("5","61"): "Monitor de Pressão Invasivo",
+    ("5","62"): "Monitor de Pressão Não-Invasivo",
+    ("5","63"): "Reanimador Pulmonar / AMBU",
+    ("5","64"): "Respirador / Ventilador",
+    ("5","65"): "Monitor Multiparâmetro",
+
+    # ── TIPEQUIP=6 — Outros Equipamentos ────────────────────────────────
+    ("6","67"): "Caminhão Baú Refrigerado",
+    ("6","68"): "Embarcação para Transporte com Motor de Popa (até 12 pessoas)",
+    ("6","69"): "Empilhadeira",
+    ("6","70"): "Veículo Utilitário (tipo Furgão)",
+    ("6","71"): "Aparelho de Diatermia por Ultrassom / Ondas Curtas",
+    ("6","72"): "Aparelho de Eletroestimulação",
+    ("6","73"): "Bomba de Infusão de Hemoderivados",
+    ("6","74"): "Equipamentos de Aférese",
+    ("6","76"): "Equipamento de Circulação Extracorpórea",
+    ("6","77"): "Equipamento para Hemodiálise",
+    ("6","78"): "Forno de Bier",
+    ("6","79"): "Veículo Pick-up Cabine Dupla 4x4 (Diesel)",
+
+    # ── TIPEQUIP=7 — Odontologia ────────────────────────────────────────
+    ("7","80"): "Equipo Odontológico",
+    ("7","81"): "Compressor Odontológico",
+    ("7","82"): "Fotopolimerizador",
+    ("7","83"): "Caneta de Alta Rotação",
+    ("7","84"): "Caneta de Baixa Rotação",
+    ("7","85"): "Amalgamador",
+    ("7","86"): "Aparelho de Profilaxia c/ Jato de Bicarbonato",
+
+    # ── TIPEQUIP=8 — Audiologia ─────────────────────────────────────────
+    ("8","87"): "Emissões Otoacústicas Evocadas Transientes",
+    ("8","88"): "Emissões Otoacústicas Evocadas por Produto de Distorção",
+    ("8","89"): "Potencial Evocado Auditivo de Tronco Encefálico Automático",
+    ("8","90"): "Pot. Evocado Aud. Tronco Encef. de Curta, Média e Longa Latência",
+    ("8","91"): "Audiômetro de Um Canal",
+    ("8","92"): "Audiômetro de Dois Canais",
+    ("8","93"): "Imitanciômetro",
+    ("8","94"): "Imitanciômetro Multifrequencial",
+    ("8","95"): "Cabine Acústica",
+    ("8","96"): "Sistema de Campo Livre",
+    ("8","97"): "Sistema Completo de Reforço Visual (VRA)",
+    ("8","98"): "Ganho de Inserção",
+    ("8","99"): "HI-PRO",
+
+    # ── TIPEQUIP=9 — Telemedicina ───────────────────────────────────────
+    ("9","01"): "Câmera para Reconhecimento Facial",
+    ("9","02"): "Carrinho de Telemedicina de Videoconferência",
+    ("9","03"): "Condensador (Telemedicina)",
+    ("9","04"): "Dermatoscópio",
+    ("9","05"): "Detector Fetal Portátil",
+    ("9","06"): "Kit Dermatoscopia",
+    ("9","07"): "Kit Médico de Diagnóstico Audiológico (TAB)",
+    ("9","08"): "Mesa Digitalizadora",
+    ("9","09"): "Monitor Sinais Vitais Multifuncional Portátil (Telemedicina)",
+    ("9","10"): "Retinógrafo Portátil",
+    ("9","11"): "Ultrassom Portátil",
+    ("9","12"): "Eletrocardiograma (Telemedicina)",
+}
+
+CATEGORY_NAMES = {
+    "1": "Diagnóstico por Imagem",
+    "2": "Infraestrutura",
+    "3": "Métodos Ópticos",
+    "4": "Métodos Gráficos",
+    "5": "Manutenção da Vida",
+    "6": "Outros Equipamentos",
+    "7": "Odontologia",
+    "8": "Audiologia",
+    "9": "Telemedicina",
 }
 
 # COMMAND ----------
 
 from pyspark.sql import functions as F
 
-# Read latest snapshot
+# Read full bronze (não filtrar por _ingest_ts==max — esse filtro perde UFs
+# quando o bronze ingere em batches diferentes, exatamente o bug
+# documentado no commit fa869cf do silver UroPro). Bronze já é
+# naturalmente deduplicado por (UF, ano, mes, source_file) via mode=overwrite
+# no batch path e checkpoint do Auto Loader no incremental path.
 bronze = spark.read.table(BRONZE_TABLE)
 if bronze.head(1) == []:
     raise ValueError(f"{BRONZE_TABLE} is empty.")
 
-latest_ts = bronze.agg(F.max("_ingest_ts")).first()[0]
-src = bronze.where(F.col("_ingest_ts") == latest_ts)
-print(f"bronze rows in latest snapshot: {src.count():,}")
+src = bronze
+print(f"bronze rows total: {src.count():,}")
+print(f"bronze UFs distintas: {src.select('estado').distinct().count()}")
 
-# Normalize types — KEEP all CODEQUIPs (no MRI filter)
+# Normalize types — KEEP both TIPEQUIP and CODEQUIP (composite key).
+# IND_SUS=='1' significa equipamento à disposição do SUS (sector split).
 df = (
     src.select(
         F.col("estado").cast("string"),
         F.col("ano").cast("int"),
         F.col("mes").cast("string"),
         F.col("CNES").cast("string").alias("cnes"),
+        F.col("TIPEQUIP").cast("string").alias("tipequip"),
         F.col("CODEQUIP").cast("string").alias("codequip"),
         F.col("QT_EXIST").cast("double").alias("qt_exist"),
         F.col("IND_SUS").cast("string").alias("ind_sus"),
     )
     .where(F.col("qt_exist").isNotNull())
+    .where(F.col("tipequip").isNotNull())
     .where(F.col("codequip").isNotNull())
 )
 
 # ─── Drop partial years (must have all 12 monthly DBC files ingested) ──────
-# DATASUS publica EQ<UF><YY><MM>.dbc um por mês. Se o ano em curso só tem 8 meses,
-# ele entra como stub. Mantemos só Anos com 12 meses distintos no bronze.
 months_per_year = df.groupBy("ano").agg(F.countDistinct("mes").alias("n_months"))
 month_counts = sorted([(r["ano"], r["n_months"]) for r in months_per_year.collect()])
 print(f"meses por Ano: {month_counts}")
@@ -130,31 +267,33 @@ if dropped:
     print(f"⚠ anos parciais descartados: {dropped}")
 df = df.where(F.col("ano").isin(full_years))
 
-print("Top 10 codequips by row count:")
-df.groupBy("codequip").count().orderBy(F.desc("count")).show(10)
+print("Top 10 (tipequip, codequip) combos by row count:")
+df.groupBy("tipequip", "codequip").count().orderBy(F.desc("count")).show(10)
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Compute monthly + sector annual averages PER CODEQUIP
+# MAGIC ## Compute monthly + sector annual averages PER (TIPEQUIP, CODEQUIP)
 
 # COMMAND ----------
 
-# Monthly totals per (CNES, codequip, mes) — sum across sectors for monthly_total
+GROUP_KEYS = ["estado", "ano", "tipequip", "codequip"]
+
+# Monthly totals per (CNES, tipequip, codequip, mes) — sum across sectors
 monthly_all = (
-    df.groupBy("estado", "ano", "cnes", "codequip", "mes")
+    df.groupBy(GROUP_KEYS + ["cnes", "mes"])
       .agg(F.sum("qt_exist").alias("monthly_total"))
 )
 
-# Active months per (CNES, codequip, year) — shared denominator
+# Active months per (CNES, tipequip, codequip, year) — shared denominator
 cnes_month_count = (
-    monthly_all.groupBy("estado", "ano", "cnes", "codequip")
+    monthly_all.groupBy(GROUP_KEYS + ["cnes"])
                .agg(F.count("mes").alias("n_months"))
 )
 
-# All-sector annual average per CNES per codequip
+# All-sector annual average per CNES per (tipequip, codequip)
 cnes_all = (
-    monthly_all.groupBy("estado", "ano", "cnes", "codequip")
+    monthly_all.groupBy(GROUP_KEYS + ["cnes"])
                .agg(F.avg("monthly_total").alias("avg_year"))
                .where(F.col("avg_year").isNotNull())
 )
@@ -162,15 +301,15 @@ cnes_all = (
 
 def sector_year_avg(df_sector):
     sector_sum = (
-        df_sector.groupBy("estado", "ano", "cnes", "codequip")
+        df_sector.groupBy(GROUP_KEYS + ["cnes"])
                  .agg(F.sum("qt_exist").alias("sector_sum"))
     )
     return (
         sector_sum
-        .join(cnes_month_count, on=["estado", "ano", "cnes", "codequip"], how="left")
+        .join(cnes_month_count, on=GROUP_KEYS + ["cnes"], how="left")
         .withColumn("avg_year", F.col("sector_sum") / F.col("n_months"))
         .where(F.col("avg_year").isNotNull())
-        .select("estado", "ano", "cnes", "codequip", "avg_year")
+        .select(GROUP_KEYS + ["cnes", "avg_year"])
     )
 
 
@@ -179,14 +318,14 @@ cnes_priv = sector_year_avg(df.where(F.col("ind_sus") == F.lit("0")))
 
 # COMMAND ----------
 
-# State-year-codequip aggregates per sector
+# State-year-(tipequip,codequip) aggregates per sector
 agg_cnes_count = (
-    cnes_all.groupBy("estado", "ano", "codequip")
+    cnes_all.groupBy(GROUP_KEYS)
             .agg(F.countDistinct("cnes").cast("long").alias("cnes_count"))
 )
 
 def agg_sector(df_cnes_sector, prefix: str):
-    return df_cnes_sector.groupBy("estado", "ano", "codequip").agg(
+    return df_cnes_sector.groupBy(GROUP_KEYS).agg(
         F.countDistinct("cnes").cast("long").alias(f"{prefix}cnes_count"),
         F.sum("avg_year").alias(f"{prefix}total_avg"),
     )
@@ -197,7 +336,7 @@ agg_priv = agg_sector(cnes_priv, prefix="priv_")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Cartesian (estado × ano × codequip) ⨯ populacao
+# MAGIC ## Cartesian (estado × ano × (tipequip,codequip)) ⨯ populacao
 
 # COMMAND ----------
 
@@ -210,10 +349,10 @@ df_pop = (
          )
 )
 
-codequips = cnes_all.select("codequip").distinct()
-print(f"Distinct codequips in bronze: {codequips.count()}")
+equip_keys = cnes_all.select("tipequip", "codequip").distinct()
+print(f"Distinct (tipequip, codequip) combos in bronze: {equip_keys.count()}")
 
-grid = df_pop.crossJoin(codequips)
+grid = df_pop.crossJoin(equip_keys)
 
 fill_zeros = {
     "cnes_count": 0,
@@ -222,9 +361,9 @@ fill_zeros = {
 }
 df_out = (
     grid
-    .join(agg_cnes_count, on=["estado", "ano", "codequip"], how="left")
-    .join(agg_sus,        on=["estado", "ano", "codequip"], how="left")
-    .join(agg_priv,       on=["estado", "ano", "codequip"], how="left")
+    .join(agg_cnes_count, on=GROUP_KEYS, how="left")
+    .join(agg_sus,        on=GROUP_KEYS, how="left")
+    .join(agg_priv,       on=GROUP_KEYS, how="left")
     .fillna(fill_zeros)
 )
 
@@ -243,34 +382,73 @@ df_out = (
     .withColumn("per_capita_scale_pow10", F.lit(PER_CAPITA_SCALE_POW10).cast("int"))
 )
 
-# Add equipment_name
-name_map = F.create_map(*[v for kv in EQUIPMENT_NAMES.items()
-                          for v in (F.lit(kv[0]), F.lit(kv[1]))])
+# Composite equipment_key
 df_out = df_out.withColumn(
-    "equipment_name",
-    F.coalesce(name_map.getItem(F.col("codequip")),
-               F.concat(F.lit("Cód. "), F.col("codequip"))),
+    "equipment_key",
+    F.concat(F.col("tipequip"), F.lit(":"), F.col("codequip")),
+)
+
+# Lookup canonical name via join on a tiny in-memory DataFrame.
+# Mais robusto que CASE WHEN encadeado de 129 entradas (que vira árvore
+# enorme no Catalyst e pode estourar limite de profundidade de expressão).
+name_rows = [(t, c, nm) for (t, c), nm in EQUIPMENT_NAMES.items()]
+df_names = spark.createDataFrame(name_rows, ["tipequip", "codequip", "_canonical_name"])
+df_out = (
+    df_out
+    .join(df_names, on=["tipequip", "codequip"], how="left")
+    .withColumn(
+        "equipment_name",
+        F.coalesce(
+            F.col("_canonical_name"),
+            F.concat(F.lit("Cód. "), F.col("tipequip"), F.lit("."),
+                     F.col("codequip"), F.lit(" (não mapeado)")),
+        ),
+    )
+    .drop("_canonical_name")
+)
+
+cat_rows = [(k, v) for k, v in CATEGORY_NAMES.items()]
+df_cats = spark.createDataFrame(cat_rows, ["tipequip", "_category_name"])
+df_out = (
+    df_out
+    .join(df_cats, on="tipequip", how="left")
+    .withColumn(
+        "equipment_category",
+        F.coalesce(F.col("_category_name"), F.concat(F.lit("Cat. "), F.col("tipequip"))),
+    )
+    .drop("_category_name")
 )
 
 # Drop rows with no equipment data at all (avoids cartesian bloat)
 df_out = df_out.where((F.col("cnes_count") > 0) | (F.col("sus_cnes_count") > 0) | (F.col("priv_cnes_count") > 0))
 
 silver_df = df_out.select(
-    "estado", "ano", "codequip", "equipment_name",
+    "estado", "ano", "tipequip", "codequip",
+    "equipment_key", "equipment_name", "equipment_category",
     "cnes_count",     "total_avg",     "per_capita_scaled",
     "sus_cnes_count", "sus_total_avg", "sus_per_capita_scaled",
     "priv_cnes_count","priv_total_avg","priv_per_capita_scaled",
     "populacao", "per_capita_scale_pow10",
-).withColumn("_silver_built_ts", F.current_timestamp()).orderBy("estado", "ano", "codequip")
+).withColumn("_silver_built_ts", F.current_timestamp()).orderBy(
+    "estado", "ano", "tipequip", "codequip",
+)
 
 # COMMAND ----------
 
 n = silver_df.count()
 ufs = silver_df.select("estado").distinct().count()
 years = silver_df.select("ano").distinct().count()
-codequips_kept = silver_df.select("codequip").distinct().count()
-print(f"rows={n}  ufs={ufs}  years={years}  codequips={codequips_kept}")
+combos = silver_df.select("equipment_key").distinct().count()
+print(f"rows={n}  ufs={ufs}  years={years}  (tipequip,codequip)_combos={combos}")
 assert ufs == 27, f"Expected 27 UFs, got {ufs}"
+
+# DQ: validar que a RM básica (1:12) bate com magnitude esperada (~3-4K nacional)
+rm_2025 = (
+    silver_df.where((F.col("ano") == years) & (F.col("equipment_key") == "1:12"))
+             .agg(F.sum("total_avg").alias("rm_total")).first()
+)
+print(f"DQ check — Brasil RM (1:12) último ano: ~{rm_2025['rm_total']:.0f} unidades")
+
 print("✔ DQ passed")
 
 (
@@ -281,5 +459,7 @@ print("✔ DQ passed")
         .saveAsTable(SILVER_TABLE)
 )
 spark.sql(f"COMMENT ON TABLE {SILVER_TABLE} IS "
-          f"'Mirante · Equipamentos CNES por UF × Ano × CODEQUIP, com split SUS/Privado.'")
+          f"'Mirante · Equipamentos CNES por UF × Ano × (TIPEQUIP, CODEQUIP), "
+          f"com split SUS/Privado. Composite key resolve a ambiguidade pré-WP#6 "
+          f"em que CODEQUIP sozinho colapsava 8 categorias.'")
 print(f"✔ {SILVER_TABLE} written ({n} rows)")

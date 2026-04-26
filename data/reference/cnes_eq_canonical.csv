@@ -1,0 +1,130 @@
+tipequip,codequip,equipment_key,equipment_name,equipment_category
+1,01,1:01,Gama Câmara,Diagnóstico por Imagem
+1,02,1:02,Mamógrafo com Comando Simples,Diagnóstico por Imagem
+1,03,1:03,Mamógrafo com Estereotaxia,Diagnóstico por Imagem
+1,04,1:04,Raio X até 100 mA,Diagnóstico por Imagem
+1,05,1:05,Raio X de 100 a 500 mA,Diagnóstico por Imagem
+1,06,1:06,Raio X mais de 500 mA,Diagnóstico por Imagem
+1,07,1:07,Raio X Odontológico,Diagnóstico por Imagem
+1,08,1:08,Raio X com Fluoroscopia,Diagnóstico por Imagem
+1,09,1:09,Raio X para Densitometria Óssea,Diagnóstico por Imagem
+1,10,1:10,Raio X para Hemodinâmica,Diagnóstico por Imagem
+1,11,1:11,Tomógrafo Computadorizado,Diagnóstico por Imagem
+1,12,1:12,Ressonância Magnética,Diagnóstico por Imagem
+1,13,1:13,Ultrassom Doppler Colorido,Diagnóstico por Imagem
+1,14,1:14,Ultrassom Ecógrafo,Diagnóstico por Imagem
+1,15,1:15,Ultrassom Convencional,Diagnóstico por Imagem
+1,16,1:16,Processadora de Filme Exclusiva para Mamografia,Diagnóstico por Imagem
+1,17,1:17,Mamógrafo Digital,Diagnóstico por Imagem
+1,18,1:18,PET/CT,Diagnóstico por Imagem
+1,19,1:19,Mamógrafo com Tomossíntese,Diagnóstico por Imagem
+1,20,1:20,Raio X Analógico,Diagnóstico por Imagem
+1,21,1:21,Raio X Digital,Diagnóstico por Imagem
+1,22,1:22,Raio X Telecomandado,Diagnóstico por Imagem
+1,23,1:23,Raio X Móvel,Diagnóstico por Imagem
+1,24,1:24,Arco Cirúrgico,Diagnóstico por Imagem
+1,25,1:25,Raio X Panorâmico,Diagnóstico por Imagem
+1,26,1:26,Tomógrafo Computadorizado 4 Canais,Diagnóstico por Imagem
+1,27,1:27,Tomógrafo Computadorizado 16 Canais,Diagnóstico por Imagem
+1,28,1:28,Tomógrafo Computadorizado 32 Canais,Diagnóstico por Imagem
+1,29,1:29,Tomógrafo Computadorizado 64 Canais,Diagnóstico por Imagem
+1,30,1:30,Tomógrafo Computadorizado 128 Canais,Diagnóstico por Imagem
+1,31,1:31,Tomógrafo Simulador para Radioterapia,Diagnóstico por Imagem
+1,32,1:32,"Ressonância Magnética 0,5 T",Diagnóstico por Imagem
+1,33,1:33,"Ressonância Magnética 1,5 T",Diagnóstico por Imagem
+1,34,1:34,Ressonância Magnética 3 T,Diagnóstico por Imagem
+1,35,1:35,Ressonância Magnética de Campo Aberto,Diagnóstico por Imagem
+2,19,2:19,Ar Condicionado,Infraestrutura
+2,20,2:20,Câmara Frigorífica,Infraestrutura
+2,21,2:21,Controle Ambiental / Ar-condicionado Central,Infraestrutura
+2,22,2:22,Grupo Gerador,Infraestrutura
+2,23,2:23,Usina de Oxigênio,Infraestrutura
+2,24,2:24,Câmara para Conservação de Hemoderivados / Imuno / Termolábeis,Infraestrutura
+2,25,2:25,Câmara para Conservação de Imunobiológicos,Infraestrutura
+2,26,2:26,Condensador,Infraestrutura
+2,27,2:27,Freezer Científico,Infraestrutura
+2,28,2:28,Grupo Gerador (101 a 300 KVA),Infraestrutura
+2,29,2:29,Grupo Gerador (8 a 100 KVA),Infraestrutura
+2,30,2:30,Grupo Gerador (acima de 300 KVA),Infraestrutura
+2,43,2:43,Grupo Gerador de 1.500 KVA (mínimo),Infraestrutura
+2,65,2:65,Grupo Gerador Portátil (até 7 KVA),Infraestrutura
+2,66,2:66,Refrigerador,Infraestrutura
+3,31,3:31,Endoscópio das Vias Respiratórias,Métodos Ópticos
+3,32,3:32,Endoscópio das Vias Urinárias,Métodos Ópticos
+3,33,3:33,Endoscópio Digestivo,Métodos Ópticos
+3,34,3:34,Equipamentos para Optometria,Métodos Ópticos
+3,35,3:35,Laparoscópio / Vídeo,Métodos Ópticos
+3,36,3:36,Microscópio Cirúrgico,Métodos Ópticos
+3,37,3:37,Cadeira Oftalmológica,Métodos Ópticos
+3,38,3:38,Coluna Oftalmológica,Métodos Ópticos
+3,39,3:39,Refrator,Métodos Ópticos
+3,40,3:40,Lensômetro,Métodos Ópticos
+3,44,3:44,Projetor ou Tabela de Optotipos,Métodos Ópticos
+3,45,3:45,Retinoscópio,Métodos Ópticos
+3,46,3:46,Oftalmoscópio,Métodos Ópticos
+3,47,3:47,Ceratômetro,Métodos Ópticos
+3,48,3:48,Tonômetro de Aplanação,Métodos Ópticos
+3,49,3:49,Biomicroscópio (Lâmpada de Fenda),Métodos Ópticos
+3,50,3:50,Campímetro,Métodos Ópticos
+3,51,3:51,Histeroscópio,Métodos Ópticos
+4,41,4:41,Eletrocardiógrafo,Métodos Gráficos
+4,42,4:42,Eletroencefalógrafo,Métodos Gráficos
+5,51,5:51,Bomba / Balão Intra-Aórtico,Manutenção da Vida
+5,52,5:52,Bomba de Infusão,Manutenção da Vida
+5,53,5:53,Berço Aquecido,Manutenção da Vida
+5,54,5:54,Bilirrubinômetro,Manutenção da Vida
+5,55,5:55,Debitômetro,Manutenção da Vida
+5,56,5:56,Desfibrilador,Manutenção da Vida
+5,57,5:57,Equipamento de Fototerapia,Manutenção da Vida
+5,58,5:58,Incubadora,Manutenção da Vida
+5,59,5:59,Marcapasso Temporário,Manutenção da Vida
+5,60,5:60,Monitor de ECG,Manutenção da Vida
+5,61,5:61,Monitor de Pressão Invasivo,Manutenção da Vida
+5,62,5:62,Monitor de Pressão Não-Invasivo,Manutenção da Vida
+5,63,5:63,Reanimador Pulmonar / AMBU,Manutenção da Vida
+5,64,5:64,Respirador / Ventilador,Manutenção da Vida
+5,65,5:65,Monitor Multiparâmetro,Manutenção da Vida
+6,67,6:67,Caminhão Baú Refrigerado,Outros Equipamentos
+6,68,6:68,Embarcação para Transporte com Motor de Popa (até 12 pessoas),Outros Equipamentos
+6,69,6:69,Empilhadeira,Outros Equipamentos
+6,70,6:70,Veículo Utilitário (tipo Furgão),Outros Equipamentos
+6,71,6:71,Aparelho de Diatermia por Ultrassom / Ondas Curtas,Outros Equipamentos
+6,72,6:72,Aparelho de Eletroestimulação,Outros Equipamentos
+6,73,6:73,Bomba de Infusão de Hemoderivados,Outros Equipamentos
+6,74,6:74,Equipamentos de Aférese,Outros Equipamentos
+6,76,6:76,Equipamento de Circulação Extracorpórea,Outros Equipamentos
+6,77,6:77,Equipamento para Hemodiálise,Outros Equipamentos
+6,78,6:78,Forno de Bier,Outros Equipamentos
+6,79,6:79,Veículo Pick-up Cabine Dupla 4x4 (Diesel),Outros Equipamentos
+7,80,7:80,Equipo Odontológico,Odontologia
+7,81,7:81,Compressor Odontológico,Odontologia
+7,82,7:82,Fotopolimerizador,Odontologia
+7,83,7:83,Caneta de Alta Rotação,Odontologia
+7,84,7:84,Caneta de Baixa Rotação,Odontologia
+7,85,7:85,Amalgamador,Odontologia
+7,86,7:86,Aparelho de Profilaxia c/ Jato de Bicarbonato,Odontologia
+8,87,8:87,Emissões Otoacústicas Evocadas Transientes,Audiologia
+8,88,8:88,Emissões Otoacústicas Evocadas por Produto de Distorção,Audiologia
+8,89,8:89,Potencial Evocado Auditivo de Tronco Encefálico Automático,Audiologia
+8,90,8:90,"Pot. Evocado Aud. Tronco Encef. de Curta, Média e Longa Latência",Audiologia
+8,91,8:91,Audiômetro de Um Canal,Audiologia
+8,92,8:92,Audiômetro de Dois Canais,Audiologia
+8,93,8:93,Imitanciômetro,Audiologia
+8,94,8:94,Imitanciômetro Multifrequencial,Audiologia
+8,95,8:95,Cabine Acústica,Audiologia
+8,96,8:96,Sistema de Campo Livre,Audiologia
+8,97,8:97,Sistema Completo de Reforço Visual (VRA),Audiologia
+8,98,8:98,Ganho de Inserção,Audiologia
+8,99,8:99,HI-PRO,Audiologia
+9,01,9:01,Câmera para Reconhecimento Facial,Telemedicina
+9,02,9:02,Carrinho de Telemedicina de Videoconferência,Telemedicina
+9,03,9:03,Condensador (Telemedicina),Telemedicina
+9,04,9:04,Dermatoscópio,Telemedicina
+9,05,9:05,Detector Fetal Portátil,Telemedicina
+9,06,9:06,Kit Dermatoscopia,Telemedicina
+9,07,9:07,Kit Médico de Diagnóstico Audiológico (TAB),Telemedicina
+9,08,9:08,Mesa Digitalizadora,Telemedicina
+9,09,9:09,Monitor Sinais Vitais Multifuncional Portátil (Telemedicina),Telemedicina
+9,10,9:10,Retinógrafo Portátil,Telemedicina
+9,11,9:11,Ultrassom Portátil,Telemedicina
+9,12,9:12,Eletrocardiograma (Telemedicina),Telemedicina

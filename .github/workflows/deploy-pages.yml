@@ -63,15 +63,7 @@ jobs:
           latexmk_use_xelatex: false
           args: -pdf -interaction=nonstopmode -file-line-error
 
-      - name: Compile UroPro · Incontinência Urinária (WP #3) LaTeX → PDF
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: uropro-incontinencia-urinaria.tex
-          working_directory: articles
-          latexmk_use_xelatex: false
-          args: -pdf -interaction=nonstopmode -file-line-error
-
-      - name: Compile UroPro · Cross-Vertical (WP #4) LaTeX → PDF
+      - name: Compile UroPro · Cross-Vertical (WP #3) LaTeX → PDF
         uses: xu-cheng/latex-action@v3
         with:
           root_file: uropro-serie-2008-2025.tex
@@ -79,7 +71,7 @@ jobs:
           latexmk_use_xelatex: false
           args: -pdf -interaction=nonstopmode -file-line-error
 
-      - name: Compile UroPro · Saúde Pública (WP #6) LaTeX → PDF
+      - name: Compile UroPro · Saúde Pública (WP #5) LaTeX → PDF
         uses: xu-cheng/latex-action@v3
         with:
           root_file: uropro-saude-publica-2008-2025.tex
@@ -94,7 +86,6 @@ jobs:
           cp articles/bolsa-familia.pdf                 app/public/articles/
           cp articles/rais-fair-lakehouse.pdf           app/public/articles/
           cp articles/equipamentos-rm-parkinson.pdf     app/public/articles/
-          cp articles/uropro-incontinencia-urinaria.pdf app/public/articles/
           cp articles/uropro-serie-2008-2025.pdf        app/public/articles/
           cp articles/uropro-saude-publica-2008-2025.pdf app/public/articles/
           # Stage .tex sources for the "Baixar fonte" button (all verticais).
@@ -102,7 +93,6 @@ jobs:
           cp articles/bolsa-familia.tex                 app/public/articles/
           cp articles/rais-fair-lakehouse.tex           app/public/articles/
           cp articles/equipamentos-rm-parkinson.tex     app/public/articles/
-          cp articles/uropro-incontinencia-urinaria.tex app/public/articles/
           cp articles/uropro-serie-2008-2025.tex        app/public/articles/
           cp articles/uropro-saude-publica-2008-2025.tex app/public/articles/
           ls -la app/public/articles/

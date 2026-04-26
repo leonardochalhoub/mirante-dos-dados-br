@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
 import { loadStats } from '../lib/data';
 
@@ -45,13 +45,95 @@ function fmtPubDate(iso) {
 
 const flagSrc = `${import.meta.env.BASE_URL}brazil-flag.svg`.replace(/\/{2,}/g, '/');
 
+// Inline SVG icons (no external deps; theme-aware via currentColor).
+function IconHamburger() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconClose() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconSun() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2"/>
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconMoon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"
+            stroke="currentColor" strokeWidth="2" fill="none" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// Reusable theme toggle component — renders identically in sidebar and mobile header.
+// Uses semantic <button> with aria-label so screen readers / mobile a11y stays correct.
+function ThemeToggle({ theme, toggle, compact = false }) {
+  const isDark = theme === 'dark';
+  if (compact) {
+    return (
+      <button
+        type="button"
+        className="theme-icon-btn"
+        onClick={toggle}
+        aria-label={`Alternar para tema ${isDark ? 'claro' : 'escuro'}`}
+        title={`Tema atual: ${isDark ? 'escuro' : 'claro'} — toque para alternar`}
+      >
+        {isDark ? <IconSun /> : <IconMoon />}
+      </button>
+    );
+  }
+  return (
+    <div className="themeToggle" onClick={(e) => e.stopPropagation()}>
+      <span className="kicker">Claro</span>
+      <label className="switch" title="Alternar tema">
+        <input type="checkbox" checked={isDark} onChange={toggle} />
+        <span className="slider" />
+      </label>
+      <span className="kicker">Escuro</span>
+    </div>
+  );
+}
+
 export default function Layout() {
   const { theme, toggle } = useTheme();
   const [stats, setStats] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     loadStats('platform_stats.json').then(setStats).catch(() => setStats(null));
   }, []);
+
+  // Close drawer on route change (mobile UX: tap a link → drawer closes → see content).
+  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
+
+  // Lock body scroll while drawer is open (mobile only).
+  useEffect(() => {
+    if (drawerOpen) document.body.classList.add('no-scroll');
+    else document.body.classList.remove('no-scroll');
+    return () => document.body.classList.remove('no-scroll');
+  }, [drawerOpen]);
+
+  // Close drawer on Esc.
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') setDrawerOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [drawerOpen]);
 
   const tagFor = (v) => {
     const goldList = stats?.tables?.gold;
@@ -64,9 +146,88 @@ export default function Layout() {
     return v.defaultTag;
   };
 
+  // Single source of truth for the nav block — used by both sidebar (desktop)
+  // and drawer (mobile). Keeps version tags + pub dates in sync everywhere.
+  const navBlock = (
+    <>
+      <nav>
+        <div className="nav-section-label">Navegar</div>
+        <ul className="nav-list">
+          {NAV.map((item) => (
+            <li key={item.to}>
+              <NavLink
+                to={item.to}
+                end={item.exact}
+                className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}
+              >
+                {item.label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <nav>
+        <div className="nav-section-label">Verticais</div>
+        <ul className="nav-list">
+          {VERTICALS.map((v) => {
+            const tag = tagFor(v);
+            const pub = fmtPubDate(v.firstPublished);
+            return (
+              <li key={v.to}>
+                {v.soon ? (
+                  <span className="nav-link nav-link-vertical" style={{ opacity: 0.55, cursor: 'default' }}>
+                    <span className="nav-link-row">
+                      <span className="nav-link-label">{v.label}</span>
+                      <span className="nav-link-tag tag-soon">{tag}</span>
+                    </span>
+                    {pub && <span className="nav-link-pubdate">desde {pub}</span>}
+                  </span>
+                ) : (
+                  <NavLink
+                    to={v.to}
+                    className={({ isActive }) => `nav-link nav-link-vertical${isActive ? ' is-active' : ''}`}
+                  >
+                    <span className="nav-link-row">
+                      <span className="nav-link-label">{v.label}</span>
+                      <span className="nav-link-tag" title="Versão da tabela Delta (DESCRIBE HISTORY)">{tag}</span>
+                    </span>
+                    {pub && <span className="nav-link-pubdate" title="Data da primeira versão publicada">desde {pub}</span>}
+                  </NavLink>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </>
+  );
+
   return (
     <div className="app">
-      <aside className="sidebar">
+      {/* ── Mobile header (top bar): visible only on small viewports ───────── */}
+      <header className="mobile-header" role="banner">
+        <NavLink to="/" className="mobile-brand" end>
+          <img className="brand-flag" src={flagSrc} alt="Brasil" />
+          <span className="mobile-brand-name">Mirante dos Dados</span>
+        </NavLink>
+        <div className="mobile-header-actions">
+          <ThemeToggle theme={theme} toggle={toggle} compact />
+          <button
+            type="button"
+            className="mobile-hamburger"
+            onClick={() => setDrawerOpen((v) => !v)}
+            aria-label={drawerOpen ? 'Fechar menu' : 'Abrir menu'}
+            aria-expanded={drawerOpen}
+            aria-controls="mobile-drawer"
+          >
+            {drawerOpen ? <IconClose /> : <IconHamburger />}
+          </button>
+        </div>
+      </header>
+
+      {/* ── Desktop sidebar (≥ 901px) ──────────────────────────────────────── */}
+      <aside className="sidebar" aria-label="Navegação principal">
         <NavLink to="/" className="brand" end>
           <img className="brand-flag" src={flagSrc} alt="Brasil" />
           <div>
@@ -75,66 +236,10 @@ export default function Layout() {
           </div>
         </NavLink>
 
-        <nav>
-          <div className="nav-section-label">Navegar</div>
-          <ul className="nav-list">
-            {NAV.map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  end={item.exact}
-                  className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}
-                >
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <nav>
-          <div className="nav-section-label">Verticais</div>
-          <ul className="nav-list">
-            {VERTICALS.map((v) => {
-              const tag = tagFor(v);
-              const pub = fmtPubDate(v.firstPublished);
-              return (
-                <li key={v.to}>
-                  {v.soon ? (
-                    <span className="nav-link nav-link-vertical" style={{ opacity: 0.55, cursor: 'default' }}>
-                      <span className="nav-link-row">
-                        <span className="nav-link-label">{v.label}</span>
-                        <span className="nav-link-tag tag-soon">{tag}</span>
-                      </span>
-                      {pub && <span className="nav-link-pubdate">desde {pub}</span>}
-                    </span>
-                  ) : (
-                    <NavLink
-                      to={v.to}
-                      className={({ isActive }) => `nav-link nav-link-vertical${isActive ? ' is-active' : ''}`}
-                    >
-                      <span className="nav-link-row">
-                        <span className="nav-link-label">{v.label}</span>
-                        <span className="nav-link-tag" title="Versão da tabela Delta (DESCRIBE HISTORY)">{tag}</span>
-                      </span>
-                      {pub && <span className="nav-link-pubdate" title="Data da primeira versão publicada">desde {pub}</span>}
-                    </NavLink>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+        {navBlock}
 
         <div className="sidebar-footer">
-          <div className="themeToggle" onClick={(e) => e.stopPropagation()}>
-            <span className="kicker">Claro</span>
-            <label className="switch" title="Alternar tema">
-              <input type="checkbox" checked={theme === 'dark'} onChange={toggle} />
-              <span className="slider" />
-            </label>
-            <span className="kicker">Escuro</span>
-          </div>
+          <ThemeToggle theme={theme} toggle={toggle} />
           <div>
             <a
               href="https://github.com/leonardochalhoub/mirante-dos-dados-br"
@@ -145,6 +250,48 @@ export default function Layout() {
             </a>
           </div>
           <div className="muted" style={{ fontSize: 10 }}>
+            Pipeline open-source · Databricks Free Edition
+          </div>
+        </div>
+      </aside>
+
+      {/* ── Mobile drawer (slide-in from right) + scrim ────────────────────── */}
+      <div
+        className={`mobile-drawer-scrim${drawerOpen ? ' is-open' : ''}`}
+        onClick={() => setDrawerOpen(false)}
+        aria-hidden="true"
+      />
+      <aside
+        id="mobile-drawer"
+        className={`mobile-drawer${drawerOpen ? ' is-open' : ''}`}
+        aria-label="Menu de navegação"
+        aria-hidden={!drawerOpen}
+      >
+        <div className="mobile-drawer-header">
+          <span className="brand-name" style={{ fontSize: 14 }}>Menu</span>
+          <button
+            type="button"
+            className="theme-icon-btn"
+            onClick={() => setDrawerOpen(false)}
+            aria-label="Fechar menu"
+          >
+            <IconClose />
+          </button>
+        </div>
+        <div className="mobile-drawer-body">
+          {navBlock}
+        </div>
+        <div className="mobile-drawer-footer">
+          <ThemeToggle theme={theme} toggle={toggle} />
+          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
+            <a
+              href="https://github.com/leonardochalhoub/mirante-dos-dados-br"
+              target="_blank" rel="noreferrer"
+            >
+              github.com/leonardochalhoub
+            </a>
+          </div>
+          <div className="muted" style={{ fontSize: 10, marginTop: 4 }}>
             Pipeline open-source · Databricks Free Edition
           </div>
         </div>

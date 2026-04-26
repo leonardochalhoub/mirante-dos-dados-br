@@ -1,12 +1,18 @@
 // Vertical: Equipamentos CNES (todos os tipos, não só Ressonância Magnética).
 // Source: /data/gold/gold_equipamentos_estados_ano.json
-// Schema row: { estado, ano, codequip, equipment_name, populacao,
+// Schema row: { estado, ano, tipequip, codequip, equipment_key, equipment_name,
+//   equipment_category, populacao,
 //   cnes_count, total_avg, per_capita_scaled,
 //   sus_cnes_count, sus_total_avg, sus_per_capita_scaled,
 //   priv_cnes_count, priv_total_avg, priv_per_capita_scaled,
 //   per_capita_scale_pow10 }
 //
-// User selects 1+ codequips (multi-select). Front re-aggregates client-side.
+// `equipment_key` = "TIPEQUIP:CODEQUIP" (ex: "1:12" = RM, "4:42" = EEG).
+// Pré-WP#6 a chave era só `codequip`, o que colapsava equipamentos de TIPEQUIPs
+// diferentes que reusam o mesmo número (CODEQUIP=42 era mostrado como "RM"
+// quando na verdade era Eletroencefalógrafo). Ver memory/feedback_cnes_codequip_bug.
+//
+// User selects 1+ equipment_keys (multi-select). Front re-aggregates client-side.
 
 import { useEffect, useMemo, useState } from 'react';
 import PageHeader                    from '../components/PageHeader';
@@ -41,7 +47,19 @@ const MIN_YEAR        = 2005;
 const DEFAULT_METRIC  = 'per_million';
 const DEFAULT_SETOR   = 'todos';
 const DEFAULT_COLOR   = 'Cividis';
-const DEFAULT_CODEQUIPS = ['42'];   // Ressonância Magnética por default
+// Default = Ressonância Magnética. Chave canônica TIPEQUIP=1, CODEQUIP=12
+// (catálogo oficial DATASUS — cnes2.datasus.gov.br/Mod_Ind_Equipamento.asp).
+// Pré-correção, esse default era ['42'] — que era Eletroencefalógrafo.
+const DEFAULT_EQUIPMENT_KEYS = ['1:12'];
+
+// Garantir compatibilidade com gold legado (sem equipment_key).
+// Se a row não tem equipment_key, sintetiza a partir de tipequip:codequip,
+// caindo de volta pra só codequip se tipequip também não existir (legacy).
+function rowKey(r) {
+  if (r.equipment_key) return r.equipment_key;
+  if (r.tipequip != null) return `${r.tipequip}:${r.codequip}`;
+  return String(r.codequip);
+}
 
 function aggCols(sector) {
   if (sector === 'sus')  return { total: 'sus_total_avg',  cnes: 'sus_cnes_count'  };
@@ -57,7 +75,7 @@ export default function Equipamentos() {
   const [setor, setSetor]               = useState(DEFAULT_SETOR);
   const [year, setYear]                 = useState(null);
   const [colorscale, setColorscale]     = useState(DEFAULT_COLOR);
-  const [selectedCodequips, setSelectedCodequips] = useState(DEFAULT_CODEQUIPS);
+  const [selectedKeys, setSelectedKeys] = useState(DEFAULT_EQUIPMENT_KEYS);
 
   useEffect(() => {
     loadGold('gold_equipamentos_estados_ano.json')
@@ -66,6 +84,12 @@ export default function Equipamentos() {
         setRows(filtered);
         const last = Math.max(...filtered.map((r) => r.ano));
         setYear(String(last));
+        // Backward-compat: se a primeira row é gold legado (só `codequip`),
+        // ajusta o default selection do '1:12' para o legacy '42' para
+        // não bater em 0 rows. Só dispara antes do refresh do pipeline.
+        if (filtered.length > 0 && !filtered[0].equipment_key && filtered[0].tipequip == null) {
+          setSelectedKeys(['42']);
+        }
       })
       .catch((e) => setError(e.message));
   }, []);
@@ -82,21 +106,28 @@ export default function Equipamentos() {
     if (!rows) return [];
     const totals = new Map();
     const names  = new Map();
+    const cats   = new Map();
     for (const r of rows) {
-      totals.set(r.codequip, (totals.get(r.codequip) || 0) + (r.total_avg || 0));
-      if (!names.has(r.codequip)) names.set(r.codequip, r.equipment_name);
+      const k = rowKey(r);
+      totals.set(k, (totals.get(k) || 0) + (r.total_avg || 0));
+      if (!names.has(k)) names.set(k, r.equipment_name);
+      if (!cats.has(k))  cats.set(k, r.equipment_category || '');
     }
     return Array.from(totals.entries())
       .sort((a, b) => b[1] - a[1])
-      .map(([codequip]) => ({ codequip, name: names.get(codequip) || `Cód. ${codequip}` }));
+      .map(([key]) => ({
+        key,
+        name: names.get(key) || `Cód. ${key}`,
+        category: cats.get(key) || '',
+      }));
   }, [rows]);
 
   const rowsForCurrentYear = useMemo(() => {
     if (!rows || !year) return [];
     const yNum = Number(year);
-    const sel  = new Set(selectedCodequips);
-    return rows.filter((r) => r.ano === yNum && sel.has(r.codequip));
-  }, [rows, year, selectedCodequips]);
+    const sel  = new Set(selectedKeys);
+    return rows.filter((r) => r.ano === yNum && sel.has(rowKey(r)));
+  }, [rows, year, selectedKeys]);
 
   const filtered = useMemo(() => {
     if (!rowsForCurrentYear.length) return [];
@@ -133,8 +164,8 @@ export default function Equipamentos() {
     const prevYear = years.includes(y - 1) ? y - 1 : null;
     let yoyTotal = null;
     if (prevYear != null) {
-      const sel = new Set(selectedCodequips);
-      const prev = rows.filter((r) => r.ano === prevYear && sel.has(r.codequip));
+      const sel = new Set(selectedKeys);
+      const prev = rows.filter((r) => r.ano === prevYear && sel.has(rowKey(r)));
       const totalPrev = sumT(prev, 'total_avg');
       if (totalPrev > 0) yoyTotal = (total - totalPrev) / totalPrev;
     }
@@ -144,13 +175,13 @@ export default function Equipamentos() {
       privShare: total > 0 ? priv / total : 0,
       yoyTotal, prevYear,
     };
-  }, [rowsForCurrentYear, year, years, rows, selectedCodequips]);
+  }, [rowsForCurrentYear, year, years, rows, selectedKeys]);
 
   const evolutionData = useMemo(() => {
     if (!rows) return [];
-    const sel = new Set(selectedCodequips);
+    const sel = new Set(selectedKeys);
     return years.map((y) => {
-      const yr = rows.filter((r) => r.ano === y && sel.has(r.codequip));
+      const yr = rows.filter((r) => r.ano === y && sel.has(rowKey(r)));
       const susT  = yr.reduce((s, r) => s + (r.sus_total_avg  || 0), 0);
       const privT = yr.reduce((s, r) => s + (r.priv_total_avg || 0), 0);
       const totalT = susT + privT;
@@ -161,14 +192,14 @@ export default function Equipamentos() {
       const ratio = popBR > 0 ? (setorT / popBR) * 1e6 : 0;
       return { year: String(y), sus: susT, priv: privT, ratio };
     });
-  }, [rows, years, setor, selectedCodequips]);
+  }, [rows, years, setor, selectedKeys]);
 
   if (error) return <div className="error-block">Erro ao carregar dados: {error}</div>;
   if (!rows) return <div className="loading-block">Carregando dados…</div>;
 
-  const titleSubject = selectedCodequips.length === 1
-    ? equipmentOptions.find((e) => e.codequip === selectedCodequips[0])?.name || 'Equipamento'
-    : `${selectedCodequips.length} equipamentos selecionados`;
+  const titleSubject = selectedKeys.length === 1
+    ? equipmentOptions.find((e) => e.key === selectedKeys[0])?.name || 'Equipamento'
+    : `${selectedKeys.length} equipamentos selecionados`;
 
   return (
     <>
@@ -214,8 +245,8 @@ export default function Equipamentos() {
                 <label htmlFor="equip" style={{ paddingTop: 6 }}>Equipamento</label>
                 <EquipmentMultiSelect
                   options={equipmentOptions}
-                  selected={selectedCodequips}
-                  onChange={setSelectedCodequips}
+                  selected={selectedKeys}
+                  onChange={setSelectedKeys}
                 />
               </div>
 
@@ -322,18 +353,21 @@ function EquipmentMultiSelect({ options, selected, onChange }) {
   const sel = new Set(selected);
 
   const filtered = options.filter((o) =>
-    !query || o.name.toLowerCase().includes(query.toLowerCase()) || o.codequip.includes(query),
+    !query
+      || o.name.toLowerCase().includes(query.toLowerCase())
+      || o.key.includes(query)
+      || (o.category || '').toLowerCase().includes(query.toLowerCase()),
   );
 
-  const toggle = (codequip) => {
-    const next = sel.has(codequip)
-      ? selected.filter((c) => c !== codequip)
-      : [...selected, codequip];
+  const toggle = (key) => {
+    const next = sel.has(key)
+      ? selected.filter((k) => k !== key)
+      : [...selected, key];
     if (next.length > 0) onChange(next);   // sempre manter ao menos 1
   };
 
   const summary = selected.length === 1
-    ? options.find((o) => o.codequip === selected[0])?.name || `Cód. ${selected[0]}`
+    ? options.find((o) => o.key === selected[0])?.name || selected[0]
     : `${selected.length} selecionados`;
 
   return (
@@ -346,7 +380,7 @@ function EquipmentMultiSelect({ options, selected, onChange }) {
         <div className="multi-select-popover">
           <input
             type="text"
-            placeholder="Buscar…"
+            placeholder="Buscar (nome, código ou categoria)…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="multi-select-search"
@@ -354,14 +388,21 @@ function EquipmentMultiSelect({ options, selected, onChange }) {
           />
           <div className="multi-select-options">
             {filtered.map((o) => (
-              <label key={o.codequip} className="multi-select-option">
+              <label key={o.key} className="multi-select-option">
                 <input
                   type="checkbox"
-                  checked={sel.has(o.codequip)}
-                  onChange={() => toggle(o.codequip)}
+                  checked={sel.has(o.key)}
+                  onChange={() => toggle(o.key)}
                 />
-                <span>{o.name}</span>
-                <span className="multi-select-code">{o.codequip}</span>
+                <span>
+                  {o.name}
+                  {o.category && (
+                    <span style={{ display: 'block', fontSize: 10, color: 'var(--faint)', marginTop: 1 }}>
+                      {o.category}
+                    </span>
+                  )}
+                </span>
+                <span className="multi-select-code">{o.key}</span>
               </label>
             ))}
           </div>
@@ -429,7 +470,7 @@ function ArticleSection() {
   return (
     <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
       <div className="doc-block">
-        <div className="kicker">Working Paper n. 5 — Mirante dos Dados</div>
+        <div className="kicker">Working Paper n. 4 — Mirante dos Dados</div>
         <p style={{ marginTop: 6, fontSize: 13.5 }}>
           <b>"Análise estatística da prevalência da Doença de Parkinson no
           Brasil: desafios, tecnologias de neuroimagem e perspectivas de

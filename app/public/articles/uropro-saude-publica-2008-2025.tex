@@ -1,18 +1,17 @@
 % =====================================================================
-% Mirante dos Dados — Working Paper #6
+% Mirante dos Dados — Working Paper #5
 % Cirurgia uroginecológica no SUS, 2008–2025: ganhos silenciosos de
 % eficiência, desigualdade territorial persistente, choque pandêmico
 % e represa cirúrgica.
 %
 % Autor:  Leonardo Chalhoub (engenharia de dados, análise, redação)
 % Versão: 1.0  —  Abril de 2026
-% Compilação: pdflatex articles/uropro-serie-2008-2025.tex (2x)
+% Compilação: pdflatex articles/uropro-saude-publica-2008-2025.tex (2x)
 %
-% Este Working Paper é um seguimento de CHALHOUB & DA SILVA (2026,
-% Working Paper n. 3), que por sua vez derivou da especialização de
-% TATIELI (2022). O escopo aqui é mais amplo (2008–2025), foca em
-% dinâmicas longitudinais e incorpora a correção da pipeline silver
-% (bug de _ingest_ts identificado e resolvido em abril/2026).
+% Este Working Paper tem como base o trabalho de especialização em
+% Enfermagem de TATIELI (2022). O escopo aqui é amplo (2008–2025),
+% foca em dinâmicas longitudinais e incorpora a correção da pipeline
+% silver (bug de _ingest_ts identificado e resolvido em abril/2026).
 % =====================================================================
 
 \documentclass[12pt,a4paper,oneside]{article}
@@ -57,7 +56,7 @@
 \begin{titlepage}
   \begin{center}
     \vspace*{1.5cm}
-    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 6}}\\
+    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 5}}\\
     {\small Versão 1.0 \textemdash{} Abril de 2026}
 
     \vfill
@@ -87,15 +86,14 @@
     \vfill
 
     \rule{0.6\linewidth}{0.4pt}\\[6pt]
-    {\small\textit{Este artigo é o sexto da série de Working Papers
-     do Mirante dos Dados. Continua e estende DA SILVA \& CHALHOUB
-     (2026c, Working Paper n. 3), que por sua vez se assenta sobre
-     a especialização em Enfermagem de TATIELI (2022). O recorte
+    {\small\textit{Este artigo é o quinto da série de Working Papers
+     do Mirante dos Dados. Tem como base a pesquisa original de
+     TATIELI (2022, especialização em Enfermagem). O recorte
      amplia-se para a janela 2008\textendash 2025 (dezessete anos),
      dedicada à dinâmica longitudinal de eficiência, equidade e
      resiliência \textit{intra-vertical}. O cruzamento
      \textit{cross-vertical} com Bolsa Família e Emendas
-     Parlamentares é tratado em CHALHOUB (2026d, Working Paper n. 4),
+     Parlamentares é tratado em CHALHOUB (2026d, Working Paper n. 3),
      paper companheiro deste.}}
 
     \vspace{1cm}
@@ -146,7 +144,7 @@ habitantes; PE, AL e RR ficam abaixo de 0{,}75. (Uma análise
 \textit{cross-vertical} dessa desigualdade, cruzando o acesso
 cirúrgico com cobertura do Bolsa Família e emendas
 parlamentares, é apresentada no paper companheiro CHALHOUB,
-2026d, Working Paper n. 4.) (iv)~A mortalidade hospitalar é
+2026d, Working Paper n. 3.) (iv)~A mortalidade hospitalar é
 estruturalmente baixa (\textless\,0{,}05\,\% \textit{intra-hospital}),
 reforçando a tese de que o procedimento é seguro e a barreira é
 de oferta, não de risco clínico.
@@ -239,10 +237,10 @@ Marshall-Marchetti-Krantz). Revisões sistemáticas Cochrane (FORD
 Association of Urology (CHAPPLE \textit{et al.}, 2020) apontam, com
 evidência de alto nível, que a abordagem vaginal apresenta menor
 tempo cirúrgico, menor permanência hospitalar e taxa de cura
-comparável à abdominal. Como mostraram TATIELI (2022) e DA SILVA
-\& CHALHOUB (2026c), o SUS de fato consolidou essa preferência: a
-razão vaginal:abdominal observada na série SIH-AIH-RD entre 2015 e
-2020 estabilizou-se em torno de 7:1, alinhada à literatura.
+comparável à abdominal. Como mostrou TATIELI (2022), o SUS de
+fato consolidou essa preferência: a razão vaginal:abdominal
+observada na série SIH-AIH-RD entre 2015 e 2020 estabilizou-se
+em torno de 7:1, alinhada à literatura.
 
 O presente artigo \textit{não} é uma replicação. É uma extensão
 deliberada em três dimensões. Primeiro, o recorte temporal é
@@ -258,9 +256,10 @@ Terceiro, o artigo documenta com transparência um defeito de
 ocultar mais de metade das UFs do Brasil em todas as visualizações
 prévias da plataforma. Esse último ponto, à primeira vista
 metodológico, é o que justifica a existência mesma deste paper:
-\textit{os números aqui apresentados são diferentes dos números
-publicados no Working Paper n. 3, e a diferença é causada por uma
-correção de engenharia, não por revisão de fonte.}
+\textit{os números aqui apresentados refletem a correção da camada
+silver; quaisquer divergências em relação às visualizações prévias
+da plataforma são causadas por uma correção de engenharia, não por
+revisão de fonte.}
 
 A pergunta que organiza o texto é: \textit{ao olharmos quase duas
 décadas de prática cirúrgica brasileira para uma única condição
@@ -426,9 +425,9 @@ redundante. O \textit{commit} público que aplica a correção é o
 \texttt{fa869cf} no repositório do projeto (abril de 2026). Toda a
 camada \textit{silver} e \textit{gold} foi regenerada em seguida,
 e os números apresentados neste Working Paper já refletem essa
-reconstituição. Comparações com o Working Paper n. 3 ficam
-prejudicadas em magnitudes absolutas, mas \textit{não} nas
-direções de tendência \textemdash{} o que é um achado
+reconstituição. Magnitudes absolutas extraídas da plataforma antes
+da correção devem ser consideradas prejudicadas, embora as direções
+de tendência se mantenham \textemdash{} o que é um achado
 metodológico relevante por si só.
 
 \subsection{Procedimentos analisados}
@@ -495,9 +494,9 @@ A Tabela~\ref{tab:nat-aih} consolida o volume nacional anual por
 via para o período 2008\textendash 2025. A via vaginal predomina
 de forma estável: nos anos pré-pandêmicos (2015\textendash 2019),
 a razão vaginal:abdominal foi de aproximadamente 7{,}5:1,
-ligeiramente maior do que o reportado no Working Paper n. 3
-(que utilizou dados parciais por força do bug descrito na
-Seção~\ref{sub:bug}). Em 2025, a razão sobe para 13{,}7:1
+ligeiramente maior do que estimativas baseadas em dados parciais
+extraídas da plataforma antes da correção do bug descrito na
+Seção~\ref{sub:bug}. Em 2025, a razão sobe para 13{,}7:1
 \textemdash{} um indício de que a represa cirúrgica em escoamento
 está concentrada \textit{quase exclusivamente} na via vaginal,
 provavelmente porque é a via majoritária da prática contemporânea.
@@ -953,12 +952,12 @@ referência) que não estão capturados na fonte SIH.
 \subsection{Sobre o defeito do pipeline e a credibilidade do dado}
 
 Vale a pena tratar explicitamente um ponto incômodo: as tabelas
-deste Working Paper \textit{não coincidem} com as tabelas
-publicadas no Working Paper n. 3 (DA SILVA \& CHALHOUB, 2026c).
-A diferença, contudo, não é pequena: na tabela de volumes por
-UF, por exemplo, mais de metade dos estados aparecia com volume
-zero em vários anos no WP n. 3 \textemdash{} um padrão que era,
-afinal, artefato do filtro \texttt{\_ingest\_ts} descrito na
+deste Working Paper \textit{não coincidem} com tabelas e
+visualizações prévias da plataforma Mirante. A diferença, contudo,
+não é pequena: na tabela de volumes por UF, por exemplo, mais de
+metade dos estados aparecia com volume zero em vários anos nas
+versões pré-correção \textemdash{} um padrão que era, afinal,
+artefato do filtro \texttt{\_ingest\_ts} descrito na
 Seção~\ref{sub:bug}, não realidade dos dados.
 
 Isso obriga uma reflexão honesta. \textit{Dados públicos de
@@ -1102,14 +1101,7 @@ CHALHOUB, L. Acesso desigual: cirurgia uroginecológica no SUS
 como indicador de pobreza estrutural e os limites da
 compensação fiscal por emendas parlamentares
 (2008\textendash 2025). \textbf{Mirante dos Dados \textemdash{}
-Working Paper n. 4}, abr. 2026d.\par\smallskip
-
-\noindent\hangindent=1.25cm\hangafter=1
-DA SILVA, T.; CHALHOUB, L. Tratamento Cirúrgico da Incontinência
-Urinária no Sistema Único de Saúde (2015\textendash 2020):
-volumes, despesa, permanência e distribuição geográfica por via
-de acesso. \textbf{Mirante dos Dados \textemdash{} Working
-Paper n. 3}, abr. 2026c.\par\smallskip
+Working Paper n. 3}, abr. 2026d.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
 FORD, A. A.; ROGERSON, L.; CODY, J. D.; OGAH, J. Mid-urethral
@@ -1158,17 +1150,16 @@ CHALHOUB, L. Cirurgia uroginecológica no Sistema Único de Saúde,
 2008\textendash 2025: ganhos silenciosos de eficiência,
 desigualdade territorial persistente, choque pandêmico e represa
 cirúrgica. \textit{Mirante dos Dados
-\textemdash{} Working Paper n. 6}, v. 1.0, abr. 2026.
+\textemdash{} Working Paper n. 5}, v. 1.0, abr. 2026.
 Disponível em:
 \url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
 
 \vspace{0.5cm}
 
-\noindent\textbf{Reconhecimento:} este Working Paper é continuação
-direta de DA SILVA \& CHALHOUB (2026c, Working Paper n. 3), que
-por sua vez teve como base o trabalho de especialização de
-TATIELI (2022). A presente versão amplia o recorte temporal,
-incorpora a correção da camada \textit{silver} (\textit{commit}
+\noindent\textbf{Reconhecimento:} este Working Paper tem como
+base o trabalho de especialização em Enfermagem de TATIELI
+(2022). A presente versão amplia o recorte temporal, incorpora
+a correção da camada \textit{silver} (\textit{commit}
 \texttt{fa869cf}) e introduz a leitura longitudinal de eficiência
 e represa cirúrgica.
 

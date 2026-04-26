@@ -128,9 +128,9 @@ export const PARECER_PBF = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// EQUIPAMENTOS — DATASUS CNES + Working Paper #5 (RM × Parkinson)
+// EQUIPAMENTOS — DATASUS CNES + Working Paper #4 (RM × Parkinson)
 // Régua aplicada: LATO SENSU. Vertical PROMOVIDO de Graduação para Lato
-// sensu após publicação do WP #5 (Rolim + Chalhoub) sobre RM no SUS e
+// sensu após publicação do WP #4 (Rolim + Chalhoub) sobre RM no SUS e
 // diagnóstico de Parkinson. Agora é um trabalho acadêmico real, com
 // pergunta de pesquisa, método, discussão e bibliografia substantiva.
 // ═══════════════════════════════════════════════════════════════════════
@@ -143,10 +143,10 @@ export const PARECER_EQUIPAMENTOS = {
   originalLabel: null,
   originalUrl: null,
   ultimaAtualizacao: `${HOJE}T22:00 BRT`,
-  versao: '2.0 — WP#5 publicado',
+  versao: '2.0 — WP#4 publicado',
   resumoCalibragem:
     'PROMOVIDO de Graduação (8,5 anterior) para Lato sensu (8,7 atual) ' +
-    'com a publicação do Working Paper #5 — coautoria com Alexandre ' +
+    'com a publicação do Working Paper #4 — coautoria com Alexandre ' +
     'Maciel Rolim. O vertical agora é trabalho acadêmico de fato: ' +
     'manuscrito original de Rolim sobre epidemiologia de Parkinson no ' +
     'Brasil (ELSI-Brazil) integrado com camada de engenharia de dados ' +
@@ -170,7 +170,7 @@ export const PARECER_EQUIPAMENTOS = {
     'futura. Reduz custo marginal de pesquisa em saúde pública sobre ' +
     'um tema com 535 mil pacientes hoje no Brasil.',
   pontosFortes: [
-    'Working Paper #5 publicado em ABNT com 12 figuras matplotlib vetoriais',
+    'Working Paper #4 publicado em ABNT com 12 figuras matplotlib vetoriais',
     'Coautoria com pesquisador clínico (A. M. Rolim, manuscrito original abr/2026) — modelo de integração engenheiro+médico',
     'Cobertura ampla: 99 equipamentos diferentes, todas as UFs, 2013-2025',
     'Pipeline robusto com cache idempotente em conversão DBC→Parquet',
@@ -192,7 +192,7 @@ export const PARECER_EQUIPAMENTOS = {
     'Estender análise para tomografia (codequip=26), PET (44/47) e outros equipamentos relevantes a doenças neurodegenerativas',
   ],
   proximosPassos: [
-    'Submeter WP #5 a Cad Saúde Pública ou Lancet Reg Health Am — peer review é o próximo nível',
+    'Submeter WP #4 a Cad Saúde Pública ou Lancet Reg Health Am — peer review é o próximo nível',
     'Cruzar com SIH-AIH para análise de uso efetivo (proc realizados em RM por UF)',
     'Adicionar codequips correlatos (tomografia, PET) ao mesmo recorte → série de WPs sobre neuroimagem no SUS',
     'Validação clínica: parceria com algum movement disorder center (Hospital São Paulo, HC-FMRP) para correlacionar disponibilidade local vs tempo até diagnóstico',
@@ -263,9 +263,11 @@ export const PARECER_EMENDAS = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// UROPRO — Tratamento Cirúrgico de Incontinência Urinária (Working Paper #3)
-// Régua aplicada: LATO SENSU. Deriva da especialização da Tatieli (2022).
-// 7,5 lato sensu — pipeline em execução pela primeira vez no momento.
+// UROPRO — Cirurgia uroginecológica no SUS (Working Papers #3 + #5)
+// Régua aplicada: LATO SENSU. Tem como base a especialização de TATIELI
+// (2022). WP #3 é cross-vertical (UroPro × PBF × Emendas, 2008-2025) e
+// WP #5 é vertical-only longitudinal (UroPro 17 anos, eficiência+COVID
+// +represa).
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_UROPRO = {
   vertical: 'uropro',
@@ -276,24 +278,24 @@ export const PARECER_UROPRO = {
   originalLabel: 'TCC Tatieli, 2022, régua MBA/lato sensu',
   originalUrl: null,
   ultimaAtualizacao: `${HOJE}T22:30 BRT`,
-  versao: '2.0 — pipeline corrigido + WP #4 (cross-vertical) + WP #6 (vertical-only)',
+  versao: '2.0 — pipeline corrigido + WP #3 (cross-vertical) + WP #5 (vertical-only)',
   resumoCalibragem:
-    'Avaliado como Lato sensu — deriva da especialização em Enfermagem ' +
-    'da Tatieli da Silva (2022, nota 9,7 régua MBA/lato sensu — aprovação ' +
-    'com distinção). Sobe de 7,5 para 9,5 nesta reavaliação porque o ' +
-    'vertical agora entrega TUDO o que o original entregou + extensões ' +
-    'genuínas: (a) pipeline live com microdados 2008-2025 (vs TabNet ' +
-    '2015-2020 do original); (b) DOIS Working Papers em ABNT (WP #4 ' +
-    'cross-vertical + WP #6 vertical-only); (c) descoberta e correção ' +
-    'transparente do bug silver (filtro _ingest_ts == max derrubava ' +
-    '73% das linhas e 14 das 27 UFs — commit fa869cf documenta a ' +
-    'correção); (d) cruzamento cross-vertical inédito com Bolsa Família ' +
-    'e Emendas (correlação ρ ≈ -0,68 entre pobreza estrutural e acesso ' +
-    'à cirurgia); (e) chart stacked-by-procedure na Evolução Nacional. ' +
-    '9,5 (não 9,7+) reconhece que figuras matplotlib ainda usam dados ' +
-    'pré-correção e precisam ser regeneradas sobre o gold corrigido. ' +
-    'Acima do original em escopo (cross-vertical, janela 17 anos, ' +
-    'transparência metodológica) mas levemente abaixo em fechamento ' +
+    'Avaliado como Lato sensu — tem como base a especialização em ' +
+    'Enfermagem de Tatieli da Silva (2022, nota 9,7 régua MBA/lato sensu ' +
+    '— aprovação com distinção). Sobe de 7,5 para 9,5 nesta reavaliação ' +
+    'porque o vertical agora entrega TUDO o que o original entregou + ' +
+    'extensões genuínas: (a) pipeline live com microdados 2008-2025 ' +
+    '(vs TabNet 2015-2020 do original); (b) DOIS Working Papers em ABNT ' +
+    '(WP #3 cross-vertical + WP #5 vertical-only); (c) descoberta e ' +
+    'correção transparente do bug silver (filtro _ingest_ts == max ' +
+    'derrubava 73% das linhas e 14 das 27 UFs — commit fa869cf documenta ' +
+    'a correção); (d) cruzamento cross-vertical inédito com Bolsa ' +
+    'Família e Emendas (correlação ρ ≈ -0,68 entre pobreza estrutural e ' +
+    'acesso à cirurgia); (e) chart stacked-by-procedure na Evolução ' +
+    'Nacional. 9,5 (não 9,7+) reconhece que figuras matplotlib ainda ' +
+    'usam dados pré-correção e precisam ser regeneradas sobre o gold ' +
+    'corrigido. Acima do original em escopo (cross-vertical, janela 17 ' +
+    'anos, transparência metodológica) mas levemente abaixo em fechamento ' +
     'estético (figuras pendentes).',
   utilidadeSocial:
     'UTILIDADE ALTA NO NICHO + RELEVÂNCIA NACIONAL. Incontinência ' +
@@ -314,19 +316,17 @@ export const PARECER_UROPRO = {
     'capacidade hospitalar especializada.',
   pontosFortes: [
     'Pipeline live e corrigido: Bronze → Silver → Gold em execução end-to-end no Databricks, dados 2008-2025 frescos',
-    'DOIS Working Papers em ABNT: WP #4 (cross-vertical: cirurgia × pobreza × emendas) + WP #6 (vertical: eficiência, COVID, represa cirúrgica)',
+    'DOIS Working Papers em ABNT: WP #3 (cross-vertical: cirurgia × pobreza × emendas) + WP #5 (vertical: eficiência, COVID, represa cirúrgica)',
     'Transparência metodológica genuína: bug silver descoberto, diagnosticado, corrigido e DOCUMENTADO no próprio paper (commit fa869cf)',
     'Cross-vertical com Bolsa Família e Emendas: correlação ρ ≈ -0,68 entre pobreza estrutural e acesso à cirurgia, ρ ≈ -0,45 com emendas per capita',
     'Front-end com chart stacked-by-procedure (EvolutionStackedByKey) — discriminação visual abdominal vs vaginal na evolução nacional',
     'Janela de 17 anos (2008-2025) vs. 6 anos do original (2015-2020) — mais que duplica o escopo temporal',
     'Microdados SIH-AIH-RD com filtro SIGTAP no bronze convert: 150GB raw → MBs de Delta filtrado e auditável',
-    'Reconhece e estende explicitamente Tatieli (2022) — coautoria preservada no WP #3, novos WPs como derivados',
+    'Reconhece e estende explicitamente Tatieli (2022, especialização em Enfermagem) como base upstream dos dois WPs UroPro',
     'Padrão "Bronze é STRING-ONLY" aplicado: tipagem só no silver, máxima auditabilidade',
   ],
   problemasParaNotaPlena: [
-    'Figuras matplotlib (figures-uropro/) ainda usam dados pré-correção do silver — precisam ser regeneradas sobre o gold corrigido',
-    'WP #4 e WP #6 ainda não compilados em PDF — só .tex (compilação local pendente, ou via GH Action)',
-    'Botões "Ler artigo na tela" da plataforma ainda apontam para a versão JSX do WP #3 (Tatieli) — falta integração das novas WPs',
+    'WP #3 e WP #5 ainda dependem da compilação CI completa para refletir as últimas edições nos PDFs servidos',
   ],
   problemasParaSubirNivel: [
     'Sem desfechos longitudinais: re-internação, mortalidade tardia, qualidade de vida — só volume, despesa, permanência, mortalidade intra-hospitalar',
@@ -335,9 +335,7 @@ export const PARECER_UROPRO = {
     'Sem estratificação por sexo/idade/raça da paciente — gold colapsa antes desses cortes',
   ],
   proximosPassos: [
-    'Regenerar figuras matplotlib sobre o gold corrigido — substitui figuras pré-fix em figures-uropro/',
-    'Compilar WP #4 e WP #6 em PDF — adicionar tasks no .github/workflows/ ou Makefile articles/',
-    'Integrar novos papers ao front-end UroPro: botões PDF/tex/Overleaf para WP #4 e WP #6 + "Ler artigo na tela" via JSX standalone',
+    'Garantir compilação CI completa de WP #3 e WP #5 (validar deploy-pages.yml após renumeração)',
     'Cruzar com CNES Equipamentos (mesmo projeto) — testar se UFs com mais equipamentos uroginecológicos fazem mais cirurgias',
     'Análise de fluxo interestadual via MUNIC_RES — quantificar TFD (Tratamento Fora do Domicílio) implícito',
     'Estender backlog analysis: 2024-2025 mostra represa em escoamento; estimar quando volume normaliza',
@@ -424,7 +422,7 @@ export const PARECER_RAIS = {
 // de pesquisa multi-vertical com escala Big Data real, pipeline-como-código,
 // arquitetura distribuída em produção.
 //
-// Conceito atual (após WP#5 publicado): A- (entre A e B; computado como B
+// Conceito atual (após WP#4 publicado): A- (entre A e B; computado como B
 // porque ainda não há peer review e a contribuição metodológica original
 // segue restrita). Para virar A pleno: peer review (1+ submissão a
 // periódico relevante) + contribuição metodológica original mensurável.
@@ -438,7 +436,7 @@ export const PARECER_GLOBAL = {
   originalLabel: null,
   originalUrl: null,
   ultimaAtualizacao: `${HOJE}T23:00 BRT`,
-  versao: '3.0 — pós WP #4 (cross-vertical UroPro × PBF × Emendas) + WP #6 (UroPro vertical-only)',
+  versao: '3.0 — pós WP #3 (cross-vertical UroPro × PBF × Emendas) + WP #5 (UroPro vertical-only)',
   resumoCalibragem:
     'Avaliação MACRO do projeto inteiro (não de uma vertical isolada). ' +
     'Esta é a única avaliação do projeto que excede o teto lato sensu — ' +
@@ -449,27 +447,26 @@ export const PARECER_GLOBAL = {
     '11.048 arquivos DBC), em arquitetura medallion sobre Apache Spark + ' +
     'Delta Lake + Databricks Unity Catalog, com pipelines-como-código, ' +
     'CI/CD multi-camada e front-end React renderizando microdados ' +
-    'consolidados em tempo real. Pós WP #4 (Acesso desigual: cirurgia ' +
-    'uroginecológica × pobreza × emendas, abr/2026) + WP #6 (UroPro ' +
-    'vertical-only 2008-2025), o projeto soma SEIS Working Papers em ' +
+    'consolidados em tempo real. Pós WP #3 (Acesso desigual: cirurgia ' +
+    'uroginecológica × pobreza × emendas, abr/2026) + WP #5 (UroPro ' +
+    'vertical-only 2008-2025), o projeto soma CINCO Working Papers em ' +
     'ABNT escritos: WP #1 (Emendas), WP #2 (Bolsa Família), WP #3 ' +
-    '(UroPro/Tatieli original), WP #4 (cross-vertical UroPro × PBF × ' +
-    'Emendas), WP #5 (Equipamentos-RM × Parkinson, coautoria A. M. Rolim) ' +
-    'e WP #6 (UroPro 17 anos). TRÊS modelos de contribuição metodológica ' +
-    'genuína se consolidam agora: (a) "engenharia + clínica em coautoria" ' +
-    '(WP #5 com Rolim, integrando saber clínico com infraestrutura de ' +
-    'dados); (b) "análise cross-vertical sobre arquitetura unificada" ' +
-    '(WP #4 cruza três verticais — UroPro, PBF, Emendas — possível ' +
-    'APENAS porque os pipelines passam pela mesma arquitetura medalhão); ' +
-    '(c) "auditabilidade pública do dado processado" (descoberta e ' +
-    'correção transparente do bug silver na vertical UroPro, commit ' +
-    'fa869cf abr/2026 — filtro _ingest_ts == max derrubava 73% das ' +
-    'linhas e 14 das 27 UFs, documentado em primeira pessoa nos próprios ' +
-    'papers). Conceito sobe de B para B+ por essas três contribuições ' +
-    'metodológicas demonstradas e pelo aumento de cinco para seis ' +
-    'Working Papers escritos. O teto A continua condicionado a peer ' +
-    'review formal (submissão a periódico indexado) e identificação ' +
-    'causal explícita.',
+    '(cross-vertical UroPro × PBF × Emendas), WP #4 (Equipamentos-RM × ' +
+    'Parkinson, coautoria A. M. Rolim) e WP #5 (UroPro 17 anos). TRÊS ' +
+    'modelos de contribuição metodológica genuína se consolidam agora: ' +
+    '(a) "engenharia + clínica em coautoria" (WP #4 com Rolim, integrando ' +
+    'saber clínico com infraestrutura de dados); (b) "análise ' +
+    'cross-vertical sobre arquitetura unificada" (WP #3 cruza três ' +
+    'verticais — UroPro, PBF, Emendas — possível APENAS porque os ' +
+    'pipelines passam pela mesma arquitetura medalhão); (c) ' +
+    '"auditabilidade pública do dado processado" (descoberta e correção ' +
+    'transparente do bug silver na vertical UroPro, commit fa869cf ' +
+    'abr/2026 — filtro _ingest_ts == max derrubava 73% das linhas e 14 ' +
+    'das 27 UFs, documentado em primeira pessoa nos próprios papers). ' +
+    'Conceito sobe de B para B+ por essas três contribuições metodológicas ' +
+    'demonstradas e pela consolidação de cinco Working Papers escritos. ' +
+    'O teto A continua condicionado a peer review formal (submissão a ' +
+    'periódico indexado) e identificação causal explícita.',
   utilidadeSocial:
     'EXTREMAMENTE ÚTIL E AMPLAMENTE APLICÁVEL. O Mirante é uma plataforma ' +
     'que reduz drasticamente o custo marginal de pesquisa em dados ' +
@@ -511,17 +508,16 @@ export const PARECER_GLOBAL = {
     '4 dos 5 verticais com pipeline funcionando em produção: PBF, ' +
       'Equipamentos, Emendas e UroPro com dados live. Apenas RAIS ainda ' +
       'não rodou (URL fix recente).',
-    'SEIS Working Papers em ABNT escritos: Emendas WP#1, Bolsa Família ' +
-      'WP#2, UroPro/Tatieli WP#3, Acesso desigual cross-vertical WP#4, ' +
-      'Equipamentos-RM × Parkinson WP#5 (coautoria A. M. Rolim) e UroPro ' +
-      '17-anos WP#6. Três deles (WP #1, #2, #5) já compilados em PDF; ' +
-      'WP #4 e #6 escritos em abr/2026, compilação pendente. Padrão ' +
-      'acadêmico real, não rascunho.',
-    'Modelo de coautoria engenheiro-clínico demonstrado no WP#5: pesquisa ' +
+    'CINCO Working Papers em ABNT escritos: Emendas WP#1, Bolsa Família ' +
+      'WP#2, Acesso desigual cross-vertical UroPro × PBF × Emendas WP#3, ' +
+      'Equipamentos-RM × Parkinson WP#4 (coautoria A. M. Rolim) e UroPro ' +
+      '17-anos WP#5. Compilação em CI via xu-cheng/latex-action sobre ' +
+      'cada .tex em padrão ABNT. Padrão acadêmico real, não rascunho.',
+    'Modelo de coautoria engenheiro-clínico demonstrado no WP#4: pesquisa ' +
       'clínica original (manuscrito Rolim sobre epidemiologia DP no Brasil) ' +
       '+ camada de engenharia de dados Mirante. Replicável a outras ' +
       'agendas de saúde pública.',
-    'Modelo de análise cross-vertical demonstrado no WP#4 (Acesso ' +
+    'Modelo de análise cross-vertical demonstrado no WP#3 (Acesso ' +
       'desigual): cruzamento de TRÊS verticais (UroPro × PBF × Emendas) ' +
       'sobre a mesma arquitetura medalhão, com correlações ρ ≈ -0,68 ' +
       '(pobreza × acesso) e ρ ≈ -0,45 (emendas × acesso). Esse tipo de ' +
@@ -530,7 +526,7 @@ export const PARECER_GLOBAL = {
     'Auditabilidade pública demonstrada (abr/2026): bug silver descoberto ' +
       'por inspeção visual da plataforma, diagnosticado por SQL direto ao ' +
       'Delta, corrigido em commit fa869cf, regenerado e documentado em ' +
-      'primeira pessoa nos WPs #4 e #6. Defeito ocultava 73% das linhas ' +
+      'primeira pessoa nos WPs #3 e #5. Defeito ocultava 73% das linhas ' +
       'e 14 das 27 UFs em silêncio. Em arquiteturas opacas (planilhas ' +
       'adhoc, ETLs em ferramentas black-box), esse mesmo bug poderia ter ' +
       'persistido por anos.',
@@ -572,7 +568,7 @@ export const PARECER_GLOBAL = {
   proximosPassos: [
     'Implementar UMA identificação causal exploratória em qualquer vertical ' +
       '(BF transição PBF→AB é o mais óbvio; recomendo RDD com ±90 dias)',
-    'Submeter Working Paper #1 (Emendas) a RAP ou RBE (ciclo de revisão ' +
+    'Submeter Working Paper #1 (Emendas) ou WP #4 (Equipamentos-RM × Parkinson) a RAP / RBE / Cad Saúde Pública (ciclo de revisão ' +
       '~6-12 meses, mas dá tempo no horizonte de 1 ano)',
     'Escrever ARCHITECTURE.md público explicitando todos os tradeoffs ' +
       'engineering (Delta vs Iceberg, Auto Loader vs batch, Free Edition ' +

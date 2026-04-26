@@ -458,83 +458,21 @@ function ProcedureMultiSelect({ selected, onChange, availableProcs }) {
 }
 
 // ─── Doc section: abstract + buttons (padrão Mirante: PDF LaTeX + tex + Overleaf) ─
-// Padrão ABNT compilado em CI (xu-cheng/latex-action sobre
-// articles/uropro-incontinencia-urinaria.tex), idêntico ao de Emendas/PBF/RAIS.
-// Bloco data-driven (UroProArticle) continua acessível via /incontinencia-urinaria/artigo
-// como visualização HTML alternativa, mas o PDF estático é a entrada primária.
+// Padrão ABNT compilado em CI (xu-cheng/latex-action), idêntico ao de Emendas/PBF/RAIS.
 function DocSection() {
-  // UroPro tem TRÊS Working Papers, cada um em seu próprio quadro empilhado:
-  //   - WP #3 (Tatieli/Chalhoub) — paper original, recorte 2015-2020
-  //   - WP #4 (cross-vertical)   — UroPro × PBF × Emendas, 2008-2025
-  //   - WP #6 (vertical-only)    — UroPro 17 anos, eficiência+COVID+represa
+  // UroPro tem DOIS Working Papers, cada um em seu próprio quadro empilhado:
+  //   - WP #3 (cross-vertical) — UroPro × PBF × Emendas, 2008-2025
+  //   - WP #5 (vertical-only)  — UroPro 17 anos, eficiência+COVID+represa
   return (
     <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
       <DocCardWP3 />
-      <DocCardWP4 />
-      <DocCardWP6 />
+      <DocCardWP5 />
     </section>
   );
 }
 
-// WP #3 — Tatieli/Chalhoub (paper original, 2015-2020)
+// WP #3 — cross-vertical (UroPro × PBF × Emendas)
 function DocCardWP3() {
-  const base       = import.meta.env.BASE_URL || '/';
-  const pdfUrl     = `${base}articles/uropro-incontinencia-urinaria.pdf`.replace(/\/{2,}/g, '/');
-  const texUrl     = `${base}articles/uropro-incontinencia-urinaria.tex`.replace(/\/{2,}/g, '/');
-  const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
-    encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
-  const standaloneUrl = `${base}#/incontinencia-urinaria/artigo`.replace(/\/{2,}/g, '/');
-  return (
-    <div className="doc-block" style={{ marginBottom: 14 }}>
-      <div className="kicker">Working Paper n. 3 — Mirante dos Dados</div>
-      <p style={{ marginTop: 6, fontSize: 13.5 }}>
-        <b>"Tratamento Cirúrgico da Incontinência Urinária no Sistema
-        Único de Saúde (2015–2020): volumes, despesa, permanência e
-        distribuição geográfica por via de acesso"</b> — coautoria com{' '}
-        <b>Tatieli da Silva</b> (pesquisa original, especialização em
-        Enfermagem, 2022). Análise empírica em padrão ABNT a partir dos
-        microdados SIH-AIH-RD, comparando as duas vias cirúrgicas
-        (abdominal SIGTAP <code>0409010499</code> e vaginal <code>0409070270</code>)
-        em volume, despesa pública (R$ deflacionado IPCA-2021), permanência
-        hospitalar e distribuição entre as 27 UFs.
-      </p>
-      <div className="doc-actions">
-        <a className="doc-toggle doc-toggle-primary"
-           href={pdfUrl} target="_blank" rel="noreferrer"
-           title="Abrir PDF em nova aba (visualizador nativo do navegador)">
-          📖 Ler artigo (PDF)
-        </a>
-        <a className="doc-toggle"
-           href={pdfUrl} download="Mirante-UroPro-Incontinencia-Silva-Chalhoub-2026.pdf"
-           title="PDF compilado em LaTeX, padrão ABNT">
-          ⤓ Baixar PDF (ABNT)
-        </a>
-        <a className="doc-toggle"
-           href={texUrl} download="uropro-incontinencia-urinaria.tex"
-           title="Fonte LaTeX (.tex)">
-          ⤓ Baixar fonte (.tex)
-        </a>
-        <a className="doc-toggle"
-           href={overleafUrl} target="_blank" rel="noreferrer"
-           title="Compilação online em 1 clique no Overleaf">
-          ↗ Abrir no Overleaf
-        </a>
-      </div>
-      <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10, marginBottom: 0, lineHeight: 1.5 }}>
-        <b>Palavras-chave:</b> incontinência urinária; SUS; SIH-SUS;
-        cirurgia uroginecológica; análise espacial em saúde; dados abertos.{' '}
-        Visualização HTML data-driven alternativa (regenerada a cada refresh
-        do gold) disponível em{' '}
-        <a href={standaloneUrl} target="_blank" rel="noreferrer">
-          <code>/incontinencia-urinaria/artigo</code>
-        </a>.
-      </p>
-    </div>
-  );
-}
-
-// WP #4 — cross-vertical (UroPro × PBF × Emendas)
-function DocCardWP4() {
   const base       = import.meta.env.BASE_URL || '/';
   const pdfUrl     = `${base}articles/uropro-serie-2008-2025.pdf`.replace(/\/{2,}/g, '/');
   const texUrl     = `${base}articles/uropro-serie-2008-2025.tex`.replace(/\/{2,}/g, '/');
@@ -542,7 +480,7 @@ function DocCardWP4() {
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
   return (
     <div className="doc-block" style={{ marginBottom: 14 }}>
-      <div className="kicker">Working Paper n. 4 — Mirante dos Dados</div>
+      <div className="kicker">Working Paper n. 3 — Mirante dos Dados</div>
       <p style={{ marginTop: 6, fontSize: 13.5 }}>
         <b>"Acesso desigual: cirurgia uroginecológica no SUS como indicador
         de pobreza estrutural e os limites da compensação fiscal por emendas
@@ -584,8 +522,8 @@ function DocCardWP4() {
   );
 }
 
-// WP #6 — vertical-only (17 anos UroPro)
-function DocCardWP6() {
+// WP #5 — vertical-only (17 anos UroPro)
+function DocCardWP5() {
   const base       = import.meta.env.BASE_URL || '/';
   const pdfUrl     = `${base}articles/uropro-saude-publica-2008-2025.pdf`.replace(/\/{2,}/g, '/');
   const texUrl     = `${base}articles/uropro-saude-publica-2008-2025.tex`.replace(/\/{2,}/g, '/');
@@ -593,7 +531,7 @@ function DocCardWP6() {
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
   return (
     <div className="doc-block">
-      <div className="kicker">Working Paper n. 6 — Mirante dos Dados</div>
+      <div className="kicker">Working Paper n. 5 — Mirante dos Dados</div>
       <p style={{ marginTop: 6, fontSize: 13.5 }}>
         <b>"Cirurgia uroginecológica no SUS, 2008–2025: ganhos silenciosos
         de eficiência, desigualdade territorial persistente, choque pandêmico

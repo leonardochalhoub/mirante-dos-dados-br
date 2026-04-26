@@ -41,10 +41,31 @@ FIG_DIR = ROOT / "figures-equipamentos-rm"
 FIG_DIR.mkdir(exist_ok=True)
 CIVIDIS = mpl.cm.cividis_r
 
-# ─── Load + filter to codequip=42 (Ressonância Magnética) ──────────────────
+# ─── Load + filter to (TIPEQUIP=1, CODEQUIP=12) — Ressonância Magnética ────
+# IMPORTANTE: pré-WP#6 esse filtro era `codequip=42` que era um chute herdado
+# de Parkinson-BR-Stats/reference/CNES_EQ_*.xlsx (dicionários inferidos por IA).
+# A análise empírica direta no DBF de origem mostra que CODEQUIP=42 sempre
+# vem com TIPEQUIP=4 = Eletroencefalógrafo. RM real é (1, 12), validado contra
+# o catálogo oficial DATASUS (cnes2.datasus.gov.br/Mod_Ind_Equipamento.asp).
 with open(GOLD_PATH) as f:
     rows = json.load(f)
-RM = [r for r in rows if str(r["codequip"]) == "42"]
+
+def _row_matches_rm(r):
+    # Aceita ambos schemas: novo (com tipequip+equipment_key) e legacy (só codequip).
+    if "equipment_key" in r:
+        return r["equipment_key"] == "1:12"
+    if "tipequip" in r:
+        return str(r["tipequip"]) == "1" and str(r["codequip"]) == "12"
+    # Legacy fallback (silver pré-WP#6) — deveria ser corrigido após o
+    # próximo refresh do pipeline, mas não quebra o build se ainda houver
+    # JSON antigo no /data/gold.
+    raise RuntimeError(
+        "gold_equipamentos_estados_ano.json está em schema legado (sem tipequip). "
+        "Rodar o pipeline equipamentos no Databricks para regenerar."
+    )
+
+RM = [r for r in rows if _row_matches_rm(r)]
+print(f"RM rows carregadas: {len(RM)} (esperado: 27 UFs × N anos)")
 
 YEARS = sorted({r["ano"] for r in RM})
 LATEST = max(YEARS)
@@ -113,7 +134,9 @@ def fig_timeline():
         (2015, "MDS-PD criteria",    "Postuma et al. (Mov Disord)",     "bot", 1.5),
         (2018, "Neuromelanin MRI",   "Pyatigorskaya et al.",            "top", 2.2),
         (2022, "PNAB · MRI imp.",    "Ampliação atenção secundária",    "bot", 2.2),
-        (2025, "Brasil 47/Mhab",     "Tot 10.079 / SUS 4.317",          "top", 2.7),
+        # Computed dinamicamente com base no último ano do gold (sem hardcode)
+        (LATEST, f"Brasil {YEARLY[-1]['per_M']:.1f}/Mhab",
+                  f"Tot {YEARLY[-1]['total']:.0f} / SUS {YEARLY[-1]['sus']:.0f}",  "top", 2.7),
     ]
     for yr, lbl, desc, side, h in events:
         sign = +1 if side == "top" else -1
@@ -156,7 +179,7 @@ def fig_architecture():
             ax.annotate("", xy=(boxes[i+1][0], 2.15), xytext=(x+1.4, 2.15),
                         arrowprops=dict(arrowstyle="->", color="black", lw=1.2))
     ax.text(5, 0.7,
-            "Filtro `codequip=42` ocorre na visualização — gold conserva todos os 99 equipamentos",
+            "Filtro `equipment_key=1:12` (RM) ocorre na visualização — gold conserva ~129 (TIPEQUIP, CODEQUIP)",
             ha="center", fontsize=8, fontstyle="italic", color="#444")
     save(fig, "fig02-architecture")
 
@@ -394,7 +417,7 @@ def fig_cv_time():
 # ─── Fig 11 — Crescimento UF 2013→2025 (barbell) ───────────────────────────
 def fig_growth_2013_2025():
     by_2013 = {r["estado"]: r["total_avg"]*1e6/max(r["populacao"],1)
-               for r in RM if r["ano"] == 2013}
+               for r in RM if r["ano"] == YEARS[0]}
     by_2025 = {r["estado"]: r["total_avg"]*1e6/max(r["populacao"],1)
                for r in RM if r["ano"] == LATEST}
     items = sorted(by_2025.items(), key=lambda kv: -kv[1])

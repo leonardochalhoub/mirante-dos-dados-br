@@ -1,5 +1,5 @@
 % =====================================================================
-% Mirante dos Dados — Working Paper #4
+% Mirante dos Dados — Working Paper #3
 % Acesso desigual: cirurgia uroginecológica no SUS como indicador de
 % pobreza estrutural e os limites da compensação fiscal por emendas
 % parlamentares (2008–2025).
@@ -8,15 +8,15 @@
 % Versão: 2.0  —  Abril de 2026
 % Compilação: pdflatex articles/uropro-serie-2008-2025.tex (2x)
 %
-% Este Working Paper é um seguimento de DA SILVA & CHALHOUB (2026c,
-% Working Paper n. 3, derivado de TATIELI 2022). O escopo aqui é
-% deliberadamente diferente: usa-se a cirurgia uroginecológica como
-% INDICADOR LIMPO de oferta hospitalar especializada (procedimento
-% eletivo, seguro, bem definido em SIGTAP) e cruza-se com agregados
-% por UF do Programa Bolsa Família (Mirante WP n. 2) e da execução
-% de Emendas Parlamentares (Mirante WP n. 1) para responder uma
-% pergunta de federalismo: pobreza estrutural produz desigualdade
-% de acesso, e o fluxo fiscal político compensa essa desigualdade?
+% Este Working Paper tem como base a pesquisa original de TATIELI
+% (2022, especialização em Enfermagem). Usa-se a cirurgia
+% uroginecológica como INDICADOR LIMPO de oferta hospitalar
+% especializada (procedimento eletivo, seguro, bem definido em
+% SIGTAP) e cruza-se com agregados por UF do Programa Bolsa Família
+% (Mirante WP n. 2) e da execução de Emendas Parlamentares (Mirante
+% WP n. 1) para responder uma pergunta de federalismo: pobreza
+% estrutural produz desigualdade de acesso, e o fluxo fiscal
+% político compensa essa desigualdade?
 % =====================================================================
 
 \documentclass[12pt,a4paper,oneside]{article}
@@ -61,7 +61,7 @@
 \begin{titlepage}
   \begin{center}
     \vspace*{1.5cm}
-    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 4}}\\
+    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 3}}\\
     {\small Versão 2.0 \textemdash{} Abril de 2026}
 
     \vfill
@@ -93,7 +93,7 @@
     \vfill
 
     \rule{0.6\linewidth}{0.4pt}\\[6pt]
-    {\small\textit{Este artigo é o quarto Working Paper do Mirante dos
+    {\small\textit{Este artigo é o terceiro Working Paper do Mirante dos
      Dados. Diferentemente da maioria dos papers da série, que
      analisa uma vertical isoladamente, este é um trabalho
      deliberadamente \textbf{transversal}: usa a vertical UroPro
@@ -103,8 +103,8 @@
      (execução por UF como proxy de fluxo fiscal político) para
      interrogar a relação federalista entre pobreza, fluxo
      compensatório e acesso a serviços públicos especializados.
-     Continua e estende DA SILVA \& CHALHOUB (2026c, Working
-     Paper n. 3, derivado de TATIELI 2022).}}
+     Tem como base a pesquisa original de TATIELI (2022,
+     especialização em Enfermagem).}}
 
     \vspace{1cm}
     {\footnotesize
@@ -444,7 +444,7 @@ estimativas populacionais IBGE\,/\,SIDRA tabela 6579.
 
 As três verticais passam pela mesma estrutura
 (\textit{bronze}\,/\,\textit{silver}\,/\,\textit{gold})
-descrita em CHALHOUB (2026a, 2026b, 2026c). Em síntese:
+descrita em CHALHOUB (2026a, 2026b). Em síntese:
 \textit{bronze} preserva o dado bruto convertido para Delta
 em formato \textit{string-only} (sem inferência de tipos);
 \textit{silver} faz limpeza, normalização e agregação por
@@ -497,10 +497,10 @@ defeituoso mas também redundante. O \textit{commit} público
 que aplica a correção é o \texttt{fa869cf} no repositório do
 projeto. Toda a camada \textit{silver} e \textit{gold} foi
 regenerada em seguida; os números apresentados neste Working
-Paper já refletem essa reconstituição. \textbf{Comparações com
-o Working Paper n. 3 ficam prejudicadas em magnitudes
-absolutas, mas não nas direções de tendência} \textemdash{} o
-que é, por si, um achado metodológico relevante.
+Paper já refletem essa reconstituição. \textbf{Magnitudes
+absolutas anteriores à correção devem ser consideradas
+prejudicadas, embora as direções de tendência se mantenham}
+\textemdash{} o que é, por si, um achado metodológico relevante.
 
 \subsection{Indicadores construídos}
 
@@ -992,15 +992,14 @@ para tipologizar o que é replicável e o que é específico.
 \subsection{Considerações sobre o defeito do pipeline}
 
 Vale tratar explicitamente um ponto que fica implícito ao longo
-do paper. As tabelas e correlações apresentadas \textit{não
-coincidem} com aquelas publicadas em DA SILVA \& CHALHOUB
-(2026c, Working Paper n. 3), pelo motivo descrito na
+do paper. As tabelas e correlações apresentadas refletem dados
+\textit{posteriores} à correção descrita na
 Seção~\ref{sub:bug}: o pipeline silver da plataforma Mirante
 operava, até abril de 2026, com um filtro defeituoso que
 ocultava silenciosamente 14 das 27 UFs. Os mapas e gráficos da
-plataforma e as tabelas do Working Paper n. 3 mostravam, sem
-qualquer aviso, uma versão \textit{ainda mais desigual} da
-realidade do que esta corrigida.
+plataforma mostravam, antes da correção e sem qualquer aviso,
+uma versão \textit{ainda mais desigual} da realidade do que
+esta corrigida.
 
 Essa observação tem dupla relevância. \textbf{Primeiro}, sublinha
 um ponto cético sobre a credibilidade do dado público: a
@@ -1149,14 +1148,7 @@ CHALHOUB, L. Cirurgia uroginecológica no Sistema Único de Saúde,
 2008\textendash 2025: ganhos silenciosos de eficiência,
 desigualdade territorial persistente, choque pandêmico e represa
 cirúrgica. \textbf{Mirante dos Dados \textemdash{} Working
-Paper n. 6}, abr. 2026f.\par\smallskip
-
-\noindent\hangindent=1.25cm\hangafter=1
-DA SILVA, T.; CHALHOUB, L. Tratamento Cirúrgico da Incontinência
-Urinária no Sistema Único de Saúde (2015\textendash 2020):
-volumes, despesa, permanência e distribuição geográfica por via
-de acesso. \textbf{Mirante dos Dados \textemdash{} Working
-Paper n. 3}, abr. 2026c.\par\smallskip
+Paper n. 5}, abr. 2026f.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
 FORD, A. A.; ROGERSON, L.; CODY, J. D.; OGAH, J. Mid-urethral
@@ -1205,16 +1197,15 @@ CHALHOUB, L. Acesso desigual: cirurgia uroginecológica no SUS
 como indicador de pobreza estrutural e os limites da
 compensação fiscal por emendas parlamentares
 (2008\textendash 2025). \textit{Mirante dos Dados \textemdash{}
-Working Paper n. 4}, v. 2.0, abr. 2026. Disponível em:
+Working Paper n. 3}, v. 2.0, abr. 2026. Disponível em:
 \url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
 
 \vspace{0.5cm}
 
-\noindent\textbf{Reconhecimento:} este Working Paper é
-seguimento de DA SILVA \& CHALHOUB (2026c, Working Paper
-n. 3), que por sua vez teve como base o trabalho de
-especialização em Enfermagem de TATIELI (2022). A presente
-versão reorienta o argumento em torno do cruzamento
+\noindent\textbf{Reconhecimento:} este Working Paper tem como
+base o trabalho de especialização em Enfermagem de TATIELI
+(2022). A presente versão reorienta o argumento em torno do
+cruzamento
 \textit{cross-vertical} entre cirurgia uroginecológica, pobreza
 estrutural (Bolsa Família, Mirante WP n. 2) e fluxo fiscal
 político (Emendas, Mirante WP n. 1), e incorpora a correção da
