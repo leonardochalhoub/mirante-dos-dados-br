@@ -61,6 +61,21 @@ def comment_table(fqn: str, body: str) -> None:
     spark.sql(f"COMMENT ON TABLE {fqn} IS '{_esc(body.strip())}'")
 
 
+def _table_exists(fqn: str) -> bool:
+    """Return True iff the fully-qualified table exists.
+    Defensive: pipelines de algumas verticais podem ainda não ter rodado
+    em produção (ex.: RAIS no Mirante), e nesse caso a tabela ainda não
+    foi criada. O apply de metadata deve continuar sem crashar."""
+    try:
+        catalog, schema, name = fqn.split(".")
+    except ValueError:
+        return False
+    rows = spark.sql(
+        f"SHOW TABLES IN {catalog}.{schema} LIKE '{name}'"
+    ).collect()
+    return any(r["tableName"] == name for r in rows)
+
+
 def comment_columns(fqn: str, cols: dict) -> None:
     """Apply per-column comments. Silently skips columns that don't exist
     (e.g. when a bronze schema evolves and the central script is stale)."""
@@ -80,6 +95,9 @@ def set_tags(fqn: str, tags: dict) -> None:
 
 
 def enrich(fqn: str, table_comment: str, columns: dict, tags: dict) -> None:
+    if not _table_exists(fqn):
+        print(f"  table   · {fqn}  ⚠ SKIP (não existe ainda; pipeline upstream nunca rodou)")
+        return
     print(f"  table   · {fqn}")
     comment_table(fqn, table_comment)
     comment_columns(fqn, columns)
