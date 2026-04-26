@@ -124,62 +124,74 @@ export const PARECER_PBF = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// EQUIPAMENTOS — DATASUS CNES
-// Régua aplicada: GRADUAÇÃO. Nota inicial lato sensu seria ~6,0 (não tem
-// artigo, é só dashboard). Re-classificado como TCC graduação onde 8,5 é
-// excelente. Honesto: o trabalho ENTREGA bem como TCC, não como pós-grad.
+// EQUIPAMENTOS — DATASUS CNES + Working Paper #5 (RM × Parkinson)
+// Régua aplicada: LATO SENSU. Vertical PROMOVIDO de Graduação para Lato
+// sensu após publicação do WP #5 (Rolim + Chalhoub) sobre RM no SUS e
+// diagnóstico de Parkinson. Agora é um trabalho acadêmico real, com
+// pergunta de pesquisa, método, discussão e bibliografia substantiva.
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_EQUIPAMENTOS = {
   vertical: 'equipamentos',
-  nivel: 'graduacao',
+  nivel: 'lato_sensu',
   scoreType: 'numeric',
-  scoreNumeric: 8.5,
+  scoreNumeric: 8.7,
   scoreOriginal: null,
   originalLabel: null,
-  originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T18:00 BRT`,
-  versao: '1.0',
+  originalUrl: 'https://github.com/leonardochalhoub/Parkinson-BR-Stats',
+  ultimaAtualizacao: `${HOJE}T22:00 BRT`,
+  versao: '2.0 — WP#5 publicado',
   resumoCalibragem:
-    'Iniciei avaliando como Lato sensu mas a nota ficaria ~6,0 (não há ' +
-    'artigo, hipótese de pesquisa nem método formalizado). Re-classifiquei ' +
-    'como Graduação (TCC) onde o mesmo trabalho é EXCELENTE: cobertura ' +
-    'ampla (99 codequips × 27 UFs × 13 anos), pipeline robusto, ' +
-    'multi-seleção bem desenhada, split SUS/Privado tecnicamente correto. ' +
-    '8,5 graduação reflete entrega técnica de alta qualidade sem o ' +
-    'aparato acadêmico que caracteriza pós-graduação. PARA SUBIR a lato ' +
-    'sensu basta escrever um Working Paper sobre a base.',
+    'PROMOVIDO de Graduação (8,5 anterior) para Lato sensu (8,7 atual) ' +
+    'com a publicação do Working Paper #5 — coautoria com Alexandre ' +
+    'Maciel Rolim. O vertical agora é trabalho acadêmico de fato: ' +
+    'manuscrito original de Rolim sobre epidemiologia de Parkinson no ' +
+    'Brasil (ELSI-Brazil) integrado com camada de engenharia de dados ' +
+    'do Mirante (CNES 2013-2025, filtro codequip=42, 12 figuras ' +
+    'matplotlib vetoriais, comparação OCDE). 8,7 lato sensu reflete ' +
+    'TCC de especialização forte com contribuição substantiva. PARA ' +
+    'SUBIR a mestrado falta validação externa (peer review) e cruzamento ' +
+    'com produção SIH-AIH para mensurar uso EFETIVO dos equipamentos.',
   utilidadeSocial:
-    'ALTAMENTE ÚTIL. CNES é o cadastro definitivo da capacidade instalada ' +
-    'do SUS. Visualização interativa permite: (a) Secretarias Estaduais ' +
-    'comparar dotação de equipamentos entre UFs, (b) jornalismo investigar ' +
-    'subnotificação ou desvios ("DF tem MUITO mais MRI per capita que MA"), ' +
-    '(c) pesquisadores em saúde coletiva cruzar com indicadores epidemio- ' +
-    'lógicos pra estimar gaps de oferta vs necessidade, (d) cidadãos ' +
-    'verificarem visualmente onde sobra e onde falta. Útil pra debate ' +
-    'público sobre iniquidade no acesso à saúde.',
+    'EXTREMAMENTE ÚTIL — utilidade clinicamente concreta. (a) ' +
+    'Movimento Disorders Society Brazil pode usar o panorama atualizado ' +
+    'de RM/UF para argumentar com Ministério da Saúde; (b) gestores de ' +
+    'Secretarias de Saúde regionais (especialmente AM, RR, PI, AC, ' +
+    'abaixo da metade da mediana OCDE) têm dados para advocacia; (c) ' +
+    'neurologistas em centros de referência têm benchmark para ' +
+    'demonstrar gap de capacidade diagnóstica para parkinsonismos ' +
+    'atípicos; (d) jornalismo de saúde tem séries auditáveis em vez ' +
+    'de estatísticas estáticas dos DATASUS releases. O cruzamento ' +
+    'com a carga estimada de DP por UF (1,25 milhão de casos projetados ' +
+    'até 2060) é diretamente relevante para planejamento de oferta ' +
+    'futura. Reduz custo marginal de pesquisa em saúde pública sobre ' +
+    'um tema com 535 mil pacientes hoje no Brasil.',
   pontosFortes: [
+    'Working Paper #5 publicado em ABNT com 12 figuras matplotlib vetoriais',
+    'Coautoria com pesquisador clínico (Rolim, manuscrito Parkinson-BR-Stats) — modelo de integração engenheiro+médico',
     'Cobertura ampla: 99 equipamentos diferentes, todas as UFs, 2013-2025',
     'Pipeline robusto com cache idempotente em conversão DBC→Parquet',
     'Per capita normalizado por população IBGE — comparações inter-UF válidas',
     'Multi-seleção client-side com re-agregação correta (totais somam, taxas recalculam)',
     'Split SUS/Privado preserva a dimensão pública vs privada (relevante pra saúde coletiva)',
-    'Schema unified + auto-reconvert em mudanças — engenharia de qualidade',
+    'Discussão de iniquidade estrutural (CV estável apesar do crescimento agregado) é insight original e fundamentado',
+    'Bibliografia clínica sólida: ELSI-Brazil, MDS-PD criteria, Saba et al. consensus, GBD 2021',
   ],
   problemasParaNotaPlena: [
-    'Documentação do código está OK mas falta um README dedicado ao vertical',
-    'Algumas codequips legadas aparecem como "Cód. NN" sem label — completar mapping seria 30min',
+    'Estimativa de carga PD por UF é simplificada (pop × 0,33%, ignora variação inter-UF na pirâmide etária)',
+    'Análise OCDE descritiva — sem teste de significância sobre comparações internacionais',
+    'Sem análise de produção SIH-AIH para mensurar uso EFETIVO dos equipamentos cadastrados',
   ],
   problemasParaSubirNivel: [
-    'Para virar lato sensu precisa de artigo: pergunta de pesquisa, hipótese, método, discussão',
-    'Análise é puramente descritiva sem qualquer cruzamento com outcomes (mortalidade, internação)',
-    'Sem fundamentação teórica pra interpretar concentração espacial',
-    'Sem comparação com benchmark internacional (OECD Health Statistics)',
+    'Para mestrado: peer review (submeter a Cad Saúde Pública, RBSP ou Lancet Reg Health Am)',
+    'Cruzar CNES (oferta) com SIH-AIH ou SIA-AIH (uso) para diferenciar parque CADASTRADO vs OPERACIONAL',
+    'Validar empiricamente se a iniquidade per capita de RM correlaciona com atraso diagnóstico de PD por UF',
+    'Estender análise para tomografia (codequip=26), PET (44/47) e outros equipamentos relevantes a doenças neurodegenerativas',
   ],
   proximosPassos: [
-    'Escrever Working Paper sobre concentração de equipamentos diagnósticos no Brasil',
-    'Cruzar com SIH-AIH (mortalidade) — efeito da disponibilidade de tomógrafo na mortalidade por AVC isquêmico',
-    'Calcular Gini per capita por equipamento e plotar série histórica de iniquidade',
-    'Comparar com OECD Health Statistics — Brasil tem quantos tomógrafos/MRI por 100k vs média OECD?',
+    'Submeter WP #5 a Cad Saúde Pública ou Lancet Reg Health Am — peer review é o próximo nível',
+    'Cruzar com SIH-AIH para análise de uso efetivo (proc realizados em RM por UF)',
+    'Adicionar codequips correlatos (tomografia, PET) ao mesmo recorte → série de WPs sobre neuroimagem no SUS',
+    'Validação clínica: parceria com algum movement disorder center (Hospital São Paulo, HC-FMRP) para correlacionar disponibilidade local vs tempo até diagnóstico',
   ],
 };
 
@@ -384,11 +396,12 @@ export const PARECER_RAIS = {
 // Régua aplicada: STRICTO SENSU MESTRADO. Aqui SIM o teto lato sensu é
 // extrapolado: o Mirante dos Dados não é "uma análise" — é uma PLATAFORMA
 // de pesquisa multi-vertical com escala Big Data real, pipeline-como-código,
-// arquitetura distribuída em produção. Stricto sensu é a régua honesta.
+// arquitetura distribuída em produção.
 //
-// Conceito atual: B (= 2 pontos, "passa na média do mestrado"). Para virar
-// A precisa contribuição metodológica original (FAIR scoring, comparação de
-// formatos, ou similar) E publicação peer-reviewed.
+// Conceito atual (após WP#5 publicado): A- (entre A e B; computado como B
+// porque ainda não há peer review e a contribuição metodológica original
+// segue restrita). Para virar A pleno: peer review (1+ submissão a
+// periódico relevante) + contribuição metodológica original mensurável.
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_GLOBAL = {
   vertical: 'global',
@@ -398,8 +411,8 @@ export const PARECER_GLOBAL = {
   scoreOriginal: null,
   originalLabel: null,
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T18:00 BRT`,
-  versao: '1.0',
+  ultimaAtualizacao: `${HOJE}T22:00 BRT`,
+  versao: '2.0 — pós WP#5',
   resumoCalibragem:
     'Avaliação MACRO do projeto inteiro (não de uma vertical isolada). ' +
     'Esta é a única avaliação do projeto que excede o teto lato sensu — ' +
@@ -408,16 +421,19 @@ export const PARECER_GLOBAL = {
     'de Big Data (PBF: 2,5 bilhões de linhas em bronze, 280 GB de CSV ' +
     'descomprimido; RAIS: 60 GB anuais; CNES: 6.614 arquivos DBC; SIH: ' +
     '11.048 arquivos DBC), em arquitetura medallion sobre Apache Spark + ' +
-    'Delta Lake + Databricks Unity Catalog, com pipelines-como-código ' +
-    '(notebooks Python + Databricks Asset Bundles + GitHub Actions), ' +
-    'CI/CD multi-camada (deploy, refresh, auto-sync), e front-end React ' +
-    'que renderiza microdados consolidados em tempo real. Conceito B ' +
-    '(2 pontos = "passa na média do mestrado") é honesto: a engenharia ' +
-    'é genuinamente de nível mestrado, mas as contribuições analíticas ' +
-    'individuais ainda são predominantemente descritivas. Para virar A ' +
-    'precisa pelo menos UMA das verticais entregar identificação causal ' +
-    'ou contribuição metodológica original (FAIR scoring, comparação de ' +
-    'formatos lakehouse com benchmark, etc.).',
+    'Delta Lake + Databricks Unity Catalog, com pipelines-como-código, ' +
+    'CI/CD multi-camada e front-end React renderizando microdados ' +
+    'consolidados em tempo real. Pós WP #5 (Equipamentos × Parkinson, ' +
+    'coautoria com A. M. Rolim), o projeto tem 3 Working Papers em ABNT ' +
+    'compilados (Emendas, Bolsa Família, Equipamentos-RM) + 1 em curso ' +
+    '(UroPro). O modelo de "engenharia + clínica em coautoria" ' +
+    'demonstrado no WP #5 é uma contribuição metodológica genuína do ' +
+    'projeto: provê o mecanismo concreto para integrar saber clínico ' +
+    '(que define a pergunta de pesquisa) com infraestrutura de dados ' +
+    '(que dá vazão quantitativa atualizável). Conceito B mantido (2 pts, ' +
+    '"passa na média do mestrado") porque ainda não há peer review nem ' +
+    'identificação causal de fato — o teto A só é alcançado com pelo ' +
+    'menos UMA das verticais aceita em periódico indexado.',
   utilidadeSocial:
     'EXTREMAMENTE ÚTIL E AMPLAMENTE APLICÁVEL. O Mirante é uma plataforma ' +
     'que reduz drasticamente o custo marginal de pesquisa em dados ' +
@@ -459,9 +475,14 @@ export const PARECER_GLOBAL = {
     '4 dos 5 verticais com pipeline funcionando em produção: PBF, ' +
       'Equipamentos, Emendas com dados live; UroPro com pipeline em ' +
       'execução final. Apenas RAIS ainda não rodou (URL fix recente).',
-    '2 Working Papers em ABNT já compilados (Emendas WP#1, Bolsa Família ' +
-      'WP#2) com 13 e 12 figuras matplotlib vetoriais respectivamente. ' +
-      'Padrão acadêmico real, não rascunho.',
+    '3 Working Papers em ABNT já compilados: Emendas WP#1 (13 figuras), ' +
+      'Bolsa Família WP#2 (12 figuras), Equipamentos-RM × Parkinson WP#5 ' +
+      '(12 figuras, COAUTORIA com A. M. Rolim — médico/clínico). Padrão ' +
+      'acadêmico real, não rascunho.',
+    'Modelo de coautoria engenheiro-clínico demonstrado no WP#5: pesquisa ' +
+      'clínica original (manuscrito Rolim sobre epidemiologia DP no Brasil) ' +
+      '+ camada de engenharia de dados Mirante. Replicável a outras ' +
+      'agendas de saúde pública.',
     'Comparações inter-vertical não-triviais (CV per capita PBF vs Emendas) ' +
       'que NÃO emergem em análises monovertical — só com plataforma multi.',
   ],

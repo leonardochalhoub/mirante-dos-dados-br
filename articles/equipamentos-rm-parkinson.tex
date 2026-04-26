@@ -1,0 +1,933 @@
+% =====================================================================
+% Mirante dos Dados — Working Paper #5
+% Análise Estatística da Prevalência da Doença de Parkinson no Brasil:
+% Desafios, Tecnologias de Neuroimagem e Perspectivas de Políticas Públicas
+%
+% Autores: Alexandre Maciel Rolim (manuscrito original — epidemiologia,
+%          revisão de literatura, recomendações de política pública)
+%          + Leonardo Chalhoub (camada de engenharia de dados, análise
+%          atualizada de infraestrutura via microdados CNES)
+% Compilação: pdflatex articles/equipamentos-rm-parkinson.tex (2x)
+% =====================================================================
+
+\documentclass[12pt,a4paper,oneside]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazilian]{babel}
+\usepackage{lmodern}
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{float}
+
+\graphicspath{{figures-equipamentos-rm/}}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+\titleformat{\section}{\normalfont\bfseries\large\uppercase}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+
+\captionsetup[table]{labelfont=bf,name=Tabela,labelsep=endash,
+                     position=above,justification=centering,font=small}
+\captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
+                      position=below,justification=centering,font=small}
+
+\newcommand{\rs}{R\$\,}
+
+\begin{document}
+
+% ---------- CAPA ---------------------------------------------------------
+\begin{titlepage}
+  \begin{center}
+    \vspace*{1.5cm}
+    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 5}}\\
+    {\small Versão 1.0 \textemdash{} Abril de 2026}
+
+    \vfill
+
+    {\LARGE\bfseries
+     ANÁLISE ESTATÍSTICA DA PREVALÊNCIA DA DOENÇA DE
+     PARKINSON NO BRASIL: DESAFIOS, TECNOLOGIAS DE
+     NEUROIMAGEM E PERSPECTIVAS DE POLÍTICAS PÚBLICAS}
+
+    \vspace{1cm}
+    {\large\itshape
+     Statistical analysis of Parkinson's disease prevalence in Brazil:
+     challenges, neuroimaging technologies, and public-policy perspectives}
+
+    \vfill
+
+    {\large\textbf{Alexandre Maciel Rolim}\textsuperscript{1} \quad\textbullet\quad
+     \textbf{Leonardo Chalhoub}\textsuperscript{2}}\\[6pt]
+    {\small\textsuperscript{1}\,Pesquisa original \textemdash{} epidemiologia, revisão
+     de literatura, síntese de políticas públicas (manuscrito v1, abr/2026).}\\[2pt]
+    {\small\textsuperscript{2}\,Engenharia de dados \textemdash{} pipeline aberto e
+     análise atualizada de infraestrutura via microdados CNES 2013\textendash 2025.}\\[6pt]
+    {\small\href{https://github.com/leonardochalhoub/Parkinson-BR-Stats}{github.com/leonardochalhoub/Parkinson-BR-Stats}
+     \quad\textbullet\quad
+     \href{https://github.com/leonardochalhoub/mirante-dos-dados-br}{github.com/leonardochalhoub/mirante-dos-dados-br}}
+
+    \vfill
+
+    {\small Brasil \\ Abril de 2026}
+  \end{center}
+\end{titlepage}
+
+% ---------- RESUMO -------------------------------------------------------
+\section*{Resumo}
+\addcontentsline{toc}{section}{Resumo}
+\begin{singlespace}\small\noindent
+A doença de Parkinson (DP) é a segunda condição neurodegenerativa mais
+prevalente globalmente, afetando aproximadamente 8,5 milhões de
+indivíduos com projeções de 25,2 milhões de casos até 2050. Este artigo
+integra a análise epidemiológica do manuscrito original de Rolim (2026)
+\textemdash{} fundamentado nos achados do estudo ELSI-Brazil
+(2019\textendash 2021) que estimou prevalência de 0,84\,\%
+(IC 95\,\%: 0,64\textendash 1,09) em brasileiros com 50 anos ou mais
+e projetou 1.250.638 casos de DP no Brasil até 2060 \textemdash{} com
+uma análise atualizada e reproduzível da infraestrutura de neuroimagem
+no SUS, derivada dos microdados CNES (DATASUS) processados pelo
+pipeline aberto do projeto \textit{Mirante dos Dados}. Documentamos
+seis achados principais. \textbf{Primeiro}, o Brasil dispunha em 2025
+de aproximadamente 10.079 aparelhos de Ressonância Magnética
+distribuídos em 6.744 estabelecimentos, com participação do SUS
+estável em torno de 43\,\% (4.317 aparelhos). \textbf{Segundo}, a
+densidade nacional alcançou 47,2 aparelhos por milhão de habitantes,
+patamar superior à mediana da OCDE (\,$\sim$\,17/Mhab em 2021), mas
+essa média mascara desigualdade regional severa. \textbf{Terceiro}, o
+gradiente regional é nítido: Sudeste 64,82/Mhab vs.\ Norte 25,55/Mhab,
+razão de 2,54:1, com Sudeste concentrando 57\,\% do parque nacional
+para 42\,\% da população. \textbf{Quarto}, o coeficiente de variação
+per capita entre as 27 UFs permaneceu estável em 0,44\textendash 0,49
+ao longo de 2013\textendash 2025, indicando que a expansão acelerada
+do parque (de 22,5 para 47,2/Mhab, +110\,\%) NÃO reduziu a iniquidade
+geográfica relativa. \textbf{Quinto}, o estado do Rio de Janeiro
+lidera em densidade (82,99/Mhab), enquanto Amazonas, Roraima, Piauí
+e Acre ficam abaixo da metade da mediana OCDE (15,5\textendash 22,6/Mhab),
+configurando situação de subdotação clinicamente preocupante para o
+diagnóstico diferencial de DP em estágios iniciais. \textbf{Sexto}, a
+implementação seletiva de protocolos padronizados de RM em centros
+de referência regional, conforme proposto por Rolim (2026), exigiria
+investimento único estimado em R\$\,500 mil\textendash 1 milhão e
+operaria dentro das restrições orçamentárias realistas do SUS. O
+trabalho contribui ao ecossistema de pesquisa em saúde pública
+brasileira ao disponibilizar (a) o manuscrito clínico-epidemiológico
+de Rolim como referência base e (b) a infraestrutura aberta do
+Mirante dos Dados para reanálise contínua e integração com novos
+recortes (e.g., Bolsa Família, Emendas Parlamentares) sem custo
+marginal de processamento de microdados.
+
+\vspace{0.4cm}\noindent\textbf{Palavras-chave:}
+doença de Parkinson; ELSI-Brazil; ressonância magnética; SUS; CNES;
+neuroimagem; saúde pública; iniquidade regional; dados abertos.
+\end{singlespace}
+
+% ---------- ABSTRACT -----------------------------------------------------
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\begin{singlespace}\small\noindent
+Parkinson's disease (PD) is the second most prevalent
+neurodegenerative condition globally, affecting approximately
+8.5 million individuals, with projections of 25.2 million cases by
+2050. This paper integrates the epidemiological analysis from the
+original manuscript by Rolim (2026) \textemdash{} grounded in the
+ELSI-Brazil study (2019\textendash 2021) which estimated PD
+prevalence of 0.84\% (95\% CI 0.64\textendash 1.09) among Brazilians
+aged 50+ and projected 1,250,638 PD cases in Brazil by 2060
+\textemdash{} with an updated, reproducible analysis of MRI
+infrastructure across the Brazilian Unified Health System (SUS),
+derived from CNES (DATASUS) microdata processed by the open
+\textit{Mirante dos Dados} pipeline. We document six main findings.
+\textbf{First}, Brazil had \,$\sim$\,10,079 MRI scanners across 6,744
+facilities in 2025, with SUS share stable around 43\%.
+\textbf{Second}, national density reached 47.2/Mpop (above OECD
+median \,$\sim$\,17), but this average masks severe regional
+inequality. \textbf{Third}, the regional gradient is sharp: Southeast
+64.82/Mpop vs.\ North 25.55/Mpop. \textbf{Fourth}, per-capita
+coefficient of variation across UFs remained stable at 0.44\textendash 0.49
+during 2013\textendash 2025 \textemdash{} the rapid expansion did NOT
+reduce relative geographic inequality. \textbf{Fifth}, Amazonas,
+Roraima, Piauí and Acre fall below half the OECD median, posing a
+clinical concern for early-stage PD differential diagnosis.
+\textbf{Sixth}, Rolim's selective implementation of standardized MRI
+protocols at regional reference centers would cost an estimated
+BRL 500K\textendash 1M one-time, fitting realistic SUS budgetary
+constraints.
+
+\vspace{0.4cm}\noindent\textbf{Keywords:}
+Parkinson's disease; ELSI-Brazil; magnetic resonance imaging; SUS;
+CNES; neuroimaging; public health; regional inequality; open data.
+\end{singlespace}
+
+\newpage
+
+% ---------- SUMÁRIO + LISTAS --------------------------------------------
+\renewcommand{\contentsname}{Sumário}
+\tableofcontents
+
+\newpage
+\renewcommand{\listfigurename}{Lista de Figuras}
+\listoffigures
+
+\vspace{1cm}
+\renewcommand{\listtablename}{Lista de Tabelas}
+\listoftables
+
+\newpage
+
+% =====================================================================
+\section{Introdução}\label{sec:intro}
+% =====================================================================
+
+A doença de Parkinson constitui a segunda condição neurodegenerativa
+mais prevalente globalmente, afetando aproximadamente 8,5 milhões de
+indivíduos\,[\ref{ref:elsi}], com projeções estimando aumento para
+25,2 milhões de casos até 2050\,[\ref{ref:su}]. No Brasil, um país de
+renda média-alta com população em transição demográfica acelerada, a
+DP representa desafio crescente para sistemas de saúde pública,
+especialmente considerando a heterogeneidade regional e as
+disparidades em acesso a recursos diagnósticos especializados.
+Estudos epidemiológicos recentes, particularmente o ELSI-Brazil
+(Estudo Longitudinal da Saúde dos Idosos Brasileiros), revelaram que
+a prevalência de DP entre indivíduos com 50 anos ou mais é de 0,84\%
+(IC 95\,\%: 0,64\,\%\textendash 1,09\,\%), com prevalência
+padronizada por idade e sexo de 0,85\,\% (IC 95\,\%:
+0,62\,\%\textendash 1,10\,\%)\,[\ref{ref:elsi}].
+
+A relevância de estudar a prevalência de DP no Brasil transcende
+meramente a quantificação de casos: implica compreender os
+mecanismos pelos quais o diagnóstico é realizado, os desafios
+tecnológicos enfrentados pelo sistema público de saúde, e as
+oportunidades de implementação de políticas públicas que integrem
+epidemiologia com tecnologias diagnósticas avançadas. A ressonância
+magnética, enquanto ferramenta não-invasiva de neuroimagem
+estrutural e funcional, emerge como instrumento potencial para
+melhorar acurácia diagnóstica em contexto brasileiro, permitindo
+identificação de características anatômicas e funcionais associadas
+a Parkinson e condições que mimetizam a doença\,[\ref{ref:saba}].
+
+\subsection{Origem e estrutura deste artigo}
+
+Este Working Paper integra duas contribuições. A primeira, do autor
+\textbf{Alexandre Maciel Rolim}, é o manuscrito clínico-epidemiológico
+publicado em \texttt{github.com/leonardochalhoub/Parkinson-BR-Stats}
+(2026, v1) \textemdash{} integrando análise epidemiológica do
+ELSI-Brazil com revisão de tecnologias de neuroimagem e síntese de
+recomendações de política pública. A segunda, do autor
+\textbf{Leonardo Chalhoub}, é a camada de engenharia de dados:
+pipeline aberto do projeto \textit{Mirante dos Dados} que processa
+microdados mensais do CNES (DATASUS) para 2005\textendash 2025,
+gerando indicadores reproduzíveis de infraestrutura de Ressonância
+Magnética por UF, ano e setor (SUS vs.\ Privado). A primeira
+contribuição fornece o arcabouço epidemiológico e o aparato
+clínico\textbf{; a segunda atualiza, formaliza e torna reproduzível
+o panorama da infraestrutura} \textemdash{} oferecendo, para cada
+afirmação de caráter quantitativo, dados auditáveis e cobertura
+temporal estendida.
+
+A linha do tempo do contexto clínico-tecnológico analisado é
+sintetizada na Figura\,\ref{fig:timeline}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig01-timeline-rm}
+\caption{Linha do tempo do contexto da pesquisa em DP e RM no Brasil}
+\label{fig:timeline}
+\par\noindent{\small Fonte: elaboração própria. CNES inicia em 2005;
+SIGTAP padronizado em 2008; descrição do \textit{swallow-tail sign}
+(Schwarz \textit{et al.}, 2014); critérios diagnósticos clínicos
+MDS-PD (Postuma \textit{et al.}, 2015); imagem com sensibilidade a
+neuromelanina (Pyatigorskaya \textit{et al.}, 2018).}
+\end{figure}
+
+% =====================================================================
+\section{Revisão de Literatura}\label{sec:teoria}
+% =====================================================================
+
+\subsection{Epidemiologia da Doença de Parkinson no Brasil:
+achados recentes e tendências}
+
+A epidemiologia de Parkinson no Brasil permaneceu incompletamente
+caracterizada até recentemente. O único estudo populacional anterior
+com representatividade metodológica foi o estudo Bambuí, publicado
+em 2006, que identificou prevalência de 3,3\% em população acima de
+65 anos em município único\,[\ref{ref:elsi}]. A lacuna de dezoito
+anos sem dados epidemiológicos nacionais abrangentes constituía
+obstáculo crítico para planejamento adequado de políticas de saúde.
+O ELSI-Brazil, coletando dados entre 2019 e 2021 de 9.949
+participantes distribuídos por 70 municípios nas cinco regiões
+geopolíticas brasileiras, forneceu primeira estimativa
+representativa nacionalmente. A prevalência identificada de 0,84\%
+entre brasileiros com 50 anos ou mais alinha-se com estimativas de
+outros países de renda média, como China (0,94\%)\,[\ref{ref:elsi}],
+embora significativamente inferior ao relatado no estudo Bambuí,
+sugerindo possível subestimação contemporânea relacionada a
+diagnóstico autorrelatado, redução verdadeira em prevalência
+relativa, ou diferenças metodológicas entre estudos.
+
+A distribuição etária da prevalência em ELSI-Brazil revelou padrão
+exponencial esperado: 0,39\% (IC 95\,\%: 0,17\%\textendash 0,60\%)
+nos 50\textendash 59 anos, elevando-se para 2,75\% (IC 95\,\%:
+1,39\%\textendash 4,11\%) em indivíduos com 80 anos ou
+mais\,[\ref{ref:elsi}]. Esta progressão reflete fenômeno
+bem-documentado de que envelhecimento é fator de risco primário
+para Parkinson, relacionado a acúmulo progressivo de patologia de
+alfa-sinucleína e morte neuronal dopaminérgica ao longo do
+tempo\,[\ref{ref:bovolenta}]. A prevalência foi significativamente
+superior em homens (1,21\%, IC 95\,\%: 0,79\%\textendash 1,63\%)
+comparada a mulheres (0,52\%, IC 95\,\%: 0,31\%\textendash 0,73\%),
+com razão de chances de 2,35 (IC 95\,\%:
+1,35\textendash 4,08; p\,=\,0,003)\,[\ref{ref:elsi}], alinhando-se
+com literatura global documentando dimorfismo sexual pronunciado
+em Parkinson.
+
+\subsection{Neuroimagem estrutural e funcional na detecção de DP}
+
+A ressonância magnética estrutural constitui ferramenta diagnóstica
+potencialmente valiosa em Parkinson, permitindo avaliação de
+integridade neuronal, volume de substância negra, e padrões de
+atrofia regional\,[\ref{ref:saba}]. Estudos demonstram que
+volumetria da substância negra, quantificada por técnicas de
+segmentação automatizada em imagens de RM, correlaciona com grau
+de deficiência dopaminérgica avaliada por single-photon emission
+computed tomography (SPECT) com ligante de transportador de
+dopamina (DAT-SPECT)\,[\ref{ref:saba}]. A espectroscopia de
+ressonância magnética (MRS), técnica que mede concentrações de
+metabolitos cerebrais, permite quantificação de glutamato, GABA,
+lactato, e outros metabólitos que frequentemente mostram alterações
+em Parkinson\,[\ref{ref:saba}].
+
+Estudos de RM funcional de repouso demonstram alterações em
+conectividade funcional de redes cerebrais em indivíduos com
+Parkinson comparados a controles, particularmente em redes de modo
+padrão (default mode network)\,[\ref{ref:saba}]. Ressonância
+magnética de alta resolução com sequências T1 e T2 permite
+identificação de hiper-intensidades em núcleo rubro, putame, e
+outras estruturas de gânglios basais que auxiliam em diferenciação
+entre Parkinson idiopático e parkinsonismos atípicos (atrofia
+multissistêmica, paralisia supranuclear progressiva)\,[\ref{ref:saba}].
+
+\subsection{Desafios de infraestrutura de neuroimagem no SUS}
+
+O Sistema Único de Saúde brasileiro enfrenta desafios substanciais
+na provisão equitativa de serviços de neuroimagem diagnóstica. A
+distribuição de equipamentos de RM no Brasil é profundamente
+desigual: a região Sudeste concentra parcela majoritária do parque
+nacional, enquanto a região Norte permanece severamente
+subdotada\,[\ref{ref:datasus}]. Esta distribuição geográfica reflete
+padrões históricos de desenvolvimento econômico desigual que
+criaram disparidades estruturais em acesso a tecnologia
+diagnóstica. Para DP especificamente, a implicação é que indivíduos
+em regiões periféricas com apresentação clínica ambígua enfrentam
+barreiras praticamente intransponíveis para acesso a neuroimagem
+especializadas que poderiam confirmar ou excluir diagnóstico.
+
+Adicionalmente, o custo de manutenção, calibração, e atualização de
+equipamentos de RM é extraordinário, com custos operacionais anuais
+de máquina clínica de 3 Tesla variando de \rs 200.000 a
+\rs 400.000 por ano\,[\ref{ref:datasus}]. Para países de renda média
+como Brasil, estes custos representam proporção significativa de
+orçamentos de saúde, criando trade-offs entre investimento em
+neuroimagem avançada versus alocação de recursos para outras
+prioridades de saúde pública.
+
+% =====================================================================
+\section{Aspectos Metodológicos}\label{sec:metodo}
+% =====================================================================
+
+\subsection{Desenho de estudo e fontes de dados}
+
+Este artigo constitui revisão sistemática qualitativa de dados
+epidemiológicos de prevalência de DP no Brasil
+\textemdash{} \textbf{contribuição original de Rolim (2026)}
+\textemdash{} integrada com análise quantitativa atualizada e
+reproduzível de infraestrutura tecnológica disponível no SUS
+\textemdash{} \textbf{contribuição original de Chalhoub (2026)}
+via pipeline \textit{Mirante dos Dados}.
+
+Não foi realizada experimentação com seres humanos ou animais; a
+base de dados utilizada compreende fontes secundárias publicamente
+disponíveis: \textbf{(1)} estudo ELSI-Brazil, segunda onda
+(2019\textendash 2021), que forneceu dados epidemiológicos de
+prevalência, distribuição etária-sexual, e características clínicas
+associadas de DP em população representativa
+brasileira\,[\ref{ref:elsi}]; \textbf{(2)} microdados mensais do
+\textbf{Cadastro Nacional de Estabelecimentos de Saúde (CNES)},
+mantidos pelo DATASUS, contendo cadastro de cada equipamento de RM
+por estabelecimento, UF, mês, ano e indicador SUS/Privado; foram
+processados aproximadamente 6.614 arquivos \texttt{.dbc}
+correspondentes a 27 UFs $\times$ 246 meses
+(jan/2005\textendash dez/2025); \textbf{(3)} estimativas anuais de
+população residente por UF, da Tabela 6579 do IBGE/SIDRA, para
+normalização per capita; \textbf{(4)} literatura crítica sobre
+tecnologias de neuroimagem em DP (PubMed, Scopus, Web of Science,
+2015\textendash 2024).
+
+\subsection{Pipeline de dados}
+
+A camada de engenharia de dados adota a arquitetura medallion
+(ARMBRUST \textit{et al.}, 2021) implementada em Apache Spark e
+persistida em Delta Lake. A síntese arquitetural é apresentada na
+Figura\,\ref{fig:architecture}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig02-architecture}
+\caption{Pipeline medallion (bronze\,/\,silver\,/\,gold) usado para
+materializar o painel CNES de Ressonância Magnética}
+\label{fig:architecture}
+\par\noindent{\small Fonte: elaboração própria, baseada em
+Armbrust \textit{et al.} (2021).}
+\end{figure}
+
+\textbf{Bronze} converte cada arquivo DBC para Parquet (via PySUS) e
+materializa Delta com partição UF$\times$ano. \textbf{Silver} agrega
+por (UF, ano, codequip), preservando todos os 99 códigos de
+equipamento mas separando contagens SUS/Privado. \textbf{Gold}
+colapsa para o painel UF$\times$ano$\times$codequip e adiciona
+população IBGE para normalização per capita. Para o presente artigo,
+o filtro \texttt{codequip = 42} extrai apenas Ressonância Magnética.
+O pipeline está hospedado em Databricks Free Edition com refresh
+mensal automatizado.
+
+\subsection{Indicadores construídos}
+
+Para cada (UF, ano), o painel disponibiliza: \textbf{(i)} contagem
+total média mensal de aparelhos de RM; \textbf{(ii)} divisão
+SUS/Privado; \textbf{(iii)} número de estabelecimentos distintos com
+$\geq$\,1 RM; \textbf{(iv)} densidade per capita (RM/Mhab) usando
+população IBGE-SIDRA; \textbf{(v)} série temporal completa
+2013\textendash 2025 (a janela 2005\textendash 2012 está
+materializada na bronze mas não foi usada neste artigo por
+limitações de dimensionamento da análise comparativa).
+
+\subsection{Limitações}
+
+\textbf{Primeira}, a contagem CNES reflete equipamentos
+\textit{cadastrados}, não \textit{operacionais} \textemdash{} a
+diferença entre cadastro e operação efetiva é não-trivial e exigiria
+cruzamento com produção (SIH-RD/SIA-RD) para mensuração rigorosa.
+\textbf{Segunda}, o cadastro pode duplicar equipamentos quando o
+mesmo aparelho é registrado por múltiplos profissionais
+prestadores; controles foram aplicados via \texttt{COUNT(DISTINCT
+CNES)} mas resíduos podem persistir. \textbf{Terceira}, a análise é
+descritiva: não pretende estabelecer relação causal entre
+disponibilidade de RM e desfechos clínicos de DP. \textbf{Quarta}, o
+manuscrito original de Rolim (2026) usa estimativa de
+\,$\sim$\,1.800 equipamentos no país (referência DATASUS-2024),
+enquanto nossa contagem para 2025 é de 10.079; a diferença reflete
+metodologia distinta (cadastro tipo único vs.\ contagem de unidades
+por estabelecimento) e ressalta a importância de se trabalhar com
+microdados auditáveis.
+
+% =====================================================================
+\section{Resultados}\label{sec:resultados}
+% =====================================================================
+
+\subsection{Volumes nacionais e evolução temporal}
+
+A Figura\,\ref{fig:evolution-total} apresenta a evolução do parque
+total de aparelhos de RM no Brasil entre 2013 e 2025. O volume mais
+que dobrou no período: de 4.526 para 10.079 unidades (+123\%), com
+crescimento per capita de 22,5 para 47,2 aparelhos por milhão de
+habitantes (+110\%, refletindo a expansão líquida descontada do
+crescimento populacional).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig03-evolution-total}
+\caption{Brasil — número total de aparelhos de RM (média mensal por ano), 2013\textendash 2025}
+\label{fig:evolution-total}
+\par\noindent{\small Fonte: elaboração própria, microdados CNES/DATASUS.}
+\end{figure}
+
+A Figura\,\ref{fig:evolution-pm} expressa a mesma trajetória em
+densidade por milhão de habitantes, com linha de referência da
+mediana OCDE ($\sim$\,17/Mhab, OECD Health Statistics
+2021\textendash 2023). \textbf{Brasil ultrapassou a mediana OCDE em
+todos os anos da série}; em 2025 chegou a 47,2/Mhab, próximo da
+média de países como Coreia do Sul (\,$\sim$\,30/Mhab) e Itália
+(\,$\sim$\,30/Mhab), mas ainda abaixo de Japão (\,$\sim$\,57/Mhab) e
+EUA (\,$\sim$\,38/Mhab).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig04-evolution-per-million}
+\caption{Densidade nacional de RM por milhão de habitantes,
+2013\textendash 2025, com referência da mediana OCDE}
+\label{fig:evolution-pm}
+\par\noindent{\small Fonte: elaboração própria, CNES/DATASUS + IBGE/SIDRA.}
+\end{figure}
+
+A Tabela\,\ref{tab:evolucao-rm} consolida a série temporal completa.
+
+\begin{table}[H]
+\centering
+\caption{Aparelhos de RM no Brasil por ano e setor, 2013\textendash 2025}
+\begin{tabular}{rrrrrr}
+\toprule
+\textbf{Ano} & \textbf{Total} & \textbf{SUS} & \textbf{Privado} & \textbf{Estab.} & \textbf{RM/Mhab}\\
+\midrule
+2013 &  4.526 & 2.073 & 2.453 & 3.661 & 22,5 \\
+2014 &  4.724 & 2.125 & 2.600 & 3.813 & 23,3 \\
+2015 &  4.881 & 2.139 & 2.742 & 3.911 & 23,9 \\
+2016 &  5.146 & 2.178 & 2.968 & 4.102 & 25,0 \\
+2017 &  5.499 & 2.308 & 3.190 & 4.369 & 26,5 \\
+2018 &  5.901 & 2.371 & 3.530 & 4.698 & 28,3 \\
+2019 &  6.385 & 2.428 & 3.957 & 5.063 & 30,4 \\
+2020 &  6.486 & 2.583 & 3.903 & 5.092 & 30,6 \\
+2021 &  7.016 & 2.811 & 4.205 & 5.371 & 32,9 \\
+2022 &  8.488 & 3.680 & 4.808 & 5.687 & 39,8 \\
+2023 &  9.028 & 3.949 & 5.078 & 6.031 & 42,4 \\
+2024 &  9.433 & 4.081 & 5.352 & 6.334 & 44,4 \\
+2025 & 10.079 & 4.318 & 5.762 & 6.744 & 47,2 \\
+\bottomrule
+\end{tabular}
+\par\noindent{\small Fonte: elaboração própria, CNES/DATASUS + IBGE.
+Total = média mensal de aparelhos cadastrados no ano. Estab.\ =
+estabelecimentos distintos com pelo menos um RM.}
+\label{tab:evolucao-rm}
+\end{table}
+
+\subsection{Composição SUS vs. Privado}
+
+A Figura\,\ref{fig:sus-priv} apresenta a decomposição anual da
+disponibilidade de RM entre SUS e setor privado. A participação do
+SUS oscila no intervalo 38\textendash 46\% ao longo da série, com
+ligeira recuperação após 2020. \textbf{O setor privado detém a
+maioria persistente do parque}, e a expansão pós-2020 foi
+relativamente equilibrada entre os dois setores.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig05-sus-vs-priv}
+\caption{Distribuição SUS vs.\ Privado de aparelhos de RM, 2013\textendash 2025}
+\label{fig:sus-priv}
+\par\noindent{\small Fonte: elaboração própria, CNES/DATASUS.}
+\end{figure}
+
+\subsection{Distribuição geográfica}
+
+A Figura\,\ref{fig:top10-abs} apresenta os 10 estados com maior
+volume absoluto de aparelhos de RM em 2025: \textbf{São Paulo
+isolado concentra 30\,\%} do parque nacional (3.054 aparelhos), e o
+trio SP+RJ+MG totaliza 56\,\%. Esta concentração é consistente com
+a proporção populacional desses estados, mas \textbf{NÃO é}
+proporcional aos casos esperados de DP, conforme análise per capita
+abaixo.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig06-top10-absolute}
+\caption{Top-10 UFs em número absoluto de aparelhos de RM, 2025}
+\label{fig:top10-abs}
+\par\noindent{\small Fonte: elaboração própria, CNES/DATASUS.}
+\end{figure}
+
+A Figura\,\ref{fig:top10-pm} apresenta a versão per capita,
+revelando padrão substancialmente diferente: \textbf{Rio de Janeiro}
+(82,99/Mhab), \textbf{Distrito Federal} (72,63/Mhab), \textbf{São
+Paulo} (66,26/Mhab), Minas Gerais (51,86/Mhab), Rondônia
+(49,06/Mhab), Paraná (47,54/Mhab) e Mato Grosso (47,26/Mhab) lideram.
+O extremo oposto inclui Amazonas (15,46/Mhab), Roraima (16,24/Mhab)
+e Piauí (19,20/Mhab) \textemdash{} todos abaixo da mediana OCDE.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig07-top10-per-million}
+\caption{Top-10 UFs em RM por 1 milhão de habitantes, 2025}
+\label{fig:top10-pm}
+\par\noindent{\small Fonte: elaboração própria, CNES/DATASUS + IBGE.
+Linha tracejada: mediana OCDE.}
+\end{figure}
+
+A visualização integral por UF é apresentada no mapa coroplético da
+Figura\,\ref{fig:choro-pm}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{fig08-choropleth-per-million}
+\caption{Mapa coroplético — RM por milhão de habitantes por UF, 2025}
+\label{fig:choro-pm}
+\par\noindent{\small Fonte: elaboração própria. GeoJSON IBGE +
+microdados CNES/DATASUS.}
+\end{figure}
+
+A síntese por região (Figura\,\ref{fig:region}) consolida o
+gradiente Sudeste (64,82) $\rightarrow$ Centro-Oeste (49,49)
+$\rightarrow$ Sul (43,20) $\rightarrow$ Nordeste (28,58)
+$\rightarrow$ Norte (25,55). \textbf{O Sudeste possui mais que o
+dobro de RM per capita do Norte}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig09-region-comparison}
+\caption{Densidade regional de RM por milhão de habitantes, 2025}
+\label{fig:region}
+\par\noindent{\small Fonte: elaboração própria, CNES/DATASUS +
+IBGE. Anotações internas: \% SUS por região.}
+\end{figure}
+
+\subsection{Evolução da iniquidade}
+
+A Figura\,\ref{fig:cv} apresenta o coeficiente de variação per
+capita ao longo do tempo \textemdash{} indicador de iniquidade
+relativa entre UFs. \textbf{O CV permanece estável no intervalo
+0,44\textendash 0,49 ao longo de toda a série}: a expansão acelerada
+do parque, dobrando o número absoluto e a densidade per capita, NÃO
+reduziu a iniquidade geográfica. Este achado tem implicação política
+direta: políticas de expansão indiferenciada (\textit{laissez-faire})
+não corrigem desigualdade estrutural; é necessária política
+deliberada de focalização nos estados subdotados.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig10-cv-time}
+\caption{Coeficiente de variação per capita entre UFs,
+2013\textendash 2025, com referência (Bolsa Família \,$\sim$\,0,45)}
+\label{fig:cv}
+\par\noindent{\small Fonte: elaboração própria. CV calculado sobre
+as densidades RM/Mhab das 27 UFs.}
+\end{figure}
+
+A trajetória detalhada por UF \textemdash{} comparando 2013 e 2025
+em densidade per capita \textemdash{} é apresentada na
+Figura\,\ref{fig:growth-uf}. Todos os estados cresceram, com exceção
+notável de \textbf{Roraima}, que apresentou \textit{redução}
+relativa: de 22,5/Mhab em 2013 para 16,2/Mhab em 2025
+(crescimento populacional superior à expansão do parque local).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{fig11-growth-uf-2013-2025}
+\caption{Crescimento por UF de RM/Mhab entre 2013 e 2025
+(\textit{barbell chart})}
+\label{fig:growth-uf}
+\par\noindent{\small Fonte: elaboração própria. Linhas em verde =
+crescimento; em vermelho = decréscimo. Apenas Roraima decresceu.}
+\end{figure}
+
+\subsection{Capacidade de neuroimagem versus carga estimada de DP}
+
+A Figura\,\ref{fig:pd-burden} cruza, para 2025, os casos estimados
+de Parkinson por UF (proxy via população $\times$ 0,33\%, baseado em
+prevalência ELSI-Brazil ajustada para população 50+) com a
+densidade de RM. Estados com maior carga absoluta de DP esperada
+(SP, MG, RJ) tendem também a ter maior densidade de RM \textemdash{}
+mas \textbf{a relação não é proporcional}: estados de carga
+intermediária (BA, PE, CE) têm densidade de RM relativamente baixa
+para sua população, configurando \textit{undersupply} relativo.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{fig12-pd-burden-vs-rm}
+\caption{Casos estimados de DP por UF vs.\ densidade de RM/Mhab, 2025}
+\label{fig:pd-burden}
+\par\noindent{\small Fonte: elaboração própria. Casos de DP estimados
+como pop $\times$ 0,33\%, simplificação baseada em ELSI-Brazil
+(Schlickmann \textit{et al.}, 2025); ignora variação inter-UF na
+proporção 50+ ($\pm$\,2 p.p.). Linha tracejada: mediana OCDE.}
+\end{figure}
+
+% =====================================================================
+\section{Discussão}\label{sec:discussao}
+% =====================================================================
+
+\subsection{Implicações dos dados epidemiológicos para estratégia
+de saúde pública}
+
+Os achados do ELSI-Brazil sobre prevalência de DP no Brasil, quando
+integrados com dados atualizados de infraestrutura de saúde, revelam
+lacunas críticas entre necessidade de saúde da população e capacidade
+do sistema público de responder. Com projeção de 1.250.638 casos de
+DP em 2060 (aumento de 133\% em relação a 2024), o Brasil enfrentará
+crescimento explosivo na demanda por diagnóstico diferencial e manejo
+especializado de DP\,[\ref{ref:elsi}].
+
+\subsection{Iniquidade estrutural não resolvida pelo crescimento
+agregado}
+
+O presente trabalho documenta empiricamente um achado que tem
+implicação política direta: \textbf{mesmo dobrando o parque nacional
+de RM em uma década, a iniquidade per capita entre UFs não diminuiu}.
+O CV permaneceu praticamente constante. Isso desmonta o argumento de
+que basta investir em escala para corrigir desigualdade
+\textemdash{} sem política focalizada (incentivo fiscal regional,
+financiamento priorizado pelo Ministério da Saúde, parceria
+público-privada com cláusulas de localização), o crescimento
+agregado se reproduz na distribuição existente.
+
+\subsection{Potencial de neuroimagem em aprimoramento diagnóstico:
+perspectivas para integração no SUS}
+
+Embora neuroimagem seja frequentemente vista como luxo diagnóstico
+inadequado em contextos de recursos limitados, argumento pode ser
+construído para sua integração seletiva em protocolo diagnóstico de
+DP em Brasil. Especificamente, utilização de RM estrutural em casos
+de apresentação clínica ambígua (tremor predominante versus rigidez,
+ou quando diagnóstico diferencial inclui parkinsonismos atípicos)
+ofereceria valor diagnóstico agregado que justificaria alocação de
+recursos limitados\,[\ref{ref:saba}]. Modelo implementado em
+contextos similares de países de renda média (por exemplo, México,
+Argentina) demonstrou que centralização de protocolos de RM em
+centros de referência regional, combinada com educação de clínicos
+locais em reconhecimento de características diagnósticas de DP,
+melhora acurácia diagnóstica em 25\textendash 30\% comparado a
+cenário onde apenas diagnóstico clínico está
+disponível\,[\ref{ref:datasus}].
+
+Para implementação no SUS especificamente, recomendação seria:
+\textbf{(1)} desenvolver protocolo padronizado de RM para DP e
+parkinsonismos atípicos que pudesse ser implementado em equipamentos
+clínicos já existentes sem requerimento de tecnologia adicional;
+\textbf{(2)} capacitar radiologistas em interpretação especializada
+de imagens neurológicas focadas em distúrbios de movimento;
+\textbf{(3)} criar centros de referência regional em cada região
+geopolítica brasileira onde casos complexos de apresentação ambígua
+poderiam ser encaminhados para confirmação diagnóstica com
+neuroimagem e avaliação neurológica especializada.
+
+Custo estimado para desenvolvimento de protocolo padronizado e
+capacitação inicial de radiologistas seria de aproximadamente
+\rs 500.000 a \rs 1.000.000 em investimento único, com custos
+operacionais recorrentes de exames adicionais de RM sendo absorvíveis
+dentro de orçamentos existentes de equipamentos já
+instalados\,[\ref{ref:datasus}].
+
+\subsection{Limitações da inferência}
+
+\textbf{Primeira}, os resultados são predominantemente descritivos:
+nenhum desenho identifica relação causal isolada entre disponibilidade
+de RM e desfechos clínicos de DP. \textbf{Segunda}, o ELSI-Brazil
+captura DP autorrelatada e amostra preferentemente indivíduos em
+estágios avançados (29\% precisam de suporte para caminhar) \textemdash{}
+subestima prevalência inicial. \textbf{Terceira}, contagem CNES não
+distingue equipamento operacional vs.\ cadastrado; cruzamento futuro
+com produção SIH-RD/SIA-RD daria visão mais precisa.
+
+% =====================================================================
+\section{Considerações Finais}\label{sec:conclusao}
+% =====================================================================
+
+\subsection{O que descobrimos}
+
+\textbf{(i) O Brasil dispõe, em 2025, de \,$\sim$\,10.079 aparelhos
+de Ressonância Magnética em 6.744 estabelecimentos}, com
+participação do SUS em torno de 43\%. A densidade nacional alcançou
+47,2/Mhab, acima da mediana OCDE.
+
+\textbf{(ii) A iniquidade geográfica permanece estrutural.} CV
+estável em 0,44\textendash 0,49 ao longo de 12 anos. RJ-DF-SP no
+topo (66\textendash 83/Mhab) vs.\ AM-RR-PI no fundo
+(15\textendash 19/Mhab). Crescimento agregado não resolve
+desigualdade.
+
+\textbf{(iii) Carga epidemiológica crescente.} Projeção de 1,25
+milhão de casos de DP no Brasil até 2060, com gradiente
+distribuído por todas as regiões. Necessidade de diagnóstico
+especializado crescerá no mínimo proporcionalmente.
+
+\textbf{(iv) Neuroimagem é complementar, não substitutiva, ao
+diagnóstico clínico.} Mas em casos ambíguos, RM estrutural
+adequadamente protocolizada pode aumentar acurácia diagnóstica em
+25\textendash 30\%, segundo evidência de países de renda média.
+
+\textbf{(v) A solução é organizacional, não tecnológica.} O parque
+de equipamentos já existe; o gap está em protocolos padronizados,
+capacitação de radiologistas em distúrbios de movimento, e
+infraestrutura de teleneurologia para regiões periféricas.
+
+\subsection{Agenda de pesquisa}
+
+Quatro frentes destacam-se: \textbf{(a)} cruzamento de CNES
+(equipamentos) com SIH-AIH (produção) para mensurar utilização
+\textit{efetiva} dos aparelhos por UF; \textbf{(b)} cruzamento com
+microdados de SIM-DO para óbitos com causa associada à DP, validando
+a estimativa de carga; \textbf{(c)} estudo de validação de
+protocolos padronizados de RM em contextos brasileiros, conforme
+recomendado por Rolim (2026); \textbf{(d)} extensão da janela
+temporal para 2005\textendash 2012 (já materializada na bronze) para
+capturar período de baixa cobertura inicial do CNES e identificar
+inflexões.
+
+\subsection{Contribuição metodológica}
+
+Para além dos achados substantivos, o presente artigo demonstra um
+modelo de \textbf{coautoria entre pesquisa clínica-epidemiológica
+(Rolim) e engenharia de dados (Chalhoub)}: a primeira fornece o
+arcabouço teórico, conceitual e propositivo; a segunda atualiza,
+formaliza e torna reproduzíveis as quantificações que sustentam o
+argumento. Acreditamos que esse modelo \textemdash{} cuja viabilidade
+é demonstrada pela presente integração entre o repositório
+\texttt{Parkinson-BR-Stats} e o pipeline aberto \textit{Mirante dos
+Dados} \textemdash{} pode ser replicado para outras agendas de saúde
+pública nas quais existe um manuscrito clínico-epidemiológico com
+recomendações que se beneficiariam de quantificação atualizada,
+auditável, e independente de revisão.
+
+% =====================================================================
+\section*{Referências}\label{sec:ref}
+\addcontentsline{toc}{section}{Referências}
+% =====================================================================
+\begin{singlespace}\small
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:elsi}
+[1] SCHLICKMANN, T. H.; TESSARI, M. S.; BORELLI, W. V. \textit{et al.}
+Prevalence, distribution and future projections of Parkinson disease
+in Brazil: insights from the ELSI-Brazil cohort study. \textbf{Lancet
+Reg Health Am.}, v. 44, n. 101046, 2025. DOI:
+10.1016/j.lana.2025.101046.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:su}
+[2] SU, D. \textit{et al.} Projections for prevalence of Parkinson's
+disease and its driving factors in 195 countries and territories to
+2050: modelling study of Global Burden of Disease Study 2021.
+\textbf{BMJ}, 2025. DOI: 10.1136/bmj-2024-080952.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:saba}
+[3] SABA, R. A.; MAIA, D. P.; CARDOSO, F. E. C. \textit{et al.}
+Guidelines for Parkinson's disease treatment: consensus from the
+Movement Disorders Scientific Department of the Brazilian Academy
+of Neurology — motor symptoms. \textbf{Arq Neuropsiquiatr.}, v. 80,
+n. 3, p. 316\textendash 329, 2022. DOI: 10.1590/0004-282X-ANP-2021-0219.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:bovolenta}
+[4] BOVOLENTA, T. M.; SCHUMACHER-SCHUH, A. F.; SANTOS-LOBATO, B. L. D.
+\textit{et al.} Average annual cost of Parkinson's disease in a
+Brazilian multi-ethnic population. \textbf{Parkinsonism Relat
+Disord.}, v. 117, n. 105897, 2023. DOI:
+10.1016/j.parkreldis.2023.105897.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:datasus}
+[5] DEPARTAMENTO DE INFORMÁTICA DO SISTEMA ÚNICO DE SAÚDE (DATASUS).
+\textbf{Recursos de Diagnóstico por Imagem no SUS}. Ministério da
+Saúde do Brasil, 2024. Disponível em:
+\url{https://datasus.saude.gov.br/}.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[6] INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE).
+\textbf{Projeções da População do Brasil: 2010\textendash 2060}.
+2013.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[7] LLIBRE-GUERRA, J. J.; PRINA, M.; SOSA, A. L. \textit{et al.}
+Prevalence of parkinsonism and Parkinson disease in urban and rural
+populations from Latin America: a community based study.
+\textbf{Lancet Reg Health Am.}, v. 7, n. 100136, 2022. DOI:
+10.1016/j.lana.2021.100136.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[8] MARRAS, C.; BECK, J. C.; BOWER, J. H. \textit{et al.}
+Prevalence of Parkinson's disease across North America. \textbf{NPJ
+Parkinsons Dis.}, v. 4, n. 1, p. 21, 2018. DOI:
+10.1038/s41531-018-0058-0.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[9] BEN-SHLOMO, Y.; DARWEESH, S.; LLIBRE-GUERRA, J. \textit{et al.}
+The epidemiology of Parkinson's disease. \textbf{Lancet}, v. 403,
+n. 10423, p. 283\textendash 292, 2024. DOI: 10.1016/S0140-6736(23)01419-8.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[10] TOLOSA, E.; GARRIDO, A.; SCHOLZ, S. W.; POEWE, W. Challenges
+in the diagnosis of Parkinson's disease. \textbf{Lancet Neurol.},
+v. 20, n. 5, p. 385\textendash 397, 2021. DOI:
+10.1016/S1474-4422(21)00030-2.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[11] FASANO, A.; SCHNEIDER, S. A.; ABRAMYCHEVA, N. Y. \textit{et al.}
+Predictive factors for deep brain stimulation outcome in
+tremor-dominant Parkinson disease. \textbf{Neurology}, v. 97, n. 5,
+p. e520\textendash e531, 2021. DOI: 10.1212/WNL.0000000000012358.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[12] PRINGSHEIM, T.; JETTE, N.; FROLKIS, A.; STEEVES, T. D. L. The
+prevalence of Parkinson's disease: a systematic review and
+meta-analysis. \textbf{Mov Disord.}, v. 29, n. 13,
+p. 1583\textendash 1590, 2014. DOI: 10.1002/mds.25945.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[13] DORSEY, E. R.; ELBAZ, A.; NICHOLS, E. \textit{et al.} Global,
+regional, and national burden of Parkinson's disease,
+1990\textendash 2016: a systematic analysis for the Global Burden
+of Disease Study 2016. \textbf{Lancet Neurol.}, v. 17, n. 11,
+p. 939\textendash 953, 2018. DOI: 10.1016/S1474-4422(18)30295-3.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[14] SCHIESS, N.; CATALDI, R.; OKUN, M. S. \textit{et al.} Six
+action steps to address global disparities in Parkinson disease: a
+World Health Organization priority. \textbf{JAMA Neurol.}, v. 79,
+n. 9, p. 929\textendash 936, 2022. DOI: 10.1001/jamaneurol.2022.1783.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[15] POSTUMA, R. B.; BERG, D.; STERN, M. \textit{et al.} MDS
+clinical diagnostic criteria for Parkinson's disease.
+\textbf{Mov Disord.}, v. 30, n. 12, p. 1591\textendash 1601, 2015.
+DOI: 10.1002/mds.26424.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[16] ARMBRUST, M.; GHODSI, A.; XIN, R.; ZAHARIA, M. Lakehouse: a
+new generation of open platforms that unify data warehousing and
+advanced analytics. In: \textbf{11th CIDR}, 2021.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[17] WILKINSON, M. D. \textit{et al.} The FAIR Guiding Principles
+for scientific data management and stewardship. \textbf{Scientific
+Data}, v. 3, 2016. DOI: 10.1038/sdata.2016.18.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+[18] ROLIM, A. M. Análise estatística da prevalência da Doença de
+Parkinson no Brasil: desafios, tecnologias de neuroimagem e
+perspectivas de políticas públicas. \textbf{Manuscrito v1, abr.
+2026}. Disponível em:
+\url{https://github.com/leonardochalhoub/Parkinson-BR-Stats/blob/main/2026-04-08_manuscrito_v1.md}.
+\par\smallskip
+\end{singlespace}
+
+\vspace{1cm}
+
+\noindent\textbf{Citar como:}\\
+ROLIM, A. M.; CHALHOUB, L. Análise estatística da prevalência da
+Doença de Parkinson no Brasil: desafios, tecnologias de neuroimagem
+e perspectivas de políticas públicas.
+\textit{Mirante dos Dados \textemdash{} Working Paper n. 5}, v. 1.0,
+abr. 2026. Disponível em:
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
+
+\vspace{0.5cm}
+
+\noindent\textbf{Reconhecimento:} a análise epidemiológica e a
+revisão de literatura que sustentam este artigo foram originalmente
+escritas por Alexandre Maciel Rolim como manuscrito independente
+(v1, abr/2026), publicado em
+\url{github.com/leonardochalhoub/Parkinson-BR-Stats}. A presente
+versão integra esse manuscrito com camada de engenharia de dados do
+\textit{Mirante dos Dados}, contribuindo análise atualizada de
+infraestrutura de RM via microdados CNES 2013\textendash 2025 e
+formalização do pipeline reproduzível.
+
+\vspace{0.5cm}
+
+\noindent\textbf{Licença:} dados consolidados (camada Gold) e código
+do pipeline distribuídos sob licença MIT. Texto deste artigo
+distribuído sob licença Creative Commons Atribuição 4.0 Internacional
+(CC BY 4.0).
+
+\end{document}

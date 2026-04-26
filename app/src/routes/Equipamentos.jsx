@@ -189,6 +189,8 @@ export default function Equipamentos() {
 
       <ScoreCard parecer={PARECER_EQUIPAMENTOS} />
 
+      <ArticleSection />
+
       <div className="kpiRow" data-export-id="equipamentos-kpis">
         <KpiCard label={`Total · ${kpis.y ?? '—'}`}             value={fmtInt(kpis.total)} sub="equipamentos somados" color={theme === 'dark' ? '#60a5fa' : '#1d4ed8'} />
         <KpiCard label={`SUS · ${kpis.y ?? '—'}`}               value={fmtInt(kpis.sus)}   sub={`${fmtPct(kpis.susShare)} do total`} color={SETORES.sus.color} />
@@ -410,5 +412,69 @@ function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+// ─── Working Paper #5 — Equipamentos × Parkinson (Rolim + Chalhoub) ─────
+// Artigo focado em RM (codequip=42) no diagnóstico diferencial da Doença
+// de Parkinson. Coautoria com Alexandre Maciel Rolim (manuscrito original
+// epidemiológico, abr/2026, repo Parkinson-BR-Stats).
+function ArticleSection() {
+  const base = import.meta.env.BASE_URL || '/';
+  const pdfUrl     = `${base}articles/equipamentos-rm-parkinson.pdf`.replace(/\/{2,}/g, '/');
+  const texUrl     = `${base}articles/equipamentos-rm-parkinson.tex`.replace(/\/{2,}/g, '/');
+  const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
+    encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
+
+  return (
+    <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
+      <div className="doc-block">
+        <div className="kicker">Working Paper n. 5 — Mirante dos Dados</div>
+        <p style={{ marginTop: 6, fontSize: 13.5 }}>
+          <b>"Análise estatística da prevalência da Doença de Parkinson no
+          Brasil: desafios, tecnologias de neuroimagem e perspectivas de
+          políticas públicas"</b> — coautoria com <b>Alexandre Maciel
+          Rolim</b> (manuscrito original epidemiológico, abr/2026). O
+          artigo combina os achados do ELSI-Brazil (prevalência de DP de
+          0,84% em brasileiros 50+, projeção de 1,25 milhão de casos até
+          2060) com análise atualizada e reproduzível da infraestrutura
+          de RM no SUS via microdados CNES 2013–2025 (filtro{' '}
+          <code>codequip=42</code>): 10.079 aparelhos em 2025 (47,2/Mhab,
+          acima da mediana OCDE), com iniquidade regional severa que
+          NÃO se reduziu apesar do crescimento agregado.
+        </p>
+        <div className="doc-actions">
+          <a className="doc-toggle doc-toggle-primary"
+             href={pdfUrl} target="_blank" rel="noreferrer"
+             title="Abrir PDF em nova aba (visualizador nativo do navegador)">
+            📖 Ler artigo (PDF)
+          </a>
+          <a className="doc-toggle"
+             href={pdfUrl} download="Mirante-Equipamentos-RM-Parkinson-Rolim-Chalhoub-2026.pdf"
+             title="PDF compilado em LaTeX, padrão ABNT">
+            ⤓ Baixar PDF (ABNT)
+          </a>
+          <a className="doc-toggle"
+             href={texUrl} download="equipamentos-rm-parkinson.tex"
+             title="Fonte LaTeX (.tex)">
+            ⤓ Baixar fonte (.tex)
+          </a>
+          <a className="doc-toggle"
+             href={overleafUrl} target="_blank" rel="noreferrer"
+             title="Compilação online em 1 clique no Overleaf">
+            ↗ Abrir no Overleaf
+          </a>
+        </div>
+        <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10, marginBottom: 0, lineHeight: 1.5 }}>
+          Manuscrito original de A. M. Rolim:{' '}
+          <a href="https://github.com/leonardochalhoub/Parkinson-BR-Stats" target="_blank" rel="noreferrer">
+            github.com/leonardochalhoub/Parkinson-BR-Stats
+          </a>. A vertical Equipamentos suporta multi-seleção entre 99
+          códigos CNES; este artigo extrai o subconjunto{' '}
+          <code>codequip=42</code> (Ressonância Magnética) e cruza com
+          carga estimada de DP por UF.
+        </p>
+      </div>
+    </section>
   );
 }
