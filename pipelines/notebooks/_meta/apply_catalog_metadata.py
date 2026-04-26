@@ -94,7 +94,155 @@ def set_tags(fqn: str, tags: dict) -> None:
     spark.sql(f"ALTER TABLE {fqn} SET TAGS ({pairs})")
 
 
-def enrich(fqn: str, table_comment: str, columns: dict, tags: dict) -> None:
+def set_column_tags(fqn: str, col: str, tags: dict) -> None:
+    """Apply tags to a single column via ALTER TABLE ALTER COLUMN SET TAGS."""
+    pairs = ", ".join(f"'{_esc(k)}' = '{_esc(str(v))}'" for k, v in tags.items())
+    spark.sql(f"ALTER TABLE {fqn} ALTER COLUMN `{col}` SET TAGS ({pairs})")
+
+
+# Padrão canônico de tags por coluna no Mirante:
+#   role:   key | measure | dimension | temporal | technical | pii_identifier
+#   pii:    true | false
+#   unit:   BRL_nominal | BRL_2021 | share_pct | count | pessoas | anos |
+#           dias | YYYYMM | iso_date | uf_sigla | cod_ibge_uf |
+#           cod_ibge_municipio | cod_siafi_municipio | cod_sigtap |
+#           cod_cnae | cod_funcao_orcamentaria | cnpj | cpf | nis | json_payload
+#   partition: true (apenas em colunas de particionamento)
+#   deflated: true (apenas em medidas em BRL_2021)
+#
+# As tags são INFERIDAS via heurística por nome (`_infer_column_tags`) e
+# então sobrescritas pelo dict `column_tag_overrides` opcional passado pra
+# `enrich`. Heurística cobre ~85% dos casos; overrides são para o resto.
+
+_TEMPORAL_NAMES = {
+    "ano", "mes", "data", "competencia", "ano_arquivo", "ano_da_emenda",
+    "ano_cmpt", "mes_cmpt", "mes_competencia", "mes_referencia",
+    "competen", "ym_str", "dt_inter", "dt_saida", "_fname",
+}
+_PII_NAMES = {
+    # Atenção: NÃO incluir nomes ambíguos por camada (ex.: "n_aih" é
+    # PII identifier no bronze mas é COUNT/measure no silver+gold).
+    # Para esses casos, usar override por tabela em column_tag_overrides.
+    "cgc_hosp", "cpf_cnpj", "cnpj_man", "cpf_favorecido",
+    "nis_favorecido", "nome_favorecido", "nome_do_autor_da_emenda",
+    "codigo_do_autor_da_emenda",
+}
+_MEASURE_PREFIXES = (
+    "valor_", "val_", "vl_", "qt_", "n_", "media_", "share_", "total_",
+    "dias_", "aih_", "populacao", "mortalidade", "per_capita",
+)
+_MEASURE_NAMES = {
+    "idade", "morte", "ind_sus", "ind_nsus", "qt_uso", "qt_exist",
+    "valor_pago", "valor_empenhado", "valor_liquidado", "valor_parcela",
+    "vl_remun_dezembro_nom", "vl_remun_media_nom", "mortalidade",
+    "deflator", "deflator_to_2021", "per_capita_base",
+    "val_tot", "val_sh", "val_sp",
+}
+_KEY_NAMES = {
+    "uf", "estado", "cnes", "tipequip", "codequip", "proc_rea",
+    "codigo_da_emenda", "codigo_emenda", "numero_da_emenda",
+    "codigo_municipio_ibge", "codigo_uf_ibge", "codigo_municipio_siafi",
+    "munic_res", "uf_zi", "codufmun", "mun_trab", "cod_municipio",
+    "id",
+}
+
+
+def _infer_column_tags(col_name: str) -> dict:
+    n = col_name.lower()
+    # technical / system
+    if n.startswith("_") or n in ("rescued_data", "source_file"):
+        return {"role": "technical", "pii": "false"}
+    # temporal
+    if n in _TEMPORAL_NAMES:
+        return {"role": "temporal", "pii": "false"}
+    # PII identifiers (CPF/CNPJ/NIS/nome de pessoa física)
+    if n in _PII_NAMES:
+        return {"role": "pii_identifier", "pii": "true"}
+    # measures (numéricas que viram agregados)
+    if any(n.startswith(p) for p in _MEASURE_PREFIXES) or n in _MEASURE_NAMES:
+        return {"role": "measure", "pii": "false"}
+    # keys de junção
+    if n in _KEY_NAMES:
+        return {"role": "key", "pii": "false"}
+    # default → dimensão categórica
+    return {"role": "dimension", "pii": "false"}
+
+
+def _infer_unit(col_name: str) -> str | None:
+    n = col_name.lower()
+    # Deflator é um multiplicador (sem unidade monetária)
+    if n == "deflator" or n.startswith("deflator"):
+        return "factor"
+    if "_2021" in n:
+        return "BRL_2021"
+    if any(s in n for s in ("valor", "val_", "vl_", "remun", "_brl")):
+        return "BRL_nominal"
+    if "share" in n or n.endswith("_pct") or "percentual" in n:
+        return "share_pct"
+    if n in ("idade",):
+        return "anos"
+    if "dias" in n:
+        return "dias"
+    if "populacao" in n:
+        return "pessoas"
+    if n.startswith("n_") or n.startswith("qt") or n in ("morte",):
+        return "count"
+    if n in ("ano", "ano_arquivo", "ano_da_emenda", "ano_cmpt"):
+        return "ano_AAAA"
+    if n in ("mes", "mes_cmpt"):
+        return "mes_MM"
+    if n in ("competencia", "competen", "mes_competencia", "mes_referencia"):
+        return "YYYYMM"
+    if n in ("data", "dt_inter", "dt_saida"):
+        return "iso_date"
+    if n in ("uf", "estado"):
+        return "uf_sigla"
+    if "codigo_uf" in n:
+        return "cod_ibge_uf"
+    if n in ("codufmun", "munic_res", "uf_zi", "mun_trab", "codigo_municipio_ibge", "cod_municipio"):
+        return "cod_ibge_municipio"
+    if n == "codigo_municipio_siafi":
+        return "cod_siafi_municipio"
+    if n == "proc_rea":
+        return "cod_sigtap"
+    if "cnae" in n:
+        return "cod_cnae"
+    if "codigo_funcao" in n or "codigo_subfuncao" in n:
+        return "cod_funcao_orcamentaria"
+    if n in ("cnpj_man", "cgc_hosp"):
+        return "cnpj"
+    if n == "cpf_favorecido":
+        return "cpf"
+    if n == "nis_favorecido":
+        return "nis"
+    if n == "resultados":
+        return "json_payload"
+    return None
+
+
+def tag_columns_auto(fqn: str, overrides: dict | None = None,
+                     partition_keys: list[str] | None = None) -> None:
+    """Apply heuristic column tags + manual overrides + partition flags.
+    Silently skips columns not present in the table."""
+    overrides = overrides or {}
+    partition_keys = partition_keys or []
+    existing = {f.name: f for f in spark.read.table(fqn).schema.fields}
+    for col in existing:
+        tags = _infer_column_tags(col)
+        unit = _infer_unit(col)
+        if unit:
+            tags["unit"] = unit
+        if "_2021" in col.lower() and tags.get("role") == "measure":
+            tags["deflated"] = "true"
+        if col in partition_keys:
+            tags["partition"] = "true"
+        if col in overrides:
+            tags.update(overrides[col])
+        set_column_tags(fqn, col, tags)
+
+
+def enrich(fqn: str, table_comment: str, columns: dict, tags: dict,
+           column_tag_overrides: dict | None = None) -> None:
     if not _table_exists(fqn):
         print(f"  table   · {fqn}  ⚠ SKIP (não existe ainda; pipeline upstream nunca rodou)")
         return
@@ -102,6 +250,9 @@ def enrich(fqn: str, table_comment: str, columns: dict, tags: dict) -> None:
     comment_table(fqn, table_comment)
     comment_columns(fqn, columns)
     set_tags(fqn, tags)
+    # Column tags: derive partition_keys from the table-level tag if present
+    pk = [k.strip() for k in tags.get("partition_keys", "").split(",") if k.strip()]
+    tag_columns_auto(fqn, column_tag_overrides, partition_keys=pk)
 
 
 # Common platform-injected column comments (Auto Loader / pipeline-added)
@@ -264,6 +415,21 @@ enrich(
             "com `series[]`, e cada série tem `localidade.id` (UF id de "
             "2 dígitos, ex.: 31 = MG) e `serie` (mapa STRING→STRING com "
             "anos como chaves e populações como valores).",
+        "id":
+            "Identificador da variável IBGE no SIDRA (ex.: '9324' para "
+            "população residente estimada, agregado 6579). Vem como "
+            "string no payload JSON.",
+        "unidade":
+            "Unidade de medida da variável (string IBGE, normalmente "
+            "'Pessoas').",
+        "variavel":
+            "Nome humano-legível da variável publicada pelo IBGE (ex.: "
+            "'População residente estimada'). Útil para auditar mudanças "
+            "no rótulo da série entre execuções.",
+        "_rescued_data":
+            "Coluna do Auto Loader que captura JSON malformado ou campos "
+            "fora do schema inferido. Sempre nula em bronzes saudáveis; "
+            "monitorar não-nulos como sinal de drift de schema na fonte.",
         **PLATFORM_COLS,
     },
     {
@@ -304,6 +470,10 @@ enrich(
         "valor":
             "Variação percentual mensal do IPCA (string com vírgula decimal, "
             "ex.: '0,67'). Silver normaliza via regexp + cast double.",
+        "_rescued_data":
+            "Coluna do Auto Loader que captura JSON malformado ou campos "
+            "fora do schema inferido. Sempre nula em bronzes saudáveis; "
+            "monitorar não-nulos como sinal de drift de schema na fonte BCB.",
         **PLATFORM_COLS,
     },
     {
@@ -357,6 +527,45 @@ enrich(
             "Apenas o basename de _source_file, útil para debug.",
         "ym_str":
             "Substring com 'YYYY_MM' do nome do arquivo (intermediária).",
+        "mes_competencia":
+            "Mês de competência da parcela em formato YYYYMM (INT, ex.: "
+            "202401). É a coluna canônica para joins temporais — silver "
+            "decompõe em (Ano, Mes).",
+        "mes_referencia":
+            "Mês de referência do pagamento em formato YYYYMM (INT). Para "
+            "PBF clássico costuma coincidir com mes_competencia; para "
+            "Auxílio Emergencial e NBF pode haver lag por reenquadramento.",
+        "uf":
+            "Sigla UF do município pagador (2 letras maiúsculas), do CSV "
+            "CGU. Equivale ao estado de residência do beneficiário.",
+        "codigo_municipio_siafi":
+            "Código SIAFI do município (INT, NÃO é o código IBGE). "
+            "Diferença histórica: SIAFI tem 4 dígitos, IBGE tem 7. Silver "
+            "não usa esta coluna — agrega direto por uf.",
+        "nome_municipio":
+            "Nome humano do município (sem normalização de acentos). "
+            "Mantido como auditoria; chave preferida é uf+codigo_municipio_siafi.",
+        "cpf_favorecido":
+            "CPF do beneficiário em formato mascarado pelo CGU (ex.: "
+            "'***.123.456-**'). PII parcial — não é reversível mas pode "
+            "ser cross-referenciada. NÃO expor em downstream.",
+        "nis_favorecido":
+            "NIS — Número de Identificação Social (LONG, 11 dígitos). "
+            "Chave única do beneficiário no CadÚnico. PII completa. "
+            "Silver agrega via countDistinct para n_beneficiarios sem "
+            "expor o NIS individual.",
+        "nome_favorecido":
+            "Nome completo do beneficiário (string). PII direta. NÃO "
+            "expor em silver/gold; manter restrito ao bronze.",
+        "valor_parcela":
+            "Valor monetário da parcela paga ao beneficiário no mês "
+            "(string com vírgula decimal, ex.: '600,00'). Silver normaliza "
+            "via regexp_replace + cast double e agrega em "
+            "valor_total_uf_mes.",
+        "rescued_data":
+            "Coluna do Auto Loader (sem underscore prefix nesta tabela "
+            "específica — diferença histórica de configuração) que captura "
+            "linhas CSV mal formadas. Sempre nula em bronzes saudáveis.",
         **PLATFORM_COLS,
     },
     {
@@ -421,6 +630,91 @@ enrich(
         "IND_SUS":
             "Indicador SUS (1=SUS, 0=Privado). Usado pelo silver para split "
             "sus_*/priv_*.",
+        "CODUFMUN":
+            "Código IBGE de 6 dígitos do município do estabelecimento "
+            "(2 primeiros dígitos = UF). Para joins com tabelas IBGE de "
+            "7 dígitos, anexar dígito verificador via algoritmo módulo-11.",
+        "REGSAUDE":
+            "Código da Região de Saúde do estabelecimento (planejamento "
+            "regional do SUS, definido por Resolução CIT). Granularidade "
+            "intermediária entre UF e município.",
+        "MICR_REG":
+            "Código da micro-região IBGE do estabelecimento.",
+        "DISTRSAN":
+            "Código do Distrito Sanitário (subdivisão administrativa "
+            "intra-municipal usada por capitais e cidades grandes).",
+        "DISTRADM":
+            "Código do Distrito Administrativo do estabelecimento "
+            "(subdivisão municipal).",
+        "TPGESTAO":
+            "Tipo de gestão do estabelecimento: E=Estadual, M=Municipal, "
+            "D=Dupla, S=Sem gestão (federal). Espelha tabela CNES.",
+        "PF_PJ":
+            "Pessoa Física ou Jurídica do mantenedor (1=PF, 3=PJ).",
+        "CPF_CNPJ":
+            "CPF (11 dígitos) ou CNPJ (14 dígitos) do mantenedor. PII "
+            "parcial em PFs; CNPJs são públicos. NÃO propagar em silver.",
+        "NIV_DEP":
+            "Nível de dependência do estabelecimento em relação à mantenedora "
+            "(1=Individual, 3=Mantido).",
+        "CNPJ_MAN":
+            "CNPJ da mantenedora (14 dígitos, pode ser idêntico a "
+            "CPF_CNPJ quando NIV_DEP=1). Público em PJs.",
+        "ESFERA_A":
+            "Esfera administrativa: 1=Federal, 2=Estadual, 3=Municipal, "
+            "4=Privada. Usada para auditar TPGESTAO=S vs ESFERA=1.",
+        "ATIVIDAD":
+            "Atividade de ensino e pesquisa do estabelecimento (códigos "
+            "1-7 da tabela CNES, 0=não tem).",
+        "RETENCAO":
+            "Indicador de retenção tributária na fonte (1=sim, 0=não).",
+        "NATUREZA":
+            "Natureza da organização (códigos CNES: administração direta, "
+            "indireta, autarquia, fundação, etc.).",
+        "CLIENTEL":
+            "Tipo de clientela atendida pelo estabelecimento (1=externa "
+            "apenas, 2=interna apenas, 3=ambas).",
+        "TP_UNID":
+            "Tipo de unidade de saúde (códigos CNES de 2 dígitos: 01=Posto, "
+            "02=Centro de Saúde, 05=Hospital Geral, 07=Hospital Especializado, "
+            "etc.). Tabela completa em sigtap.datasus.gov.br.",
+        "TURNO_AT":
+            "Turno de atendimento (1=manhã, 2=tarde, 3=manhã+tarde, "
+            "4=24h plantão, etc.).",
+        "NIV_HIER":
+            "Nível hierárquico de complexidade (1=Atenção Básica, "
+            "2=Atenção Especializada, 3-7=níveis crescentes de complexidade "
+            "hospitalar).",
+        "TERCEIRO":
+            "Indicador de terceirização (1=serviço terceirizado, "
+            "0=próprio).",
+        "QT_USO":
+            "Quantidade de equipamentos do tipo EM USO no mês (DOUBLE; "
+            "subset de QT_EXIST). QT_EXIST - QT_USO = parados/manutenção.",
+        "IND_NSUS":
+            "Indicador inverso de IND_SUS (1=Não-SUS/Privado, 0=SUS). "
+            "Redundante por design da fonte; silver usa IND_SUS como "
+            "canônico.",
+        "COMPETEN":
+            "Competência do snapshot CNES no formato AAAAMM (string, "
+            "ex.: '202403'). Vem do payload do .dbc; redundante com `mes` "
+            "+ `ano` derivados do nome de arquivo, mas mantido para "
+            "auditoria de divergências.",
+        "source_file":
+            "Nome basename do arquivo .dbc original (ex.: 'EQRO2403.dbc'), "
+            "anexado pelo passo de convert+filter. Útil para rastrear de "
+            "qual arquivo bruto cada linha veio.",
+        "mes":
+            "Mês de competência (string '01'-'12') derivado do nome do "
+            "arquivo CNES. Particionamento secundário ao `ano`.",
+        "NAT_JUR":
+            "Natureza Jurídica do estabelecimento (código IBGE de 4 dígitos, "
+            "ex.: '1023'=Federal Direta, '2240'=Empresa Privada Limitada). "
+            "Não propagado para silver atual.",
+        "_rescued_data":
+            "Coluna do Auto Loader que captura linhas Parquet com schema "
+            "incompatível ao schema location. Sempre nula em bronzes "
+            "saudáveis; monitorar não-nulos como sinal de drift de schema.",
         **PLATFORM_COLS,
     },
     {
@@ -494,6 +788,56 @@ enrich(
         "GESTAO":
             "Esfera de gestão do estabelecimento "
             "(E=Estadual, M=Municipal, D=Dupla, X=Outro/NA).",
+        "N_AIH":
+            "Número da AIH (chave do registro de internação no SIH-SUS, "
+            "13 dígitos). PII parcial: identifica univocamente uma "
+            "internação. Silver usa countDistinct para n_aih agregado.",
+        "ANO_CMPT":
+            "Ano de competência da internação no formato AAAA (string), "
+            "lido do payload do .dbc. Diferença para `ano` (derivado do "
+            "filename): em casos raros o arquivo de competência X contém "
+            "AIHs reprocessadas de competência anterior — comparar para "
+            "auditoria de retroatividade.",
+        "MES_CMPT":
+            "Mês de competência no formato MM (string, ex.: '03'). "
+            "Diferença para `mes` (derivado do filename): mesma lógica de "
+            "auditoria de ANO_CMPT.",
+        "MUNIC_RES":
+            "Código IBGE de 6 dígitos do município de RESIDÊNCIA do paciente "
+            "(2 primeiros dígitos = UF de residência). Usado para detectar "
+            "TFD (Tratamento Fora do Domicílio): MUNIC_RES.UF != UF_ZI.UF "
+            "indica deslocamento inter-estadual.",
+        "IDADE":
+            "Idade do paciente no momento da internação (LONG). A unidade "
+            "depende de COD_IDADE: 4=anos, 3=meses, 2=dias, 1=horas. "
+            "Silver não decompõe — gold filtra IDADE >= 18 (cirurgia "
+            "uroginecológica é predominantemente em adultas).",
+        "COD_IDADE":
+            "Unidade da idade: 1=horas, 2=dias, 3=meses, 4=anos. Sempre "
+            "interpretar IDADE em conjunto com este código.",
+        "SEXO":
+            "Sexo do paciente: 1=Masculino, 3=Feminino, 0=NA/Ignorado. "
+            "Procedimentos UroPro são predominantemente femininos "
+            "(>95% das AIHs de 0409070270 são SEXO=3).",
+        "ESPEC":
+            "Código da especialidade do leito da internação (tabela CNES "
+            "de leitos). Para UroPro espera-se ESPEC ∈ {'GIN', 'URO', "
+            "'CIR'} predominantemente.",
+        "CGC_HOSP":
+            "CNPJ do hospital onde ocorreu a internação (14 dígitos). "
+            "Público em PJs; mantido para joins com bronze.cnes_* via CNPJ.",
+        "source_file":
+            "Nome basename do arquivo RD original (ex.: 'RDSP2403.dbc'), "
+            "anexado pelo passo de convert+filter. Chave de rastreabilidade "
+            "para reprocessamentos.",
+        "mes":
+            "Mês de competência (string '01'-'12') derivado do nome do "
+            "arquivo SIH-RD. Particionamento secundário ao `ano`.",
+        "_rescued_data":
+            "Coluna do Auto Loader que captura linhas Parquet com schema "
+            "incompatível. Sempre nula em bronzes saudáveis; monitorar "
+            "não-nulos como sinal de drift no layout do SIH-RD entre "
+            "competências.",
         **PLATFORM_COLS,
     },
     {
@@ -508,6 +852,13 @@ enrich(
         "append_only": "true",
         "partition_keys": "estado,ano",
         "filter_proc_rea": "0409010499,0409070270,0409020117",
+    },
+    # Override: no bronze, N_AIH é o NÚMERO da AIH (PII), não o COUNT.
+    # O lowercase do nome colide com `n_aih` do silver/gold (que é COUNT
+    # measure), então a heurística não consegue diferenciar — overrides
+    # explícitos resolvem.
+    column_tag_overrides={
+        "N_AIH": {"role": "pii_identifier", "pii": "true", "unit": "id_aih"},
     },
 )
 
@@ -613,6 +964,90 @@ enrich(
             "Código IBGE de 7 dígitos do município beneficiário (quando "
             "a emenda é municipal). Silver usa countDistinct para "
             "`n_municipios`.",
+        "codigo_da_emenda":
+            "Identificador único da emenda no sistema SIOP/SIAFI "
+            "(string). Equivale a `codigo_emenda` em algumas safras de "
+            "CSV — nomes oscilam por ano. Silver normaliza/coalesce.",
+        "tipo_de_emenda":
+            "Texto extenso do tipo de emenda no padrão CGU (ex.: 'Emenda "
+            "Individual de Execução Obrigatória'). Silver mapeia para "
+            "RP6/RP7/RP8/RP9 via regex.",
+        "codigo_do_autor_da_emenda":
+            "Código do parlamentar autor (matrícula no Congresso) ou da "
+            "comissão/bancada. NULL em emendas de relator (RP9) anteriores "
+            "à transparência forçada.",
+        "nome_do_autor_da_emenda":
+            "Nome humano do parlamentar autor (ou da bancada/comissão). "
+            "PII PARCIAL (cargo público, mas exposição agregada). Silver "
+            "não propaga.",
+        "numero_da_emenda":
+            "Número sequencial da emenda no exercício (string). Combinado "
+            "com `ano_da_emenda` e `codigo_do_autor_da_emenda` forma chave "
+            "de auditoria.",
+        "localidade_de_aplicacao_do_recurso":
+            "Texto livre da localidade beneficiária (município ou UF). "
+            "Não confiável para joins; preferir `codigo_municipio_ibge` + "
+            "`codigo_uf_ibge`.",
+        "codigo_municipio_ibge":
+            "Código IBGE de 7 dígitos do município beneficiário (quando "
+            "a emenda é municipal). Silver usa para joins com tabela de "
+            "municípios e para countDistinct(`n_municipios`).",
+        "municipio":
+            "Nome humano do município beneficiário. Mantido para auditoria "
+            "visual; chave preferida é `codigo_municipio_ibge`.",
+        "codigo_uf_ibge":
+            "Código IBGE de 2 dígitos da UF beneficiária (INT, ex.: 31=MG). "
+            "Silver mapeia para sigla via dimensão `dim_uf`.",
+        "regiao":
+            "Macrorregião do IBGE (Norte/Nordeste/Sul/Sudeste/Centro-Oeste). "
+            "Derivável de codigo_uf_ibge — mantido para queries ad-hoc.",
+        "codigo_funcao":
+            "Código da função orçamentária (2 dígitos, classificação "
+            "constitucional, ex.: '10'=Saúde, '12'=Educação). Tabela "
+            "Manual SOF/STN.",
+        "nome_funcao":
+            "Nome humano da função orçamentária (ex.: 'Saúde'). "
+            "Redundante com `codigo_funcao`; mantido pela CGU para "
+            "self-describing.",
+        "codigo_subfuncao":
+            "Código da subfunção orçamentária (3 dígitos, ex.: '301'="
+            "Atenção Básica). Granularidade abaixo de função.",
+        "nome_subfuncao":
+            "Nome humano da subfunção (ex.: 'Atenção Básica').",
+        "codigo_programa":
+            "Código do programa de governo no PPA (Plano Plurianual) "
+            "ao qual a emenda foi alocada (4 dígitos).",
+        "nome_programa":
+            "Nome humano do programa PPA.",
+        "codigo_acao":
+            "Código da ação orçamentária (4 dígitos). Granularidade "
+            "abaixo de programa, identifica o tipo de despesa específico.",
+        "nome_acao":
+            "Nome humano da ação orçamentária.",
+        "codigo_plano_orcamentario":
+            "Código do Plano Orçamentário (PO, 4 dígitos). Subdivisão "
+            "instituída em 2015 para detalhamento da execução abaixo da "
+            "ação.",
+        "nome_plano_orcamentario":
+            "Nome humano do Plano Orçamentário.",
+        "valor_liquidado":
+            "Valor liquidado nominal no exercício (string com vírgula "
+            "decimal). Liquidado é a despesa cujo serviço/bem foi "
+            "verificado mas ainda não foi pago. Silver normaliza.",
+        "valor_restos_a_pagar_inscritos":
+            "Valor inscrito em Restos a Pagar ao final do exercício "
+            "(string). Soma de empenhados não-pagos.",
+        "valor_restos_a_pagar_cancelados":
+            "Valor de Restos a Pagar cancelado no exercício "
+            "subsequente (string). Indicador de não-execução.",
+        "valor_restos_a_pagar_pagos":
+            "Valor de Restos a Pagar efetivamente pago em exercícios "
+            "subsequentes (string). Importante para diferenciar emenda "
+            "executada vs emenda apenas empenhada.",
+        "rescued_data":
+            "Coluna do Auto Loader (sem underscore prefix nesta tabela "
+            "— diferença histórica de configuração) que captura linhas "
+            "CSV mal formadas. Sempre nula em bronzes saudáveis.",
         **PLATFORM_COLS,
     },
     {
