@@ -1,0 +1,6 @@
+format,metric,seconds,bytes,n_rows,notes,git_sha,ts
+delta,write_throughput,13.011789329000749,0,50000,,444ffa8,2026-04-26T06:33:47Z
+delta,read_full_scan,0.9762590020109201,0,50000,,444ffa8,2026-04-26T06:33:47Z
+delta,storage_footprint,0.0,2661566,50000,,444ffa8,2026-04-26T06:33:47Z
+delta,schema_evolution,0.303796369000338,0,50000,,444ffa8,2026-04-26T06:33:47Z
+delta,time_travel_read,2.279443301013089,0,50000,,444ffa8,2026-04-26T06:33:47Z
