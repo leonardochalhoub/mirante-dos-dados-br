@@ -418,7 +418,7 @@ function Footer() {
 // ─── Working Paper #5 — Equipamentos × Parkinson (Rolim + Chalhoub) ─────
 // Artigo focado em RM (codequip=42) no diagnóstico diferencial da Doença
 // de Parkinson. Coautoria com Alexandre Maciel Rolim (manuscrito original
-// epidemiológico, abr/2026, repo Parkinson-BR-Stats).
+// epidemiológico, abr/2026).
 function ArticleSection() {
   const base = import.meta.env.BASE_URL || '/';
   const pdfUrl     = `${base}articles/equipamentos-rm-parkinson.pdf`.replace(/\/{2,}/g, '/');
@@ -466,10 +466,7 @@ function ArticleSection() {
           </a>
         </div>
         <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10, marginBottom: 0, lineHeight: 1.5 }}>
-          Manuscrito original de A. M. Rolim:{' '}
-          <a href="https://github.com/leonardochalhoub/Parkinson-BR-Stats" target="_blank" rel="noreferrer">
-            github.com/leonardochalhoub/Parkinson-BR-Stats
-          </a>. A vertical Equipamentos suporta multi-seleção entre 99
+          A vertical Equipamentos suporta multi-seleção entre 99
           códigos CNES; este artigo extrai o subconjunto{' '}
           <code>codequip=42</code> (Ressonância Magnética) e cruza com
           carga estimada de DP por UF.

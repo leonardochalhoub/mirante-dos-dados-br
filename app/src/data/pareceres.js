@@ -137,7 +137,7 @@ export const PARECER_EQUIPAMENTOS = {
   scoreNumeric: 8.7,
   scoreOriginal: null,
   originalLabel: null,
-  originalUrl: 'https://github.com/leonardochalhoub/Parkinson-BR-Stats',
+  originalUrl: null,
   ultimaAtualizacao: `${HOJE}T22:00 BRT`,
   versao: '2.0 — WP#5 publicado',
   resumoCalibragem:
@@ -167,7 +167,7 @@ export const PARECER_EQUIPAMENTOS = {
     'um tema com 535 mil pacientes hoje no Brasil.',
   pontosFortes: [
     'Working Paper #5 publicado em ABNT com 12 figuras matplotlib vetoriais',
-    'Coautoria com pesquisador clínico (Rolim, manuscrito Parkinson-BR-Stats) — modelo de integração engenheiro+médico',
+    'Coautoria com pesquisador clínico (A. M. Rolim, manuscrito original abr/2026) — modelo de integração engenheiro+médico',
     'Cobertura ampla: 99 equipamentos diferentes, todas as UFs, 2013-2025',
     'Pipeline robusto com cache idempotente em conversão DBC→Parquet',
     'Per capita normalizado por população IBGE — comparações inter-UF válidas',
