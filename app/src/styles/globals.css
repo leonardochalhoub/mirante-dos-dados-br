@@ -321,6 +321,15 @@ code, pre, .mono {
   text-overflow: ellipsis;
 }
 
+/* Theme toggle wrapper acima do "Navegar" — separa visualmente da brand */
+.sidebar-theme-toggle {
+  display: flex;
+  justify-content: flex-start;
+  padding: 4px 6px 8px;
+  border-bottom: 1px dashed var(--border);
+  margin-bottom: 4px;
+}
+
 /* ── Theme toggle ─────────────────────────────────────────────────────── */
 .themeToggle {
   display: inline-flex;

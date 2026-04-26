@@ -209,6 +209,11 @@ export default function Layout() {
   // and drawer (mobile). Keeps version tags + pub dates in sync everywhere.
   const navBlock = (
     <>
+      {/* Theme toggle vai antes do "Navegar" (visibilidade alta, fácil acesso). */}
+      <div className="sidebar-theme-toggle">
+        <ThemeToggle theme={theme} toggle={toggle} />
+      </div>
+
       <nav>
         <div className="nav-section-label">Navegar</div>
         <ul className="nav-list">
@@ -300,7 +305,6 @@ export default function Layout() {
         {navBlock}
 
         <div className="sidebar-footer">
-          <ThemeToggle theme={theme} toggle={toggle} />
           <div>
             <a
               href="https://github.com/leonardochalhoub/mirante-dos-dados-br"
@@ -343,8 +347,8 @@ export default function Layout() {
           {navBlock}
         </div>
         <div className="mobile-drawer-footer">
-          <ThemeToggle theme={theme} toggle={toggle} />
-          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
+          {/* ThemeToggle agora vai antes do "Navegar" via navBlock — não duplica aqui. */}
+          <div style={{ fontSize: 11, color: 'var(--muted)' }}>
             <a
               href="https://github.com/leonardochalhoub/mirante-dos-dados-br"
               target="_blank" rel="noreferrer"
