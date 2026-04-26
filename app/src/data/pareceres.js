@@ -360,14 +360,19 @@ export const PARECER_RAIS = {
   ultimaAtualizacao: `${HOJE}T18:00 BRT`,
   versao: '0.2 — pipeline scaffold',
   resumoCalibragem:
-    'Avaliado como Lato sensu (deriva do MBA do autor, 2023). A nota ' +
-    'original 8,0 da monografia foi atribuída em régua MBA. O vertical ' +
-    'RAIS herda essa base, ganha pontos por infraestrutura aberta e ' +
-    'reprodutível, mas ainda não entregou nenhuma extensão substantiva — ' +
-    'sem dados rodados, sem .tex escrito, sem método novo. 6,8 lato ' +
-    'sensu reflete isso. Subir para 8,0 lato sensu exige resultados ' +
-    'empíricos REAIS na plataforma Mirante; subir para mestrado exige ' +
-    'contribuição metodológica original — não basta replicar.',
+    'CONTEXTO HISTÓRICO: o autor foi REPROVADO 2 vezes na banca da ' +
+    'monografia antes de obter aprovação na terceira tentativa, com a ' +
+    'nota 8,0. Essa trajetória é parte do mérito do trabalho original: ' +
+    'a versão final passou por dois ciclos completos de revisão crítica ' +
+    'e refeitura sob exigência de banca. — Avaliado como Lato sensu ' +
+    '(deriva do MBA do autor, 2023). A nota original 8,0 da monografia ' +
+    'foi atribuída em régua MBA. O vertical RAIS herda essa base, ' +
+    'ganha pontos por infraestrutura aberta e reprodutível, mas ainda ' +
+    'não entregou nenhuma extensão substantiva — sem dados rodados, ' +
+    'sem .tex escrito, sem método novo. 6,8 lato sensu reflete isso. ' +
+    'Subir para 8,0 lato sensu exige resultados empíricos REAIS na ' +
+    'plataforma Mirante; subir para mestrado exige contribuição ' +
+    'metodológica original — não basta replicar.',
   utilidadeSocial:
     'UTILIDADE CONDICIONAL. RAIS Vínculos Públicos é a base de microdados ' +
     'mais completa sobre emprego formal no Brasil — base para estudos de ' +
