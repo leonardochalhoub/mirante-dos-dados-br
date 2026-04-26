@@ -532,7 +532,8 @@ function Footer() {
 }
 
 // ─── Working Paper #5 — Equipamentos × Parkinson (Rolim + Chalhoub) ─────
-// Artigo focado em RM (codequip=42) no diagnóstico diferencial da Doença
+// Artigo focado em RM (equipment_key=1:12, ou seja TIPEQUIP=1 + CODEQUIP=12)
+// no diagnóstico diferencial da Doença
 // de Parkinson. Coautoria com Alexandre Maciel Rolim (manuscrito original
 // epidemiológico, abr/2026).
 function ArticleSection() {
@@ -555,9 +556,10 @@ function ArticleSection() {
           0,84% em brasileiros 50+, projeção de 1,25 milhão de casos até
           2060) com análise atualizada e reproduzível da infraestrutura
           de RM no SUS via microdados CNES 2013–2025 (filtro{' '}
-          <code>codequip=42</code>): 10.079 aparelhos em 2025 (47,2/Mhab,
-          acima da mediana OCDE), com iniquidade regional severa que
-          NÃO se reduziu apesar do crescimento agregado.
+          <code>equipment_key=1:12</code>): 3.900 aparelhos em 2025
+          (18,3/Mhab, acima da mediana OCDE de 17), com iniquidade
+          regional severa que NÃO se reduziu apesar do crescimento
+          agregado.
         </p>
         <div className="doc-actions">
           <a className="doc-toggle doc-toggle-primary"
@@ -584,8 +586,8 @@ function ArticleSection() {
         <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10, marginBottom: 0, lineHeight: 1.5 }}>
           A vertical Equipamentos suporta multi-seleção entre 99
           códigos CNES; este artigo extrai o subconjunto{' '}
-          <code>codequip=42</code> (Ressonância Magnética) e cruza com
-          carga estimada de DP por UF.
+          <code>equipment_key=1:12</code> (Ressonância Magnética; TIPEQUIP=1,
+          CODEQUIP=12) e cruza com carga estimada de DP por UF.
         </p>
       </div>
     </section>
