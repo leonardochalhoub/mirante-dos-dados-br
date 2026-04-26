@@ -43,6 +43,16 @@ resources:
     # ─── Shared dimension: populacao_uf_ano ─────────────────────────────────
     job_populacao_refresh:
       name: mirante · refresh populacao_uf_ano
+      tags:
+        team: mirante
+        owner: leonardochalhoub
+        domain: populacao
+        layer: orchestration
+        pattern: medallion
+        cadence: anual
+        pii: "false"
+        source: ibge_sidra
+        shared_dim: "true"
       max_concurrent_runs: 1
       tasks:
         - task_key: ingest_ibge
@@ -77,6 +87,16 @@ resources:
     # ─── Shared dimension: ipca_deflators_2021 ──────────────────────────────
     job_ipca_refresh:
       name: mirante · refresh ipca_deflators_2021
+      tags:
+        team: mirante
+        owner: leonardochalhoub
+        domain: ipca
+        layer: orchestration
+        pattern: medallion
+        cadence: mensal
+        pii: "false"
+        source: bcb_sgs
+        shared_dim: "true"
       max_concurrent_runs: 1
       tasks:
         - task_key: ingest_bcb
@@ -109,6 +129,17 @@ resources:
     # ─── Vertical: PBF (Bolsa Família) ──────────────────────────────────────
     job_pbf_refresh:
       name: mirante · refresh PBF (ingest → bronze → silver → gold → export)
+      tags:
+        team: mirante
+        owner: leonardochalhoub
+        domain: pbf
+        layer: orchestration
+        pattern: medallion
+        cadence: mensal
+        pii: "true"
+        pii_columns: nis_cpf_nome
+        source: cgu_portal_transparencia
+        vertical: pbf
       max_concurrent_runs: 1
       tasks:
         - task_key: ingest_cgu_pbf_zips
@@ -168,6 +199,16 @@ resources:
     # ─── Vertical: Equipamentos (DATASUS CNES, all CODEQUIPs) ───────────────
     job_equipamentos_refresh:
       name: mirante · refresh Equipamentos (ingest → bronze → silver → gold → export)
+      tags:
+        team: mirante
+        owner: leonardochalhoub
+        domain: equipamentos
+        layer: orchestration
+        pattern: medallion
+        cadence: mensal
+        pii: "false"
+        source: datasus_cnes
+        vertical: equipamentos
       max_concurrent_runs: 1
       tasks:
         - task_key: ingest_datasus_cnes_eq
@@ -223,6 +264,17 @@ resources:
     # ─── Vertical: RAIS (Ministério do Trabalho / PDET) ────────────────────
     job_rais_refresh:
       name: mirante · refresh RAIS (ingest → bronze → silver → gold → export)
+      tags:
+        team: mirante
+        owner: leonardochalhoub
+        domain: rais
+        layer: orchestration
+        pattern: medallion
+        cadence: anual
+        pii: "true"
+        pii_columns: cpf_pis_nome
+        source: mte_pdet
+        vertical: rais
       max_concurrent_runs: 1
       tasks:
         - task_key: ingest_mte_rais
@@ -235,7 +287,10 @@ resources:
               # anos que efetivamente vieram com dados.
               years:      "1985-2025"
               volume_dir: "/Volumes/${var.catalog}/bronze/raw/mte/rais"
-              workers:    "4"
+              # workers=2: FTP server throttles aggressive parallelism (run got
+              # stuck around 640/900 with workers=4). Resumable .part downloads
+              # mean low parallelism is no longer a throughput problem.
+              workers:    "2"
 
         - task_key: bronze_rais_vinculos
           depends_on: [{ task_key: ingest_mte_rais }]
@@ -277,6 +332,16 @@ resources:
     # ─── Vertical: Emendas Parlamentares (CGU Portal Transparência) ─────────
     job_emendas_refresh:
       name: mirante · refresh Emendas (ingest → bronze → silver → gold → export)
+      tags:
+        team: mirante
+        owner: leonardochalhoub
+        domain: emendas
+        layer: orchestration
+        pattern: medallion
+        cadence: mensal
+        pii: "false"
+        source: cgu_portal_transparencia
+        vertical: emendas
       max_concurrent_runs: 1
       tasks:
         - task_key: ingest_cgu_emendas
@@ -330,6 +395,17 @@ resources:
     # extensível para outros procedimentos via parâmetro `procs_filter`.
     job_uropro_refresh:
       name: mirante · refresh UroPro (ingest → bronze → silver → gold → export)
+      tags:
+        team: mirante
+        owner: leonardochalhoub
+        domain: uropro
+        layer: orchestration
+        pattern: medallion
+        cadence: mensal
+        pii: "true"
+        pii_columns: n_aih_cnes_municipio
+        source: datasus_sih_rd
+        vertical: uropro
       max_concurrent_runs: 1
       tasks:
         - task_key: ingest_datasus_sih_rd
@@ -395,6 +471,15 @@ resources:
     # AND emit inline COMMENT/TAGS in the creating notebook.
     job_apply_catalog_metadata:
       name: mirante · apply catalog/schema/table/column metadata + tags
+      tags:
+        team: mirante
+        owner: leonardochalhoub
+        domain: meta
+        layer: governance
+        pattern: catalog_enrichment
+        cadence: ad_hoc
+        pii: "false"
+        cross_domain: "true"
       max_concurrent_runs: 1
       tasks:
         - task_key: apply_metadata
