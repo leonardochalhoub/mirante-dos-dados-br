@@ -31,7 +31,7 @@
 
 dbutils.widgets.text("years",      "1985-2025")
 dbutils.widgets.text("volume_dir", "/Volumes/mirante_prd/bronze/raw/mte/rais")
-dbutils.widgets.text("workers",    "4")
+dbutils.widgets.text("workers",    "2")
 
 YEARS_EXPR = dbutils.widgets.get("years")
 VOLUME_DIR = dbutils.widgets.get("volume_dir")
@@ -83,7 +83,11 @@ def list_year(year: int) -> list[str]:
 
 
 def download_one(year: int, filename: str, dest_dir: Path) -> tuple[str, str]:
-    """Returns (label, status) where status ∈ {'ok','cached','error'}."""
+    """Returns (label, status) where status ∈ {'ok','cached','error'}.
+
+    Resumes from `.part` if a previous attempt died mid-stream (uses FTP REST).
+    Prints in-flight progress every 30s so multi-GB files don't look hung.
+    """
     label = f"RAIS_{year}/{filename}"
     # Local filename includes year suffix to avoid collisions across years
     # (some files are name-identical across years, e.g. RAIS_VINC_PUB_SP.7z
@@ -99,21 +103,63 @@ def download_one(year: int, filename: str, dest_dir: Path) -> tuple[str, str]:
             ftp = ftplib.FTP(FTP_HOST, timeout=FTP_TIMEOUT)
             ftp.login()
             ftp.cwd(f"{FTP_DIR}/{year}/")
-            with tmp.open("wb") as f:
-                ftp.retrbinary(f"RETR {filename}", f.write)
-            ftp.quit()
-            if tmp.stat().st_size >= 1024:
+
+            try:
+                ftp.voidcmd("TYPE I")
+                total = ftp.size(filename) or 0
+            except Exception:
+                total = 0
+
+            offset = tmp.stat().st_size if tmp.exists() else 0
+            mode = "ab" if offset > 0 else "wb"
+            if offset > 0:
+                print(f"  ↻ {label}  resuming from {offset/1_048_576:.0f}MB"
+                      + (f" / {total/1_048_576:.0f}MB" if total else ""))
+
+            with tmp.open(mode) as f:
+                state = {"written": offset, "last": time.monotonic()}
+
+                def cb(chunk: bytes) -> None:
+                    f.write(chunk)
+                    state["written"] += len(chunk)
+                    now = time.monotonic()
+                    if now - state["last"] > 30:
+                        mb = state["written"] / 1_048_576
+                        if total:
+                            pct = 100 * state["written"] / total
+                            print(f"  ⋯ {label}  {mb:.0f}MB / {total/1_048_576:.0f}MB ({pct:.0f}%)")
+                        else:
+                            print(f"  ⋯ {label}  {mb:.0f}MB")
+                        state["last"] = now
+
+                try:
+                    if offset > 0:
+                        ftp.retrbinary(f"RETR {filename}", cb, rest=offset)
+                    else:
+                        ftp.retrbinary(f"RETR {filename}", cb)
+                except ftplib.error_perm:
+                    # Server refused REST or file moved — start fresh next attempt
+                    if offset > 0:
+                        f.close()
+                        tmp.unlink(missing_ok=True)
+                    raise
+
+            try:
+                ftp.quit()
+            except Exception:
+                pass
+
+            size = tmp.stat().st_size
+            if size >= 1024 and (total == 0 or size >= total):
                 tmp.replace(dest)
                 return label, "ok"
-            tmp.unlink(missing_ok=True)
+            # Short or partial — leave .part so next attempt resumes
         except (ftplib.all_errors, EOFError, OSError) as e:
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_DELAY_S * attempt)
                 continue
-            tmp.unlink(missing_ok=True)
-            print(f"  ✗ {label} — {type(e).__name__}: {str(e)[:120]}")
+            print(f"  ✗ {label} — {type(e).__name__}: {str(e)[:120]}  (.part kept for next run)")
             return label, "error"
-    tmp.unlink(missing_ok=True)
     return label, "error"
 
 
