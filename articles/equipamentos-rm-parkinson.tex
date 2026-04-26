@@ -4,8 +4,13 @@
 % da Doença de Parkinson: Ressonância Magnética, Tomografia, PET e
 % medicina nuclear (Brasil, 2013–2025)
 %
-% Autor:   Leonardo Chalhoub (engenharia de dados, análise, redação)
-% Versão:  1.0 — Abril de 2026
+% Autores: Alexandre Maciel Rolim (manuscrito original — epidemiologia,
+%          revisão de literatura clínica, recomendações de protocolo)
+%          + Leonardo Chalhoub (extensão Mirante — engenharia de dados,
+%          análise reproduzível das 4 modalidades, comparação OECD,
+%          análise cross-vertical com Bolsa Família)
+% Versão:  2.0 — Abril de 2026 (expansão para 4 modalidades + benchmark
+%          internacional + cross-vertical PBF; v1.0 era recorte só RM)
 % Compilação: pdflatex articles/equipamentos-rm-parkinson.tex (2x)
 % =====================================================================
 
@@ -54,7 +59,7 @@
   \begin{center}
     \vspace*{1.5cm}
     {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 4}}\\
-    {\small Versão 1.0 \textemdash{} Abril de 2026}
+    {\small Versão 2.0 \textemdash{} Abril de 2026}
 
     \vfill
 
@@ -75,8 +80,15 @@
 
     \vfill
 
-    {\large\textbf{Leonardo Chalhoub}}\\[6pt]
-    {\small Engenharia de dados, análise quantitativa, redação}\\[6pt]
+    {\large\textbf{Alexandre Maciel Rolim}\textsuperscript{1} \quad\textbullet\quad
+     \textbf{Leonardo Chalhoub}\textsuperscript{2}}\\[6pt]
+    {\small\textsuperscript{1}\,Manuscrito clínico-epidemiológico
+     original (v1, abr/2026) \textemdash{} epidemiologia, revisão de
+     literatura, síntese de recomendações de protocolo de neuroimagem.}\\[2pt]
+    {\small\textsuperscript{2}\,Extensão Mirante \textemdash{} engenharia
+     de dados, análise reproduzível das 4 modalidades, benchmark
+     internacional (OCDE/EUA/Japão), análise cross-vertical com Bolsa
+     Família, expansão CT/PET/Gama Câmara além do recorte RM original.}\\[6pt]
     {\small\href{https://github.com/leonardochalhoub/mirante-dos-dados-br}{github.com/leonardochalhoub/mirante-dos-dados-br}}
 
     \vfill
@@ -89,6 +101,18 @@
 \section*{Resumo}
 \addcontentsline{toc}{section}{Resumo}
 \begin{singlespace}\small\noindent
+Este artigo combina o manuscrito clínico-epidemiológico original de
+\textbf{Alexandre Maciel Rolim} (v1, abr/2026) sobre prevalência e
+diagnóstico de DP no Brasil com a camada de extensão analítica
+desenvolvida na plataforma \textit{Mirante dos Dados} por
+\textbf{Leonardo Chalhoub}. O manuscrito de Rolim sustenta as Seções 1
+e 2 (introdução clínica e revisão de literatura epidemiológica e
+diagnóstica); a extensão Mirante adiciona análise empírica
+reproduzível de quatro modalidades de neuroimagem (RM, CT, PET/CT,
+Gama Câmara) com 13 figuras vetoriais, comparação internacional
+sistemática (OCDE, EUA, Japão, Europa) e análise cross-vertical com a
+base Bolsa Família — todas inéditas em relação à v1 do manuscrito.
+
 A doença de Parkinson (DP) é a segunda condição neurodegenerativa mais
 prevalente globalmente, afetando aproximadamente 11,8 milhões de
 indivíduos em 2021 segundo o Global Burden of Disease (GBD,
@@ -1113,6 +1137,133 @@ artefato. Cruzamento futuro com produção (SIA-RD, SIH-AIH) seria
 necessário para mensurar utilização efetiva e validar o cadastro.
 
 % =====================================================================
+\section{Análise causal — efeito da EC 86/2015 sobre o crescimento de neuroimagem}\label{sec:causal}
+% =====================================================================
+
+A análise de Resultados (Seção~\ref{sec:resultados}) é predominantemente
+descritiva — quantifica o parque, sua evolução e desigualdade
+regional, mas não estabelece relações causais entre choques de
+política e crescimento da infraestrutura. Nesta seção apresentamos
+uma estratégia de identificação causal aproveitando a Emenda
+Constitucional 86 de março de 2015 (EC 86/2015), que tornou
+obrigatória a execução de parte das emendas parlamentares
+individuais (RP6) — gerando choque exógeno na composição do
+orçamento federal alocado por UF.
+
+\subsection{Hipótese e desenho}
+
+\textbf{Hipótese null} ($H_0$): UFs que receberam mais emendas RP6
+per capita no triênio pós-EC 86 (2016\textendash 2018) NÃO tiveram
+crescimento diferencial de equipamentos de neuroimagem-DP em relação
+às demais UFs.
+
+\textbf{Hipótese alternativa} ($H_1$, esperada \textit{a priori}):
+UFs no quartil superior (Q4) de pago\_RP6/Mhab 2016\textendash 2018
+tiveram crescimento maior de neuroimagem-DP entre o pré-período
+(2013\textendash 2014) e o pós-tratamento (2019\textendash 2025) do
+que as UFs nos quartis inferiores.
+
+\textbf{Desenho.} Estratégia de Diferenças-em-Diferenças (DiD) em
+duas especificações:
+
+\begin{itemize}
+\item \textbf{Modelo 1: DiD 2$\times$2}, $\Delta$RM/Mhab por UF
+$\sim$ Treated, com erros-padrão robustos a heteroscedasticidade
+(HC3).
+\item \textbf{Modelo 2: TWFE} (Two-Way Fixed Effects), painel
+UF$\times$Ano: RM/Mhab $\sim$ Post$\times$Treated $+$ UF\_FE $+$
+Year\_FE, com erros-padrão clusterizados por UF.
+\end{itemize}
+
+\textbf{Treatment.} UFs no quartil superior (Q4) de pago\_RP6/Mhab
+médio 2016\textendash 2018 (12 UFs); controle são as 15 demais.
+
+\textbf{Outcome principal.} Densidade de RM (1:12) por milhão de
+habitantes; outcome secundário é a soma das 4 modalidades
+(neuroimagem-PD agregada).
+
+\subsection{Resultados}
+
+\textbf{Modelo 1 (DiD 2$\times$2 $\Delta$Neuro$_{\textit{post-pre}}$).}
+O coeficiente $\beta$ sobre Treated é
+$-13{,}29$ unidades/Mhab (IC 95\,\%: $-27{,}9$ a $+1{,}3$;
+$p = 0{,}075$). O sinal é \textbf{negativo} e marginalmente
+significativo: UFs com mais emendas RP6 \textit{tendem} a ter
+\textbf{menos} crescimento de neuroimagem, contradizendo a
+$H_1$ esperada \textit{a priori}.
+
+\textbf{Modelo 2 (TWFE).} O coeficiente sobre Post$\times$Treated é
+$-1{,}98$ RM/Mhab (IC 95\,\%: $-4{,}44$ a $+0{,}48$; $p = 0{,}114$,
+clusterizado por UF). Não-significativo a 5\,\%, mas sinal
+consistente com Modelo 1: \textbf{leve efeito negativo} ou nulo.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{fig14-did-ec86}
+\caption{Diferenças-em-Diferenças 2$\times$2 — efeito da EC 86/2015
+sobre densidade de RM e neuroimagem-DP por UF. Treated (verde) =
+Q4 de pago\_RP6/Mhab 2016\textendash 2018; Control (cinza) = demais
+UFs. Pré = 2013\textendash 2014; Pós = 2019\textendash 2025}
+\label{fig:did-ec86}
+\par\noindent{\small Fonte: elaboração própria, gold do Mirante
+(equipamentos + emendas).}
+\end{figure}
+
+\subsection{Interpretação}
+
+O resultado é, em primeiro olhar, contraintuitivo: a hipótese
+\textit{a priori} era que mais emendas RP6 traduziriam-se em mais
+investimento de capital em saúde (incluindo equipamentos de
+neuroimagem). O contrário foi observado.
+
+Duas explicações são consistentes com a literatura:
+
+\textbf{(a) Emendas RP6 priorizam obras visíveis, não capital
+diagnóstico.} A literatura de federalismo fiscal brasileiro
+documenta que parlamentares preferem destinar recursos a obras
+visíveis no curto prazo (postos de saúde, ambulatórios, ginásios)
+ao invés de capital de alta complexidade (RM, PET) — esses últimos
+são percebidos como "investimento técnico", menos legível pelo
+eleitor médio do que uma placa "Esta obra é fruto de emenda do
+Deputado X". O resultado seria: mais emendas $\rightarrow$ mais
+prédios $\rightarrow$ menos espaço orçamentário pra equipamentos
+de capital.
+
+\textbf{(b) Substituição entre fontes de financiamento.} Se UFs
+recebem mais emendas individuais, podem ter financiamento estadual
+ou federal regular reduzido em compensação — o financiamento de
+capital (Bloco de Investimentos do MS, Programa Nacional de
+Equipagem) pode reagir negativamente a emendas individuais
+crescentes. Esse efeito de \textit{crowding-out} sustentaria o
+sinal negativo observado, embora não estabeleça causalidade
+diretamente (requer modelo estrutural).
+
+\subsection{Limitações da identificação}
+
+\textbf{Primeira}, o tratamento (Q4 de RP6) não é exógeno em
+sentido estrito — UFs que recebem mais emendas individuais podem
+ser sistematicamente diferentes (representação parlamentar maior,
+caciques regionais mais influentes). Robustez requer instrumento
+para a alocação de RP6 (\textit{ex.}\ tamanho da bancada após
+nova divisão de cadeiras).
+
+\textbf{Segunda}, a EC 86 é \textit{shock common} a todas as UFs,
+não \textit{shock differential} — o desenho captura apenas a
+heterogeneidade da magnitude das emendas, não a discontinuidade
+temporal exata.
+
+\textbf{Terceira}, o período pós-tratamento (2019\textendash 2025)
+sobrepõe-se à pandemia COVID-19 (2020\textendash 2021), que
+deslocou prioridades orçamentárias federais e estaduais de forma
+correlacionada com características das UFs (renda, densidade,
+estrutura de saúde) — confounding plausível.
+
+A despeito dessas limitações, o resultado lança luz sobre a
+\textit{economia política} do investimento em capital diagnóstico:
+emendas individuais não parecem ser instrumento eficaz para reduzir
+desigualdade de neuroimagem entre UFs.
+
+% =====================================================================
 \section{Discussão}\label{sec:discussao}
 % =====================================================================
 
@@ -1520,16 +1671,23 @@ aberto e reprodutível para microdados públicos brasileiros}.
 Repositório GitHub, 2026. Disponível em:
 \url{https://github.com/leonardochalhoub/mirante-dos-dados-br}.\par\smallskip
 
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:rolim}
+[31] ROLIM, A. M. Análise estatística da prevalência da Doença de
+Parkinson no Brasil: desafios, tecnologias de neuroimagem e
+perspectivas de políticas públicas. \textbf{Manuscrito v1}, abr.\
+2026. (Texto-base deste \textit{Working Paper}, integrado nas seções
+de introdução e revisão de literatura.)\par\smallskip
+
 \end{singlespace}
 
 \vspace{1cm}
 
 \noindent\textbf{Citar como:}\\
-CHALHOUB, L. Infraestrutura de neuroimagem no SUS para o diagnóstico
-diferencial da Doença de Parkinson: Ressonância Magnética,
-Tomografia, PET e medicina nuclear (Brasil, 2013\textendash 2025).
-\textit{Mirante dos Dados \textemdash{} Working Paper n. 4}, v. 1.0,
-abr.\ 2026. Disponível em:
+ROLIM, A. M.; CHALHOUB, L. Infraestrutura de neuroimagem no SUS
+para o diagnóstico diferencial da Doença de Parkinson: Ressonância
+Magnética, Tomografia, PET e medicina nuclear (Brasil,
+2013\textendash 2025). \textit{Mirante dos Dados \textemdash{}
+Working Paper n. 4}, v. 2.0, abr.\ 2026. Disponível em:
 \url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
 
 \vspace{0.5cm}
