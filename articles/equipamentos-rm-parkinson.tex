@@ -750,7 +750,7 @@ inferência de tipo, todos os \textit{casts} acontecem em silver.
 '0')}), deduplica por \texttt{source\_file} mais recente por
 \texttt{\_ingest\_ts}, separa contagens SUS/Privado via
 \texttt{IND\_SUS} e faz \textit{lookup} contra dicionário canônico
-de 133 entradas (TIPEQUIP, CODEQUIP) → nome do equipamento, extraído
+de 133 entradas (TIPEQUIP, CODEQUIP) $\to$ nome do equipamento, extraído
 por \textit{parsing} HTML direto do catálogo oficial DATASUS. Para o
 recorte deste trabalho, os equipment-keys de interesse são:
 \texttt{1:12} (RM), \texttt{1:11} (CT genérico), \texttt{1:18}
@@ -1469,7 +1469,7 @@ brasileira ao publicar abertamente: (a) o pipeline reprodutível
 medallion completo em
 \href{https://github.com/leonardochalhoub/mirante-dos-dados-br}{repositório
 Git público}; (b) o dicionário canônico de 133 entradas
-\texttt{(TIPEQUIP, CODEQUIP) → equipamento} extraído por parsing
+\texttt{(TIPEQUIP, CODEQUIP) $\to$ equipamento} extraído por parsing
 direto do catálogo oficial DATASUS, em
 \texttt{data/reference/cnes\_eq\_canonical.csv};  (c) o gold dataset
 versionado por hash. Toda a análise é reproduzível por terceiros sem
