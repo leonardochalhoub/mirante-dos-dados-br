@@ -256,19 +256,21 @@ export const PARECER_UROPRO = {
   nivel: 'lato_sensu',
   scoreType: 'numeric',
   scoreNumeric: 7.5,
-  scoreOriginal: 8.0,
+  scoreOriginal: 9.7,
   originalLabel: 'TCC Tatieli, 2022, régua MBA/lato sensu',
   originalUrl: null,
   ultimaAtualizacao: `${HOJE}T18:00 BRT`,
   versao: '0.5 — pipeline em execução',
   resumoCalibragem:
     'Avaliado como Lato sensu — deriva da especialização em Enfermagem ' +
-    'da Tatieli da Silva (2022, ~8,0 régua MBA original). O vertical ' +
-    'Mirante adiciona infraestrutura aberta e potencial extensão de ' +
-    'escopo (2008-2025 vs 2015-2020). NO MOMENTO PRESENTE o pipeline ' +
-    'está rodando pela primeira vez — gold ainda não publicada, artigo ' +
-    'apenas em JSX (sem .tex compilado). 7,5 lato sensu é honesto: ' +
-    'trabalho consistente em transição de plataforma. Vai pra 8,5+ assim ' +
+    'da Tatieli da Silva (2022, nota 9,7 régua MBA/lato sensu — aprovação ' +
+    'com distinção). O vertical Mirante adiciona infraestrutura aberta e ' +
+    'potencial extensão de escopo (2008-2025 vs 2015-2020). NO MOMENTO ' +
+    'PRESENTE o pipeline está rodando pela primeira vez — gold ainda não ' +
+    'publicada, artigo apenas em JSX (sem .tex compilado). 7,5 lato sensu ' +
+    'aqui é honesto vs. o original 9,7: a base analítica de Tatieli é ' +
+    'forte, mas a versão Mirante ainda não entregou plenamente a extensão ' +
+    'prometida (dados live + .tex + janela ampliada). Vai pra 8,5+ assim ' +
     'que pipeline gera dados live + .tex compila + figuras matplotlib ' +
     'regeneradas.',
   utilidadeSocial:
