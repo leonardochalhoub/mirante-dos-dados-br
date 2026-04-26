@@ -528,6 +528,25 @@ if rm_total > 0 and (per_M < 8 or per_M > 30):
     print(f"⚠ DQ WARN: RM/Mhab = {per_M:.1f} fora da banda 8–30. Investigue dual-flag, "
           f"cobertura CNES ou catálogo de TIPEQUIPs.")
 
+# ─── DQ side-by-side: comparação do total deduped (este silver) com a
+# abordagem alternativa "AVG por (CNES, ano), SUM por UF" — método mais
+# simples mas que ignora o IND_SUS. Ambas devem cair na banda OCDE; a
+# diferença empírica entre elas mede o quanto a interpretação dual-flag
+# (MAX vs proporção via AVG) afeta o número. Útil pra decidir se vale
+# manter a complexidade do dedup explícito ou voltar pra abordagem simples.
+alt_avg_per_cnes = (
+    df.where((F.col("ano") == last_year) & (F.col("tipequip") == "1") & (F.col("codequip") == "12"))
+      .groupBy("cnes", "estado")
+      .agg(F.avg("qt_exist").alias("avg_qt"))
+)
+alt_total = alt_avg_per_cnes.agg(F.sum("avg_qt").alias("t")).first()["t"] or 0
+alt_per_M = (alt_total / pop_br * 1_000_000) if pop_br else 0
+delta_pct = ((rm_total - alt_total) / alt_total * 100) if alt_total else 0
+print(f"  --- comparação metodológica (RM nacional {last_year}) ---")
+print(f"  abordagem A (este silver — MAX por CNES-mês):    {rm_total:,.0f}  ({per_M:.1f}/Mhab)")
+print(f"  abordagem B (AVG(qt_exist) por (CNES, ano), SUM): {alt_total:,.0f}  ({alt_per_M:.1f}/Mhab)")
+print(f"  Δ A vs B: {delta_pct:+.1f}%  (positivo = A maior; negativo = B maior)")
+
 # Log unmapped (tipequip, codequip) combos — sinal pra expandir o dicionário canônico.
 unmapped = (
     silver_df.where(F.col("equipment_name").contains("(não mapeado)"))
