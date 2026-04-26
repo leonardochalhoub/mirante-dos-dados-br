@@ -437,17 +437,35 @@ silver_df = df_out.select(
 
 n = silver_df.count()
 ufs = silver_df.select("estado").distinct().count()
-years = silver_df.select("ano").distinct().count()
+n_years = silver_df.select("ano").distinct().count()
 combos = silver_df.select("equipment_key").distinct().count()
-print(f"rows={n}  ufs={ufs}  years={years}  (tipequip,codequip)_combos={combos}")
+print(f"rows={n}  ufs={ufs}  years={n_years}  (tipequip,codequip)_combos={combos}")
 assert ufs == 27, f"Expected 27 UFs, got {ufs}"
 
 # DQ: validar que a RM básica (1:12) bate com magnitude esperada (~3-4K nacional)
-rm_2025 = (
-    silver_df.where((F.col("ano") == years) & (F.col("equipment_key") == "1:12"))
+last_year = silver_df.agg(F.max("ano").alias("y")).first()["y"]
+rm_row = (
+    silver_df.where((F.col("ano") == last_year) & (F.col("equipment_key") == "1:12"))
              .agg(F.sum("total_avg").alias("rm_total")).first()
 )
-print(f"DQ check — Brasil RM (1:12) último ano: ~{rm_2025['rm_total']:.0f} unidades")
+rm_total = rm_row["rm_total"] or 0
+print(f"DQ check — Brasil RM (1:12) ano {last_year}: ~{rm_total:.0f} unidades (esperado: 3000–4500)")
+
+# Log unmapped (tipequip, codequip) combos — sinal pra expandir o dicionário canônico.
+unmapped = (
+    silver_df.where(F.col("equipment_name").contains("(não mapeado)"))
+             .groupBy("tipequip", "codequip")
+             .agg(F.sum("total_avg").alias("total"))
+             .orderBy(F.desc("total"))
+             .limit(40)
+             .collect()
+)
+if unmapped:
+    print(f"\n⚠ {len(unmapped)} combos não mapeados (top 40 por volume) — adicionar ao dicionário canônico:")
+    for r in unmapped:
+        print(f"   ({r['tipequip']!r}, {r['codequip']!r}): total_avg={r['total']:.0f}")
+else:
+    print("✔ todos os combos mapeados")
 
 print("✔ DQ passed")
 
