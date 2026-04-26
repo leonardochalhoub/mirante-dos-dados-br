@@ -223,6 +223,104 @@ code, pre, .mono {
   color: var(--muted);
 }
 
+/* ── Free-apps promo block (sidebar + drawer) ─────────────────────────── */
+/* Tamanho médio: cards ~38px alto cada, agrupados sob label sutil. */
+.free-apps {
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.free-apps-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding: 0 6px 4px;
+}
+.free-apps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.free-app-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.12s, border-color 0.12s, transform 0.12s;
+}
+.free-app-card:hover {
+  text-decoration: none;
+  border-color: var(--border-strong);
+  background: var(--panel);
+  transform: translateX(2px);
+}
+
+/* Icon container — 32×32, sempre com fundo branco para contraste consistente
+   nos dois temas. SVGs com `currentColor` (caixa-forte) usam --accent. */
+.free-app-icon {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #ffffff;             /* fundo branco neutro em ambos os temas */
+  border: 1px solid var(--border);
+}
+.free-app-icon img {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+/* SVG com currentColor — pinta no tom do texto principal sobre fundo branco */
+.free-app-icon--currentcolor {
+  color: #0f172a;                  /* sempre escuro pra contrastar com fundo branco */
+}
+[data-theme="dark"] .free-app-icon--currentcolor { color: #0f172a; }
+
+/* PNG/SVG full-color — funciona em ambos os temas (PNG amazing-school é
+   colorido, SVG petzap tem fills hardcoded; o fundo branco neutraliza) */
+.free-app-icon--fixed { /* sem ajustes adicionais */ }
+
+.free-app-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.free-app-name {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.free-app-tagline {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ── Theme toggle ─────────────────────────────────────────────────────── */
 .themeToggle {
   display: inline-flex;

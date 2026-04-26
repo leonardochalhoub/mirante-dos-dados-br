@@ -45,6 +45,65 @@ function fmtPubDate(iso) {
 
 const flagSrc = `${import.meta.env.BASE_URL}brazil-flag.svg`.replace(/\/{2,}/g, '/');
 
+// Apps grátis do autor — promo cards renderizados na sidebar (canto superior
+// esquerdo) e no drawer mobile. Todos com URLs ao vivo no Vercel.
+const FREE_APPS = [
+  {
+    key: 'caixa-forte',
+    name: 'Caixa Forte',
+    tagline: 'Controle financeiro pessoal',
+    href: 'https://caixa-forte-app.vercel.app',
+    icon: 'caixa-forte.svg',
+    iconKind: 'currentcolor',  // SVG usa currentColor — adapta ao tema via CSS color
+  },
+  {
+    key: 'amazing-school',
+    name: 'Amazing School',
+    tagline: 'Inglês com IA, gratuito',
+    href: 'https://amazing-school-app.vercel.app',
+    icon: 'amazing-school.png',
+    iconKind: 'fixed',  // PNG fullcolor — funciona em ambos os temas via fundo branco
+  },
+  {
+    key: 'pet-zap',
+    name: 'PetZap',
+    tagline: 'Vacinas e gastos do pet',
+    href: 'https://pet-zap.vercel.app',
+    icon: 'pet-zap.svg',
+    iconKind: 'fixed',  // SVG com fills hardcoded — fundo branco garante contraste
+  },
+];
+
+function FreeAppsBlock() {
+  const base = import.meta.env.BASE_URL || '/';
+  return (
+    <section className="free-apps" aria-label="Apps grátis do autor">
+      <div className="free-apps-label">Apps grátis do autor</div>
+      <ul className="free-apps-list">
+        {FREE_APPS.map((app) => (
+          <li key={app.key}>
+            <a
+              href={app.href}
+              target="_blank"
+              rel="noreferrer"
+              className="free-app-card"
+              title={`${app.name} — ${app.tagline}`}
+            >
+              <span className={`free-app-icon free-app-icon--${app.iconKind}`}>
+                <img src={`${base}ads/${app.icon}`.replace(/\/{2,}/g, '/')} alt="" />
+              </span>
+              <span className="free-app-meta">
+                <span className="free-app-name">{app.name}</span>
+                <span className="free-app-tagline">{app.tagline}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 // Inline SVG icons (no external deps; theme-aware via currentColor).
 function IconHamburger() {
   return (
@@ -200,6 +259,8 @@ export default function Layout() {
           })}
         </ul>
       </nav>
+
+      <FreeAppsBlock />
     </>
   );
 
