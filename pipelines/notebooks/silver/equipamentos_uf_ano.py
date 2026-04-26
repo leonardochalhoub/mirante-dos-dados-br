@@ -225,35 +225,37 @@ CATEGORY_NAMES = {
 
 from pyspark.sql import functions as F
 
-# Read bronze + DEDUPLICATE por _source_file.
+# Read bronze + DEDUPLICATE por source_file (= nome do DBC).
 #
 # Cada arquivo EQ<UF><YYMM>.dbc é convertido pra um único parquet com nome
 # determinístico. Cada parquet representa o snapshot de equipamentos de
 # (UF, ano, mes) — não há razão pra ter rows duplicadas do mesmo source_file.
 #
-# MAS: se o bronze foi ingerido múltiplas vezes (ex.: batch run + auto loader
-# stream rodando depois), o mesmo source_file pode aparecer com _ingest_ts
-# diferentes. NÃO filtrar (silver original UroPro) → perde UFs por causa
-# de micro-batches; filtrar tudo (versão anterior) → duplica os equipamentos.
+# MAS: bronze pode ter rows duplicadas se foi ingerido múltiplas vezes
+# (ex.: batch overwrite inicial + auto loader stream rodando depois).
+# Nesse caso o `_source_file` (path do parquet) pode aparecer com prefixos
+# diferentes (`/Volumes/...` vs `dbfs:/Volumes/...`) embora aponte pro mesmo
+# arquivo físico. Por isso dedup deve ser feito por `source_file` (a coluna
+# adicionada no convert_one() da bronze, contém o nome do DBC, ex.
+# "EQSP2412.dbc") combinado com `_ingest_ts` mais recente.
 #
-# Solução robusta: pra cada _source_file, manter SÓ as rows do _ingest_ts
-# MAIS RECENTE. Se ingestions diferentes do mesmo arquivo derem dados
-# diferentes (ex.: DATASUS retroativamente corrigiu o DBC), prevalece a versão
-# mais recente.
+# Comparação com o fix do silver UroPro (commit fa869cf): UroPro lê todo
+# bronze sem filtro porque NÃO tinha ingestão dupla. Equipamentos precisa
+# do dedup explícito.
 bronze = spark.read.table(BRONZE_TABLE)
 if bronze.head(1) == []:
     raise ValueError(f"{BRONZE_TABLE} is empty.")
 
 print(f"bronze rows brutos: {bronze.count():,}")
 
-ts_per_file = bronze.groupBy("_source_file").agg(F.max("_ingest_ts").alias("_latest_ts"))
+ts_per_file = bronze.groupBy("source_file").agg(F.max("_ingest_ts").alias("_latest_ts"))
 src = (
     bronze
-    .join(ts_per_file, on="_source_file", how="inner")
+    .join(ts_per_file, on="source_file", how="inner")
     .where(F.col("_ingest_ts") == F.col("_latest_ts"))
     .drop("_latest_ts")
 )
-print(f"bronze rows após dedup por (_source_file, latest _ingest_ts): {src.count():,}")
+print(f"bronze rows após dedup por (source_file, latest _ingest_ts): {src.count():,}")
 print(f"bronze UFs distintas: {src.select('estado').distinct().count()}")
 
 # Normalize types — KEEP both TIPEQUIP and CODEQUIP (composite key).
