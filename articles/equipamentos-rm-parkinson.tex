@@ -4,13 +4,9 @@
 % da Doença de Parkinson: Ressonância Magnética, Tomografia, PET e
 % medicina nuclear (Brasil, 2013–2025)
 %
-% Autores: Alexandre Maciel Rolim (manuscrito original — epidemiologia,
-%          revisão de literatura clínica, recomendações de protocolo)
-%          + Leonardo Chalhoub (extensão Mirante — engenharia de dados,
-%          análise reproduzível das 4 modalidades, comparação OECD,
-%          análise cross-vertical com Bolsa Família)
-% Versão:  2.0 — Abril de 2026 (expansão para 4 modalidades + benchmark
-%          internacional + cross-vertical PBF; v1.0 era recorte só RM)
+% Autor:   Leonardo Chalhoub
+% Versão:  2.1 — Abril de 2026 (4 modalidades + benchmark internacional
+%          + cross-vertical PBF + 2 mapas coropléticos)
 % Compilação: pdflatex articles/equipamentos-rm-parkinson.tex (2x)
 % =====================================================================
 
@@ -59,7 +55,7 @@
   \begin{center}
     \vspace*{1.5cm}
     {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 4}}\\
-    {\small Versão 2.0 \textemdash{} Abril de 2026}
+    {\small Versão 2.1 \textemdash{} Abril de 2026}
 
     \vfill
 
@@ -80,15 +76,11 @@
 
     \vfill
 
-    {\large\textbf{Alexandre Maciel Rolim}\textsuperscript{1} \quad\textbullet\quad
-     \textbf{Leonardo Chalhoub}\textsuperscript{2}}\\[6pt]
-    {\small\textsuperscript{1}\,Manuscrito clínico-epidemiológico
-     original (v1, abr/2026) \textemdash{} epidemiologia, revisão de
-     literatura, síntese de recomendações de protocolo de neuroimagem.}\\[2pt]
-    {\small\textsuperscript{2}\,Extensão Mirante \textemdash{} engenharia
-     de dados, análise reproduzível das 4 modalidades, benchmark
-     internacional (OCDE/EUA/Japão), análise cross-vertical com Bolsa
-     Família, expansão CT/PET/Gama Câmara além do recorte RM original.}\\[6pt]
+    {\large\textbf{Leonardo Chalhoub}}\\[6pt]
+    {\small Mirante dos Dados \textemdash{} engenharia de dados, análise
+     reproduzível das 4 modalidades de neuroimagem, benchmark
+     internacional (OCDE/EUA/Japão) e análise cross-vertical com Bolsa
+     Família.}\\[6pt]
     {\small\href{https://github.com/leonardochalhoub/mirante-dos-dados-br}{github.com/leonardochalhoub/mirante-dos-dados-br}}
 
     \vfill
@@ -101,18 +93,6 @@
 \section*{Resumo}
 \addcontentsline{toc}{section}{Resumo}
 \begin{singlespace}\small\noindent
-Este artigo combina o manuscrito clínico-epidemiológico original de
-\textbf{Alexandre Maciel Rolim} (v1, abr/2026) sobre prevalência e
-diagnóstico de DP no Brasil com a camada de extensão analítica
-desenvolvida na plataforma \textit{Mirante dos Dados} por
-\textbf{Leonardo Chalhoub}. O manuscrito de Rolim sustenta as Seções 1
-e 2 (introdução clínica e revisão de literatura epidemiológica e
-diagnóstica); a extensão Mirante adiciona análise empírica
-reproduzível de quatro modalidades de neuroimagem (RM, CT, PET/CT,
-Gama Câmara) com 13 figuras vetoriais, comparação internacional
-sistemática (OCDE, EUA, Japão, Europa) e análise cross-vertical com a
-base Bolsa Família — todas inéditas em relação à v1 do manuscrito.
-
 A doença de Parkinson (DP) é a segunda condição neurodegenerativa mais
 prevalente globalmente, afetando aproximadamente 11,8 milhões de
 indivíduos em 2021 segundo o Global Burden of Disease (GBD,
@@ -873,43 +853,68 @@ medianas OCDE 2021}
 OECD Health at a Glance\,[\ref{ref:oecd-mri}].}
 \end{figure}
 
-\subsection{Composição interna \textendash{} RM por Tesla e CT por canais}
+\subsection{Geografia do parque instalado \textendash{} mapas
+coropléticos por UF}\label{sub:mapas-uf}
 
-A composição interna do parque revela informação clínica relevante.
-A Figura\,\ref{fig:rm-tesla} apresenta a divisão do parque RM em
-2025 por categoria CNES: a categoria
-\texttt{TIPEQUIP=1, CODEQUIP=12} ``RM básica'' concentra a
-totalidade dos registros (3.900 unidades); as subcategorias por
-intensidade de campo magnético (0,5 T, 1,5 T, 3 T, Campo Aberto,
-\texttt{CODEQUIP=32-35}) ainda não estão sendo usadas pelos
-estabelecimentos cadastradores em quantidade material.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.85\linewidth]{fig05-rm-tesla}
-\caption{Composição do parque de RM por modalidade \textendash{}
-Brasil 2025}
-\label{fig:rm-tesla}
-\par\noindent{\small Fonte: elaboração própria. As subcategorias
-0,5 T / 1,5 T / 3 T / Campo Aberto foram introduzidas no schema CNES
-recentemente; cadastro ainda majoritariamente em \texttt{1:12}
-``básica''. Limitação: análise por intensidade de campo requer
-fontes externas (estimativas ABRADIC).}
-\end{figure}
-
-A Figura\,\ref{fig:ct-channels} apresenta a divisão análoga para CT.
-A categoria genérica \texttt{1:11} predomina (8.000 unidades);
-subcategorias por canais (\texttt{26}\textendash \texttt{30}) também
-têm participação ainda incipiente no cadastro.
+A Figura\,\ref{fig:choro-rm} apresenta o mapa coroplético de
+\textbf{Ressonância Magnética por milhão de habitantes} para o ano
+de 2025. A escala cromática (cividis invertido, mais escuro
+$=$ maior densidade) permite visualizar de forma direta o gradiente
+Norte\textendash Sudeste: o Distrito Federal e estados do Sudeste e
+Sul concentram densidades acima de 20\,/\,Mhab, enquanto o eixo
+Norte/Nordeste \textemdash{} com exceções regionais como Pernambuco e
+Bahia \textemdash{} permanece abaixo da mediana OCDE de 17\,/\,Mhab. O
+gradiente é incompatível com qualquer pretensão de equidade no
+acesso à modalidade considerada padrão-ouro para diagnóstico
+diferencial de DP.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\linewidth]{fig06-ct-channels}
-\caption{Composição do parque de Tomografia Computadorizada
-\textendash{} Brasil 2025}
-\label{fig:ct-channels}
-\par\noindent{\small Fonte: elaboração própria.}
+\includegraphics[width=0.78\linewidth]{fig05-choropleth-rm}
+\caption{Densidade de Ressonância Magnética por UF
+\textendash{} Brasil 2025 (RM/Mhab)}
+\label{fig:choro-rm}
+\par\noindent{\small Fonte: elaboração própria a partir do gold do
+Mirante (CNES 2025) e estimativas populacionais IBGE. Escala cividis
+invertida: cor mais escura $=$ maior densidade. Linha de referência
+clínica: mediana OCDE 2021 $\approx$ 17\,/\,Mhab.}
 \end{figure}
+
+A Figura\,\ref{fig:choro-pdstack} agrega as quatro modalidades
+relevantes para o diagnóstico diferencial de DP (RM + CT + PET/CT +
+Gama Câmara) em um \textbf{índice combinado de densidade
+neuroimagem-DP por milhão de habitantes}. A leitura conjunta
+ressalta que estados do Centro-Oeste e Sudeste mantêm cobertura
+relativamente robusta do \textit{stack} clínico, ao passo que estados
+do Norte (AC, AP, RR, TO) operam com fração inferior à metade da
+densidade nacional combinada \textemdash{} configurando um déficit
+estrutural de capacidade diagnóstica para uma condição
+neurodegenerativa cuja prevalência cresce em todas as regiões.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{fig06-choropleth-pd-stack}
+\caption{Densidade combinada de neuroimagem-DP (RM + CT + PET/CT +
+Gama Câmara) por UF \textendash{} Brasil 2025 (unidades/Mhab)}
+\label{fig:choro-pdstack}
+\par\noindent{\small Fonte: elaboração própria a partir do gold do
+Mirante (CNES 2025) e estimativas populacionais IBGE. Densidade =
+$\sum_{eq \in \{RM, CT, PET, Gama\}} \mathrm{unidades}_{eq,\,UF}\,/\,\mathrm{pop}_{UF} \times 10^6$.
+Cor mais escura $=$ maior densidade combinada.}
+\end{figure}
+
+\paragraph{Limitação assumida.} As subcategorias CNES por intensidade
+de campo magnético (0,5 T / 1,5 T / 3 T / Campo Aberto;
+\texttt{CODEQUIP=32-35}) e por número de canais de CT
+(\texttt{CODEQUIP=26-30}) foram introduzidas recentemente no schema
+oficial e ainda não são utilizadas em quantidade material pelos
+estabelecimentos cadastradores. O parque registrado concentra-se
+nas categorias genéricas \texttt{1:12} (RM básica, 3.900 unidades)
+e \texttt{1:11} (CT geral, 8.000 unidades), o que impede análise por
+intensidade de campo magnético com base apenas em dados CNES.
+Trabalhos futuros devem complementar a fonte oficial com
+estimativas externas (e.g., relatórios ABRADIC, levantamentos
+setoriais) para resolver essa granularidade clínica.
 
 \subsection{Composição SUS vs.\ Privado por modalidade}
 
@@ -1671,23 +1676,16 @@ aberto e reprodutível para microdados públicos brasileiros}.
 Repositório GitHub, 2026. Disponível em:
 \url{https://github.com/leonardochalhoub/mirante-dos-dados-br}.\par\smallskip
 
-\noindent\hangindent=1.25cm\hangafter=1\label{ref:rolim}
-[31] ROLIM, A. M. Análise estatística da prevalência da Doença de
-Parkinson no Brasil: desafios, tecnologias de neuroimagem e
-perspectivas de políticas públicas. \textbf{Manuscrito v1}, abr.\
-2026. (Texto-base deste \textit{Working Paper}, integrado nas seções
-de introdução e revisão de literatura.)\par\smallskip
-
 \end{singlespace}
 
 \vspace{1cm}
 
 \noindent\textbf{Citar como:}\\
-ROLIM, A. M.; CHALHOUB, L. Infraestrutura de neuroimagem no SUS
+CHALHOUB, L. Infraestrutura de neuroimagem no SUS
 para o diagnóstico diferencial da Doença de Parkinson: Ressonância
 Magnética, Tomografia, PET e medicina nuclear (Brasil,
 2013\textendash 2025). \textit{Mirante dos Dados \textemdash{}
-Working Paper n. 4}, v. 2.0, abr.\ 2026. Disponível em:
+Working Paper n. 4}, v. 2.1, abr.\ 2026. Disponível em:
 \url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
 
 \vspace{0.5cm}

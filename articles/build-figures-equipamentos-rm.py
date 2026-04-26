@@ -17,6 +17,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
+from matplotlib.patches import Polygon as MplPolygon
 
 plt.rcParams.update({
     "font.family": "serif",
@@ -30,7 +31,48 @@ plt.rcParams.update({
 ROOT = Path("/home/leochalhoub/mirante-dos-dados-br/articles")
 FIG_DIR = ROOT / "figures-equipamentos-rm"
 FIG_DIR.mkdir(exist_ok=True)
+GEO_PATH = ROOT.parent / "app" / "public" / "geo" / "brazil-states.geojson"
 CIVIDIS = mpl.cm.cividis_r
+
+
+def load_brazil_geojson():
+    g = json.load(open(GEO_PATH))
+    states = {}
+    for f in g["features"]:
+        sigla = f["properties"]["sigla"]
+        geom = f["geometry"]
+        polys = (geom["coordinates"] if geom["type"] == "MultiPolygon"
+                 else [geom["coordinates"]])
+        rings = [np.array(p[0]) for p in polys]
+        states[sigla] = rings
+    return states
+
+
+def _draw_choropleth(ax, states, values, cmap=CIVIDIS):
+    vs = [v for v in values.values() if v is not None]
+    norm = mpl.colors.Normalize(vmin=min(vs), vmax=max(vs))
+    for sigla, rings in states.items():
+        v = values.get(sigla)
+        color = cmap(norm(v)) if v is not None else "#eee"
+        for ring in rings:
+            ax.add_patch(MplPolygon(ring, closed=True, facecolor=color,
+                                    edgecolor="white", linewidth=0.4))
+        if v is not None:
+            outer = max(rings, key=lambda r: len(r))
+            cx, cy = outer.mean(axis=0)
+            tcol = "white" if norm(v) > 0.55 else "black"
+            ax.text(cx, cy, sigla, ha="center", va="center",
+                    fontsize=6.5, fontweight="bold",
+                    family="monospace", color=tcol)
+    return norm
+
+
+def _set_brazil_extent(ax, states):
+    pts = np.concatenate([r for rings in states.values() for r in rings])
+    ax.set_xlim(pts[:, 0].min() - 1, pts[:, 0].max() + 1)
+    ax.set_ylim(pts[:, 1].min() - 1, pts[:, 1].max() + 1)
+    ax.set_aspect("equal")
+    ax.axis("off")
 
 GOLD = json.load(open(ROOT.parent / "data" / "gold" / "gold_equipamentos_estados_ano.json"))
 PBF = json.load(open(ROOT.parent / "data" / "gold" / "gold_pbf_estados_df.json"))
@@ -177,54 +219,50 @@ def fig_density_oecd():
     save(fig, "fig04-density-oecd")
 
 
-# ─── Fig 5 — Composição RM por Tesla ────────────────────────────────────────
-def fig_rm_tesla():
-    rm_tesla = {'1:12':'RM básica', '1:32':'0,5 T', '1:33':'1,5 T', '1:34':'3 T', '1:35':'Campo Aberto'}
-    last_yr = [r for r in GOLD if r['ano']==LATEST and r['equipment_key'] in rm_tesla]
-    by_k = defaultdict(float)
-    for r in last_yr: by_k[r['equipment_key']] += r['total_avg']
-    items = [(rm_tesla[k], by_k.get(k, 0)) for k in rm_tesla]
-    items_nz = [(n, v) for n, v in items if v > 0]
-    if not items_nz:
-        items_nz = [(rm_tesla['1:12'], by_k.get('1:12', 0))]
-    fig, ax = plt.subplots(figsize=(7, 3.5))
-    names = [n for n, _ in items_nz]; vals = [v for _, v in items_nz]
-    colors = [CIVIDIS(0.2 + 0.6*i/len(items_nz)) for i in range(len(items_nz))]
-    bars = ax.bar(names, vals, color=colors, edgecolor='#222', linewidth=0.6, width=0.7)
-    for b, v in zip(bars, vals):
-        ax.text(b.get_x()+b.get_width()/2, v+max(vals)*0.012, f'{v:,.0f}',
-                ha='center', fontsize=10, fontweight='bold')
-    ax.set_ylabel("Unidades cadastradas (Brasil)")
-    ax.set_title(f"Composição interna do parque de RM por modalidade — Brasil {LATEST}",
-                 fontsize=10, fontweight='bold')
-    ax.grid(axis='y', linestyle=':', alpha=0.4)
-    plt.tight_layout()
-    save(fig, "fig05-rm-tesla")
+# ─── Fig 5 — Choropleth RM/Mhab por UF ─────────────────────────────────────
+def fig_choropleth_rm():
+    rm = [r for r in GOLD if r['ano']==LATEST and r['equipment_key']=='1:12']
+    den = {r['estado']: r['total_avg']/r['populacao']*1e6
+           for r in rm if r['populacao']}
+    states = load_brazil_geojson()
+    fig, ax = plt.subplots(figsize=(6, 6.5))
+    norm = _draw_choropleth(ax, states, den)
+    _set_brazil_extent(ax, states)
+    ax.set_title(f"Densidade de Ressonância Magnética por UF — Brasil {LATEST}",
+                 fontsize=10.5, fontweight='bold')
+    sm = mpl.cm.ScalarMappable(cmap=CIVIDIS, norm=norm)
+    cb = fig.colorbar(sm, ax=ax, orientation="horizontal",
+                      fraction=0.04, pad=0.02, shrink=0.7)
+    cb.set_label("RM por milhão de habitantes (mediana OCDE 2021 ≈ 17/Mhab)",
+                 fontsize=8)
+    cb.ax.tick_params(labelsize=8)
+    save(fig, "fig05-choropleth-rm")
 
 
-# ─── Fig 6 — Composição CT por canais ──────────────────────────────────────
-def fig_ct_channels():
-    ct_ch = {'1:11':'CT (geral)', '1:26':'4 canais', '1:27':'16 canais',
-             '1:28':'32 canais', '1:29':'64 canais', '1:30':'128 canais'}
-    last_yr = [r for r in GOLD if r['ano']==LATEST and r['equipment_key'] in ct_ch]
-    by_k = defaultdict(float)
-    for r in last_yr: by_k[r['equipment_key']] += r['total_avg']
-    items = [(ct_ch[k], by_k.get(k, 0)) for k in ct_ch if by_k.get(k, 0) > 0]
-    if not items:
-        items = [(ct_ch['1:11'], by_k.get('1:11', 0))]
-    fig, ax = plt.subplots(figsize=(7, 3.5))
-    names = [n for n, _ in items]; vals = [v for _, v in items]
-    colors = [CIVIDIS(0.2 + 0.6*i/len(items)) for i in range(len(items))]
-    bars = ax.bar(names, vals, color=colors, edgecolor='#222', linewidth=0.6, width=0.7)
-    for b, v in zip(bars, vals):
-        ax.text(b.get_x()+b.get_width()/2, v+max(vals)*0.012, f'{v:,.0f}',
-                ha='center', fontsize=10, fontweight='bold')
-    ax.set_ylabel("Unidades cadastradas (Brasil)")
-    ax.set_title(f"Composição interna do parque de Tomografia Computadorizada — Brasil {LATEST}",
-                 fontsize=10, fontweight='bold')
-    ax.grid(axis='y', linestyle=':', alpha=0.4)
-    plt.tight_layout()
-    save(fig, "fig06-ct-channels")
+# ─── Fig 6 — Choropleth densidade combinada PD-stack por UF ────────────────
+def fig_choropleth_pd_stack():
+    pd_basket = ['1:01', '1:11', '1:12', '1:18']
+    by_uf = defaultdict(lambda: {'tot': 0.0, 'pop': 0})
+    for r in GOLD:
+        if r['ano'] == LATEST and r['equipment_key'] in pd_basket:
+            by_uf[r['estado']]['tot'] += r['total_avg']
+            if r['equipment_key'] == '1:12':
+                by_uf[r['estado']]['pop'] = r['populacao']
+    den = {uf: v['tot']/v['pop']*1e6
+           for uf, v in by_uf.items() if v['pop']}
+    states = load_brazil_geojson()
+    fig, ax = plt.subplots(figsize=(6, 6.5))
+    norm = _draw_choropleth(ax, states, den)
+    _set_brazil_extent(ax, states)
+    ax.set_title(f"Densidade combinada neuroimagem-DP — Brasil {LATEST}\n"
+                 "(RM + CT + PET/CT + Gama Câmara, por milhão de habitantes)",
+                 fontsize=10.2, fontweight='bold')
+    sm = mpl.cm.ScalarMappable(cmap=CIVIDIS, norm=norm)
+    cb = fig.colorbar(sm, ax=ax, orientation="horizontal",
+                      fraction=0.04, pad=0.02, shrink=0.7)
+    cb.set_label("Unidades-PD por milhão de habitantes", fontsize=8)
+    cb.ax.tick_params(labelsize=8)
+    save(fig, "fig06-choropleth-pd-stack")
 
 
 # ─── Fig 7 — SUS share por modalidade ──────────────────────────────────────
@@ -284,9 +322,10 @@ def fig_top_uf_rm():
     save(fig, "fig08-top-uf-rm")
 
 
-# ─── Fig 9 — Choropleth RM per capita ─────────────────────────────────────
-def fig_choropleth_rm():
-    """Placeholder — geojson would be huge. Render as bar chart by region instead."""
+# ─── Fig 9 — Densidade regional de RM (bar chart agregado por região) ─────
+def fig_region_rm():
+    """Bar chart agregado por região (Norte, NE, CO, SE, Sul) — não confundir
+    com os choropleth maps de fig05/fig06, que são por UF."""
     rm = [r for r in GOLD if r['ano']==LATEST and r['equipment_key']=='1:12']
     by_reg = defaultdict(lambda: {'tot':0, 'pop':0})
     for r in rm:
@@ -451,11 +490,11 @@ fig_timeline()
 fig_architecture()
 fig_evolution_modalities()
 fig_density_oecd()
-fig_rm_tesla()
-fig_ct_channels()
+fig_choropleth_rm()
+fig_choropleth_pd_stack()
 fig_sus_share_modality()
 fig_top_uf_rm()
-fig_choropleth_rm()
+fig_region_rm()
 fig_cv_time()
 fig_growth_rm()
 fig_pd_burden_vs_neuroimaging()

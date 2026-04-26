@@ -66,7 +66,7 @@ export const LETRA_DESCRICAO = {
   D: 'Reprovação no trabalho — precisa de A em 3+ outros para compensar',
 };
 
-const HOJE = '2026-04-25';
+const HOJE = '2026-04-26';
 
 // ═══════════════════════════════════════════════════════════════════════
 // PBF — Bolsa Família  (Working Paper #2)
@@ -128,73 +128,83 @@ export const PARECER_PBF = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// EQUIPAMENTOS — DATASUS CNES + Working Paper #4 (RM × Parkinson)
-// Régua aplicada: LATO SENSU. Vertical PROMOVIDO de Graduação para Lato
-// sensu após publicação do WP #4 (Rolim + Chalhoub) sobre RM no SUS e
-// diagnóstico de Parkinson. Agora é um trabalho acadêmico real, com
-// pergunta de pesquisa, método, discussão e bibliografia substantiva.
+// EQUIPAMENTOS — DATASUS CNES + Working Paper #4 (Neuroimagem × Parkinson)
+// Régua aplicada: LATO SENSU. WP#4 v2.1 (abr/2026): autoria única
+// (Leonardo Chalhoub), 4 modalidades de neuroimagem, 13 figuras
+// vetoriais incluindo 2 MAPAS COROPLÉTICOS por UF (RM/Mhab e densidade
+// combinada PD-stack/Mhab), benchmark OCDE e análise cross-vertical PBF.
+// Sem cruzamento com SIH-AIH para uso efetivo, sem identificação causal,
+// sem peer review formal — segue lato sensu, próximo do teto.
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_EQUIPAMENTOS = {
   vertical: 'equipamentos',
   nivel: 'lato_sensu',
   scoreType: 'numeric',
-  scoreNumeric: 8.7,
+  scoreNumeric: 8.6,
   scoreOriginal: null,
   originalLabel: null,
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T22:00 BRT`,
-  versao: '2.0 — WP#4 publicado',
+  ultimaAtualizacao: `${HOJE}T11:30 BRT`,
+  versao: '2.1 — WP#4 single-author + 2 mapas coropléticos + figs degeneradas removidas',
   resumoCalibragem:
-    'PROMOVIDO de Graduação (8,5 anterior) para Lato sensu (8,7 atual) ' +
-    'com a publicação do Working Paper #4 — coautoria com Alexandre ' +
-    'Maciel Rolim. O vertical agora é trabalho acadêmico de fato: ' +
-    'manuscrito original de Rolim sobre epidemiologia de Parkinson no ' +
-    'Brasil (ELSI-Brazil) integrado com camada de engenharia de dados ' +
-    'do Mirante (CNES 2013-2025, filtro codequip=42, 12 figuras ' +
-    'matplotlib vetoriais, comparação OCDE). 8,7 lato sensu reflete ' +
-    'TCC de especialização forte com contribuição substantiva. PARA ' +
-    'SUBIR a mestrado falta validação externa (peer review) e cruzamento ' +
-    'com produção SIH-AIH para mensurar uso EFETIVO dos equipamentos.',
+    'Calibragem em LATO SENSU (TCC de especialização forte). Score 8,6 ' +
+    '(vs 8,7 da v2.0): trocamos a atribuição de "coautoria com Rolim" ' +
+    '— o manuscrito original era apenas a v0 deste artigo, não merecia ' +
+    'citação separada — pelo conteúdo empírico próprio do Mirante. Em ' +
+    'compensação, a v2.1 adicionou DOIS mapas coropléticos por UF ' +
+    '(RM/Mhab e densidade combinada do stack PD = RM+CT+PET+Gama) e ' +
+    'removeu duas figuras degeneradas (composição RM por Tesla e CT ' +
+    'por canais que tinham apenas uma barra cada, refletindo limitação ' +
+    'do schema CNES e não conteúdo analítico). Hoje o WP#4 v2.1 é ' +
+    'autoria única de Leonardo Chalhoub, com 13 figuras vetoriais ' +
+    'incluindo 2 mapas, comparação OCDE/EUA/Japão e cross-vertical PBF. ' +
+    'PARA SUBIR a mestrado falta cruzamento CNES×SIH-AIH (oferta vs ' +
+    'uso efetivo), identificação causal e peer review formal.',
   utilidadeSocial:
-    'EXTREMAMENTE ÚTIL — utilidade clinicamente concreta. (a) ' +
-    'Movimento Disorders Society Brazil pode usar o panorama atualizado ' +
-    'de RM/UF para argumentar com Ministério da Saúde; (b) gestores de ' +
-    'Secretarias de Saúde regionais (especialmente AM, RR, PI, AC, ' +
-    'abaixo da metade da mediana OCDE) têm dados para advocacia; (c) ' +
-    'neurologistas em centros de referência têm benchmark para ' +
-    'demonstrar gap de capacidade diagnóstica para parkinsonismos ' +
-    'atípicos; (d) jornalismo de saúde tem séries auditáveis em vez ' +
-    'de estatísticas estáticas dos DATASUS releases. O cruzamento ' +
-    'com a carga estimada de DP por UF (1,25 milhão de casos projetados ' +
-    'até 2060) é diretamente relevante para planejamento de oferta ' +
-    'futura. Reduz custo marginal de pesquisa em saúde pública sobre ' +
-    'um tema com 535 mil pacientes hoje no Brasil.',
+    'EXTREMAMENTE ÚTIL — utilidade clinicamente concreta. (a) Movement ' +
+    'Disorders Society Brazil pode usar o panorama atualizado de RM/UF ' +
+    'para argumentar com Ministério da Saúde; (b) gestores de ' +
+    'Secretarias de Saúde regionais (especialmente AM, RR, PI, AC, AP, ' +
+    'TO — abaixo da metade da mediana OCDE) têm mapas coropléticos ' +
+    'auditáveis para advocacia; (c) neurologistas em centros de ' +
+    'referência têm benchmark para demonstrar gap de capacidade ' +
+    'diagnóstica para parkinsonismos atípicos; (d) jornalismo de saúde ' +
+    'tem séries auditáveis e mapas reproduzíveis em vez de estatísticas ' +
+    'estáticas dos releases DATASUS. O cruzamento com a carga estimada ' +
+    'de DP por UF (1,25 milhão de casos projetados até 2060) é ' +
+    'diretamente relevante para planejamento de oferta futura. Reduz ' +
+    'custo marginal de pesquisa em saúde pública sobre um tema com ' +
+    '535 mil pacientes hoje no Brasil.',
   pontosFortes: [
-    'Working Paper #4 publicado em ABNT com 12 figuras matplotlib vetoriais',
-    'Coautoria com pesquisador clínico (A. M. Rolim, manuscrito original abr/2026) — modelo de integração engenheiro+médico',
-    'Cobertura ampla: 99 equipamentos diferentes, todas as UFs, 2013-2025',
-    'Pipeline robusto com cache idempotente em conversão DBC→Parquet',
+    'Working Paper #4 v2.1 publicado em ABNT com 13 figuras matplotlib vetoriais, incluindo DOIS mapas coropléticos por UF',
+    'Mapa 1: RM/Mhab por UF — gradiente Norte/Sudeste visual e auditável vs mediana OCDE 2021 (≈17/Mhab)',
+    'Mapa 2: densidade combinada do stack neuroimagem-PD (RM + CT + PET/CT + Gama Câmara) — síntese inédita',
+    'Cobertura ampla: 4 modalidades CNES, todas as 27 UFs, 2013–2025 (13 anos)',
+    'Pipeline robusto com cache idempotente em conversão DBC→Parquet e dicionário canônico de 133 (TIPEQUIP, CODEQUIP)→equipamento',
     'Per capita normalizado por população IBGE — comparações inter-UF válidas',
     'Multi-seleção client-side com re-agregação correta (totais somam, taxas recalculam)',
-    'Split SUS/Privado preserva a dimensão pública vs privada (relevante pra saúde coletiva)',
-    'Discussão de iniquidade estrutural (CV estável apesar do crescimento agregado) é insight original e fundamentado',
-    'Bibliografia clínica sólida: ELSI-Brazil, MDS-PD criteria, Saba et al. consensus, GBD 2021',
+    'Split SUS/Privado preserva a dimensão pública vs privada — relevante a saúde coletiva',
+    'Discussão de iniquidade estrutural (CV inter-UF estável apesar do crescimento agregado) é insight original e fundamentado',
+    'Bibliografia clínica sólida: ELSI-Brazil, MDS-PD criteria, Schwarz et al. (swallow-tail), Postuma et al., GBD 2021',
+    'Cross-vertical PBF: correlação ρ entre dependência de Bolsa Família (proxy de pobreza) e densidade de neuroimagem por UF — usa a plataforma multi-vertical do Mirante',
+    'Versão v2.1 honrou crítica do revisor: removeu figuras degeneradas (uma única barra cada, refletindo schema CNES) e atribuição imprecisa do manuscrito v0',
   ],
   problemasParaNotaPlena: [
-    'Estimativa de carga PD por UF é simplificada (pop × 0,33%, ignora variação inter-UF na pirâmide etária)',
+    'Estimativa de carga PD por UF é simplificada (pop × 0,33% como proxy de prevalência ELSI-Brazil — ignora variação inter-UF na pirâmide etária)',
     'Análise OCDE descritiva — sem teste de significância sobre comparações internacionais',
-    'Sem análise de produção SIH-AIH para mensurar uso EFETIVO dos equipamentos cadastrados',
+    'Sem análise de produção SIH-AIH para mensurar uso EFETIVO dos equipamentos cadastrados (parque CADASTRADO ≠ OPERACIONAL)',
+    'Subcategorias por intensidade de campo magnético (CODEQUIP=32-35) e canais de CT (CODEQUIP=26-30) ainda não são preenchidas pelos cadastradores — análise por Tesla requer fontes externas (ABRADIC)',
   ],
   problemasParaSubirNivel: [
     'Para mestrado: peer review (submeter a Cad Saúde Pública, RBSP ou Lancet Reg Health Am)',
     'Cruzar CNES (oferta) com SIH-AIH ou SIA-AIH (uso) para diferenciar parque CADASTRADO vs OPERACIONAL',
     'Validar empiricamente se a iniquidade per capita de RM correlaciona com atraso diagnóstico de PD por UF',
-    'Estender análise para tomografia (codequip=26), PET (44/47) e outros equipamentos relevantes a doenças neurodegenerativas',
+    'Identificação causal: explorar EC 86 (orçamento impositivo) ou PNAB (atenção primária) como descontinuidades para estimar efeito de financiamento sobre densidade de equipamentos',
   ],
   proximosPassos: [
     'Submeter WP #4 a Cad Saúde Pública ou Lancet Reg Health Am — peer review é o próximo nível',
-    'Cruzar com SIH-AIH para análise de uso efetivo (proc realizados em RM por UF)',
-    'Adicionar codequips correlatos (tomografia, PET) ao mesmo recorte → série de WPs sobre neuroimagem no SUS',
+    'Cruzar com SIH-AIH para análise de uso efetivo (procedimentos realizados em RM por UF)',
+    'Complementar fonte oficial CNES com estimativas externas (ABRADIC) para resolver granularidade clínica por Tesla',
     'Validação clínica: parceria com algum movement disorder center (Hospital São Paulo, HC-FMRP) para correlacionar disponibilidade local vs tempo até diagnóstico',
   ],
 };
@@ -428,9 +438,8 @@ export const PARECER_RAIS = {
 // de pesquisa multi-vertical com escala Big Data real, pipeline-como-código,
 // arquitetura distribuída em produção.
 //
-// Conceito atual (após WP#4 publicado): A- (entre A e B; computado como B
-// porque ainda não há peer review e a contribuição metodológica original
-// segue restrita). Para virar A pleno: peer review (1+ submissão a
+// Conceito atual (pós WP#4 v2.1 — autoria única + 2 mapas coropléticos):
+// B+ (entre A e B). Para virar A pleno: peer review (1+ submissão a
 // periódico relevante) + contribuição metodológica original mensurável.
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_GLOBAL = {
@@ -441,8 +450,8 @@ export const PARECER_GLOBAL = {
   scoreOriginal: null,
   originalLabel: null,
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T23:00 BRT`,
-  versao: '3.0 — pós WP #3 (cross-vertical UroPro × PBF × Emendas) + WP #5 (UroPro vertical-only)',
+  ultimaAtualizacao: `${HOJE}T11:45 BRT`,
+  versao: '3.1 — WP#4 v2.1 (autoria única + 2 mapas coropléticos)',
   resumoCalibragem:
     'Avaliação MACRO do projeto inteiro (não de uma vertical isolada). ' +
     'Esta é a única avaliação do projeto que excede o teto lato sensu — ' +
@@ -453,26 +462,28 @@ export const PARECER_GLOBAL = {
     '11.048 arquivos DBC), em arquitetura medallion sobre Apache Spark + ' +
     'Delta Lake + Databricks Unity Catalog, com pipelines-como-código, ' +
     'CI/CD multi-camada e front-end React renderizando microdados ' +
-    'consolidados em tempo real. Pós WP #3 (Acesso desigual: cirurgia ' +
-    'uroginecológica × pobreza × emendas, abr/2026) + WP #5 (UroPro ' +
-    'vertical-only 2008-2025), o projeto soma CINCO Working Papers em ' +
+    'consolidados em tempo real. O projeto soma CINCO Working Papers em ' +
     'ABNT escritos: WP #1 (Emendas), WP #2 (Bolsa Família), WP #3 ' +
-    '(cross-vertical UroPro × PBF × Emendas), WP #4 (Equipamentos-RM × ' +
-    'Parkinson, coautoria A. M. Rolim) e WP #5 (UroPro 17 anos). TRÊS ' +
-    'modelos de contribuição metodológica genuína se consolidam agora: ' +
-    '(a) "engenharia + clínica em coautoria" (WP #4 com Rolim, integrando ' +
-    'saber clínico com infraestrutura de dados); (b) "análise ' +
-    'cross-vertical sobre arquitetura unificada" (WP #3 cruza três ' +
-    'verticais — UroPro, PBF, Emendas — possível APENAS porque os ' +
-    'pipelines passam pela mesma arquitetura medalhão); (c) ' +
-    '"auditabilidade pública do dado processado" (descoberta e correção ' +
-    'transparente do bug silver na vertical UroPro, commit fa869cf ' +
-    'abr/2026 — filtro _ingest_ts == max derrubava 73% das linhas e 14 ' +
-    'das 27 UFs, documentado em primeira pessoa nos próprios papers). ' +
-    'Conceito sobe de B para B+ por essas três contribuições metodológicas ' +
-    'demonstradas e pela consolidação de cinco Working Papers escritos. ' +
-    'O teto A continua condicionado a peer review formal (submissão a ' +
-    'periódico indexado) e identificação causal explícita.',
+    '(cross-vertical UroPro × PBF × Emendas), WP #4 (Neuroimagem × ' +
+    'Parkinson, autoria de Leonardo Chalhoub) e WP #5 (UroPro 17 anos). ' +
+    'Atualização v3.1 (abr/2026): o WP#4 foi revisado para v2.1 — ' +
+    'removida atribuição imprecisa de coautoria (o manuscrito clínico ' +
+    'original era a v0 do artigo, não merecia citação separada), ' +
+    'adicionados DOIS mapas coropléticos por UF (RM/Mhab e densidade ' +
+    'combinada do stack neuroimagem-PD) e removidas duas figuras ' +
+    'degeneradas que refletiam apenas limitação do schema CNES. DOIS ' +
+    'modelos de contribuição metodológica genuína permanecem ' +
+    'consolidados: (a) "análise cross-vertical sobre arquitetura ' +
+    'unificada" (WP #3 cruza três verticais — UroPro, PBF, Emendas — ' +
+    'possível APENAS porque os pipelines passam pela mesma arquitetura ' +
+    'medalhão); (b) "auditabilidade pública do dado processado" ' +
+    '(descoberta e correção transparente do bug silver na vertical ' +
+    'UroPro, commit fa869cf abr/2026 — filtro _ingest_ts == max ' +
+    'derrubava 73% das linhas e 14 das 27 UFs, documentado em primeira ' +
+    'pessoa nos próprios papers). Conceito permanece B+ na régua ' +
+    'mestrado: cinco WPs escritos, plataforma sólida, mas o teto A ' +
+    'continua condicionado a peer review formal (submissão a periódico ' +
+    'indexado) e identificação causal explícita.',
   utilidadeSocial:
     'EXTREMAMENTE ÚTIL E AMPLAMENTE APLICÁVEL. O Mirante é uma plataforma ' +
     'que reduz drasticamente o custo marginal de pesquisa em dados ' +
@@ -516,13 +527,16 @@ export const PARECER_GLOBAL = {
       'não rodou (URL fix recente).',
     'CINCO Working Papers em ABNT escritos: Emendas WP#1, Bolsa Família ' +
       'WP#2, Acesso desigual cross-vertical UroPro × PBF × Emendas WP#3, ' +
-      'Equipamentos-RM × Parkinson WP#4 (coautoria A. M. Rolim) e UroPro ' +
-      '17-anos WP#5. Compilação em CI via xu-cheng/latex-action sobre ' +
-      'cada .tex em padrão ABNT. Padrão acadêmico real, não rascunho.',
-    'Modelo de coautoria engenheiro-clínico demonstrado no WP#4: pesquisa ' +
-      'clínica original (manuscrito Rolim sobre epidemiologia DP no Brasil) ' +
-      '+ camada de engenharia de dados Mirante. Replicável a outras ' +
-      'agendas de saúde pública.',
+      'Neuroimagem × Parkinson WP#4 v2.1 (autoria única, com 2 mapas ' +
+      'coropléticos por UF) e UroPro 17 anos WP#5. Compilação em CI via ' +
+      'xu-cheng/latex-action sobre cada .tex em padrão ABNT. Padrão ' +
+      'acadêmico real, não rascunho.',
+    'WP#4 v2.1 atualizado em abril/2026: dois MAPAS COROPLÉTICOS por UF ' +
+      '(RM/Mhab e densidade combinada do stack neuroimagem-PD = RM + CT + ' +
+      'PET/CT + Gama Câmara) tornam o gradiente Norte/Sudeste de ' +
+      'capacidade diagnóstica visual e auditável. Mapas são essenciais ' +
+      'em saúde coletiva — versão anterior tinha gráficos descritivos ' +
+      'mas faltava cartografia, lacuna agora resolvida.',
     'Modelo de análise cross-vertical demonstrado no WP#3 (Acesso ' +
       'desigual): cruzamento de TRÊS verticais (UroPro × PBF × Emendas) ' +
       'sobre a mesma arquitetura medalhão, com correlações ρ ≈ -0,68 ' +
@@ -574,7 +588,7 @@ export const PARECER_GLOBAL = {
   proximosPassos: [
     'Implementar UMA identificação causal exploratória em qualquer vertical ' +
       '(BF transição PBF→AB é o mais óbvio; recomendo RDD com ±90 dias)',
-    'Submeter Working Paper #1 (Emendas) ou WP #4 (Equipamentos-RM × Parkinson) a RAP / RBE / Cad Saúde Pública (ciclo de revisão ' +
+    'Submeter Working Paper #1 (Emendas) ou WP #4 (Neuroimagem × Parkinson, v2.1) a RAP / RBE / Cad Saúde Pública (ciclo de revisão ' +
       '~6-12 meses, mas dá tempo no horizonte de 1 ano)',
     'Escrever ARCHITECTURE.md público explicitando todos os tradeoffs ' +
       'engineering (Delta vs Iceberg, Auto Loader vs batch, Free Edition ' +
