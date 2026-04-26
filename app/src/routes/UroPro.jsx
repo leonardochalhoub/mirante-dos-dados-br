@@ -24,7 +24,7 @@ import Panel          from '../components/Panel';
 import KpiCard        from '../components/KpiCard';
 import BrazilMap      from '../components/BrazilMap';
 import StateRanking   from '../components/StateRanking';
-import EvolutionBar   from '../components/charts/EvolutionBar';
+import EvolutionStackedByKey from '../components/charts/EvolutionStackedByKey';
 import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
@@ -73,6 +73,12 @@ const METRICS = {
 };
 const DEFAULT_METRIC = 'n_aih';
 const DEFAULT_COLOR  = 'Cividis';
+
+// Métricas em que a soma entre procedimentos faz sentido (count/value/rate).
+// Para weighted-averages (dias_perm_avg, val_tot_avg_2021), o stacked ainda
+// mostra cada proc como segmento — útil visualmente — mas não exibimos o
+// label de "total" no topo, que seria matematicamente enganoso.
+const SUM_METRICS = new Set(['n_aih', 'val_tot_2021', 'n_aih_por100k']);
 
 export default function UroPro() {
   const { theme } = useTheme();
@@ -165,16 +171,27 @@ export default function UroPro() {
     return { totalAih, totalVal, totalDeaths, dias_avg, mort, valPerAih };
   }, [rows, year, selectedProcs]);
 
+  // Per-procedure breakdown for stacked evolution chart.
+  // Cada ano vira { year, [proc1]: value, [proc2]: value, ... } onde value
+  // é o agregado nacional do proc nesse ano (mesma semântica do chart antigo,
+  // mas decomposto por procedimento ao invés de somado).
   const evolutionData = useMemo(() => {
     if (!rows) return [];
-    const sel = new Set(selectedProcs);
     return years.map((y) => {
-      const yr = rows.filter((r) => r.ano === y && sel.has(r.proc_rea));
-      // For per-100k, use national totals divided by national pop
-      const value = aggregateForMetric(yr, metricKey, /*nationwide*/ true);
-      return { year: String(y), value };
+      const entry = { year: String(y) };
+      for (const proc of selectedProcs) {
+        const yr = rows.filter((r) => r.ano === y && r.proc_rea === proc);
+        entry[proc] = aggregateForMetric(yr, metricKey, /*nationwide*/ true);
+      }
+      return entry;
     });
   }, [rows, years, selectedProcs, metricKey]);
+
+  // Keys para o stacked: ordem = ordem de selectedProcs, label vem de PROCEDURES.
+  const evolutionKeys = useMemo(
+    () => selectedProcs.map((proc) => ({ key: proc, label: PROCEDURES[proc].label })),
+    [selectedProcs],
+  );
 
   if (error) return <div className="error-block">Erro ao carregar dados: {error}</div>;
 
@@ -297,14 +314,30 @@ export default function UroPro() {
                 </div>
               </Panel>
 
-              <Panel label="Evolução nacional" sub={metric.label} exportId="uropro-evolucao">
-                <EvolutionBar
+              <Panel
+                label="Evolução nacional"
+                exportId="uropro-evolucao"
+                right={
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, lineHeight: 1.4 }}>
+                    <span className="panelSub">{metric.label}</span>
+                    <span
+                      style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'right', maxWidth: 380 }}
+                      title="Autorização de Internação Hospitalar — documento do SIH-SUS, base de pagamento; 1 AIH = 1 internação aprovada"
+                    >
+                      <b>AIH</b> = Autorização de Internação Hospitalar (1 AIH = 1 internação aprovada no SIH-SUS)
+                    </span>
+                  </div>
+                }
+              >
+                <EvolutionStackedByKey
                   data={evolutionData}
+                  keys={evolutionKeys}
                   theme={theme}
                   yLabel={metric.yaxisTitle}
                   xLabel="Ano"
                   format={metric.fmt}
                   height={320}
+                  showTotalLabel={SUM_METRICS.has(metricKey)}
                 />
               </Panel>
             </div>
