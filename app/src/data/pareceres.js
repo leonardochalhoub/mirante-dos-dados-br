@@ -355,24 +355,25 @@ export const PARECER_RAIS = {
   scoreType: 'numeric',
   scoreNumeric: 6.8,
   scoreOriginal: 8.0,
-  originalLabel: 'Monografia UFRJ MBA, 2023, régua MBA',
+  originalLabel: 'Monografia UFRJ MBA, 2023 — régua lato sensu, avaliação IA',
   originalUrl: 'https://github.com/leonardochalhoub/CodingMBA_UFRJ/raw/main/Monografia_LeonardoChalhoub.pdf',
   ultimaAtualizacao: `${HOJE}T18:00 BRT`,
   versao: '0.2 — pipeline scaffold',
   resumoCalibragem:
-    'CONTEXTO HISTÓRICO: o autor foi REPROVADO 2 vezes na banca da ' +
-    'monografia antes de obter aprovação na terceira tentativa, com a ' +
-    'nota 8,0. Essa trajetória é parte do mérito do trabalho original: ' +
-    'a versão final passou por dois ciclos completos de revisão crítica ' +
-    'e refeitura sob exigência de banca. — Avaliado como Lato sensu ' +
-    '(deriva do MBA do autor, 2023). A nota original 8,0 da monografia ' +
-    'foi atribuída em régua MBA. O vertical RAIS herda essa base, ' +
-    'ganha pontos por infraestrutura aberta e reprodutível, mas ainda ' +
-    'não entregou nenhuma extensão substantiva — sem dados rodados, ' +
-    'sem .tex escrito, sem método novo. 6,8 lato sensu reflete isso. ' +
-    'Subir para 8,0 lato sensu exige resultados empíricos REAIS na ' +
-    'plataforma Mirante; subir para mestrado exige contribuição ' +
-    'metodológica original — não basta replicar.',
+    'CONTEXTO HISTÓRICO: o autor foi REPROVADO 2 vezes na banca real ' +
+    'da monografia antes de obter aprovação. A nota 8,0 mostrada como ' +
+    '"Score original" NÃO é a nota da banca — é a avaliação posterior ' +
+    'desta monografia, em régua lato sensu, dada pela IA do próprio ' +
+    'projeto Mirante (Claude Opus, modo professor de programa de ' +
+    'mestrado/doutorado). Ou seja: a IA reavalia a monografia hoje em ' +
+    '8,0; a banca histórica reprovou duas vezes antes de aprovar. — ' +
+    'Avaliado como Lato sensu (deriva do MBA do autor, 2023). O vertical ' +
+    'RAIS Mirante herda essa base, ganha pontos por infraestrutura aberta ' +
+    'e reprodutível, mas ainda não entregou nenhuma extensão substantiva ' +
+    '— sem dados rodados, sem .tex escrito, sem método novo. 6,8 lato ' +
+    'sensu reflete isso. Subir para 8,0 lato sensu exige resultados ' +
+    'empíricos REAIS na plataforma Mirante; subir para mestrado exige ' +
+    'contribuição metodológica original — não basta replicar.',
   utilidadeSocial:
     'UTILIDADE CONDICIONAL. RAIS Vínculos Públicos é a base de microdados ' +
     'mais completa sobre emprego formal no Brasil — base para estudos de ' +
