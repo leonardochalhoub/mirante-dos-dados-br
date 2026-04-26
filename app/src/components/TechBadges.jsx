@@ -1,11 +1,11 @@
-// "Powered by Apache Spark + Delta Lake" strip.
+// "Powered by Apache Spark + Delta Lake + Claude Code" strip.
 // Used in two places:
 //   - inline next to DownloadActions on each vertical page (compact pill)
-//   - large two-card stack on the Home hero
+//   - large logo cards on the Home hero
 //
-// Theme-aware Delta logo: we ship two variants of the official asset (one with
-// dark wordmark for light bg, one with white wordmark for dark bg) and swap via
-// the useTheme hook. Cleaner than CSS color hacks on inline-injected SVG.
+// Theme-aware: cada logo cuja wordmark é texto colorido tem 2 variantes
+// (light bg / dark bg) e troca via useTheme. O símbolo do Spark é
+// monocromático colorido (laranja), funciona em ambos os modos.
 
 import { useTheme } from '../hooks/useTheme';
 
@@ -13,7 +13,8 @@ const base       = import.meta.env.BASE_URL;
 const sparkSrc   = `${base}spark-logo.svg`.replace(/\/{2,}/g, '/');
 const deltaLight = `${base}delta-lake-logo-light.svg`.replace(/\/{2,}/g, '/');
 const deltaDark  = `${base}delta-lake-logo-rev.svg`.replace(/\/{2,}/g, '/');
-const claudeSrc  = `${base}claude-code-logo.svg`.replace(/\/{2,}/g, '/');
+const claudeLight = `${base}claude-code-logo.svg`.replace(/\/{2,}/g, '/');
+const claudeDark  = `${base}claude-code-logo-rev.svg`.replace(/\/{2,}/g, '/');
 
 function DeltaLogo({ className, height }) {
   const { theme } = useTheme();
@@ -22,6 +23,19 @@ function DeltaLogo({ className, height }) {
     <img
       src={src}
       alt="Delta Lake"
+      className={className}
+      style={height ? { height, width: 'auto' } : undefined}
+    />
+  );
+}
+
+function ClaudeLogo({ className, height }) {
+  const { theme } = useTheme();
+  const src = theme === 'dark' ? claudeDark : claudeLight;
+  return (
+    <img
+      src={src}
+      alt="Claude Code"
       className={className}
       style={height ? { height, width: 'auto' } : undefined}
     />
@@ -42,7 +56,7 @@ export default function TechBadges() {
       <span className="tech-badges-sep">·</span>
       <a href="https://www.anthropic.com/claude-code" target="_blank" rel="noreferrer"
          title="Pipelines, infra e código construídos com Claude Code (Anthropic)">
-        <img src={claudeSrc} alt="Claude Code" />
+        <ClaudeLogo />
       </a>
     </div>
   );
@@ -51,4 +65,9 @@ export default function TechBadges() {
 // Larger Delta logo for the Home hero. Same theme switch under the hood.
 export function DeltaLogoLarge({ height = 56 }) {
   return <DeltaLogo height={height} />;
+}
+
+// Larger Claude Code logo for the Home hero.
+export function ClaudeLogoLarge({ height = 56 }) {
+  return <ClaudeLogo height={height} />;
 }

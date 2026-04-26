@@ -4,9 +4,9 @@
     <path d="M 0 -12 L 0 12 M -10.4 -6 L 10.4 6 M -10.4 6 L 10.4 -6"
           stroke="#D97757" stroke-width="3" stroke-linecap="round" fill="none"/>
   </g>
-  <!-- Wordmark — DARK for light background -->
+  <!-- Wordmark — WHITE for dark background -->
   <text x="32" y="32"
         font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif"
         font-size="20" font-weight="600" letter-spacing="-0.01em"
-        fill="#0f172a">Claude Code</text>
+        fill="#ffffff">Claude Code</text>
 </svg>
