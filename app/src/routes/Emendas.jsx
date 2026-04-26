@@ -68,8 +68,12 @@ export default function Emendas() {
   useEffect(() => {
     loadGold('gold_emendas_estados_df.json')
       .then((all) => {
-        setRows(all);
-        const last = Math.max(...all.map((r) => r.Ano));
+        // Cap a anos completos (Jan-Dez). O CSV CGU consolidado é atualizado
+        // continuamente durante o ano corrente — só comparamos anos cheios.
+        const currentYear = new Date().getFullYear();
+        const fullYears = all.filter((r) => r.Ano != null && r.Ano < currentYear);
+        setRows(fullYears);
+        const last = Math.max(...fullYears.map((r) => r.Ano));
         setYear(String(last));
       })
       .catch((e) => setError(e.message));

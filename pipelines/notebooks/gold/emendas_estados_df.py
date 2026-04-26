@@ -38,7 +38,21 @@ silver = spark.read.table(SILVER_EMENDAS)
 pop    = spark.read.table(SILVER_POP).select("Ano", "uf", "populacao")
 defl   = spark.read.table(SILVER_DEFL).select("Ano", "deflator_to_2021")
 
-silver_n = silver.count()
+# Defesa em profundidade: o silver já dropa o ano corrente (Ano <
+# year(current_date)) porque a CSV consolidada CGU é atualizada
+# continuamente durante o ano. Replicamos o filtro no gold para que,
+# se o silver estiver stale (sem refresh recente), o gold ainda
+# apresente apenas anos completos (Jan-Dez). Política idêntica em
+# silver/pbf_total_uf_mes.py e silver/sih_uropro_uf_ano.py.
+current_year = spark.sql("SELECT year(current_date()) AS y").first()["y"]
+n_pre = silver.count()
+silver = silver.where(F.col("Ano") < F.lit(current_year))
+n_post = silver.count()
+if n_post < n_pre:
+    print(f"⚠ gold dropou {n_pre - n_post} linhas com Ano >= {current_year} "
+          f"(ano corrente, parcial — CGU consolidado é atualizado durante o ano)")
+
+silver_n = n_post
 print(f"silver_emendas rows={silver_n:,}  pop rows={pop.count()}  defl rows={defl.count()}")
 
 # Defensive: silver pode estar vazia se o ingest CGU falhou ou se a bronze
