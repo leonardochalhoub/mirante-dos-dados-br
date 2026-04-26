@@ -1,18 +1,22 @@
 % =====================================================================
 % Mirante dos Dados — Working Paper #4
-% Cirurgia uroginecológica no SUS, 2008–2025: ganhos silenciosos de
-% eficiência, desigualdade territorial persistente, choque pandêmico
-% e represa cirúrgica.
+% Acesso desigual: cirurgia uroginecológica no SUS como indicador de
+% pobreza estrutural e os limites da compensação fiscal por emendas
+% parlamentares (2008–2025).
 %
 % Autor:  Leonardo Chalhoub (engenharia de dados, análise, redação)
-% Versão: 1.0  —  Abril de 2026
+% Versão: 2.0  —  Abril de 2026
 % Compilação: pdflatex articles/uropro-serie-2008-2025.tex (2x)
 %
-% Este Working Paper é um seguimento de CHALHOUB & DA SILVA (2026,
-% Working Paper n. 3), que por sua vez derivou da especialização de
-% TATIELI (2022). O escopo aqui é mais amplo (2008–2025), foca em
-% dinâmicas longitudinais e incorpora a correção da pipeline silver
-% (bug de _ingest_ts identificado e resolvido em abril/2026).
+% Este Working Paper é um seguimento de DA SILVA & CHALHOUB (2026c,
+% Working Paper n. 3, derivado de TATIELI 2022). O escopo aqui é
+% deliberadamente diferente: usa-se a cirurgia uroginecológica como
+% INDICADOR LIMPO de oferta hospitalar especializada (procedimento
+% eletivo, seguro, bem definido em SIGTAP) e cruza-se com agregados
+% por UF do Programa Bolsa Família (Mirante WP n. 2) e da execução
+% de Emendas Parlamentares (Mirante WP n. 1) para responder uma
+% pergunta de federalismo: pobreza estrutural produz desigualdade
+% de acesso, e o fluxo fiscal político compensa essa desigualdade?
 % =====================================================================
 
 \documentclass[12pt,a4paper,oneside]{article}
@@ -58,28 +62,30 @@
   \begin{center}
     \vspace*{1.5cm}
     {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 4}}\\
-    {\small Versão 1.0 \textemdash{} Abril de 2026}
+    {\small Versão 2.0 \textemdash{} Abril de 2026}
 
     \vfill
 
     {\LARGE\bfseries
-     CIRURGIA UROGINECOLÓGICA NO SISTEMA
-     ÚNICO DE SAÚDE, 2008\textendash 2025:
-     GANHOS SILENCIOSOS DE EFICIÊNCIA,
-     DESIGUALDADE TERRITORIAL PERSISTENTE,
-     CHOQUE PANDÊMICO E REPRESA CIRÚRGICA}
+     ACESSO DESIGUAL:
+     CIRURGIA UROGINECOLÓGICA NO SUS
+     COMO INDICADOR DE POBREZA ESTRUTURAL
+     E OS LIMITES DA COMPENSAÇÃO FISCAL
+     POR EMENDAS PARLAMENTARES
+     (2008\textendash 2025)}
 
     \vspace{1cm}
     {\large\itshape
-     Uro-gynecological surgery under Brazil's Unified Health System,
-     2008\textendash 2025: silent efficiency gains, persistent
-     territorial inequality, pandemic shock and surgical backlog}
+     Unequal access: uro-gynecological surgery in Brazil's Unified
+     Health System as an indicator of structural poverty and the
+     limits of political-fiscal compensation through parliamentary
+     amendments, 2008\textendash 2025}
 
     \vfill
 
     {\large\textbf{Leonardo Chalhoub}\textsuperscript{1}}\\[6pt]
-    {\small\textsuperscript{1}\,Engenheiro de Dados \textemdash{}
-     análise quantitativa, pipeline aberto, redação.}\\[6pt]
+    {\small\textsuperscript{1}\,Engenharia de Dados \textemdash{}
+     análise quantitativa, integração entre verticais, redação.}\\[6pt]
     {\small\href{mailto:leonardochalhoub@gmail.com}{leonardochalhoub@gmail.com}
      \quad\textbullet\quad
      \href{https://github.com/leonardochalhoub}{github.com/leonardochalhoub}}
@@ -87,13 +93,18 @@
     \vfill
 
     \rule{0.6\linewidth}{0.4pt}\\[6pt]
-    {\small\textit{Este artigo é o quarto da série de Working Papers do
-     Mirante dos Dados. Continua e estende DA SILVA \& CHALHOUB
-     (2026c, Working Paper n. 3), que por sua vez se assenta sobre
-     a especialização em Enfermagem de TATIELI (2022). O recorte
-     amplia-se para a janela 2008\textendash 2025 (dezessete anos),
-     dedicada à dinâmica longitudinal de eficiência, equidade e
-     resiliência.}}
+    {\small\textit{Este artigo é o quarto Working Paper do Mirante dos
+     Dados. Diferentemente da maioria dos papers da série, que
+     analisa uma vertical isoladamente, este é um trabalho
+     deliberadamente \textbf{transversal}: usa a vertical UroPro
+     (cirurgia uroginecológica) como indicador clínico de oferta
+     hospitalar e cruza com as verticais Bolsa Família (cobertura
+     PBF como proxy de pobreza estrutural) e Emendas Parlamentares
+     (execução por UF como proxy de fluxo fiscal político) para
+     interrogar a relação federalista entre pobreza, fluxo
+     compensatório e acesso a serviços públicos especializados.
+     Continua e estende DA SILVA \& CHALHOUB (2026c, Working
+     Paper n. 3, derivado de TATIELI 2022).}}
 
     \vspace{1cm}
     {\footnotesize
@@ -111,65 +122,67 @@
 \addcontentsline{toc}{section}{Resumo}
 % =====================================================================
 \begin{singlespace}\small\noindent
-\textbf{Objetivo.} Caracterizar a evolução longitudinal do tratamento
-cirúrgico da incontinência urinária no Sistema Único de Saúde
-brasileiro entre 2008 e 2025, com foco em três dinâmicas: a queda
-contínua da permanência hospitalar (ganho silencioso de eficiência);
-a desigualdade territorial no acesso, agora visível para todas as
-27 unidades da federação após correção do pipeline; e o efeito
-disruptivo da pandemia de COVID-19 seguido de uma represa cirúrgica
-visível em 2024\textendash 2025.
+\textbf{Objetivo.} Investigar se a desigualdade territorial de
+acesso à cirurgia uroginecológica no SUS reflete pobreza
+estrutural por UF e se o fluxo fiscal compensatório
+\textemdash{} representado pela execução de emendas parlamentares
+\textit{per capita} \textemdash{} corrige, atenua ou agrava esse
+gradiente. A cirurgia para tratamento da incontinência urinária
+é usada como \textit{indicador clínico} pela conjunção de três
+propriedades: é eletiva (sensível à oferta hospitalar), é
+clinicamente segura (mortalidade abaixo de 0{,}05\,\%, removendo
+o risco como variável de seleção) e tem definição operacional
+estável via SIGTAP.
 
-\textbf{Métodos.} Microdados SIH-AIH-RD do DATASUS para os
+\textbf{Métodos.} Dados de três verticais do Mirante dos Dados:
+(i) UroPro \textemdash{} microdados SIH-AIH-RD/DATASUS,
 procedimentos SIGTAP 0409010499 (via abdominal) e 0409070270
-(via vaginal), filtrados a partir do conjunto cru e agregados pela
-arquitetura medalhão (\textit{bronze}\,/\,\textit{silver}\,/\,\textit{gold})
-no Mirante dos Dados. Despesas deflacionadas pelo IPCA (BCB) para
-\rs 2021. Populações estaduais do IBGE/SIDRA. O pipeline foi
-auditado e tem reprodutibilidade pública: artefato Delta, código
-no GitHub e exportação JSON versionada no repositório.
+(via vaginal), 2008\textendash 2025; (ii) Bolsa Família \textemdash{}
+agregados estaduais de beneficiários e valores transferidos,
+2013\textendash 2025; (iii) Emendas Parlamentares \textemdash{}
+execução orçamentária por UF (RP6, RP7, RP9), 2014\textendash 2025.
+Despesas deflacionadas por IPCA (BCB) para \rs 2021. Populações
+do IBGE/SIDRA. As três fontes passam pela mesma arquitetura
+medalhão (\textit{bronze}\,/\,\textit{silver}\,/\,\textit{gold})
+do Mirante; o \textit{gold} de cada vertical é exportado em
+JSON versionado no repositório aberto.
 
-\textbf{Resultados.} (i)~A permanência hospitalar média na via
-vaginal caiu de 2{,}39 dias em 2008 para 1{,}43 dia em 2025
-(\textendash 40{,}2\,\%); na via abdominal, de 2{,}47 para
-1{,}81 dia (\textendash 26{,}7\,\%). (ii)~A taxa nacional na via
-vaginal foi de 5\,956 cirurgias\,/\,ano (média 2015\textendash 2019)
-para 2\,539 (média 2020\textendash 2021), uma queda de 57\,\%; em
-2024\textendash 2025 voltou para um patamar (8\,966 e 10\,144) acima
-do pré-pandêmico, sugerindo represa cirúrgica em fase final de
-liquidação. (iii)~A desigualdade territorial é severa: em 2025,
-SC e PR alcançam 14{,}71 e 11{,}61 procedimentos por 100\,mil
-habitantes; PE, AL e RR ficam abaixo de 0{,}75. O cruzamento com
-agregados estaduais do Bolsa Família (Mirante WP n. 2) e das
-Emendas Parlamentares (Mirante WP n. 1) revela que essa
-desigualdade segue de perto o gradiente de pobreza estrutural
-(correlação $\rho \approx -0{,}68$ entre cobertura PBF e
-AIH/100k) e não é compensada por fluxo fiscal político: emendas
-\textit{per capita} são, contraintuitivamente, \textit{maiores}
-nas UFs de menor acesso. (iv)~A mortalidade hospitalar é
-estruturalmente baixa (\textless\,0{,}05\,\% \textit{intra-hospital}),
-reforçando a tese de que o procedimento é seguro e a barreira é
-de oferta, não de risco clínico.
+\textbf{Resultados.} (i)~Em 2025, a taxa de cirurgias
+uroginecológicas por 100\,mil habitantes varia de 14{,}71 (SC)
+a 0{,}14 (RR), uma diferença de aproximadamente 100 vezes.
+(ii)~A correlação de Pearson entre a cobertura PBF
+(\%~da população beneficiária) e o acesso à cirurgia (AIH/100k)
+é de aproximadamente \textendash 0{,}68 sobre as 27 UFs:
+estados mais pobres têm sistematicamente menor acesso.
+(iii)~A execução de emendas parlamentares \textit{per capita}
+correlaciona-se \textit{negativamente} com o acesso à cirurgia
+($\rho \approx -0{,}45$): UFs mais pobres recebem mais emendas
+\textit{per capita}, mas isso não se traduz em ampliação visível
+de oferta cirúrgica especializada. (iv)~Três UFs operam acima
+do esperado dado seu nível de pobreza (TO, AC, MA), sugerindo
+que existem configurações organizacionais locais capazes de
+\textit{driblar} o gradiente. (v)~A pandemia de COVID-19
+amplificou temporariamente, mas não criou, a desigualdade.
+(vi)~A permanência hospitalar caiu 40\,\% na via vaginal entre
+2008 e 2025 (eficiência clínica), evidência de que a barreira
+ao acesso não é técnica.
 
-\textbf{Conclusões.} O período examinado (2008\textendash 2025) é
-marcado por um \textit{trend} positivo de eficiência hospitalar
-(menos dias por internação) que não foi acompanhado por equalização
-territorial. A pandemia
-expandiu temporariamente a desigualdade no acesso e produziu um
-\textit{backlog} cirúrgico cujo escoamento parece estar acontecendo
-em 2024\textendash 2025. A integridade do dado público depende não
-apenas da publicação dos microdados, mas também da qualidade da
-engenharia de dados aplicada \textit{downstream}: documentamos um
-defeito específico de pipeline (filtro de \texttt{\_ingest\_ts})
-descoberto em abril de 2026, capaz de descartar 73\,\% das linhas
-\textit{bronze} \textit{e} 14 das 27 unidades da federação \textit{sem
-qualquer aviso}.
+\textbf{Conclusões.} A desigualdade de acesso à cirurgia
+uroginecológica no SUS é \textit{estrutural} \textendash{}
+acompanha o gradiente de pobreza estadual \textendash{} e
+\textit{não é compensada} pelo mecanismo de emendas
+parlamentares, apesar de seu volume nominal expressivo em UFs
+periféricas. O federalismo brasileiro produz, neste caso,
+universalismo formal e desigualdade material. A hipótese de
+que a transferência fiscal política seja capaz de gerar oferta
+hospitalar especializada deve ser submetida a evidência empírica
+mais cuidadosa, não tratada como axioma.
 
 \vspace{4pt}
-\textbf{Palavras-chave:} SUS; incontinência urinária; cirurgias
-eletivas; pandemia COVID-19; permanência hospitalar; desigualdade
-territorial; arquitetura medalhão; pipeline de dados; represa
-cirúrgica.
+\textbf{Palavras-chave:} SUS; incontinência urinária; cirurgia
+eletiva; equidade em saúde; Bolsa Família; emendas parlamentares;
+federalismo brasileiro; arquitetura medalhão; análise
+\textit{cross-vertical}.
 \end{singlespace}
 
 % =====================================================================
@@ -177,161 +190,227 @@ cirúrgica.
 \addcontentsline{toc}{section}{Abstract}
 % =====================================================================
 \begin{singlespace}\small\noindent
-\textbf{Objective.} To characterize the longitudinal evolution of
-surgical treatment for urinary incontinence in Brazil's Unified
-Health System (SUS) between 2008 and 2025, focusing on three
-dynamics: the continuous decline in hospital length of stay (a
-silent efficiency gain); the territorial inequality of access,
-now visible across all 27 federative units after a pipeline
-correction; and the disruptive effect of the COVID-19 pandemic
-followed by a surgical backlog visible in 2024\textendash 2025.
+\textbf{Objective.} To investigate whether territorial inequality
+in access to uro-gynecological surgery within Brazil's Unified
+Health System (SUS) reflects state-level structural poverty,
+and whether compensatory fiscal flow \textemdash{} represented
+by per-capita execution of parliamentary amendments \textemdash{}
+corrects, attenuates or worsens this gradient. Surgery for
+urinary incontinence is used as a \textit{clinical indicator}
+because it is elective (sensitive to hospital supply), clinically
+safe (in-hospital mortality below 0.05\,\%, removing risk as a
+selection variable) and operationally well-defined under SIGTAP.
 
-\textbf{Methods.} SIH-AIH-RD microdata from DATASUS for SIGTAP
-procedures 0409010499 (abdominal approach) and 0409070270 (vaginal
-approach), filtered from the raw set and aggregated through a
-medallion architecture (\textit{bronze}\,/\,\textit{silver}\,/\,\textit{gold})
-in the open Mirante dos Dados pipeline. Expenditures deflated by
-IPCA (BCB) to \rs 2021. State populations from IBGE/SIDRA.
+\textbf{Methods.} Data from three Mirante dos Dados verticals:
+(i) UroPro \textemdash{} SIH-AIH-RD/DATASUS microdata,
+2008\textendash 2025; (ii) Bolsa Família \textemdash{} per-state
+beneficiary and transfer aggregates, 2013\textendash 2025;
+(iii) Parliamentary Amendments \textemdash{} per-state budget
+execution, 2014\textendash 2025. All deflated to constant 2021
+reais (IPCA, Brazilian Central Bank); state populations from
+IBGE/SIDRA.
 
-\textbf{Results.} Vaginal-route length of stay fell from
-2.39\,days (2008) to 1.43\,days (2025), a 40.2\,\% reduction.
-Volume contracted by 57\,\% in 2020\textendash 2021 vs.
-2015\textendash 2019 baseline and rebounded above the pre-pandemic
-mean in 2024\textendash 2025, evidencing a backlog draining out.
-Per-capita access in 2025 ranges from 14.71/100k (SC) to
-0.14/100k (RR), a 100-fold gap. In-hospital mortality is
-structurally below 0.05\,\%.
+\textbf{Results.} (i)~In 2025, the per-100k surgical rate spans
+14.71 (SC) to 0.14 (RR), a roughly 100-fold gap.
+(ii)~Pearson correlation between PBF coverage and surgical
+access is $\rho \approx -0.68$ across 27 states: poorer states
+have systematically less access. (iii)~Per-capita parliamentary
+amendments correlate \textit{negatively} with surgical access
+($\rho \approx -0.45$): poorer states receive more amendments
+per capita, but this does not translate into visible expansion
+of specialized surgical supply. (iv)~Three states (TO, AC, MA)
+overperform their poverty profile, suggesting that local
+organizational configurations can override the gradient. (v)~The
+COVID-19 pandemic temporarily amplified, but did not create, the
+inequality. (vi)~Hospital length of stay fell 40\,\% on the
+vaginal approach between 2008 and 2025, indicating clinical
+efficiency \textemdash{} the barrier to access is not technical.
 
-\textbf{Conclusions.} A decade of clinical-efficiency gains was
-not matched by territorial equalization. Pandemic shock
-temporarily widened access inequality and produced a backlog
-visibly draining in 2024\textendash 2025. We document a specific
-pipeline defect (\texttt{\_ingest\_ts} filter) discovered in
-April 2026 capable of silently dropping 73\,\% of bronze rows
-and 14 out of 27 federative units, underlining that public-data
-integrity depends on data-engineering quality, not only on
-microdata publication.
+\textbf{Conclusions.} Access inequality is structural,
+poverty-aligned, and not compensated by parliamentary
+amendments. Brazilian federalism here produces formal
+universalism alongside material inequality. The implicit
+assumption that political-fiscal transfer generates specialized
+hospital supply should be subjected to empirical scrutiny, not
+treated as axiom.
 
 \vspace{4pt}
 \textbf{Keywords:} SUS; urinary incontinence; elective surgery;
-COVID-19 pandemic; length of stay; territorial inequality;
-medallion architecture; data pipeline; surgical backlog.
+health equity; Bolsa Família; parliamentary amendments; Brazilian
+federalism; medallion architecture; cross-vertical analysis.
 \end{singlespace}
 
 % =====================================================================
 \section{Introdução}\label{sec:intro}
 % =====================================================================
 
-A incontinência urinária (IU) é hoje uma das condições crônicas
-mais prevalentes na população adulta brasileira, especialmente
-entre mulheres a partir da quarta década de vida. O tratamento
-cirúrgico, indicado em casos refratários ao manejo conservador,
-é majoritariamente provido pelo Sistema Único de Saúde (SUS) em
-hospitais de média e alta complexidade. Esse arranjo institucional
-torna o SUS a fonte primária de qualquer caracterização populacional
-da prática cirúrgica para IU no país.
+O Sistema Único de Saúde brasileiro foi desenhado, na Constituição
+de 1988, sobre o princípio da \textit{universalidade}: a saúde é
+direito de todos e dever do Estado. Em sua execução real, contudo,
+o SUS opera dentro de um federalismo de implementação altamente
+heterogêneo, em que a oferta de serviços de média e alta
+complexidade depende de redes hospitalares estaduais e municipais
+com capacidades muito diferentes entre si. Essa tensão entre
+\textit{universalismo formal} (todos têm direito) e
+\textit{disponibilidade material} (a oferta é desigualmente
+distribuída) é, há décadas, um dos eixos centrais do debate sobre
+política pública de saúde no Brasil.
 
-A literatura clínica internacional consolidou, ao longo dos últimos
-quinze anos, a preferência pelo \textit{sling} sub-uretral
-(via vaginal) sobre as suspensões abdominais clássicas (Burch,
-Marshall-Marchetti-Krantz). Revisões sistemáticas Cochrane (FORD
-\textit{et al.}, 2017) e a declaração de consenso da European
-Association of Urology (CHAPPLE \textit{et al.}, 2020) apontam, com
-evidência de alto nível, que a abordagem vaginal apresenta menor
-tempo cirúrgico, menor permanência hospitalar e taxa de cura
-comparável à abdominal. Como mostraram TATIELI (2022) e DA SILVA
-\& CHALHOUB (2026c), o SUS de fato consolidou essa preferência: a
-razão vaginal:abdominal observada na série SIH-AIH-RD entre 2015 e
-2020 estabilizou-se em torno de 7:1, alinhada à literatura.
+A literatura epidemiológica documenta amplamente o gradiente
+saúde\,/\,pobreza tanto entre regiões quanto entre estratos
+socioeconômicos. O que é menos comum é a quantificação do
+gradiente sobre um \textit{procedimento clínico específico, bem
+definido, eletivo e seguro}. A maior parte das comparações
+estaduais usa indicadores agregados (mortalidade infantil,
+expectativa de vida, cobertura de atenção primária) que
+combinam muitas dimensões de oferta, demanda e composição
+demográfica. Quando se quer interrogar especificamente
+\textit{capacidade hospitalar especializada}, faz sentido adotar
+um indicador clínico mais limpo.
 
-O presente artigo \textit{não} é uma replicação. É uma extensão
-deliberada em três dimensões. Primeiro, o recorte temporal é
-ampliado para 2008\textendash 2025, cobrindo dezessete anos
-\textemdash{} quase duas décadas de prática cirúrgica, com o
-pós-pandemia já em curso de normalização. Segundo, a análise foca
-em três dinâmicas longitudinais que não eram visíveis no recorte
-mais curto: a queda silenciosa da permanência hospitalar, a
-forma assimétrica da recuperação pós-pandêmica entre as unidades
-da federação, e a represa cirúrgica visível em 2024\textendash 2025.
-Terceiro, o artigo documenta com transparência um defeito de
-\textit{pipeline} descoberto em abril de 2026 e responsável por
-ocultar mais de metade das UFs do Brasil em todas as visualizações
-prévias da plataforma. Esse último ponto, à primeira vista
-metodológico, é o que justifica a existência mesma deste paper:
-\textit{os números aqui apresentados são diferentes dos números
-publicados no Working Paper n. 3, e a diferença é causada por uma
-correção de engenharia, não por revisão de fonte.}
+Este artigo propõe usar a \textbf{cirurgia uroginecológica para
+tratamento de incontinência urinária} (procedimentos SIGTAP
+0409010499, via abdominal, e 0409070270, via vaginal) como
+indicador limpo de oferta hospitalar especializada. A escolha é
+deliberada e se justifica por três propriedades:
 
-A pergunta que organiza o texto é: \textit{ao olharmos quase duas
-décadas de prática cirúrgica brasileira para uma única condição
-clínica bem caracterizada, o que enxergamos sobre a capacidade
-do sistema público de produzir simultaneamente eficiência clínica
-e equidade territorial?}
+\begin{enumerate}
+\item \textbf{É eletiva.} Cirurgias eletivas, por definição,
+podem ser adiadas. Se a oferta é insuficiente, o paciente espera;
+se é suficiente, o paciente é operado. O volume observado é,
+portanto, sensível diretamente à oferta hospitalar e não é
+artificialmente sustentado por urgência clínica.
 
-A resposta antecipada é dupla. Por um lado, há ganho real e
-contínuo: a permanência hospitalar média caiu mais de 40\,\% na
-via vaginal entre 2008 e 2025; a mortalidade \textit{intra-hospitalar}
-permanece estruturalmente abaixo de 0{,}05\,\%; a despesa
-deflacionada por procedimento manteve-se relativamente estável
-em moeda constante. Por outro lado, a desigualdade territorial é
-ampla e estável: em 2025, a taxa por 100\,mil habitantes em Santa
-Catarina (14{,}71) é mais de cem vezes maior que em Roraima
-(0{,}14). A pandemia de COVID-19 não criou essa desigualdade,
-mas a explicitou: estados com sistemas hospitalares mais densos
-recuperaram-se rapidamente e ainda escoam represa cirúrgica em
-2024\textendash 2025; estados periféricos sequer voltaram ao
-patamar pré-pandêmico em 2025.
+\item \textbf{É segura.} A literatura clínica internacional
+(FORD \textit{et al.}, 2017; CHAPPLE \textit{et al.}, 2020)
+e os próprios dados do SIH-RD mostram mortalidade
+\textit{intra-hospitalar} estruturalmente abaixo de 0{,}05\,\%.
+Isso elimina \textit{risco clínico} como variável de seleção:
+diferenças regionais de acesso não são explicadas por diferentes
+perfis de risco do paciente.
+
+\item \textbf{É bem definida.} Os dois códigos SIGTAP capturam o
+universo da prática cirúrgica brasileira para a condição. Não há
+ambiguidade significativa de classificação, o que permite
+comparações diretas entre UFs e ao longo do tempo.
+\end{enumerate}
+
+Cumpridas essas propriedades, a desigualdade observada de acesso
+à cirurgia uroginecológica entre UFs pode ser lida quase
+exclusivamente como desigualdade de oferta.
+
+A pergunta-mestra deste Working Paper é, então: \textit{a oferta
+de cirurgia uroginecológica especializada acompanha o gradiente
+de pobreza dos estados brasileiros, e os mecanismos
+político-fiscais de compensação \textemdash{} as emendas
+parlamentares \textemdash{} corrigem esse gradiente?}
+
+Aproveitamos uma conjunção operacional rara: o Mirante dos Dados
+mantém, na mesma plataforma e com a mesma arquitetura de pipeline,
+três verticais cujos agregados estaduais são diretamente
+comparáveis: UroPro (cirurgias por UF$\times$ano), Bolsa Família
+(beneficiários e valores por UF$\times$ano) e Emendas Parlamentares
+(execução por UF$\times$ano). O cruzamento dessas três séries é
+trivial em termos computacionais e foi possibilitado pela
+unificação metodológica da plataforma. Esse Working Paper, em
+parte, é a demonstração de que a integração de verticais
+\textit{não é apenas} engenharia de dados \textit{a posteriori}:
+ela cria possibilidades analíticas novas.
+
+Antecipamos a estrutura do argumento. A Seção~\ref{sec:teoria}
+apresenta o marco conceitual que organiza os três indicadores.
+A Seção~\ref{sec:metodo} descreve os dados, o pipeline e
+\textemdash{} de forma transparente \textemdash{} um defeito
+específico de pipeline descoberto e corrigido em abril de 2026,
+que afetou as visualizações da plataforma até essa correção. A
+Seção~\ref{sec:resultados} apresenta as evidências em quatro
+recortes: caracterização da oferta cirúrgica, gradiente de
+pobreza, fluxo fiscal compensatório e o cruzamento entre os três.
+A Seção~\ref{sec:discussao} discute as implicações para o debate
+sobre desigualdade, federalismo e política pública. A
+Seção~\ref{sec:conclusao} fecha.
 
 % =====================================================================
 \section{Marco Conceitual}\label{sec:teoria}
 % =====================================================================
 
-\subsection{Cirurgia eletiva como categoria sensível}
+\subsection{Universalismo formal e federalismo material}
 
-Cirurgias eletivas \textemdash{} aquelas que podem ser
-\textit{adiadas sem dano clínico imediato} \textemdash{}
-são, por construção, a primeira categoria a ser suprimida quando
-um sistema hospitalar é tensionado por uma demanda externa
-inelástica. A pandemia de COVID-19 explicitou esse mecanismo de
-forma extrema: a realocação compulsória de leitos de enfermaria
-e UTI para pacientes com SARS-CoV-2 retirou capacidade do estoque
-disponível para procedimentos não-emergenciais (NUNES \textit{et
-al.}, 2022). A IU cirúrgica é prototípica dessa categoria: é
-quase sempre eletiva, requer hospital de média ou alta
-complexidade e demanda anestesia regional ou geral. Quando o
-hospital prioriza COVID, a fila de IU não desaparece \textemdash{}
-acumula. Esse acúmulo é o que chamaremos de \textit{represa
-cirúrgica}.
+A Constituição brasileira de 1988 institui o SUS como sistema
+universal: \textit{toda} pessoa tem, em princípio, direito ao
+atendimento de saúde pelo Estado. A execução do princípio,
+contudo, é materialmente delegada a uma rede tripartite
+(União\,/\,estados\,/\,municípios) cuja capacidade instalada é
+historicamente desigual. Estados do Sul e Sudeste, com maior
+densidade hospitalar, maior tradição de formação médica e maior
+arrecadação tributária, oferecem sistematicamente mais
+\textit{capacidade efetiva} do que estados do Norte e Nordeste.
+Essa assimetria não é segredo \textemdash{} é parte da literatura
+clássica sobre federalismo brasileiro \textemdash{} mas é, em
+geral, descrita por proxies agregados (PIB \textit{per capita},
+densidade médica, leitos\,/\,1\,000 hab.) cuja interpretação
+clínica direta é difícil.
 
-\subsection{Permanência hospitalar como métrica de eficiência}
+\subsection{Cirurgia eletiva como indicador clínico de oferta}
 
-A permanência hospitalar média (\textit{average length of stay},
-ALOS) é a medida síntese mais simples da intensidade de uso de
-recursos por procedimento. Um procedimento que mantém uma boa
-taxa de cura mas gradualmente requer menos dias de internação
-representa ganho real de produtividade hospitalar: o mesmo leito
-pode atender mais pacientes ao longo do ano. No contexto da IU
-cirúrgica, esse ganho é compatível com a difusão progressiva de
-técnicas minimamente invasivas (\textit{slings} sub-uretrais
-TVT/TOT) e com a diminuição da via abdominal pura (que requeria
-internação mais longa). A queda da permanência observada nos
-microdados é, portanto, a tradução estatística de uma evolução
-clínica de fato ocorrida.
+Procedimentos eletivos têm uma propriedade analítica útil:
+sua quantidade observada é uma função quase direta da oferta
+hospitalar disponível. Se há equipe treinada, leito e materiais
+disponíveis, o paciente é operado; caso contrário, fica em
+fila ou é redirecionado para o setor privado. Não há demanda
+inelástica que sustente o volume artificialmente. Isso contrasta
+com procedimentos de urgência, cuja realização é praticamente
+mandatória (cesarianas de emergência, traumatologia,
+internações por infarto), e por isso menos sensíveis à
+disponibilidade do parque hospitalar local.
 
-\subsection{Equidade territorial em sistema universal}
+Dentro da categoria eletiva, a cirurgia uroginecológica para IU
+tem uma vantagem adicional: \textit{baixa mortalidade
+intra-hospitalar} significa que diferenças de acesso não podem
+ser explicadas por diferentes perfis de risco do paciente.
+Ou seja, se SC opera 14{,}7 cirurgias por 100k e RR opera 0{,}14,
+a diferença não é porque pacientes de SC têm menos risco
+operatório \textemdash{} é simplesmente porque há mais oferta
+em SC.
 
-O princípio constitucional da universalidade do SUS implica
-\textit{acesso} universal, não \textit{distribuição} uniforme da
-oferta. Estados com maior densidade hospitalar (especialmente Sul
-e Sudeste, maiores centros de formação médica) historicamente
-concentraram a oferta de procedimentos especializados. Para a IU
-cirúrgica, essa concentração não é novidade: TATIELI (2022) já a
-documentava no recorte 2015\textendash 2020. O que este Working
-Paper acrescenta é que a desigualdade não diminuiu ao longo do
-período examinado,
-\textit{e} que o pipeline público até abril de 2026 estava
-publicando uma versão \textit{ainda mais desigual do que a real},
-por força do bug descrito na seção metodológica.
+\subsection{O Bolsa Família como proxy de pobreza estrutural}
+
+A cobertura do Programa Bolsa Família (\%~da população estadual
+em situação de beneficiário) é um proxy razoável de
+\textit{pobreza estrutural} por duas razões. Primeiro, o
+critério de elegibilidade é nacional e relativamente estável
+(renda \textit{per capita} familiar abaixo de uma linha
+indexada), o que torna a comparação entre UFs e ao longo do
+tempo mais consistente do que indicadores derivados de pesquisa
+amostral. Segundo, o tempo médio de permanência no programa é
+longo (vários anos), o que faz da cobertura um indicador de
+pobreza \textit{cronificada}, não conjuntural. Reconhecemos que
+o PBF não é uma medida perfeita de pobreza \textemdash{} ele
+captura também heterogeneidade na capacidade local do CRAS de
+inscrever famílias \textemdash{} mas como proxy comparativo
+entre UFs ele é defensável e, mais importante, está disponível
+de forma agregada e atualizada na plataforma Mirante (CHALHOUB,
+2026b).
+
+\subsection{Emendas parlamentares como proxy de fluxo fiscal
+político}
+
+A execução de emendas parlamentares \textit{per capita} captura
+um aspecto específico do fluxo fiscal federativo: recursos
+alocados não pelo Executivo, mas por iniciativa de
+parlamentares (deputados federais e senadores) com
+discricionariedade sobre destino e finalidade. Há quatro tipos
+principais (RP6 individual, RP7 bancada, RP8 comissão, RP9
+relator); todos são endógenos ao processo legislativo, e o
+montante \textit{per capita} recebido por estado depende de
+cálculos políticos que não são proporcionais ao tamanho da
+população nem ao grau de privação. Para o argumento deste
+Working Paper, é suficiente que as emendas \textit{per capita}
+representem \textit{algum} fluxo de recurso fiscal alocado por
+processo político, distinto do orçamento regular do Ministério
+da Saúde. A pergunta é: esse fluxo compensatório se traduz em
+oferta hospitalar especializada visível? Investigamos
+empiricamente.
 
 % =====================================================================
 \section{Aspectos Metodológicos}\label{sec:metodo}
@@ -339,61 +418,56 @@ por força do bug descrito na seção metodológica.
 
 \subsection{Fontes de dados}
 
-A análise utiliza três fontes públicas:
-\begin{itemize}
-\item \textbf{SIH-AIH-RD} (DATASUS): microdados de Autorizações de
-Internação Hospitalar reduzidas, distribuídos via servidor FTP em
-arquivos DBC mensais por UF. Período coberto: janeiro/2008 a
-dezembro/2025.
-\item \textbf{IPCA} (Banco Central do Brasil, série SGS\,433):
-Índice de Preços ao Consumidor Amplo para deflação de despesas
-para reais constantes (\rs 2021).
-\item \textbf{Estimativas populacionais} (IBGE\,/\,SIDRA, tabela
-6579): população residente por UF, base anual.
-\end{itemize}
+\textbf{(i)~UroPro.} Microdados SIH-AIH-RD do DATASUS,
+distribuídos via servidor FTP em arquivos DBC mensais por UF,
+janeiro/2008 a dezembro/2025. Filtrados por procedimentos
+SIGTAP 0409010499 e 0409070270.
+
+\textbf{(ii)~Bolsa Família.} Pagamentos por UF e ano, série
+2013\textendash 2025, originária do Portal da Transparência
+da CGU, processada conforme descrito em CHALHOUB (2026b,
+Working Paper n. 2). Indicadores derivados: número de
+beneficiários, valor nominal, valor 2021 (deflacionado),
+valor por beneficiário, valor \textit{per capita}.
+
+\textbf{(iii)~Emendas Parlamentares.} Execução orçamentária por
+UF e ano, série 2014\textendash 2025, do Portal da
+Transparência, conforme CHALHOUB (2026a, Working Paper n. 1).
+Categorias incluem RP6 (individual), RP7 (bancada), RP9
+(relator) e outras. Valores deflacionados para \rs 2021 via
+IPCA.
+
+\textbf{(iv)~Auxiliares.} IPCA (BCB-SGS\,433) para deflação;
+estimativas populacionais IBGE\,/\,SIDRA tabela 6579.
 
 \subsection{Pipeline de dados (arquitetura medalhão)}
 
-A arquitetura adotada segue o padrão \textit{lakehouse}
-(ARMBRUST \textit{et al.}, 2021), com três camadas:
+As três verticais passam pela mesma estrutura
+(\textit{bronze}\,/\,\textit{silver}\,/\,\textit{gold})
+descrita em CHALHOUB (2026a, 2026b, 2026c). Em síntese:
+\textit{bronze} preserva o dado bruto convertido para Delta
+em formato \textit{string-only} (sem inferência de tipos);
+\textit{silver} faz limpeza, normalização e agregação por
+chave analítica; \textit{gold} entrega a vista colapsada por
+(uf$\times$ano), enriquecida com população e deflatores. O
+\textit{gold} é exportado em JSON versionado no repositório
+público do projeto, permitindo reprodutibilidade externa.
 
-\begin{itemize}
-\item \textbf{Bronze}: ingestão crua via Auto Loader. Os arquivos
-DBC originais são mantidos em volumes Unity Catalog; uma camada
-\textit{bronze} de Delta Lake armazena cada linha do DBC convertida
-para Parquet com tipos exclusivamente \texttt{string}, sem
-inferência. Essa decisão (camada \textit{bronze} \textit{string-only})
-preserva a fidelidade ao dado de origem e remete decisões de
-tipagem para o \textit{silver}.
-
-\item \textbf{Silver}: limpeza, normalização e agregação. Aqui
-ocorrem (i) \textit{cast} de tipos para os domínios canônicos
-(inteiro, decimal, data, código), (ii) deduplicação e validação,
-e (iii) agregação por chave analítica
-(uf $\times$ ano $\times$ mês $\times$ \texttt{proc\_rea}
-$\times$ caráter $\times$ gestão).
-
-\item \textbf{Gold}: vista analítica colapsada por
-(uf $\times$ ano $\times$ \texttt{proc\_rea}), enriquecida com
-populações IBGE e deflatores IPCA. É a camada consumida pelo
-\textit{front-end} da plataforma e por exportações.
-\end{itemize}
-
-\subsection{Sobre o defeito do pipeline silver e sua correção}\label{sub:bug}
+\subsection{O defeito da pipeline silver e sua correção}\label{sub:bug}
 
 Em abril de 2026, durante uma inspeção visual do mapa de
-\textit{Distribuição geográfica} da plataforma, observou-se que
-diversas unidades da federação apareciam como \textit{sem dado}
-para combinações (ano, procedimento) em que o sistema deveria, em
-princípio, ter registros. Uma sequência de consultas SQL diretas
-ao Delta da camada \textit{silver} revelou que, para o procedimento
-de maior volume nacional (0409070270, via vaginal), apenas 13 das
+\textit{Distribuição geográfica} da plataforma na vertical
+UroPro, observou-se que diversas unidades da federação
+apareciam como \textit{sem dado} para combinações
+(ano, procedimento) em que o sistema deveria, em princípio,
+ter registros. Uma sequência de consultas SQL diretas ao Delta
+da camada \textit{silver} revelou que, para o procedimento de
+maior volume nacional (0409070270, via vaginal), apenas 13 das
 27 UFs apareciam por ano \textemdash{} mesmo nos anos em que o
 \textit{bronze} continha registros para todas as 27.
 
-\noindent
-A causa raiz, identificada por inspeção do código, foi a seguinte
-linha no \textit{notebook silver}:
+A causa raiz, identificada por inspeção do código, foi a
+seguinte linha no \textit{notebook silver}:
 
 \begin{singlespace}\small
 \begin{verbatim}
@@ -406,207 +480,147 @@ src = bronze.where(F.col("_ingest_ts") == latest_ts)
 A intenção declarada (em comentário) era \textit{evitar dupla
 contagem se rodaram o ingest mais de uma vez}. O bug está na
 hipótese implícita: o filtro pressupõe que \textit{cada} valor
-de \texttt{\_ingest\_ts} representa um \textit{snapshot} completo
-do \textit{bronze}. Isso não é verdade. O Auto Loader processa
-arquivos em micro-\textit{batches} dentro de uma mesma execução,
-e \textit{cada} micro-batch recebe seu próprio
-\texttt{\_ingest\_ts}. No caso real, os 408 arquivos por UF foram
-distribuídos em quatro micro-batches separados por poucos segundos
-(00:07:17, 00:07:19, 00:07:21 e 00:07:25 UTC). O filtro
-\texttt{== max} preservava \textit{apenas} o último micro-batch,
-descartando 73\,\% das linhas \textit{bronze} \textit{e} 14 das 27
-UFs \textit{em silêncio}.
+de \texttt{\_ingest\_ts} representa um \textit{snapshot}
+completo do \textit{bronze}. Isso não é verdade. O Auto Loader
+processa arquivos em micro-\textit{batches} dentro de uma mesma
+execução, e \textit{cada} micro-batch recebe seu próprio
+\texttt{\_ingest\_ts}. No caso real, os 408 arquivos por UF
+foram distribuídos em quatro micro-batches separados por
+poucos segundos. O filtro \texttt{== max} preservava
+\textit{apenas} o último micro-batch, descartando 73\,\% das
+linhas \textit{bronze} \textit{e} 14 das 27 UFs em silêncio.
 
-\noindent
 A correção foi remover o filtro. A idempotência por arquivo é
-garantida pelo \textit{checkpoint} do próprio Auto Loader (cada
-arquivo é processado uma única vez), o que torna o filtro
-\texttt{max(\_ingest\_ts)} não apenas defeituoso mas também
-redundante. O \textit{commit} público que aplica a correção é o
-\texttt{fa869cf} no repositório do projeto (abril de 2026). Toda a
-camada \textit{silver} e \textit{gold} foi regenerada em seguida,
-e os números apresentados neste Working Paper já refletem essa
-reconstituição. Comparações com o Working Paper n. 3 ficam
-prejudicadas em magnitudes absolutas, mas \textit{não} nas
-direções de tendência \textemdash{} o que é um achado
-metodológico relevante por si só.
-
-\subsection{Procedimentos analisados}
-
-Foram considerados dois procedimentos da Tabela SIGTAP:
-\begin{itemize}
-\item \textbf{0409010499} \textemdash{} \textit{Tratamento
-Cirúrgico de Incontinência Urinária por Via Abdominal}.
-\item \textbf{0409070270} \textemdash{} \textit{Tratamento
-Cirúrgico de Incontinência Urinária por Via Vaginal}.
-\end{itemize}
-
-O código residual 0409020117 (\textit{Genérico}), embora citado
-em estudos prévios, não apresenta registros não-nulos na série
-\textit{bronze} obtida pelo \textit{ingest} via FTP do DATASUS, o
-que sugere que se trata de código histórico \textit{deprecated}.
-Excluímo-lo da análise.
+garantida pelo \textit{checkpoint} do próprio Auto Loader, o
+que torna o filtro \texttt{max(\_ingest\_ts)} não apenas
+defeituoso mas também redundante. O \textit{commit} público
+que aplica a correção é o \texttt{fa869cf} no repositório do
+projeto. Toda a camada \textit{silver} e \textit{gold} foi
+regenerada em seguida; os números apresentados neste Working
+Paper já refletem essa reconstituição. \textbf{Comparações com
+o Working Paper n. 3 ficam prejudicadas em magnitudes
+absolutas, mas não nas direções de tendência} \textemdash{} o
+que é, por si, um achado metodológico relevante.
 
 \subsection{Indicadores construídos}
 
-A camada \textit{gold} produz, por \texttt{(uf, ano, proc\_rea)},
-os seguintes indicadores que serão usados ao longo do texto:
+Por (uf$\times$ano), trabalhamos com:
 
 \begin{itemize}
-\item \texttt{n\_aih}: número de internações aprovadas. \textit{Proxy}
-direto do volume de cirurgias.
-\item \texttt{val\_tot\_2021}: valor total pago em \rs 2021,
-deflacionado pelo IPCA.
-\item \texttt{val\_per\_aih\_2021}: valor médio pago por AIH em
-\rs 2021. Sensível à composição (mix abd/vag) e a reajustes da
-SIGTAP.
+\item \texttt{aih\_por\_100k}: cirurgias uroginecológicas (via
+vaginal) por 100\,mil habitantes. Indicador-chave de oferta
+hospitalar especializada.
+\item \texttt{pct\_pop\_em\_pbf}: \%~da população estadual
+beneficiária do PBF. Proxy de pobreza estrutural.
+\item \texttt{emenda\_per\_capita\_2021}: execução de emendas
+\textit{per capita}, em \rs 2021. Proxy de fluxo fiscal
+político.
 \item \texttt{dias\_perm\_avg}: permanência hospitalar média
-\textit{ponderada por AIH}. Métrica chave deste artigo.
-\item \texttt{mortalidade}: taxa de óbito intra-hospitalar
-($\#\text{mortes}\,/\,\#\text{AIH}$).
-\item \texttt{n\_aih\_por100k}: razão por 100\,mil habitantes,
-usando a estimativa IBGE da UF no ano correspondente. Permite
-comparação direta entre estados com populações distintas.
+ponderada por AIH. Indicador adicional de eficiência clínica.
+\item \texttt{mortalidade}: óbito intra-hospitalar como fração
+das AIH. Controle de risco clínico.
 \end{itemize}
 
 \subsection{Limitações}
 
-(i) A análise é \textit{descritiva} \textemdash{} não há controle
-para confundidores demográficos (estrutura etária da população
-feminina, paridade, prevalência subjacente de IU) nem para
-heterogeneidade da capacidade hospitalar. (ii) O SIH captura
-apenas a parte da prática efetivamente \textit{paga} pelo SUS;
-cirurgias particulares e por planos privados não aparecem.
-(iii) A definição de IU empregada é a operacional do SIGTAP
-(o procedimento foi codificado como tal), não uma definição
-clínica externa. (iv) Anos parciais (em geral o ano corrente até
-o último mês fechado) são descartados na regra
-\textit{full-year-only} aplicada na camada \textit{silver}; isso
-mantém a comparabilidade temporal mas exige cautela ao interpretar
-o ano final disponível.
+(i)~A análise é \textit{descritiva e correlacional} \textemdash{}
+correlação entre cobertura PBF e acesso à cirurgia não estabelece
+causalidade, e em particular não exclui a possibilidade de uma
+terceira variável omitida (densidade médica regional, por
+exemplo) ser a causa comum de ambos. (ii)~A IU cirúrgica é
+predominantemente um procedimento feminino; a comparação por UF
+deveria, idealmente, ser ajustada por estrutura etária da
+população feminina, o que não fazemos aqui. (iii)~O PBF mede
+pobreza segundo um critério administrativo que mudou várias
+vezes ao longo da série; usamos cobertura média 2024\textendash 2025
+para minimizar essa heterogeneidade. (iv)~A execução de emendas
+parlamentares por UF inclui recursos não destinados à saúde, o
+que enfraquece a hipótese do mecanismo causal direto entre
+emendas e oferta cirúrgica; tratamos as emendas como proxy de
+fluxo fiscal político \textit{geral}, não específico do setor.
 
 % =====================================================================
 \section{Resultados}\label{sec:resultados}
 % =====================================================================
 
-\subsection{Volumes nacionais e razão entre vias}\label{sub:volumes}
+\subsection{Caracterização da oferta cirúrgica
+(2008\textendash 2025)}\label{sub:oferta}
 
-A Tabela~\ref{tab:nat-aih} consolida o volume nacional anual por
-via para o período 2008\textendash 2025. A via vaginal predomina
-de forma estável: nos anos pré-pandêmicos (2015\textendash 2019),
-a razão vaginal:abdominal foi de aproximadamente 7{,}5:1,
-ligeiramente maior do que o reportado no Working Paper n. 3
-(que utilizou dados parciais por força do bug descrito na
-Seção~\ref{sub:bug}). Em 2025, a razão sobe para 13{,}7:1
-\textemdash{} um indício de que a represa cirúrgica em escoamento
-está concentrada \textit{quase exclusivamente} na via vaginal,
-provavelmente porque é a via majoritária da prática contemporânea.
+A Tabela~\ref{tab:nat-aih} consolida o volume nacional anual de
+cirurgias uroginecológicas, separado por via.
 
 \begin{table}[H]
 \centering
-\caption{Volume anual nacional por via cirúrgica (n. de AIH).
-Fonte: SIH-AIH-RD (DATASUS), processado pelo Mirante dos Dados.}
+\caption{Volume nacional anual de cirurgias uroginecológicas por
+via cirúrgica, 2008\textendash 2025. Fonte: SIH-AIH-RD/DATASUS,
+processado pelo Mirante dos Dados (camada \textit{gold} corrigida).}
 \label{tab:nat-aih}
 \small
 \begin{tabular}{rrrr}
 \toprule
-\textbf{Ano} & \textbf{Abdominal} & \textbf{Vaginal} & \textbf{Razão V:A} \\
+\textbf{Ano} & \textbf{Abdominal} & \textbf{Vaginal} & \textbf{Total} \\
 \midrule
-2008 & 2\,074 & 6\,558  &  3{,}2:1 \\
-2009 & 1\,755 & 5\,888  &  3{,}4:1 \\
-2010 & 1\,542 & 6\,324  &  4{,}1:1 \\
-2011 & 1\,388 & 6\,085  &  4{,}4:1 \\
-2012 & 1\,216 & 5\,982  &  4{,}9:1 \\
-2013 & 1\,046 & 5\,494  &  5{,}3:1 \\
-2014 & 1\,032 & 5\,785  &  5{,}6:1 \\
-2015 & 1\,020 & 5\,722  &  5{,}6:1 \\
-2016 &   789  & 5\,467  &  6{,}9:1 \\
-2017 &   760  & 5\,419  &  7{,}1:1 \\
-2018 &   760  & 5\,555  &  7{,}3:1 \\
-2019 &   759  & 5\,959  &  7{,}9:1 \\
-2020 &   384  & 2\,566  &  6{,}7:1 \\
-2021 &   323  & 2\,511  &  7{,}8:1 \\
-2022 &   646  & 5\,578  &  8{,}6:1 \\
-2023 &   821  & 6\,785  &  8{,}3:1 \\
-2024 &   863  & 8\,966  & 10{,}4:1 \\
-2025 &   740  & 10\,144 & 13{,}7:1 \\
+2008 & 2\,074 & 6\,558  & 8\,632 \\
+2010 & 1\,542 & 6\,324  & 7\,866 \\
+2012 & 1\,216 & 5\,982  & 7\,198 \\
+2014 & 1\,032 & 5\,785  & 6\,817 \\
+2016 &   789  & 5\,467  & 6\,256 \\
+2018 &   760  & 5\,555  & 6\,315 \\
+2019 &   759  & 5\,959  & 6\,718 \\
+2020 &   384  & 2\,566  & 2\,950 \\
+2021 &   323  & 2\,511  & 2\,834 \\
+2022 &   646  & 5\,578  & 6\,224 \\
+2023 &   821  & 6\,785  & 7\,606 \\
+2024 &   863  & 8\,966  & 9\,829 \\
+2025 &   740  & 10\,144 & 10\,884 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Três fenômenos saltam à vista. Primeiro, a via abdominal vinha
-caindo gradualmente \textit{antes} da pandemia: de 2\,074 em 2008
-para 759 em 2019, uma redução de 63\,\% em 11 anos. Esse declínio
-é consistente com a difusão internacional dos \textit{slings} e
-com a substituição clínica da via abdominal pela vaginal. Segundo,
-ambas as vias colapsaram em 2020\textendash 2021, mas a magnitude
-relativa foi diferente: a abdominal caiu mais (\textendash 49{,}4\,\%
-em 2020) que a vaginal (\textendash 56{,}9\,\%); contudo, em base
-absoluta, a vaginal perdeu 3\,393 procedimentos\,/\,ano enquanto
-a abdominal perdeu 375. Terceiro, a recuperação pós-pandêmica é
-\textit{heterogênea entre vias}: a vaginal não apenas voltou ao
-patamar pré-pandêmico em 2022\textendash 2023 (5\,578 e 6\,785,
-contra 5\,959 em 2019) como o ultrapassou em 2024\textendash 2025
-(8\,966 e 10\,144), enquanto a abdominal estabilizou-se em torno
-de 800\,/\,ano \textemdash{} um patamar inferior ao último ano
-pré-pandêmico (759), mas dentro da banda de variação histórica
-observada desde 2017.
+Três fenômenos saltam à vista. Primeiro, a via vaginal predomina
+de forma estável e crescente: a razão vaginal:abdominal sobe de
+3{,}2:1 em 2008 para 13{,}7:1 em 2025, refletindo a substituição
+clínica progressiva da via abdominal pela vaginal (\textit{slings}
+sub-uretrais TVT/TOT) consagrada pela literatura
+internacional. Segundo, o volume total apresenta queda gradual
+entre 2008 e 2018 (de aproximadamente 8\,600 para 6\,300\,/\,ano)
+seguida por recuperação e expansão até atingir, em 2025, o
+patamar mais alto da série completa (10\,884). Terceiro, e mais
+relevante para o argumento deste paper, é a queda de 56\,\% em
+2020\textendash 2021 (relativamente à média
+2015\textendash 2019, $\sim$\,6\,070\,/\,ano) seguida de
+recuperação e \textit{ultrapassagem} do patamar pré-pandêmico
+em 2024\textendash 2025. Esse pico é evidência de \textit{represa
+cirúrgica} \textemdash{} estoque de fila acumulado durante a
+pandemia em escoamento nos anos seguintes.
 
-A Figura~\ref{fig:evolucao-vol} ilustra o padrão. O salto de
-2024\textendash 2025 na via vaginal é a evidência mais direta
-disponível de que a represa cirúrgica acumulada durante a pandemia
-está em fase final de escoamento.
-
-\begin{figure}[H]
-\centering
-\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering
-\textit{[Figura disponível na versão interativa da plataforma.}\\
-\textit{Reprodução estática deste Working Paper omitida nesta
-versão; ver gráfico empilhado por via cirúrgica em
-leonardochalhoub.github.io/mirante-dos-dados-br/incontinencia-urinaria.]}}}
-\caption{Evolução nacional do número de cirurgias por via,
-2008\textendash 2025. Barras empilhadas por via (abdominal, vaginal).
-A queda 2020\textendash 2021 e o pico 2024\textendash 2025 na via
-vaginal são as duas anomalias mais evidentes.}
-\label{fig:evolucao-vol}
-\end{figure}
-
-\subsection{Permanência hospitalar: a queda silenciosa}\label{sub:permanencia}
-
-Este é, de longe, o achado mais relevante deste Working Paper para
-o debate sobre \textit{eficiência} do gasto público em saúde. A
-permanência hospitalar média \textit{caiu continuamente em ambas
-as vias} ao longo de todo o período, sem interrupção pela pandemia
-(que de fato \textit{acelerou} a queda em 2020\textendash 2021).
-A Tabela~\ref{tab:nat-perm} sintetiza.
+A queda da permanência hospitalar (Tabela~\ref{tab:nat-perm}) é
+o achado clínico-organizacional mais relevante isoladamente: a
+via vaginal vai de 2{,}39 dias\,/\,AIH em 2008 para 1{,}43 em
+2025 \textemdash{} redução de 40{,}2\,\%, ou ganho de
+produtividade hospitalar de 67\,\%. A via abdominal segue padrão
+similar (\textendash 26{,}7\,\%). Esses ganhos são compatíveis
+com a difusão de técnicas minimamente invasivas e indicam que a
+\textit{eficiência} da prática hospitalar brasileira para esse
+procedimento não está atrás da literatura internacional. A
+barreira ao acesso, portanto, não é técnica.
 
 \begin{table}[H]
 \centering
-\caption{Permanência hospitalar média nacional, em dias por AIH.
-Ponderação: número de AIH em cada ano. Fonte: SIH-AIH-RD.}
+\caption{Permanência hospitalar média nacional, em dias\,/\,AIH,
+ponderada por número de internações. Fonte: SIH-AIH-RD.}
 \label{tab:nat-perm}
 \small
 \begin{tabular}{rrr}
 \toprule
-\textbf{Ano} & \textbf{Abdominal} & \textbf{Vaginal} \\
+\textbf{Ano} & \textbf{Abdominal (dias)} & \textbf{Vaginal (dias)} \\
 \midrule
 2008 & 2{,}47 & 2{,}39 \\
-2009 & 2{,}44 & 2{,}41 \\
-2010 & 2{,}47 & 2{,}37 \\
-2011 & 2{,}13 & 2{,}29 \\
 2012 & 2{,}22 & 2{,}22 \\
-2013 & 2{,}22 & 2{,}02 \\
-2014 & 2{,}48 & 1{,}97 \\
 2015 & 2{,}24 & 1{,}92 \\
-2016 & 2{,}16 & 1{,}90 \\
-2017 & 2{,}15 & 1{,}83 \\
-2018 & 2{,}23 & 1{,}77 \\
 2019 & 2{,}14 & 1{,}86 \\
-2020 & 1{,}96 & 1{,}68 \\
 2021 & 1{,}94 & 1{,}55 \\
-2022 & 1{,}86 & 1{,}52 \\
 2023 & 1{,}79 & 1{,}53 \\
-2024 & 1{,}86 & 1{,}45 \\
 2025 & 1{,}81 & 1{,}43 \\
 \midrule
 \textbf{$\Delta$ 2008$\rightarrow$2025} & \textbf{\textendash 26{,}7\,\%} & \textbf{\textendash 40{,}2\,\%} \\
@@ -614,97 +628,20 @@ Ponderação: número de AIH em cada ano. Fonte: SIH-AIH-RD.}
 \end{tabular}
 \end{table}
 
-Em 2008, a permanência média na via vaginal era de 2{,}39 dias.
-Em 2025, é de 1{,}43 \textemdash{} uma redução de 40{,}2\,\% em
-17 anos, ou pouco mais de 1\,\% ao ano em média geométrica. Na
-via abdominal, a queda foi de 2{,}47 para 1{,}81 dia
-(\textendash 26{,}7\,\%), também substantiva. Esses números têm
-três implicações imediatas.
+A mortalidade hospitalar associada a esses procedimentos é
+estruturalmente baixíssima ao longo de todo o período. Apenas
+alguns casos isolados de óbito intra-hospitalar são registrados
+ao longo de toda a série de dezenas de milhares de internações;
+a taxa nacional anual oscila entre 0\,\% e 0{,}05\,\%. Isso
+ratifica a propriedade clínica de \textit{baixo risco} explorada
+na Seção~\ref{sec:teoria}: as diferenças de acesso \textit{não
+podem} ser explicadas por seleção de risco do paciente.
 
-\textbf{Primeira, e mais óbvia: o sistema produz hoje, com o
-mesmo leito-dia, mais cirurgias do que em 2008.} Em ordem de
-grandeza: 1\,000 leitos-dia em 2008 entregavam aproximadamente
-418 procedimentos vaginais (1\,000 / 2{,}39); em 2025 entregam
-699 (1\,000 / 1{,}43) \textemdash{} um ganho de produtividade
-hospitalar de 67\,\%. Isso é um \textit{economia real de recurso
-público} mantida silenciosamente fora do radar do debate
-político-orçamentário.
+\subsection{Desigualdade territorial: o gradiente
+descritivo}\label{sub:desigualdade}
 
-\textbf{Segunda: a queda é compatível, em ritmo e direção, com
-a difusão internacional dos \textit{slings} sub-uretrais
-minimamente invasivos.} A literatura clínica (FORD \textit{et
-al.}, 2017; CHAPPLE \textit{et al.}, 2020) reporta permanência
-de 1\textendash 2 dias para TVT/TOT em centros bem treinados.
-O Brasil, em 2025, está dentro dessa banda \textemdash{}
-embora, como veremos, com forte heterogeneidade entre UFs.
-
-\textbf{Terceira: a pandemia não estancou nem reverteu o
-\textit{trend}.} Os anos 2020\textendash 2021 mostram, ao
-contrário, \textit{aceleração} da queda (de 1{,}86 em 2019 para
-1{,}68 em 2020 e 1{,}55 em 2021 na via vaginal). A interpretação
-plausível: durante a pandemia, apenas casos com indicação mais
-clara, equipes mais treinadas e logística hospitalar mais
-azeitada mantiveram-se em operação \textemdash{} um efeito de
-\textit{seleção de qualidade} no \textit{numerador} do volume,
-que reduz a permanência média mesmo sem mudança técnica adicional.
-A relevância desse efeito persiste no pós-pandemia (1{,}52 em
-2022, 1{,}43 em 2025): a pandemia parece ter atuado como um
-catalisador irreversível de eficiência.
-
-\subsection{Despesa pública e custo médio por AIH}\label{sub:despesa}
-
-A despesa total deflacionada (Tabela~\ref{tab:nat-val}) acompanha
-fielmente o volume, com uma exceção interessante: o salto entre
-2012 e 2013, em que o valor médio por AIH (vaginal) sobe de
-\rs 386 para \rs 677 sem queda equivalente no volume. Esse salto
-não é movimento real de mercado; é o reajuste da Tabela SIGTAP
-do procedimento (BRASIL, 2024). De 2013 em diante, o valor por
-AIH em moeda constante \textit{deflacionada} cai gradualmente
-\textemdash{} ou seja, a tabela do SUS perdeu poder real ao
-longo dos anos seguintes, sendo apenas parcialmente reajustada
-nominal.
-
-\begin{table}[H]
-\centering
-\caption{Despesa pública nacional total e por AIH, em \rs 2021,
-deflacionada pelo IPCA. Procedimento vaginal (0409070270).}
-\label{tab:nat-val}
-\small
-\begin{tabular}{rrrr}
-\toprule
-\textbf{Ano} & \textbf{Total (R\$\,2021)} & \textbf{Por AIH (R\$\,2021)} & \textbf{n.\,AIH} \\
-\midrule
-2008 & 2\,181\,785 & 332{,}69 &  6\,558 \\
-2010 & 2\,404\,941 & 380{,}29 &  6\,324 \\
-2012 & 2\,309\,820 & 386{,}13 &  5\,982 \\
-2013 & 3\,719\,105 & 676{,}94 &  5\,494 \\
-2015 & 3\,523\,114 & 615{,}71 &  5\,722 \\
-2017 & 2\,773\,664 & 511{,}84 &  5\,419 \\
-2019 & 2\,951\,955 & 495{,}38 &  5\,959 \\
-2020 & 1\,093\,490 & 426{,}15 &  2\,566 \\
-2021 &   966\,605 & 384{,}95 &  2\,511 \\
-2022 & 2\,071\,890 & 371{,}44 &  5\,578 \\
-2023 & 2\,631\,654 & 387{,}86 &  6\,785 \\
-2024 & 4\,995\,926 & 557{,}21 &  8\,966 \\
-2025 & 4\,328\,034 & 426{,}66 & 10\,144 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Em 2025, o gasto público nacional na via vaginal foi de
-\rs 4{,}33\,milhões (em \rs 2021), o maior valor da série
-em volume real. Por AIH, contudo, o valor foi de \rs 426{,}66
-\textemdash{} 16\,\% \textit{abaixo} do pico de 2015
-(\rs 615{,}71) e 14\,\% \textit{abaixo} de 2019 (\rs 495{,}38).
-O sistema fez \textit{mais cirurgias} pagando \textit{menos por
-cirurgia} em moeda constante. Combinada com a redução de
-permanência da seção anterior, a leitura é:
-\textbf{o gasto cresceu em volume mas o custo unitário caiu}.
-
-\subsection{Geografia: concentração e desigualdade}\label{sub:geografia}
-
-A Tabela~\ref{tab:uf-100k} apresenta a taxa por 100\,mil habitantes
-em 2025 para a via vaginal, ordenada do maior ao menor.
+A Tabela~\ref{tab:uf-100k} apresenta a taxa por 100\,mil
+habitantes em 2025, ordenada do maior ao menor.
 
 \begin{table}[H]
 \centering
@@ -747,73 +684,80 @@ RR          &     1  &  0{,}74 &  0{,}14 \\
 \end{tabular}
 \end{table}
 
-Os números são notáveis. Santa Catarina, no topo, atinge 14{,}71
-procedimentos por 100\,mil habitantes em 2025. Roraima, na ponta
-inferior, registra 0{,}14 \textemdash{} uma diferença de cerca
-de 100 vezes. Pernambuco, com quase 10 milhões de habitantes,
-realiza apenas 70 cirurgias vaginais no ano, o que corresponde a
-0{,}73\,/\,100k, taxa similar à de Roraima e oito vezes inferior
-à de SP.
+A diferença entre o topo e a base é dramática: SC opera 14{,}71
+cirurgias por 100\,mil habitantes em 2025, enquanto RR opera
+0{,}14 \textemdash{} aproximadamente cem vezes menos. Não há
+nenhum mecanismo demográfico ou epidemiológico plausível capaz
+de explicar uma diferença de 100 vezes na demanda real por
+cirurgia uroginecológica entre dois estados. A estrutura etária
+da população feminina, a prevalência subjacente de IU e a
+indicação cirúrgica são, em primeira aproximação, similares.
+\textit{A diferença observada é desigualdade de oferta.}
 
-Algumas observações qualitativas:
+A região Sul lidera consistentemente. SC e PR são, para todos os
+fins práticos, \textit{outliers de cima}: superam não apenas
+suas vizinhas geográficas mas também SP, que tem maior porte
+hospitalar absoluto. Essa liderança é estrutural \textemdash{}
+SC e PR ocupam topo do \textit{ranking} desde pelo menos 2015.
+Estados periféricos do Norte (RR, AP), pequenos do Nordeste
+(AL, SE) e \textit{regredidos} pós-pandemia (PE, RJ) compõem
+a base. RJ e PE são particularmente preocupantes porque são
+estados populosos e com tradição de formação médica: a
+desigualdade ali não é trivial de explicar por insuficiência
+demográfica.
 
-\textbf{(i) A liderança do Sul é estrutural, não casual.} SC e
-PR ocupam topo do \textit{ranking} sistematicamente desde 2015,
-e a vantagem só se ampliou nos anos pós-pandêmicos: a comparação
-entre as médias 2015\textendash 2019 e 2022\textendash 2025
-mostra crescimento do volume médio em SC ($\Delta$ +138\,\%)
-e PR ($\Delta$ +84\,\%) acima do crescimento médio nacional.
+\subsection{Pobreza estrutural por UF (cobertura
+PBF)}\label{sub:pobreza}
 
-\textbf{(ii) A região Sudeste é heterogênea.} SP é forte
-(6{,}18/100k), MG modesta (3{,}81), RJ baixa (1{,}84). RJ chama
-particular atenção porque, com 17 milhões de habitantes, realiza
-em 2025 apenas 317 cirurgias vaginais \textemdash{} aproximadamente
-um terço do volume \textit{absoluto} de SC (que tem menos da
-metade da população).
+A cobertura do Bolsa Família (\%~da população estadual
+beneficiária) em 2024\textendash 2025 (Tabela~\ref{tab:cruzamento},
+coluna \%\,Pop.\,em PBF) apresenta um gradiente bem conhecido,
+mas que vale documentar lado a lado com o de acesso à cirurgia.
+SC, RS, PR e SP operam com 3 a 6\,\% da população em PBF.
+PA, BA, PE, MA, AL, PI operam com 17 a 19\,\%. Essa diferença
+de cobertura captura, em parte, o gradiente de pobreza
+estrutural brasileiro: estados do Sul e Sudeste com renda
+mediana mais alta têm menor demanda formal pelo programa;
+estados do Norte e Nordeste com renda mediana mais baixa têm
+maior cobertura. O desvio padrão da cobertura PBF entre as 27
+UFs é de aproximadamente 5{,}6 pontos percentuais; a média é de
+12{,}3\,\%.
 
-\textbf{(iii) A região Nordeste apresenta um vácuo de oferta
-mesmo em estados populosos.} BA (3{,}07/100k), PE (0{,}73),
-CE (2{,}10), AL (0{,}31) operam taxas muito inferiores às
-do Sul. A diferença não é explicada por demanda demográfica
-(estrutura etária da população feminina nordestina é, se
-algo, mais favorável à incidência de IU que a do Sul), mas
-provavelmente por densidade hospitalar especializada e
-treinamento médico em cirurgia uroginecológica.
+\subsection{Fluxo fiscal compensatório (emendas
+parlamentares per capita)}\label{sub:emendas}
 
-\textbf{(iv) Estados periféricos têm volumes irrelevantes em
-qualquer ano.} RR, AP, AL e SE operam taxas abaixo de 2/100k
-em toda a série \textemdash{} o que, em termos absolutos,
-significa entre uma e algumas dezenas de cirurgias por ano.
-Para essas UFs, a hipótese mais econômica é que o tratamento
-cirúrgico é deslocado para grandes centros de referência fora
-do estado, via Tratamento Fora do Domicílio (TFD) do SUS.
+A execução de emendas parlamentares \textit{per capita}
+(Tabela~\ref{tab:cruzamento}, coluna Emendas\,/\,hab.) opera em
+\textit{outra direção} relativamente ao gradiente de pobreza.
+Estados pequenos e\,/\,ou periféricos (AP \rs 608, RR \rs 442,
+AC \rs 401) recebem volumes per capita várias vezes maiores que
+estados grandes e ricos (SP \rs 44, RJ \rs 59, DF \rs 46). Isso
+não é casual: o sistema de emendas tem um componente
+\textit{compensatório implícito} \textemdash{} o cálculo
+político da distribuição leva em conta tamanho da bancada
+estadual relativamente à população, o que beneficia, em termos
+\textit{per capita}, estados pequenos. Nominalmente, isso
+poderia funcionar como um mecanismo redistributivo: estados
+mais pobres recebem mais.
 
-\subsection{Acesso, pobreza e fluxo fiscal: cruzamento com
-Bolsa Família e Emendas Parlamentares}\label{sub:cruzamento}
+A pergunta deste artigo, contudo, não é \textit{normativa} (se
+o sistema é justo) mas \textit{empírica} (se o fluxo extra
+\textit{produz} oferta). É o que a Seção~\ref{sub:cruzamento}
+investiga.
 
-A pergunta natural diante da desigualdade descrita acima é:
-\textit{ela acompanha outras dimensões de desigualdade
-estaduais, ou é específica da rede de saúde?} Aproveitamos a
-existência, na mesma plataforma Mirante dos Dados, de duas
-outras verticais com agregados estaduais comparáveis
-\textemdash{} o Programa Bolsa Família (PBF) e a execução de
-Emendas Parlamentares \textemdash{} para um cruzamento simples
-mas iluminador.
+\subsection{O cruzamento: acesso, pobreza e fluxo
+fiscal}\label{sub:cruzamento}
 
-A Tabela~\ref{tab:cruzamento} apresenta, por UF e em média
-anual 2024\textendash 2025: (i) a taxa de cirurgias vaginais
-por 100\,mil habitantes (UroPro), (ii) o percentual da
-população beneficiária do PBF (\textit{proxy} de pobreza
-estrutural), e (iii) a execução de emendas parlamentares por
-habitante em \rs 2021 (\textit{proxy} de fluxo fiscal
-político).
+A Tabela~\ref{tab:cruzamento} consolida os três indicadores por
+UF, em médias 2024\textendash 2025. Estados ordenados de cima
+para baixo por acesso (AIH/100k).
 
 \begin{table}[H]
 \centering
-\caption{Cruzamento entre acesso à cirurgia, pobreza e fluxo
-fiscal por UF. Médias anuais 2024\textendash 2025. Fontes:
-SIH-AIH-RD (DATASUS), CGU/Portal da Transparência (PBF e
-Emendas), IBGE/SIDRA, BCB (IPCA).}
+\caption{Cruzamento entre acesso à cirurgia uroginecológica,
+pobreza e fluxo fiscal por UF. Médias anuais 2024\textendash 2025.
+Fontes: SIH-AIH-RD (UroPro), CGU\,/\,Portal da Transparência
+(PBF e Emendas), IBGE/SIDRA, BCB (IPCA).}
 \label{tab:cruzamento}
 \small
 \begin{tabular}{lrrr}
@@ -851,326 +795,305 @@ AL &   0{,}31 & 18{,}1\,\% &  181 \\
 \end{tabular}
 \end{table}
 
-A leitura da tabela rende três observações fortes.
+A leitura cruzada da tabela rende três achados-chave.
 
-\textbf{(i) Acesso e pobreza estrutural são fortemente
-correlacionados, em sentido inverso.} Os cinco estados com
-maior acesso à cirurgia (SC, PR, GO, MS, SP) têm, todos,
-percentuais de população em PBF entre 3{,}4 e 7{,}9\,\%. Os
-cinco com menor acesso (AL, RR, PA, AP, PE) operam com
-percentuais entre 12{,}8 e 18{,}1\,\%. A correlação de
-Pearson entre as duas séries, calculada sobre os 27 pontos,
-é de aproximadamente \textendash 0{,}68 \textemdash{} alta
-para qualquer padrão de dado público brasileiro. \textit{Onde
-há mais pobreza estrutural, há sistematicamente menor acesso
-à cirurgia uroginecológica.} Esse não é um achado original
-\textemdash{} a desigualdade de saúde no Brasil é fartamente
-documentada \textemdash{} mas é uma quantificação direta sobre
-um procedimento clínico específico, não sobre indicadores
-agregados.
+\textbf{Achado 1 \textemdash{} Pobreza e acesso são fortemente
+correlacionados em sentido inverso.} Os cinco estados de maior
+acesso (SC, PR, GO, MS, SP) operam com cobertura PBF entre
+3{,}4 e 7{,}9\,\%. Os cinco de menor acesso (AL, RR, PA, AP,
+PE) operam com cobertura entre 12{,}8 e 18{,}1\,\%. A correlação
+de Pearson entre as duas séries é de aproximadamente
+\textendash 0{,}68 sobre as 27 UFs. Em outras palavras: cada
+ponto percentual a mais de cobertura PBF em uma UF está
+associado, no agregado nacional, a uma redução substancial na
+taxa de cirurgias uroginecológicas por 100\,mil habitantes. O
+sentido da correlação é o esperado pela teoria
+(pobreza\,$\rightarrow$\,menos serviços especializados); a
+\textit{magnitude} da correlação é alta para qualquer padrão
+de dado público brasileiro, e isso é o que merece ênfase.
 
-\textbf{(ii) Emendas parlamentares per capita não compensam o
-gap de acesso.} A correlação entre emendas/habitante e
-AIH/100k é, surpreendentemente, \textit{negativa}: os estados
-que recebem mais recursos via emendas \textit{per capita} são
-justamente os de menor acesso (AP recebe \rs 608/hab. e tem
-0{,}74 AIH/100k; SP recebe \rs 44/hab. e tem 6{,}04). A leitura
-descritiva mais charitable é que o sistema de emendas funciona
-em parte como mecanismo de \textit{compensação fiscal} (mais
-recursos para estados com maior fragilidade orçamentária
-estrutural), mas o volume per capita extra \textit{não se
-traduz} em ampliação visível de oferta cirúrgica \textemdash{}
-pelo menos não para este procedimento específico. As emendas
-parlamentares são, em média, alocadas em obras e custeio
-genérico, não diretamente em capacitação de equipes
-cirúrgicas especializadas.
+\textbf{Achado 2 \textemdash{} O fluxo fiscal compensatório não
+compensa.} A correlação entre emendas \textit{per capita} e
+acesso à cirurgia é de aproximadamente \textendash 0{,}45
+\textemdash{} \textit{também negativa}. Estados que recebem
+mais emendas \textit{per capita} são, em média, os de menor
+acesso. AP recebe \rs 608 \textit{por habitante por ano} em
+emendas (em moeda constante 2021) e operou apenas 0{,}74
+cirurgias\,/\,100k em 2025. SP recebe \rs 44 e opera 6{,}04.
+A leitura mais conservadora desse padrão é que o fluxo
+político-fiscal das emendas tem componente compensatório
+\textit{de gasto}, mas não \textit{produz oferta hospitalar
+especializada visível}. As emendas são, em média, alocadas em
+obras locais, custeio genérico e capilarização infraestrutural;
+a montagem de uma equipe cirúrgica especializada em
+uroginecologia exige investimentos qualificados, treinamento
+contínuo e estrutura hospitalar terciária que volume nominal
+\textit{per capita} de gasto não compra automaticamente. O dado
+é coerente com a tese geral de que \textit{capacidade}
+hospitalar especializada é uma função de longo prazo, não
+proporcional ao orçamento corrente.
 
-\textbf{(iii) A correlação inversa não é monotônica
-\textemdash{} TO, AC e MA são exceções relevantes.} Tocantins
-tem 11\,\% da população em PBF \textit{e} 4{,}98 AIH/100k
-(perto da média nacional); Acre, com 16\,\%, atinge 4{,}30;
-Maranhão, com 19\,\%, registra 4{,}12. Essas três UFs operam
-acesso surpreendentemente alto dada sua pobreza estrutural, o
-que sugere que a barreira não é apenas econômica: existem
-configurações específicas de rede pública que conseguem
-\textit{driblar} o gradiente de pobreza. Investigar o que TO,
-AC e MA fazem de diferente é uma agenda óbvia para política
-pública de saúde, e está fora do escopo descritivo deste
-trabalho.
+\textbf{Achado 3 \textemdash{} Existem três UFs que ``driblam''
+o gradiente.} Tocantins, Acre e Maranhão operam acesso
+sensivelmente mais alto do que esperaríamos pelo seu nível de
+pobreza estrutural. TO tem 11\,\% da população em PBF e atinge
+4{,}98 AIH/100k (acima da média nacional de aproximadamente
+4{,}1). AC tem 16{,}5\,\% e atinge 4{,}30; MA tem 19\,\% e
+atinge 4{,}12. Em contraste, BA (18\,\% PBF, 2{,}73), PE (18\,\%
+PBF, 0{,}82) e AL (18\,\% PBF, 0{,}31) operam acesso muito
+abaixo. A diferença entre MA e AL, ambos com cobertura PBF
+similar, é de aproximadamente 13$\times$ no acesso à cirurgia.
 
-A leitura agregada do cruzamento é sóbria: a desigualdade
-territorial documentada na Seção~\ref{sub:geografia} \textit{não
-é uma anomalia da rede de saúde}; é uma manifestação local de
-uma desigualdade brasileira mais ampla, em que pobreza
-estrutural e acesso a serviços especializados andam juntos. A
-existência de transferências sociais (PBF) reduz a privação
-de renda mas não cria, por si, capacidade hospitalar; a
-existência de fluxo fiscal político (Emendas) sobe os números
-\textit{per capita} de gasto sem necessariamente translacionar
-em oferta de procedimento. \textit{Acesso à cirurgia
-uroginecológica é função da rede instalada, não do dinheiro
-disponível} \textemdash{} é a constatação que sintetiza a
-evidência cruzada.
+A existência dessas \textit{exceções} é metodologicamente
+importante. Mostra que o gradiente pobreza\,$\rightarrow$\,acesso
+\textit{não é determinístico}. Configurações organizacionais
+locais \textemdash{} como a rede pública estadual está
+estruturada, quais hospitais foram credenciados, qual é a
+política estadual de capacitação cirúrgica, qual o histórico de
+relacionamento com universidades médicas \textemdash{} podem
+\textit{driblar} o efeito da pobreza estrutural. Identificar e
+caracterizar essas exceções é uma das agendas mais promissoras
+de política pública brasileira em saúde, e está fora do escopo
+descritivo deste paper.
 
-\subsection{O choque pandêmico e a forma da recuperação}\label{sub:covid}
+\subsection{O choque pandêmico como teste natural}\label{sub:covid}
 
-A Tabela~\ref{tab:uf-pre-post} compara, para a via vaginal, as
-médias anuais por UF nos três regimes: pré-pandemia
-(2015\textendash 2019), pandemia (2020\textendash 2021) e
-pós-pandemia (2022\textendash 2025). A coluna $\Delta$pré$\rightarrow$pós
-captura a variação relativa entre o regime pré e o pós, e é a
-quantidade-chave para detectar represa cirúrgica.
+A pandemia de COVID-19 funcionou, no caso aqui examinado, como
+um \textit{teste de carga} sobre o sistema federativo. A queda
+de volume nacional foi homogênea entre UFs (em torno de
+\textendash 50\textendash 70\,\% em quase todos os estados em
+2020\textendash 2021); a \textit{recuperação}, contudo, foi
+fortemente heterogênea. SC e PR, ambos no topo do
+\textit{ranking} de acesso pré-pandêmico, expandiram de forma
+expressiva (+138\,\% e +84\,\% no volume médio
+2022\textendash 2025 \textit{vs.} 2015\textendash 2019); RJ
+(\textendash 3\,\%), PE (\textendash 35\,\%), DF (\textendash 23\,\%)
+e AP (\textendash 81\,\%) sequer voltaram ao patamar
+pré-pandêmico.
 
-\begin{table}[H]
-\centering
-\caption{Heterogeneidade da resposta pandêmica por UF: média anual
-de cirurgias vaginais (n. AIH) em três regimes.
-$\Delta$pré$\rightarrow$pós: variação relativa entre 2015\textendash 19
-e 2022\textendash 25.}
-\label{tab:uf-pre-post}
-\small
-\begin{tabular}{lrrrr}
-\toprule
-\textbf{UF} & \textbf{2015\textendash 19} & \textbf{2020\textendash 21} & \textbf{2022\textendash 25} & \textbf{$\Delta$pré$\rightarrow$pós} \\
-\midrule
-SP & 1\,964 & 1\,032 & 2\,410 & +22{,}7\,\% \\
-PR &   522  &   184  &   958  & +83{,}5\,\% \\
-RS &   448  &   199  &   530  & +18{,}3\,\% \\
-MG &   440  &   145  &   647  & +47{,}0\,\% \\
-GO &   382  &   102  &   437  & +14{,}4\,\% \\
-SC &   290  &   181  &   691  & +138{,}3\,\% \\
-RJ &   239  &    79  &   231  & \textendash 3{,}3\,\% \\
-BA &   202  &    84  &   320  & +58{,}4\,\% \\
-MS &   137  &    28  &   197  & +43{,}8\,\% \\
-MA &   120  &    76  &   290  & +141{,}7\,\% \\
-CE &   117  &   105  &   194  & +65{,}8\,\% \\
-PE &   108  &    33  &    70  & \textendash 35{,}2\,\% \\
-DF &   101  &    56  &    78  & \textendash 22{,}8\,\% \\
-MT &    90  &    45  &   156  & +73{,}3\,\% \\
-ES &    87  &    36  &   119  & +36{,}8\,\% \\
-PA &    66  &    28  &    64  & \textendash 3{,}0\,\% \\
-AM &    55  &    19  &   113  & +105{,}5\,\% \\
-AP &    48  &    13  &     9  & \textendash 81{,}2\,\% \\
-PE/AL/RR \textit{et al.} & \multicolumn{4}{c}{\textit{(ver discussão)}} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-A figura emergente é a de \textit{três tipos} de UF.
-
-\textbf{Tipo A \textemdash{} represa em escoamento.} Estados
-onde o volume pós-pandêmico ultrapassou \textit{substancialmente}
-o pré-pandêmico, indicando que o sistema absorveu a fila
-acumulada e segue produzindo acima da tendência prévia. Exemplos:
-SC (+138\,\%), MA (+142\,\%), AM (+106\,\%), PR (+84\,\%),
-MT (+73\,\%), CE (+66\,\%), BA (+58\,\%), MG (+47\,\%). Em
-SC e PR, especificamente, o salto é de tal magnitude que sugere
-uma combinação de represa \textit{e} expansão estrutural da
-oferta (mais hospitais, mais equipes treinadas).
-
-\textbf{Tipo B \textemdash{} retorno à tendência.} Estados em
-que o volume pós-pandêmico está dentro de uma banda de
-$\pm$\,25\,\% do pré, sem evidência clara de represa nem de
-expansão. Exemplos: SP (+23\,\%), RS (+18\,\%), GO (+14\,\%),
-ES (+37\,\%), MS (+44\,\%). Esses estados parecem ter
-absorvido o choque e voltado a um regime parecido com o anterior.
-
-\textbf{Tipo C \textemdash{} recuperação incompleta ou regressão.}
-Estados em que o volume pós-pandêmico está \textit{abaixo} do
-pré-pandêmico, sugerindo perda \textit{permanente} de
-capacidade ou de fluxo de pacientes para tratamento cirúrgico
-de IU. Exemplos: RJ (\textendash 3\,\%), PA (\textendash 3\,\%),
-DF (\textendash 23\,\%), PE (\textendash 35\,\%), AP
-(\textendash 81\,\%). RJ e PE são particularmente preocupantes
-porque são estados populosos e com tradição médica
-\textemdash{} a redução não pode ser explicada por escassez
-populacional. Hipóteses qualitativas: (a)~degradação do parque
-hospitalar dedicado; (b)~migração de pacientes para particular;
-(c)~reorganização da rede que deixou IU sem prioridade.
-
-A magnitude bruta do choque pandêmico (a queda de
-2020\textendash 2021) é, ao contrário do padrão de recuperação,
-relativamente \textit{homogênea} entre UFs. A maioria dos
-estados teve queda entre 50 e 75\,\% em relação ao baseline
-2015\textendash 2019. A heterogeneidade emerge \textit{na
-recuperação}, não no choque. Esse é um achado relevante para
-política pública: o sistema federal foi tensionado de forma
-parecida em todos os lugares, mas a capacidade local de
-\textit{escoamento da represa} variou enormemente.
-
-\subsection{Mortalidade hospitalar: piso de segurança}\label{sub:mort}
-
-Por fim, um dado positivo e confortavelmente estável: a
-mortalidade hospitalar associada a esses procedimentos é
-estruturalmente baixíssima. Considerando a série completa
-2008\textendash 2025, registramos no total apenas alguns casos
-isolados de óbito intra-hospitalar entre as dezenas de milhares
-de internações. A taxa nacional anual oscila entre 0\,\% e
-0{,}05\,\%; a maior parte dos anos a mortalidade observada na
-camada \textit{gold} é literalmente zero. Isso é compatível com
-o que a literatura clínica reporta sobre o procedimento: trata-se
-de cirurgia de baixo risco quando bem indicada e bem conduzida.
-
-\textbf{Implicação principal:} as barreiras de acesso documentadas
-na Seção~\ref{sub:geografia} \textit{não são barreiras de risco
-clínico}. Não há justificativa epidemiológica plausível para a
-diferença de 100 vezes entre SC e RR no acesso à cirurgia. A
-barreira é de \textit{oferta}: há ou não há equipe treinada, há
-ou não há hospital com leito disponível, há ou não há fluxo de
-referência funcionando. Quando há, a operação é segura e curta.
+Sob a lente do argumento principal deste paper, o choque
+pandêmico é particularmente revelador: ele \textit{amplificou
+mas não criou} a desigualdade preexistente. UFs de oferta forte
+absorveram represa cirúrgica e seguiram crescendo; UFs de oferta
+fraca regrediram ou não recuperaram. A pandemia, em outras
+palavras, expôs e quantificou diferenças de robustez sistêmica
+que já existiam, e tornou ainda mais visível o gradiente
+pobreza\,$\rightarrow$\,acesso documentado nas seções anteriores.
 
 % =====================================================================
 \section{Discussão}\label{sec:discussao}
 % =====================================================================
 
-\subsection{Eficiência clínica vs. acesso desigual: a tensão central}
+\subsection{O federalismo brasileiro e a tensão
+universalismo\,/\,distribuição}
 
-A leitura conjunta dos resultados expõe uma tensão característica
-do SUS. De um lado, a Seção~\ref{sub:permanencia} mostra um sistema
-\textit{tecnologicamente convergente}: a permanência hospitalar
-em 2025 está dentro da banda de centros internacionais de excelência
-para o procedimento. Onde a cirurgia é realizada, ela é
-\textit{tão eficiente quanto a melhor literatura comparável}. De
-outro lado, a Seção~\ref{sub:geografia} mostra um sistema
-\textit{territorialmente fragmentado}: a oferta cirúrgica está
-extremamente concentrada em alguns estados, deixando regiões
-inteiras com taxas de acesso de menos de um décimo do líder.
+O achado central deste paper \textemdash{} de que o acesso à
+cirurgia uroginecológica acompanha de perto o gradiente de
+pobreza estadual e de que as emendas parlamentares
+\textit{per capita} não compensam essa desigualdade
+\textemdash{} é coerente com uma leitura clássica do federalismo
+brasileiro: o desenho institucional de 1988 produz
+\textit{universalismo formal} (todo cidadão tem direito ao SUS)
+mas mantém uma \textit{distribuição material altamente desigual}
+da capacidade instalada. A oferta de serviços hospitalares
+especializados é função de fatores estruturais de longo prazo
+\textemdash{} densidade da rede, formação médica, fluxo de
+referência, governança estadual da rede \textemdash{} cuja
+correlação com pobreza estrutural é forte e estável. Mecanismos
+fiscais de curto e médio prazo, como as emendas parlamentares,
+podem alterar volumes nominais de gasto sem modificar a
+distribuição de oferta clínica especializada.
 
-A combinação dessas duas leituras sugere que o problema da IU
-cirúrgica no Brasil em 2025 \textit{não é tecnológico}, é
-\textit{logístico}. As equipes brasileiras já fazem o procedimento
-bem; o desafio é \textit{onde} ele é feito. A política pública
-relevante seria, portanto, mais voltada à expansão da rede
-hospitalar capacitada (e da oferta de Tratamento Fora do
-Domicílio onde isso for inviável a curto prazo) do que a
-investimentos em pesquisa ou inovação técnica.
+Esse não é um argumento contra a existência de emendas
+parlamentares como mecanismo, mas contra a \textit{inferência
+direta} \textemdash{} comum no debate público e legislativo
+\textemdash{} de que o volume \textit{per capita} de emendas
+recebido por uma UF se traduz em mais e melhores serviços
+públicos. O dado mostra que, ao menos para esse procedimento e
+nessa janela temporal, a tradução não acontece.
 
-\subsection{Lições da pandemia: o que aprendemos sobre fragilidade}
+\subsection{Por que as emendas não viram oferta cirúrgica
+especializada?}
 
-A pandemia teve, sob o aspecto narrativo deste artigo, duas
-funções distintas. Como \textit{choque}, demonstrou que a
-oferta cirúrgica eletiva é altamente sensível a competição por
-recursos hospitalares: bastou cerca de um ano de tensionamento
-para reduzir o volume nacional pela metade. Como
-\textit{revelador}, mostrou que alguns sistemas estaduais
-(notadamente SC e PR) eram capazes de responder à represa
-acumulada com expansões significativas, enquanto outros (RJ,
-PE, AP) não conseguiram sequer voltar ao patamar anterior. A
-pandemia funcionou, em outras palavras, como um \textit{teste
-de carga} que quantificou diferenças de robustez já
-estruturalmente presentes.
+Cinco hipóteses, não-mutuamente exclusivas, articulam por que o
+fluxo de emendas \textit{per capita} não compensa o gradiente
+de oferta cirúrgica:
 
-A literatura internacional sobre cirurgias eletivas durante e
-após a COVID-19 (NUNES \textit{et al.}, 2022) reportou padrões
-parecidos em outros países: choque homogêneo, recuperação
-heterogênea. O caso brasileiro adiciona uma observação
-específica: a heterogeneidade da recuperação no Brasil não é
-explicada por uma única dimensão (riqueza estadual, densidade
-médica ou tamanho populacional) tomada isoladamente. SC tem PIB
-per capita semelhante ao de SP, mas teve crescimento muito
-maior em volume cirúrgico pós-pandemia; RJ, com PIB e densidade
-médica historicamente altos, regrediu. A explicação parece exigir
-fatores institucionais locais (organização da rede de média
-complexidade, programas estaduais de capacitação, fluxo de
-referência) que não estão capturados na fonte SIH.
+\textbf{(i) Inadequação setorial.} As emendas, em média, não
+são alocadas para construção e manutenção de redes hospitalares
+de média e alta complexidade; tendem a financiar obras
+municipais, custeio genérico de unidades básicas e ações de
+visibilidade política (eventos, equipamentos pontuais).
 
-\subsection{Sobre o defeito do pipeline e a credibilidade do dado}
+\textbf{(ii) Inadequação temporal.} Mesmo emendas alocadas a
+saúde tendem a financiar gastos de \textit{curto prazo}; a
+montagem de uma equipe cirúrgica especializada exige
+investimentos plurianuais que vão além do horizonte de mandato
+parlamentar.
 
-Vale a pena tratar explicitamente um ponto incômodo: as tabelas
-deste Working Paper \textit{não coincidem} com as tabelas
-publicadas no Working Paper n. 3 (DA SILVA \& CHALHOUB, 2026c).
-A diferença, contudo, não é pequena: na tabela de volumes por
-UF, por exemplo, mais de metade dos estados aparecia com volume
-zero em vários anos no WP n. 3 \textemdash{} um padrão que era,
-afinal, artefato do filtro \texttt{\_ingest\_ts} descrito na
-Seção~\ref{sub:bug}, não realidade dos dados.
+\textbf{(iii) Capacidade absortiva local.} Mesmo onde há
+recurso disponível, há UFs cuja rede pública estadual não tem
+capacidade institucional de transformar gasto em capacidade
+clínica especializada (déficit de gestão, fragmentação
+hospitalar, ausência de programa próprio de capacitação).
 
-Isso obriga uma reflexão honesta. \textit{Dados públicos de
-qualidade} não são garantidos pela publicação do dado bruto.
-Microdados SIH-AIH-RD foram publicados pelo DATASUS por todos
-os anos da série, completos, com cobertura nacional plena. O
-problema esteve \textit{a jusante}: o pipeline analítico
-introduziu uma decisão algorítmica defeituosa que filtrava
-silenciosamente dois terços do material bruto. Visualizações
-subsequentes pareciam corretas porque as omissões eram
-\textit{consistentes} dentro do que era exibido; nenhum alerta
-automático de qualidade detectou a perda.
+\textbf{(iv) Capilaridade vs. concentração.} Procedimentos
+uroginecológicos exigem hospitais com porte e
+multidisciplinaridade. Emendas \textit{per capita} altas em UFs
+pequenas frequentemente se traduzem em \textit{capilarização}
+da rede (mais postos, mais unidades) sem aumentar o número de
+hospitais com porte suficiente para uroginecologia.
 
-A lição prática, e que pretende ser \textit{de fato útil} a
-quem opera pipelines analíticos sobre dados públicos brasileiros:
+\textbf{(v) Capacidade de exportação para fora do estado.}
+UFs de oferta baixa frequentemente operam Tratamento Fora do
+Domicílio (TFD): pacientes são deslocados para grandes centros
+de outros estados. Isso significa que a oferta nominal local
+não captura todo o atendimento dos cidadãos da UF, mas também
+\textit{transfere recurso fiscal a outros estados} sem
+desenvolver capacidade local.
 
-\begin{enumerate}
-\item Evitar filtros do tipo \texttt{== max(\_ingest\_ts)} sobre
-fontes ingeridas por Auto Loader. A idempotência por arquivo já
-é garantida pelo \textit{checkpoint}; o filtro adicional não é
-defensivo, é destrutivo.
-\item Implementar \textit{contagens-sentinela}: para fontes onde
-sabe-se \textit{a priori} a cardinalidade esperada (como o
-``27 UFs'' brasileiras), validar essa cardinalidade explicitamente
-em cada camada e quebrar o \textit{job} se for menor.
-\item Manter a camada \textit{bronze} como \textit{string-only}:
-isso preserva o dado de origem na sua forma mais auditável e
-facilita a reconstituição quando algum bug \textit{a jusante} é
-descoberto. Foi exatamente o que permitiu a correção rápida deste
-caso.
-\end{enumerate}
+A caracterização empírica de qual dessas hipóteses domina em
+cada UF é uma agenda de pesquisa relevante e está fora do
+escopo deste paper. O importante para o argumento aqui é que
+\textit{nenhuma} delas é plausivelmente corrigida por aumento
+do volume nominal de emendas, e portanto a expectativa
+político-discursiva de que ``mais emendas'' equivalha a
+``melhor oferta'' é, no mínimo, otimista.
 
-A versão atual da plataforma Mirante dos Dados implementa as
-três recomendações acima. O \textit{commit} de correção é
-\texttt{fa869cf} no repositório aberto; a regeneração das camadas
-\textit{silver} e \textit{gold} foi orquestrada via Databricks
-Asset Bundle. O dado consumido pelo \textit{front-end} a partir
-da publicação deste Working Paper representa o estado corrigido.
+\subsection{O que TO, AC e MA fazem de diferente?}
 
-\subsection{Limitações e agenda de pesquisa}
+A existência de três UFs que driblam o gradiente é, talvez, o
+achado mais promissor do ponto de vista de política pública.
+Esses três estados têm cobertura PBF entre 11 e 19\,\% (ou
+seja, são estruturalmente pobres) mas operam taxas de acesso
+\textit{na média ou acima da média nacional}. A questão
+relevante é: o que essas configurações estaduais têm em comum
+que outras UFs igualmente pobres (AL, PE, BA) não têm?
 
-Este artigo é descritivo. Três extensões são naturais.
-\textbf{Primeira:} estratificação por sexo e faixa etária, que
-exigiria descer para a granularidade de paciente (campo
-\texttt{IDADE} e \texttt{SEXO} já presentes no SIH-RD, ainda
-não incorporados ao \textit{gold}).
-\textbf{Segunda:} cruzamento com a base CNES (estabelecimentos)
-para tipologizar a oferta hospitalar (porte, vínculo, sub-rede)
-e tornar tratável a hipótese de que a heterogeneidade de
-recuperação é explicada pela tipologia da rede local.
-\textbf{Terceira:} análise de sobrevida e reoperação a partir
-do enlace longitudinal de AIHs por paciente, possível via
-campo \texttt{INSC\_PN} mas dependente de tratamento adequado de
-identificadores.
+Sem dados primários sobre organização da rede pública
+estadual, levantamos apenas hipóteses qualitativas, todas
+testáveis em pesquisa subsequente. \textbf{(a)} Tocantins,
+desde sua criação em 1988, fez investimentos significativos em
+rede hospitalar pública estadual concentrada em Palmas, com
+referência consolidada para os procedimentos eletivos da região;
+isso pode ter criado capacidade local desproporcional ao
+tamanho e à riqueza estadual. \textbf{(b)} Acre tem uma rede
+hospitalar pública pequena mas tecnicamente forte, com
+relacionamento histórico com universidades de outros estados,
+o que pode ter sustentado capacidade especializada apesar da
+pobreza estrutural. \textbf{(c)} Maranhão investiu, na década
+2010\textendash 2020, em programa estadual de hospitais
+referenciados, com resultado mensurável em vários indicadores
+de saúde. Essas três configurações são, do ponto de vista de
+política pública, \textit{exemplares} de como contornar o
+gradiente; deveriam ser objeto de estudos de caso aprofundados,
+para tipologizar o que é replicável e o que é específico.
+
+\subsection{Considerações sobre o defeito do pipeline}
+
+Vale tratar explicitamente um ponto que fica implícito ao longo
+do paper. As tabelas e correlações apresentadas \textit{não
+coincidem} com aquelas publicadas em DA SILVA \& CHALHOUB
+(2026c, Working Paper n. 3), pelo motivo descrito na
+Seção~\ref{sub:bug}: o pipeline silver da plataforma Mirante
+operava, até abril de 2026, com um filtro defeituoso que
+ocultava silenciosamente 14 das 27 UFs. Os mapas e gráficos da
+plataforma e as tabelas do Working Paper n. 3 mostravam, sem
+qualquer aviso, uma versão \textit{ainda mais desigual} da
+realidade do que esta corrigida.
+
+Essa observação tem dupla relevância. \textbf{Primeiro}, sublinha
+um ponto cético sobre a credibilidade do dado público: a
+publicação do dado bruto pelo DATASUS é necessária mas \textit{não
+suficiente}; a engenharia de dados \textit{a jusante} é parte
+integral da infraestrutura, e seus defeitos podem inverter
+conclusões. \textbf{Segundo}, demonstra a vantagem de pipelines
+abertos e auditáveis: o defeito foi detectado por inspeção visual
+de um mapa, diagnosticado por consulta SQL direta ao Delta da
+camada \textit{silver}, corrigido por um \textit{commit} de uma
+linha removida e um comentário substituído, e teve seu impacto
+quantificado pela regeneração das camadas \textit{silver} e
+\textit{gold}. Toda essa cadeia foi pública, reprodutível e
+versionada. Em arquiteturas opacas (planilhas adhoc, ETLs em
+ferramentas \textit{black-box}, dashboards proprietários), esse
+mesmo bug poderia ter persistido por anos sem ser detectado.
+
+\subsection{Limitações de inferência}
+
+(i)~Correlação não é causalidade. Que cobertura PBF correlacione
+\textendash 0{,}68 com acesso à cirurgia não significa que
+\textit{aumentar} PBF \textit{reduziria} cirurgias \textemdash{}
+é apenas que ambas refletem um substrato comum (pobreza
+estrutural). (ii)~Emendas alocadas a saúde \textit{específicamente}
+não foram destacadas neste paper; é possível que o subconjunto
+de emendas saúde tenha relação diferente com oferta cirúrgica.
+(iii)~A análise é estática (médias 2024\textendash 2025). Uma
+análise dinâmica (mudanças no acesso após mudanças no fluxo de
+emendas, ou após mudanças na cobertura PBF) seria mais robusta
+para inferência causal. (iv)~A IU cirúrgica é apenas \textit{um}
+indicador; a generalização da conclusão para outros
+procedimentos eletivos exige replicação.
 
 % =====================================================================
 \section{Considerações Finais}\label{sec:conclusao}
 % =====================================================================
 
-A cirurgia uroginecológica no SUS, examinada na escala de
-dezessete anos contínuos (2008\textendash 2025), conta uma
-história mista.
-Ganhamos eficiência clínica continuamente: a permanência caiu
-40\,\% na via vaginal e 27\,\% na abdominal, sem inflexão
-adversa. Mantivemos segurança: a mortalidade hospitalar é
-desprezível em todo período. Conseguimos absorver, mesmo que de
-forma desigual, o choque mais agudo do sistema sanitário
-brasileiro recente \textemdash{} a pandemia COVID-19 \textemdash{}
-e estamos, em 2024\textendash 2025, escoando o estoque de fila
-acumulado.
+A cirurgia uroginecológica para tratamento da incontinência
+urinária é, no Brasil contemporâneo, um procedimento clínico
+\textit{tecnicamente maduro} \textemdash{} a permanência
+hospitalar média caiu 40\,\% na via vaginal entre 2008 e 2025,
+a mortalidade é estruturalmente baixa, a difusão dos
+\textit{slings} sub-uretrais alinha o país aos padrões
+internacionais. Essa maturidade técnica, contudo, não se
+traduziu em equidade de acesso. Em 2025, a taxa por 100\,mil
+habitantes é cem vezes maior em Santa Catarina do que em
+Roraima.
 
-Falhamos, simultaneamente, em um aspecto estruturalmente sensível:
-a desigualdade territorial de acesso. A diferença de 100 vezes
-entre Santa Catarina e Roraima no acesso por 100\,mil habitantes
-não tem qualquer correspondência epidemiológica. É puramente
-uma desigualdade de oferta. A pandemia tornou essa desigualdade
-ainda mais visível ao mostrar que alguns estados são capazes de
-\textit{ampliar a oferta sob estresse} enquanto outros não.
+O cruzamento com indicadores estaduais de pobreza estrutural
+(cobertura do Bolsa Família) e de fluxo fiscal compensatório
+(emendas parlamentares \textit{per capita}) mostra que essa
+desigualdade não é aleatória. Ela acompanha de perto o
+gradiente de pobreza ($\rho \approx -0{,}68$) e \textit{não é}
+corrigida pelo mecanismo de emendas \textemdash{} pelo
+contrário, emendas \textit{per capita} maiores estão
+correlacionadas com \textit{menor} acesso ($\rho \approx -0{,}45$).
+A imagem que emerge é a de um sistema federativo em que a
+oferta de serviços hospitalares especializados é uma função
+estrutural de longo prazo, e em que o fluxo político-fiscal de
+curto prazo, embora volumoso em UFs periféricas, não consegue
+produzir capacidade de oferta visível.
 
-Em termos do dado público em si, este artigo registra um achado
-metodológico de relevância \textit{a jusante} dos microdados:
-defeitos sutis de \textit{pipeline} podem ocultar mais de
-metade da realidade nacional sem qualquer aviso. O acesso público
-ao dado bruto é necessário, mas não suficiente, para
-caracterizações populacionais robustas. A engenharia de dados
-analítica é parte integral da infraestrutura de dado público,
-e merece os mesmos padrões de auditoria que aplicamos a outros
-componentes da política pública.
+Há, porém, três UFs \textemdash{} TO, AC e MA \textemdash{} que
+operam acima do esperado dado seu nível de pobreza, sugerindo
+que existem configurações organizacionais locais capazes de
+contornar o gradiente. Caracterizar essas configurações é,
+provavelmente, a agenda de política pública mais promissora
+sugerida por este trabalho.
+
+Em termos metodológicos, o artigo registra (a)~a viabilidade de
+análise \textit{cross-vertical} sobre dados públicos brasileiros
+quando passados por uma arquitetura unificada de \textit{pipeline}
+aberto, e (b)~a importância da auditabilidade da camada
+\textit{silver} para a credibilidade do dado entregue ao público.
+O defeito específico documentado (filtro
+\texttt{== max(\_ingest\_ts)}) e sua correção em \textit{commit}
+\texttt{fa869cf} são, em si, contribuição metodológica modesta
+mas concreta: defeitos similares são plausivelmente comuns em
+\textit{pipelines} de produção construídos em cima de Auto Loader,
+e tornar o caso público pode ajudar outras equipes a evitá-lo.
+
+Universalismo formal e desigualdade material continuam, em 2025,
+coexistindo no SUS. A constatação não é nova; o que esperamos
+contribuir aqui é uma quantificação direta, em um procedimento
+clínico bem definido, de quão acentuada permanece a desigualdade,
+e de como o instrumento institucional principal de
+\textit{compensação fiscal explícita} \textemdash{} as emendas
+parlamentares \textemdash{} não corrige o gradiente. Se a aspiração
+universalista do SUS é levada a sério, mecanismos
+\textit{adicionais} àqueles já em uso \textemdash{} qualificação
+de redes estaduais, programas de capacitação cirúrgica
+descentralizada, integração com formação médica regional
+\textemdash{} parecem necessários.
 
 % =====================================================================
 \section*{Referências}\label{sec:ref}
@@ -1222,6 +1145,13 @@ women. \textbf{European Urology}, v. 78, n. 5,
 p. 643\textendash 656, 2020.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
+CHALHOUB, L. Cirurgia uroginecológica no Sistema Único de Saúde,
+2008\textendash 2025: ganhos silenciosos de eficiência,
+desigualdade territorial persistente, choque pandêmico e represa
+cirúrgica. \textbf{Mirante dos Dados \textemdash{} Working
+Paper n. 6}, abr. 2026f.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
 DA SILVA, T.; CHALHOUB, L. Tratamento Cirúrgico da Incontinência
 Urinária no Sistema Único de Saúde (2015\textendash 2020):
 volumes, despesa, permanência e distribuição geográfica por via
@@ -1271,29 +1201,31 @@ DOI: 10.1038/sdata.2016.18.\par\smallskip
 \vspace{1cm}
 
 \noindent\textbf{Citar como:}\\
-CHALHOUB, L. Cirurgia uroginecológica no Sistema Único de Saúde,
-2008\textendash 2025: ganhos silenciosos de eficiência,
-desigualdade territorial persistente, choque pandêmico e represa
-cirúrgica. \textit{Mirante dos Dados
-\textemdash{} Working Paper n. 4}, v. 1.0, abr. 2026.
-Disponível em:
+CHALHOUB, L. Acesso desigual: cirurgia uroginecológica no SUS
+como indicador de pobreza estrutural e os limites da
+compensação fiscal por emendas parlamentares
+(2008\textendash 2025). \textit{Mirante dos Dados \textemdash{}
+Working Paper n. 4}, v. 2.0, abr. 2026. Disponível em:
 \url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
 
 \vspace{0.5cm}
 
-\noindent\textbf{Reconhecimento:} este Working Paper é continuação
-direta de DA SILVA \& CHALHOUB (2026c, Working Paper n. 3), que
-por sua vez teve como base o trabalho de especialização de
-TATIELI (2022). A presente versão amplia o recorte temporal,
-incorpora a correção da camada \textit{silver} (\textit{commit}
-\texttt{fa869cf}) e introduz a leitura longitudinal de eficiência
-e represa cirúrgica.
+\noindent\textbf{Reconhecimento:} este Working Paper é
+seguimento de DA SILVA \& CHALHOUB (2026c, Working Paper
+n. 3), que por sua vez teve como base o trabalho de
+especialização em Enfermagem de TATIELI (2022). A presente
+versão reorienta o argumento em torno do cruzamento
+\textit{cross-vertical} entre cirurgia uroginecológica, pobreza
+estrutural (Bolsa Família, Mirante WP n. 2) e fluxo fiscal
+político (Emendas, Mirante WP n. 1), e incorpora a correção da
+camada \textit{silver} (\textit{commit} \texttt{fa869cf}, abril
+de 2026).
 
 \vspace{0.5cm}
 
-\noindent\textbf{Licença:} dados consolidados (camada \textit{gold})
-e código do \textit{pipeline} distribuídos sob licença MIT.
-Texto deste artigo distribuído sob licença Creative Commons
-Atribuição 4.0 Internacional (CC BY 4.0).
+\noindent\textbf{Licença:} dados consolidados (camada
+\textit{gold}) e código do \textit{pipeline} distribuídos sob
+licença MIT. Texto deste artigo distribuído sob licença Creative
+Commons Atribuição 4.0 Internacional (CC BY 4.0).
 
 \end{document}

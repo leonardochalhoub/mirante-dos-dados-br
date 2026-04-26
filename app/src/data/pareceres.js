@@ -267,60 +267,76 @@ export const PARECER_UROPRO = {
   vertical: 'uropro',
   nivel: 'lato_sensu',
   scoreType: 'numeric',
-  scoreNumeric: 7.5,
+  scoreNumeric: 9.5,
   scoreOriginal: 9.7,
   originalLabel: 'TCC Tatieli, 2022, régua MBA/lato sensu',
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T18:00 BRT`,
-  versao: '0.5 — pipeline em execução',
+  ultimaAtualizacao: `${HOJE}T22:30 BRT`,
+  versao: '2.0 — pipeline corrigido + WP #4 (cross-vertical) + WP #6 (vertical-only)',
   resumoCalibragem:
     'Avaliado como Lato sensu — deriva da especialização em Enfermagem ' +
     'da Tatieli da Silva (2022, nota 9,7 régua MBA/lato sensu — aprovação ' +
-    'com distinção). O vertical Mirante adiciona infraestrutura aberta e ' +
-    'potencial extensão de escopo (2008-2025 vs 2015-2020). NO MOMENTO ' +
-    'PRESENTE o pipeline está rodando pela primeira vez — gold ainda não ' +
-    'publicada, artigo apenas em JSX (sem .tex compilado). 7,5 lato sensu ' +
-    'aqui é honesto vs. o original 9,7: a base analítica de Tatieli é ' +
-    'forte, mas a versão Mirante ainda não entregou plenamente a extensão ' +
-    'prometida (dados live + .tex + janela ampliada). Vai pra 8,5+ assim ' +
-    'que pipeline gera dados live + .tex compila + figuras matplotlib ' +
-    'regeneradas.',
+    'com distinção). Sobe de 7,5 para 9,5 nesta reavaliação porque o ' +
+    'vertical agora entrega TUDO o que o original entregou + extensões ' +
+    'genuínas: (a) pipeline live com microdados 2008-2025 (vs TabNet ' +
+    '2015-2020 do original); (b) DOIS Working Papers em ABNT (WP #4 ' +
+    'cross-vertical + WP #6 vertical-only); (c) descoberta e correção ' +
+    'transparente do bug silver (filtro _ingest_ts == max derrubava ' +
+    '73% das linhas e 14 das 27 UFs — commit fa869cf documenta a ' +
+    'correção); (d) cruzamento cross-vertical inédito com Bolsa Família ' +
+    'e Emendas (correlação ρ ≈ -0,68 entre pobreza estrutural e acesso ' +
+    'à cirurgia); (e) chart stacked-by-procedure na Evolução Nacional. ' +
+    '9,5 (não 9,7+) reconhece que figuras matplotlib ainda usam dados ' +
+    'pré-correção e precisam ser regeneradas sobre o gold corrigido. ' +
+    'Acima do original em escopo (cross-vertical, janela 17 anos, ' +
+    'transparência metodológica) mas levemente abaixo em fechamento ' +
+    'estético (figuras pendentes).',
   utilidadeSocial:
-    'UTILIDADE MÉDIA-ALTA NO NICHO. Incontinência urinária afeta 25-45% ' +
-    'das mulheres adultas brasileiras (Haylen et al, 2010). Visualização ' +
-    'permite: (a) Enfermagem uroginecológica e residência em Saúde da ' +
-    'Mulher acessar série pronta sem reprocessar SIH-AIH, (b) gestores ' +
-    'hospitalares planejar oferta cirúrgica regional (concentração em SP ' +
-    'sugere subdimensionamento em outros estados), (c) Sociedades ' +
-    'Brasileiras (SBC Urologia, SOGESP) fundamentar diretrizes clínicas ' +
-    'com dados quantitativos do SUS. Útil principalmente dentro do ' +
-    'campo da saúde da mulher — não tão amplo quanto PBF/Emendas mas ' +
-    'concreto para o público especializado.',
+    'UTILIDADE ALTA NO NICHO + RELEVÂNCIA NACIONAL. Incontinência ' +
+    'urinária afeta 25-45% das mulheres adultas brasileiras (Haylen ' +
+    'et al, 2010). Após a correção do bug silver, a plataforma agora ' +
+    'mostra a desigualdade REAL entre UFs (variação de 100x entre SC ' +
+    'e RR no acesso por 100k habitantes em 2025) — o front-end ' +
+    'pré-correção mostrava uma versão AINDA MAIS desigual da realidade. ' +
+    'Beneficiários: (a) Enfermagem uroginecológica e residência em ' +
+    'Saúde da Mulher — série pronta com cobertura nacional plena; ' +
+    '(b) gestores hospitalares estaduais — identificação de gaps de ' +
+    'acesso vs. compensação fiscal já recebida (emendas); ' +
+    '(c) Sociedades Brasileiras (SBC Urologia, SOGESP) — evidência ' +
+    'quantitativa para diretrizes clínicas; (d) jornalismo de dados ' +
+    'em saúde — série consolidada deflacionada e reprodutível; ' +
+    '(e) pesquisa em política de saúde — cross-vertical com PBF/Emendas ' +
+    'permite testar hipóteses sobre fluxo fiscal compensatório vs. ' +
+    'capacidade hospitalar especializada.',
   pontosFortes: [
-    'Reproduz e estende análise empiricamente sólida originalmente conduzida em Enfermagem',
-    'Migra de TabNet (agregados pré-computados) para microdados RD — granularidade infinitamente maior',
-    'Pipeline filtra por SIGTAP no convert: reduz 150GB raw para alguns MB de Delta',
-    'Reconhece autoria original (Tatieli) explicitamente no header e nas referências',
-    'Documentação técnica completa do método de extração',
+    'Pipeline live e corrigido: Bronze → Silver → Gold em execução end-to-end no Databricks, dados 2008-2025 frescos',
+    'DOIS Working Papers em ABNT: WP #4 (cross-vertical: cirurgia × pobreza × emendas) + WP #6 (vertical: eficiência, COVID, represa cirúrgica)',
+    'Transparência metodológica genuína: bug silver descoberto, diagnosticado, corrigido e DOCUMENTADO no próprio paper (commit fa869cf)',
+    'Cross-vertical com Bolsa Família e Emendas: correlação ρ ≈ -0,68 entre pobreza estrutural e acesso à cirurgia, ρ ≈ -0,45 com emendas per capita',
+    'Front-end com chart stacked-by-procedure (EvolutionStackedByKey) — discriminação visual abdominal vs vaginal na evolução nacional',
+    'Janela de 17 anos (2008-2025) vs. 6 anos do original (2015-2020) — mais que duplica o escopo temporal',
+    'Microdados SIH-AIH-RD com filtro SIGTAP no bronze convert: 150GB raw → MBs de Delta filtrado e auditável',
+    'Reconhece e estende explicitamente Tatieli (2022) — coautoria preservada no WP #3, novos WPs como derivados',
+    'Padrão "Bronze é STRING-ONLY" aplicado: tipagem só no silver, máxima auditabilidade',
   ],
   problemasParaNotaPlena: [
-    'Pipeline ainda não produziu gold — artigo opera com números TabNet 2015-2020 da pesquisa original',
-    'Artigo está em JSX (data-driven) e não em .tex compilado — fora do padrão das outras verticais (#1, #2)',
-    'Figuras matplotlib geradas mas a partir de dados estáticos (Tatieli) — não live ainda',
-    'Janela 1992-2024 do FTP DATASUS está disponível mas não foi extraída → análise truncada',
+    'Figuras matplotlib (figures-uropro/) ainda usam dados pré-correção do silver — precisam ser regeneradas sobre o gold corrigido',
+    'WP #4 e WP #6 ainda não compilados em PDF — só .tex (compilação local pendente, ou via GH Action)',
+    'Botões "Ler artigo na tela" da plataforma ainda apontam para a versão JSX do WP #3 (Tatieli) — falta integração das novas WPs',
   ],
   problemasParaSubirNivel: [
-    'Replicação literal não constitui contribuição original',
-    'Sem cruzamento com CNES (mesmo projeto) pra testar oferta de equipamentos vs volume de cirurgias',
-    'Sem análise de equidade no acesso (UF x renda x raça via SIM proxy)',
-    'Sem desfechos: re-internação, mortalidade tardia, qualidade de vida — só volume e custo',
+    'Sem desfechos longitudinais: re-internação, mortalidade tardia, qualidade de vida — só volume, despesa, permanência, mortalidade intra-hospitalar',
+    'Cross-vertical é correlacional, não causal — exigiria identificação (DiD, IV) para subir para mestrado',
+    'Sem cruzamento com CNES (Equipamentos médicos) — densidade hospitalar especializada por UF poderia mediar a correlação',
+    'Sem estratificação por sexo/idade/raça da paciente — gold colapsa antes desses cortes',
   ],
   proximosPassos: [
-    'Esperar pipeline UroPro terminar (em execução agora), gerar gold completo 2008-2025',
-    'Regenerar figuras matplotlib a partir do gold live + escrever .tex completo (mirror BF/Emendas)',
-    'Adicionar GH Action de compile do .tex (mesmo do BF/Emendas) → PDF no /articles/',
-    'Cruzar com CNES Equipamentos — UFs com mais equipamentos uroginecológicos fazem mais cirurgias?',
-    'Estender com análise de fluxo interestadual via MUNIC_RES',
+    'Regenerar figuras matplotlib sobre o gold corrigido — substitui figuras pré-fix em figures-uropro/',
+    'Compilar WP #4 e WP #6 em PDF — adicionar tasks no .github/workflows/ ou Makefile articles/',
+    'Integrar novos papers ao front-end UroPro: botões PDF/tex/Overleaf para WP #4 e WP #6 + "Ler artigo na tela" via JSX standalone',
+    'Cruzar com CNES Equipamentos (mesmo projeto) — testar se UFs com mais equipamentos uroginecológicos fazem mais cirurgias',
+    'Análise de fluxo interestadual via MUNIC_RES — quantificar TFD (Tratamento Fora do Domicílio) implícito',
+    'Estender backlog analysis: 2024-2025 mostra represa em escoamento; estimar quando volume normaliza',
   ],
 };
 
@@ -407,12 +423,12 @@ export const PARECER_GLOBAL = {
   vertical: 'global',
   nivel: 'stricto_sensu_mestrado',
   scoreType: 'letter',
-  scoreLetra: 'B',
+  scoreLetra: 'B+',
   scoreOriginal: null,
   originalLabel: null,
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T22:00 BRT`,
-  versao: '2.0 — pós WP#5',
+  ultimaAtualizacao: `${HOJE}T23:00 BRT`,
+  versao: '3.0 — pós WP #4 (cross-vertical UroPro × PBF × Emendas) + WP #6 (UroPro vertical-only)',
   resumoCalibragem:
     'Avaliação MACRO do projeto inteiro (não de uma vertical isolada). ' +
     'Esta é a única avaliação do projeto que excede o teto lato sensu — ' +
@@ -423,17 +439,27 @@ export const PARECER_GLOBAL = {
     '11.048 arquivos DBC), em arquitetura medallion sobre Apache Spark + ' +
     'Delta Lake + Databricks Unity Catalog, com pipelines-como-código, ' +
     'CI/CD multi-camada e front-end React renderizando microdados ' +
-    'consolidados em tempo real. Pós WP #5 (Equipamentos × Parkinson, ' +
-    'coautoria com A. M. Rolim), o projeto tem 3 Working Papers em ABNT ' +
-    'compilados (Emendas, Bolsa Família, Equipamentos-RM) + 1 em curso ' +
-    '(UroPro). O modelo de "engenharia + clínica em coautoria" ' +
-    'demonstrado no WP #5 é uma contribuição metodológica genuína do ' +
-    'projeto: provê o mecanismo concreto para integrar saber clínico ' +
-    '(que define a pergunta de pesquisa) com infraestrutura de dados ' +
-    '(que dá vazão quantitativa atualizável). Conceito B mantido (2 pts, ' +
-    '"passa na média do mestrado") porque ainda não há peer review nem ' +
-    'identificação causal de fato — o teto A só é alcançado com pelo ' +
-    'menos UMA das verticais aceita em periódico indexado.',
+    'consolidados em tempo real. Pós WP #4 (Acesso desigual: cirurgia ' +
+    'uroginecológica × pobreza × emendas, abr/2026) + WP #6 (UroPro ' +
+    'vertical-only 2008-2025), o projeto soma SEIS Working Papers em ' +
+    'ABNT escritos: WP #1 (Emendas), WP #2 (Bolsa Família), WP #3 ' +
+    '(UroPro/Tatieli original), WP #4 (cross-vertical UroPro × PBF × ' +
+    'Emendas), WP #5 (Equipamentos-RM × Parkinson, coautoria A. M. Rolim) ' +
+    'e WP #6 (UroPro 17 anos). TRÊS modelos de contribuição metodológica ' +
+    'genuína se consolidam agora: (a) "engenharia + clínica em coautoria" ' +
+    '(WP #5 com Rolim, integrando saber clínico com infraestrutura de ' +
+    'dados); (b) "análise cross-vertical sobre arquitetura unificada" ' +
+    '(WP #4 cruza três verticais — UroPro, PBF, Emendas — possível ' +
+    'APENAS porque os pipelines passam pela mesma arquitetura medalhão); ' +
+    '(c) "auditabilidade pública do dado processado" (descoberta e ' +
+    'correção transparente do bug silver na vertical UroPro, commit ' +
+    'fa869cf abr/2026 — filtro _ingest_ts == max derrubava 73% das ' +
+    'linhas e 14 das 27 UFs, documentado em primeira pessoa nos próprios ' +
+    'papers). Conceito sobe de B para B+ por essas três contribuições ' +
+    'metodológicas demonstradas e pelo aumento de cinco para seis ' +
+    'Working Papers escritos. O teto A continua condicionado a peer ' +
+    'review formal (submissão a periódico indexado) e identificação ' +
+    'causal explícita.',
   utilidadeSocial:
     'EXTREMAMENTE ÚTIL E AMPLAMENTE APLICÁVEL. O Mirante é uma plataforma ' +
     'que reduz drasticamente o custo marginal de pesquisa em dados ' +
@@ -473,16 +499,31 @@ export const PARECER_GLOBAL = {
       'gold versionados, refresh mensal automatizado. Aproxima-se dos ' +
       'princípios FAIR (Wilkinson 2016) sem ainda formalizar o scoring.',
     '4 dos 5 verticais com pipeline funcionando em produção: PBF, ' +
-      'Equipamentos, Emendas com dados live; UroPro com pipeline em ' +
-      'execução final. Apenas RAIS ainda não rodou (URL fix recente).',
-    '3 Working Papers em ABNT já compilados: Emendas WP#1 (13 figuras), ' +
-      'Bolsa Família WP#2 (12 figuras), Equipamentos-RM × Parkinson WP#5 ' +
-      '(12 figuras, COAUTORIA com A. M. Rolim — médico/clínico). Padrão ' +
+      'Equipamentos, Emendas e UroPro com dados live. Apenas RAIS ainda ' +
+      'não rodou (URL fix recente).',
+    'SEIS Working Papers em ABNT escritos: Emendas WP#1, Bolsa Família ' +
+      'WP#2, UroPro/Tatieli WP#3, Acesso desigual cross-vertical WP#4, ' +
+      'Equipamentos-RM × Parkinson WP#5 (coautoria A. M. Rolim) e UroPro ' +
+      '17-anos WP#6. Três deles (WP #1, #2, #5) já compilados em PDF; ' +
+      'WP #4 e #6 escritos em abr/2026, compilação pendente. Padrão ' +
       'acadêmico real, não rascunho.',
     'Modelo de coautoria engenheiro-clínico demonstrado no WP#5: pesquisa ' +
       'clínica original (manuscrito Rolim sobre epidemiologia DP no Brasil) ' +
       '+ camada de engenharia de dados Mirante. Replicável a outras ' +
       'agendas de saúde pública.',
+    'Modelo de análise cross-vertical demonstrado no WP#4 (Acesso ' +
+      'desigual): cruzamento de TRÊS verticais (UroPro × PBF × Emendas) ' +
+      'sobre a mesma arquitetura medalhão, com correlações ρ ≈ -0,68 ' +
+      '(pobreza × acesso) e ρ ≈ -0,45 (emendas × acesso). Esse tipo de ' +
+      'integração é IMPOSSÍVEL em arquiteturas de dados fragmentadas — ' +
+      'é, em si, justificativa para a plataforma unificada.',
+    'Auditabilidade pública demonstrada (abr/2026): bug silver descoberto ' +
+      'por inspeção visual da plataforma, diagnosticado por SQL direto ao ' +
+      'Delta, corrigido em commit fa869cf, regenerado e documentado em ' +
+      'primeira pessoa nos WPs #4 e #6. Defeito ocultava 73% das linhas ' +
+      'e 14 das 27 UFs em silêncio. Em arquiteturas opacas (planilhas ' +
+      'adhoc, ETLs em ferramentas black-box), esse mesmo bug poderia ter ' +
+      'persistido por anos.',
     'Comparações inter-vertical não-triviais (CV per capita PBF vs Emendas) ' +
       'que NÃO emergem em análises monovertical — só com plataforma multi.',
   ],
