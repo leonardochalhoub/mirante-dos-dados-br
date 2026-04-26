@@ -87,4 +87,13 @@ print(f"silver rows: {n}  (esperado ~27 UFs × N anos)")
     .option("overwriteSchema","true")
     .partitionBy("Ano")
     .saveAsTable(SILVER_TABLE))
+
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
+spark.sql(f"COMMENT ON TABLE {SILVER_TABLE} IS "
+          f"'Mirante · RAIS agregada UF × Ano — n_vinculos_total, n_vinculos_ativos "
+          f"(em 31/12), massa_salarial_dezembro (R$ nominais), remun_media_mes, "
+          f"n_estabelecimentos_proxy (countDistinct mun_trab+cnae_classe), share_simples. "
+          f"Fonte: MTE/PDET RAIS. UF derivada de substring(mun_trab, 1, 2). "
+          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
+
 print(f"✔ {SILVER_TABLE} written")

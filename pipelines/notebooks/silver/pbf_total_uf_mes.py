@@ -166,7 +166,12 @@ print("✔ DQ passed")
         .saveAsTable(SILVER_TABLE)
 )
 
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
 spark.sql(f"COMMENT ON TABLE {SILVER_TABLE} IS "
-          f"'Mirante · PBF agregado UF × Ano × Mes (n distinto, n_ano distinto, total pago).'")
+          f"'Mirante · PBF agregado UF × Ano × Mes — n (distinto/mes), "
+          f"n_ano (distinto/ano, broadcast), total_estado (R$ nominais decimal(38,2)). "
+          f"Origens unificadas: PBF (Lei 10.836/2003) + Auxílio Brasil "
+          f"(MP 1.061/2021) + Novo Bolsa Família (Lei 14.601/2023). "
+          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
 
 print(f"✔ {SILVER_TABLE} written ({n:,} rows)")

@@ -196,9 +196,14 @@ print("✔ DQ passed")
         .saveAsTable(SILVER_TABLE)
 )
 
+# Inline minimal COMMENT — full enrichment (column comments + tags) is
+# applied centrally by notebooks/_meta/apply_catalog_metadata.py.
 spark.sql(f"COMMENT ON TABLE {SILVER_TABLE} IS "
-          f"'Mirante · População UF×Ano (IBGE 6579 + interpolação linear). "
-          f"Overwritten each refresh; use Delta time travel to inspect prior snapshots.'")
+          f"'Mirante · População UF×Ano (IBGE/SIDRA 6579 + interpolação linear). "
+          f"DIMENSÃO COMPARTILHADA. Overwrite por refresh; Delta time travel "
+          f"preserva snapshots. Coluna `fonte` rastreia origem por célula '"
+          f"(ibge_direto/interpolado_linear/carry_forward/carry_backward). "
+          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
 
 print(f"✔ {SILVER_TABLE} written ({silver_df.count()} rows)")
 spark.sql(f"DESCRIBE HISTORY {SILVER_TABLE}").select("version", "timestamp", "operation").show(5, truncate=False)

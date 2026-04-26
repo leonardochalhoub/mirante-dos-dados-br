@@ -13,12 +13,13 @@ time travel, OPTIMIZE, MERGE, etc.).
 - **Cascata:** o DAG do job garante ingest → bronze → silver → gold → export em ordem
 - **History:** bronze é append-only (every refresh preserved); silver/gold via Delta time travel
 - **One notebook per table:** folder = camada, filename = nome da tabela
+- **Metadata-rich:** todo `saveAsTable` é seguido por `COMMENT ON TABLE` inline (mínimo) **+** enriquecimento central via `notebooks/_meta/apply_catalog_metadata.py` (catalog/schema/table/column COMMENTs + TAGS)
 
 ## Folder layout
 
 ```
 pipelines/
-├── databricks.yml              DAB config (3 jobs, notebook tasks only)
+├── databricks.yml              DAB config (1 job per vertical + job_apply_catalog_metadata)
 └── notebooks/
     ├── ingest/                 HTTP downloads → UC Volume (timestamped filenames)
     │   ├── ibge_populacao.py
@@ -34,9 +35,48 @@ pipelines/
     │   └── pbf_total_uf_mes.py       →  mirante_prd.silver.pbf_total_uf_mes
     ├── gold/                   batch joins → Delta overwrite
     │   └── pbf_estados_df.py         →  mirante_prd.gold.pbf_estados_df
-    └── export/                 gold table → JSON in UC Volume
-        └── pbf_estados_df_json.py
+    ├── export/                 gold table → JSON in UC Volume
+    │   └── pbf_estados_df_json.py
+    └── _meta/                  catalog/schema/table/column metadata + tags
+        └── apply_catalog_metadata.py  → idempotent, run after refreshes
 ```
+
+## Catalog metadata (COMMENTs + TAGS)
+
+`notebooks/_meta/apply_catalog_metadata.py` é a **fonte única de verdade**
+para metadata Unity Catalog do `mirante_prd`. Aplica idempotentemente:
+
+- `COMMENT ON CATALOG mirante_prd`
+- `COMMENT ON SCHEMA` para `bronze` / `silver` / `gold`
+- `COMMENT ON TABLE` (multi-parágrafo, com contexto histórico, achados de WPs e
+  bugs documentados) em todas as 19 tabelas
+- `ALTER TABLE … ALTER COLUMN … COMMENT` por coluna significativa
+- `ALTER TABLE … SET TAGS` com vocabulário normalizado:
+  `layer`, `domain`, `source`, `pii`, `grain`, `refresh_cadence`,
+  `partition_keys`, `pk_grain`, `consumer`, `deflator_base`,
+  `composite_key_required`, etc.
+
+Rodar após qualquer refresh ou diretamente:
+
+```bash
+databricks bundle run job_apply_catalog_metadata --target dev
+```
+
+Verificar no Catalog Explorer / via SQL:
+
+```sql
+DESCRIBE CATALOG EXTENDED mirante_prd;
+DESCRIBE SCHEMA EXTENDED  mirante_prd.silver;
+DESCRIBE TABLE EXTENDED   mirante_prd.gold.uropro_estados_ano;
+SHOW TAGS ON TABLE        mirante_prd.gold.uropro_estados_ano;
+```
+
+**Regra permanente:** ao adicionar uma NOVA tabela ao `mirante_prd`,
+a notebook que a cria DEVE emitir `COMMENT ON TABLE` (mínimo) inline
+após o `saveAsTable`, **e** a tabela DEVE ser adicionada à
+`apply_catalog_metadata.py` com seu enriquecimento completo. Sem essa
+metadata, a tabela é invisível para Catalog Explorer / AI-BI Genie /
+dbt docs / MCP clients.
 
 ## Unity Catalog layout
 

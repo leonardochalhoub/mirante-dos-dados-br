@@ -165,7 +165,12 @@ if y2025.head(1):
         .saveAsTable(GOLD_TABLE)
 )
 
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
 spark.sql(f"COMMENT ON TABLE {GOLD_TABLE} IS "
-          f"'Mirante · PBF UF × Ano (gold). Schema do JSON consumido pelo front.'")
+          f"'Mirante · PBF UF × Ano (gold). Schema do JSON consumido pelo front. "
+          f"Métricas: n_benef (countDistinct NIS anual), valor_nominal/2021 (R$ bi), "
+          f"pbfPerBenef (R$ 2021/benef), pbfPerCapita (R$ 2021/hab). "
+          f"Unifica PBF + Auxílio Brasil + Novo Bolsa Família — regimes contínuos. "
+          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
 
 print(f"✔ {GOLD_TABLE} written ({n} rows)")

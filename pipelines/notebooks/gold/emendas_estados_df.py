@@ -157,8 +157,13 @@ else:
         .saveAsTable(GOLD_TABLE)
 )
 
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
 spark.sql(f"COMMENT ON TABLE {GOLD_TABLE} IS "
-          f"'Mirante · Emendas Parlamentares UF × Ano (gold). "
-          f"Empenhado/pago nominal + R$2021 + per_capita + split por tipo_RP.'")
+          f"'Mirante · Emendas Parlamentares UF × Ano (gold). Pivot de silver "
+          f"por tipo_RP (RP6/RP7/RP8/RP9/OUTRO) + deflator IPCA-2021 + população "
+          f"IBGE para `emendaPerCapita2021`. Achado WP#3 (CHALHOUB 2026d): "
+          f"emendas per capita correlacionam-se NEGATIVAMENTE com acesso a "
+          f"cirurgia uroginecológica (ρ ≈ -0,45). "
+          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
 
 print(f"✔ {GOLD_TABLE} written ({n} rows)")

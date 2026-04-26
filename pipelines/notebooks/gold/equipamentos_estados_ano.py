@@ -74,8 +74,12 @@ if rm.head(1):
         .partitionBy("ano")
         .saveAsTable(GOLD_TABLE)
 )
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
 spark.sql(f"COMMENT ON TABLE {GOLD_TABLE} IS "
-          f"'Mirante · CNES Equipamentos por UF × Ano × (TIPEQUIP, CODEQUIP) — "
-          f"gold pass-through do silver com composite key e nomes canônicos do "
-          f"catálogo oficial DATASUS (cnes2.datasus.gov.br/Mod_Ind_Equipamento.asp).'")
+          f"'Mirante · CNES Equipamentos UF × Ano × (TIPEQUIP, CODEQUIP) — gold "
+          f"pass-through do silver com composite key (`equipment_key`) e nomes "
+          f"canônicos do catálogo oficial DATASUS "
+          f"(cnes2.datasus.gov.br/Mod_Ind_Equipamento.asp). Spot-check: RM (1:12) "
+          f"bate ~17/Mhab (mediana OCDE). Cobre WPs #4 e #6. "
+          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
 print(f"\n✔ {GOLD_TABLE} written ({n} rows)")

@@ -105,8 +105,12 @@ print("✔ DQ passed")
         .saveAsTable(SILVER_TABLE)
 )
 
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
 spark.sql(f"COMMENT ON TABLE {SILVER_TABLE} IS "
-          f"'Mirante · IPCA deflators (Dez/2021 = 1.0). Source: BCB SGS 433.'")
+          f"'Mirante · IPCA deflators (Dez/2021 = 1.0) — DIMENSÃO COMPARTILHADA. "
+          f"Source: BCB SGS série 433. Cumprod via log-sum-exp + forward-fill "
+          f"para anos sem IPCA. Uso: gold.val_2021 = silver.val_nominal * deflator_to_2021. "
+          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
 
 print(f"✔ {SILVER_TABLE} written ({n} rows)")
 spark.read.table(SILVER_TABLE).show()

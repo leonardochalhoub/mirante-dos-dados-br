@@ -384,3 +384,21 @@ resources:
         quartz_cron_expression: "0 0 6 26 * ?"  # monthly: day 26 6h UTC
         timezone_id: UTC
         pause_status: PAUSED
+
+    # ─── Catalog/Schema/Table/Column metadata enrichment ────────────────────
+    # Single source of truth for verbose COMMENTs and TAGS across mirante_prd.
+    # Idempotent: comments are overwritten, tags are merged.
+    # Run this AFTER all silver/gold refreshes — or on demand:
+    #   databricks bundle run job_apply_catalog_metadata --target dev
+    # Standing rule (agent memory feedback_unity_catalog_metadata.md): when
+    # adding a NEW table to the catalog, append it to apply_catalog_metadata.py
+    # AND emit inline COMMENT/TAGS in the creating notebook.
+    job_apply_catalog_metadata:
+      name: mirante · apply catalog/schema/table/column metadata + tags
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: apply_metadata
+          notebook_task:
+            notebook_path: ./notebooks/_meta/apply_catalog_metadata.py
+            base_parameters:
+              catalog: "${var.catalog}"

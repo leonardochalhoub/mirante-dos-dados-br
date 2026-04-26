@@ -72,4 +72,12 @@ print(f"gold rows: {n}")
     .option("overwriteSchema","true")
     .partitionBy("Ano")
     .saveAsTable(GOLD))
+
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
+spark.sql(f"COMMENT ON TABLE {GOLD} IS "
+          f"'Mirante · RAIS UF × Ano (gold). Origem: silver.rais_uf_ano + população "
+          f"+ deflator IPCA-2021. Métricas: n_vinculos_ativos, massa_salarial_2021, "
+          f"vinculos_per_capita, taxa_formalizacao_proxy, share_simples. "
+          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
+
 print(f"✔ {GOLD} written ({n} rows)")

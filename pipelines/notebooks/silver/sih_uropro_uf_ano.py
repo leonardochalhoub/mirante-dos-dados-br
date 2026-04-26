@@ -207,9 +207,14 @@ silver_df.groupBy("ano", "proc_rea").agg(
         .partitionBy("ano")
         .saveAsTable(SILVER_TABLE)
 )
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
 spark.sql(
     f"COMMENT ON TABLE {SILVER_TABLE} IS "
-    f"'Mirante · SIH-AIH agregado por UF×Ano×Mes×Procedimento×Caráter×Gestão. "
-    f"Foco inicial: Tratamento Cirúrgico de Incontinência Urinária (3 SIGTAPs).'"
+    f"'Mirante · SIH-AIH agregado UF × Ano × Mes × Procedimento × Caráter × Gestão. "
+    f"Foco: Tratamento Cirúrgico de Incontinência Urinária (SIGTAPs 0409010499 vag, "
+    f"0409070270 vag, 0409020117 deprecated). Métricas: n_aih, sum_dias_perm, n_morte, "
+    f"val_tot/sh/sp, dias_perm_avg, mortalidade. POST-fa869cf: cobertura plena de 27 UFs. "
+    f"Pré-correção (filtro _ingest_ts==max), apenas 13 UFs apareciam. "
+    f"Reaplicar metadata rico via job_apply_catalog_metadata.'"
 )
 print(f"✔ {SILVER_TABLE} written ({n} rows)")

@@ -223,9 +223,14 @@ last_year = gold_df.agg(F.max("ano")).first()[0]
         .partitionBy("ano")
         .saveAsTable(GOLD_TABLE)
 )
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
 spark.sql(
     f"COMMENT ON TABLE {GOLD_TABLE} IS "
-    f"'Mirante · SIH-AIH UroPro por UF × Ano × Procedimento (gold). "
-    f"Tratamento cirúrgico de incontinência urinária. Deflacionado IPCA Dez/2021.'"
+    f"'Mirante · UroPro UF × Ano × Procedimento (gold). Cirurgia uroginecológica "
+    f"no SUS. Deflacionado IPCA Dez/2021. Indicadores-chave: n_aih_por100k "
+    f"(SC 14,71 → RR 0,14 em 2025, gap 100×), dias_perm_avg (caiu 40% via vaginal "
+    f"2008→2025), mortalidade (<0,05% estrutural). Cobertura plena de 27 UFs "
+    f"pós-correção fa869cf. Consumido pelo front via JSON export. WPs #3 e #5 "
+    f"(CHALHOUB 2026d, 2026f). Reaplicar metadata rico via job_apply_catalog_metadata.'"
 )
 print(f"\n✔ {GOLD_TABLE} written ({n} rows)")

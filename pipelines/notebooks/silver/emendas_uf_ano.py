@@ -195,8 +195,14 @@ print("✔ DQ passed")
         .saveAsTable(SILVER_TABLE)
 )
 
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
 spark.sql(f"COMMENT ON TABLE {SILVER_TABLE} IS "
-          f"'Mirante · Emendas Parlamentares por UF × Ano × tipo_RP "
-          f"(empenhado/pago/restos). Fonte: Portal Transparência CGU.'")
+          f"'Mirante · Emendas Parlamentares por UF × Ano × tipo_RP — "
+          f"n_emendas, n_municipios, valor_empenhado/pago/restos (R$ nominais). "
+          f"tipo_emenda normalizado ∈ {{RP6 individual, RP7 bancada, RP8 comissão, "
+          f"RP9 relator, OUTRO}}. Fonte: Portal Transparência CGU. "
+          f"Cobertura: 2014-atual. Achado WP#3: emendas per capita NÃO compensam "
+          f"o gradiente pobreza→acesso (ρ ≈ -0,45). "
+          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
 
 print(f"✔ {SILVER_TABLE} written ({n} rows)")
