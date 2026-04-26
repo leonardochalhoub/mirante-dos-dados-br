@@ -316,10 +316,13 @@ code, pre, .mono {
 /* Theme-aware logo swap (CSS-only, no React state).
    Both variants render in DOM; the wrong one is hidden by data-theme
    attribute on <html>. Robust against useTheme's per-instance state
-   not propagating on theme toggle. */
-.theme-img-dark { display: none; }
-[data-theme="dark"] .theme-img-light { display: none; }
-[data-theme="dark"] .theme-img-dark { display: block; }
+   not propagating on theme toggle.
+   !important é necessário porque .tech-badges img { display: block }
+   tem especificidade (0,1,1) maior que .theme-img-dark (0,1,0),
+   o que fazia ambos delta logos aparecerem no light mode. */
+.theme-img-dark { display: none !important; }
+[data-theme="dark"] .theme-img-light { display: none !important; }
+[data-theme="dark"] .theme-img-dark { display: block !important; }
 
 [data-theme="dark"] .tech-badges img[alt="Apache Spark"] {
   background: #f8fafc;

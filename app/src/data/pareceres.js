@@ -53,10 +53,14 @@ export const NIVEL_LABEL = {
   stricto_sensu_doutorado: 'Stricto sensu · Doutorado',
 };
 
-// Conversão letra ↔ pontos no stricto sensu
-export const LETRA_PONTOS = { A: 3, B: 2, C: 1, D: 0 };
+// Conversão letra ↔ pontos no stricto sensu (mestrado).
+// A (3 pts) é o teto — acima disso o trabalho avança pra doutorado.
+// B+ (2,5) é "passa com mérito"; B (2,0) é o limiar de aprovação;
+// C (1,0) e D (0) precisam de compensação por outros trabalhos.
+export const LETRA_PONTOS = { A: 3, 'B+': 2.5, B: 2, C: 1, D: 0 };
 export const LETRA_DESCRICAO = {
-  A: 'Excelente — passa com folga',
+  A: 'Excelente — passa com folga, próximo do teto do mestrado',
+  'B+': 'Muito bom — acima da média, passa com mérito',
   B: 'Bom — passa na média',
   C: 'Abaixo — depende de compensação por outros trabalhos',
   D: 'Reprovação no trabalho — precisa de A em 3+ outros para compensar',

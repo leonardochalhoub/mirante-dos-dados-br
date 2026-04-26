@@ -133,7 +133,7 @@ export default function ScoreCard({ parecer }) {
           <div style={{
             marginLeft: 'auto',
             padding: '8px 14px',
-            background: scoreLetra === 'A' ? '#059669' : scoreLetra === 'B' ? '#0d9488' : scoreLetra === 'C' ? '#b45309' : '#dc2626',
+            background: scoreLetra === 'A' ? '#059669' : scoreLetra === 'B+' ? '#0e9669' : scoreLetra === 'B' ? '#0d9488' : scoreLetra === 'C' ? '#b45309' : '#dc2626',
             color: 'white', borderRadius: 8,
             fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
             lineHeight: 1.4, textAlign: 'right',

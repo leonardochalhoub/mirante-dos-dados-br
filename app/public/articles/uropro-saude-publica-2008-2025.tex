@@ -1,0 +1,1182 @@
+% =====================================================================
+% Mirante dos Dados — Working Paper #6
+% Cirurgia uroginecológica no SUS, 2008–2025: ganhos silenciosos de
+% eficiência, desigualdade territorial persistente, choque pandêmico
+% e represa cirúrgica.
+%
+% Autor:  Leonardo Chalhoub (engenharia de dados, análise, redação)
+% Versão: 1.0  —  Abril de 2026
+% Compilação: pdflatex articles/uropro-serie-2008-2025.tex (2x)
+%
+% Este Working Paper é um seguimento de CHALHOUB & DA SILVA (2026,
+% Working Paper n. 3), que por sua vez derivou da especialização de
+% TATIELI (2022). O escopo aqui é mais amplo (2008–2025), foca em
+% dinâmicas longitudinais e incorpora a correção da pipeline silver
+% (bug de _ingest_ts identificado e resolvido em abril/2026).
+% =====================================================================
+
+\documentclass[12pt,a4paper,oneside]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazilian]{babel}
+\usepackage{lmodern}
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{float}
+\usepackage{xcolor}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+\titleformat{\section}{\normalfont\bfseries\large\uppercase}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+
+\captionsetup[table]{labelfont=bf,name=Tabela,labelsep=endash,
+                     position=above,justification=centering,font=small}
+\captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
+                      position=below,justification=centering,font=small}
+
+\newcommand{\rs}{R\$\,}
+
+\begin{document}
+
+% ---------- CAPA ---------------------------------------------------------
+\begin{titlepage}
+  \begin{center}
+    \vspace*{1.5cm}
+    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 6}}\\
+    {\small Versão 1.0 \textemdash{} Abril de 2026}
+
+    \vfill
+
+    {\LARGE\bfseries
+     CIRURGIA UROGINECOLÓGICA NO SISTEMA
+     ÚNICO DE SAÚDE, 2008\textendash 2025:
+     GANHOS SILENCIOSOS DE EFICIÊNCIA,
+     DESIGUALDADE TERRITORIAL PERSISTENTE,
+     CHOQUE PANDÊMICO E REPRESA CIRÚRGICA}
+
+    \vspace{1cm}
+    {\large\itshape
+     Uro-gynecological surgery under Brazil's Unified Health System,
+     2008\textendash 2025: silent efficiency gains, persistent
+     territorial inequality, pandemic shock and surgical backlog}
+
+    \vfill
+
+    {\large\textbf{Leonardo Chalhoub}\textsuperscript{1}}\\[6pt]
+    {\small\textsuperscript{1}\,Engenheiro de Dados \textemdash{}
+     análise quantitativa, pipeline aberto, redação.}\\[6pt]
+    {\small\href{mailto:leonardochalhoub@gmail.com}{leonardochalhoub@gmail.com}
+     \quad\textbullet\quad
+     \href{https://github.com/leonardochalhoub}{github.com/leonardochalhoub}}
+
+    \vfill
+
+    \rule{0.6\linewidth}{0.4pt}\\[6pt]
+    {\small\textit{Este artigo é o sexto da série de Working Papers
+     do Mirante dos Dados. Continua e estende DA SILVA \& CHALHOUB
+     (2026c, Working Paper n. 3), que por sua vez se assenta sobre
+     a especialização em Enfermagem de TATIELI (2022). O recorte
+     amplia-se para a janela 2008\textendash 2025 (dezessete anos),
+     dedicada à dinâmica longitudinal de eficiência, equidade e
+     resiliência \textit{intra-vertical}. O cruzamento
+     \textit{cross-vertical} com Bolsa Família e Emendas
+     Parlamentares é tratado em CHALHOUB (2026d, Working Paper n. 4),
+     paper companheiro deste.}}
+
+    \vspace{1cm}
+    {\footnotesize
+     Disponível em
+     \href{https://leonardochalhoub.github.io/mirante-dos-dados-br/}%
+     {leonardochalhoub.github.io/mirante-dos-dados-br}}\\[2pt]
+    {\footnotesize
+     \href{https://github.com/leonardochalhoub/mirante-dos-dados-br}%
+     {github.com/leonardochalhoub/mirante-dos-dados-br}}
+  \end{center}
+\end{titlepage}
+
+% =====================================================================
+\section*{Resumo}
+\addcontentsline{toc}{section}{Resumo}
+% =====================================================================
+\begin{singlespace}\small\noindent
+\textbf{Objetivo.} Caracterizar a evolução longitudinal do tratamento
+cirúrgico da incontinência urinária no Sistema Único de Saúde
+brasileiro entre 2008 e 2025, com foco em três dinâmicas: a queda
+contínua da permanência hospitalar (ganho silencioso de eficiência);
+a desigualdade territorial no acesso, agora visível para todas as
+27 unidades da federação após correção do pipeline; e o efeito
+disruptivo da pandemia de COVID-19 seguido de uma represa cirúrgica
+visível em 2024\textendash 2025.
+
+\textbf{Métodos.} Microdados SIH-AIH-RD do DATASUS para os
+procedimentos SIGTAP 0409010499 (via abdominal) e 0409070270
+(via vaginal), filtrados a partir do conjunto cru e agregados pela
+arquitetura medalhão (\textit{bronze}\,/\,\textit{silver}\,/\,\textit{gold})
+no Mirante dos Dados. Despesas deflacionadas pelo IPCA (BCB) para
+\rs 2021. Populações estaduais do IBGE/SIDRA. O pipeline foi
+auditado e tem reprodutibilidade pública: artefato Delta, código
+no GitHub e exportação JSON versionada no repositório.
+
+\textbf{Resultados.} (i)~A permanência hospitalar média na via
+vaginal caiu de 2{,}39 dias em 2008 para 1{,}43 dia em 2025
+(\textendash 40{,}2\,\%); na via abdominal, de 2{,}47 para
+1{,}81 dia (\textendash 26{,}7\,\%). (ii)~A taxa nacional na via
+vaginal foi de 5\,956 cirurgias\,/\,ano (média 2015\textendash 2019)
+para 2\,539 (média 2020\textendash 2021), uma queda de 57\,\%; em
+2024\textendash 2025 voltou para um patamar (8\,966 e 10\,144) acima
+do pré-pandêmico, sugerindo represa cirúrgica em fase final de
+liquidação. (iii)~A desigualdade territorial é severa: em 2025,
+SC e PR alcançam 14{,}71 e 11{,}61 procedimentos por 100\,mil
+habitantes; PE, AL e RR ficam abaixo de 0{,}75. (Uma análise
+\textit{cross-vertical} dessa desigualdade, cruzando o acesso
+cirúrgico com cobertura do Bolsa Família e emendas
+parlamentares, é apresentada no paper companheiro CHALHOUB,
+2026d, Working Paper n. 4.) (iv)~A mortalidade hospitalar é
+estruturalmente baixa (\textless\,0{,}05\,\% \textit{intra-hospital}),
+reforçando a tese de que o procedimento é seguro e a barreira é
+de oferta, não de risco clínico.
+
+\textbf{Conclusões.} O período examinado (2008\textendash 2025) é
+marcado por um \textit{trend} positivo de eficiência hospitalar
+(menos dias por internação) que não foi acompanhado por equalização
+territorial. A pandemia
+expandiu temporariamente a desigualdade no acesso e produziu um
+\textit{backlog} cirúrgico cujo escoamento parece estar acontecendo
+em 2024\textendash 2025. A integridade do dado público depende não
+apenas da publicação dos microdados, mas também da qualidade da
+engenharia de dados aplicada \textit{downstream}: documentamos um
+defeito específico de pipeline (filtro de \texttt{\_ingest\_ts})
+descoberto em abril de 2026, capaz de descartar 73\,\% das linhas
+\textit{bronze} \textit{e} 14 das 27 unidades da federação \textit{sem
+qualquer aviso}.
+
+\vspace{4pt}
+\textbf{Palavras-chave:} SUS; incontinência urinária; cirurgias
+eletivas; pandemia COVID-19; permanência hospitalar; desigualdade
+territorial; arquitetura medalhão; pipeline de dados; represa
+cirúrgica.
+\end{singlespace}
+
+% =====================================================================
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+% =====================================================================
+\begin{singlespace}\small\noindent
+\textbf{Objective.} To characterize the longitudinal evolution of
+surgical treatment for urinary incontinence in Brazil's Unified
+Health System (SUS) between 2008 and 2025, focusing on three
+dynamics: the continuous decline in hospital length of stay (a
+silent efficiency gain); the territorial inequality of access,
+now visible across all 27 federative units after a pipeline
+correction; and the disruptive effect of the COVID-19 pandemic
+followed by a surgical backlog visible in 2024\textendash 2025.
+
+\textbf{Methods.} SIH-AIH-RD microdata from DATASUS for SIGTAP
+procedures 0409010499 (abdominal approach) and 0409070270 (vaginal
+approach), filtered from the raw set and aggregated through a
+medallion architecture (\textit{bronze}\,/\,\textit{silver}\,/\,\textit{gold})
+in the open Mirante dos Dados pipeline. Expenditures deflated by
+IPCA (BCB) to \rs 2021. State populations from IBGE/SIDRA.
+
+\textbf{Results.} Vaginal-route length of stay fell from
+2.39\,days (2008) to 1.43\,days (2025), a 40.2\,\% reduction.
+Volume contracted by 57\,\% in 2020\textendash 2021 vs.
+2015\textendash 2019 baseline and rebounded above the pre-pandemic
+mean in 2024\textendash 2025, evidencing a backlog draining out.
+Per-capita access in 2025 ranges from 14.71/100k (SC) to
+0.14/100k (RR), a 100-fold gap. In-hospital mortality is
+structurally below 0.05\,\%.
+
+\textbf{Conclusions.} A decade of clinical-efficiency gains was
+not matched by territorial equalization. Pandemic shock
+temporarily widened access inequality and produced a backlog
+visibly draining in 2024\textendash 2025. We document a specific
+pipeline defect (\texttt{\_ingest\_ts} filter) discovered in
+April 2026 capable of silently dropping 73\,\% of bronze rows
+and 14 out of 27 federative units, underlining that public-data
+integrity depends on data-engineering quality, not only on
+microdata publication.
+
+\vspace{4pt}
+\textbf{Keywords:} SUS; urinary incontinence; elective surgery;
+COVID-19 pandemic; length of stay; territorial inequality;
+medallion architecture; data pipeline; surgical backlog.
+\end{singlespace}
+
+% =====================================================================
+\section{Introdução}\label{sec:intro}
+% =====================================================================
+
+A incontinência urinária (IU) é hoje uma das condições crônicas
+mais prevalentes na população adulta brasileira, especialmente
+entre mulheres a partir da quarta década de vida. O tratamento
+cirúrgico, indicado em casos refratários ao manejo conservador,
+é majoritariamente provido pelo Sistema Único de Saúde (SUS) em
+hospitais de média e alta complexidade. Esse arranjo institucional
+torna o SUS a fonte primária de qualquer caracterização populacional
+da prática cirúrgica para IU no país.
+
+A literatura clínica internacional consolidou, ao longo dos últimos
+quinze anos, a preferência pelo \textit{sling} sub-uretral
+(via vaginal) sobre as suspensões abdominais clássicas (Burch,
+Marshall-Marchetti-Krantz). Revisões sistemáticas Cochrane (FORD
+\textit{et al.}, 2017) e a declaração de consenso da European
+Association of Urology (CHAPPLE \textit{et al.}, 2020) apontam, com
+evidência de alto nível, que a abordagem vaginal apresenta menor
+tempo cirúrgico, menor permanência hospitalar e taxa de cura
+comparável à abdominal. Como mostraram TATIELI (2022) e DA SILVA
+\& CHALHOUB (2026c), o SUS de fato consolidou essa preferência: a
+razão vaginal:abdominal observada na série SIH-AIH-RD entre 2015 e
+2020 estabilizou-se em torno de 7:1, alinhada à literatura.
+
+O presente artigo \textit{não} é uma replicação. É uma extensão
+deliberada em três dimensões. Primeiro, o recorte temporal é
+ampliado para 2008\textendash 2025, cobrindo dezessete anos
+\textemdash{} quase duas décadas de prática cirúrgica, com o
+pós-pandemia já em curso de normalização. Segundo, a análise foca
+em três dinâmicas longitudinais que não eram visíveis no recorte
+mais curto: a queda silenciosa da permanência hospitalar, a
+forma assimétrica da recuperação pós-pandêmica entre as unidades
+da federação, e a represa cirúrgica visível em 2024\textendash 2025.
+Terceiro, o artigo documenta com transparência um defeito de
+\textit{pipeline} descoberto em abril de 2026 e responsável por
+ocultar mais de metade das UFs do Brasil em todas as visualizações
+prévias da plataforma. Esse último ponto, à primeira vista
+metodológico, é o que justifica a existência mesma deste paper:
+\textit{os números aqui apresentados são diferentes dos números
+publicados no Working Paper n. 3, e a diferença é causada por uma
+correção de engenharia, não por revisão de fonte.}
+
+A pergunta que organiza o texto é: \textit{ao olharmos quase duas
+décadas de prática cirúrgica brasileira para uma única condição
+clínica bem caracterizada, o que enxergamos sobre a capacidade
+do sistema público de produzir simultaneamente eficiência clínica
+e equidade territorial?}
+
+A resposta antecipada é dupla. Por um lado, há ganho real e
+contínuo: a permanência hospitalar média caiu mais de 40\,\% na
+via vaginal entre 2008 e 2025; a mortalidade \textit{intra-hospitalar}
+permanece estruturalmente abaixo de 0{,}05\,\%; a despesa
+deflacionada por procedimento manteve-se relativamente estável
+em moeda constante. Por outro lado, a desigualdade territorial é
+ampla e estável: em 2025, a taxa por 100\,mil habitantes em Santa
+Catarina (14{,}71) é mais de cem vezes maior que em Roraima
+(0{,}14). A pandemia de COVID-19 não criou essa desigualdade,
+mas a explicitou: estados com sistemas hospitalares mais densos
+recuperaram-se rapidamente e ainda escoam represa cirúrgica em
+2024\textendash 2025; estados periféricos sequer voltaram ao
+patamar pré-pandêmico em 2025.
+
+% =====================================================================
+\section{Marco Conceitual}\label{sec:teoria}
+% =====================================================================
+
+\subsection{Cirurgia eletiva como categoria sensível}
+
+Cirurgias eletivas \textemdash{} aquelas que podem ser
+\textit{adiadas sem dano clínico imediato} \textemdash{}
+são, por construção, a primeira categoria a ser suprimida quando
+um sistema hospitalar é tensionado por uma demanda externa
+inelástica. A pandemia de COVID-19 explicitou esse mecanismo de
+forma extrema: a realocação compulsória de leitos de enfermaria
+e UTI para pacientes com SARS-CoV-2 retirou capacidade do estoque
+disponível para procedimentos não-emergenciais (NUNES \textit{et
+al.}, 2022). A IU cirúrgica é prototípica dessa categoria: é
+quase sempre eletiva, requer hospital de média ou alta
+complexidade e demanda anestesia regional ou geral. Quando o
+hospital prioriza COVID, a fila de IU não desaparece \textemdash{}
+acumula. Esse acúmulo é o que chamaremos de \textit{represa
+cirúrgica}.
+
+\subsection{Permanência hospitalar como métrica de eficiência}
+
+A permanência hospitalar média (\textit{average length of stay},
+ALOS) é a medida síntese mais simples da intensidade de uso de
+recursos por procedimento. Um procedimento que mantém uma boa
+taxa de cura mas gradualmente requer menos dias de internação
+representa ganho real de produtividade hospitalar: o mesmo leito
+pode atender mais pacientes ao longo do ano. No contexto da IU
+cirúrgica, esse ganho é compatível com a difusão progressiva de
+técnicas minimamente invasivas (\textit{slings} sub-uretrais
+TVT/TOT) e com a diminuição da via abdominal pura (que requeria
+internação mais longa). A queda da permanência observada nos
+microdados é, portanto, a tradução estatística de uma evolução
+clínica de fato ocorrida.
+
+\subsection{Equidade territorial em sistema universal}
+
+O princípio constitucional da universalidade do SUS implica
+\textit{acesso} universal, não \textit{distribuição} uniforme da
+oferta. Estados com maior densidade hospitalar (especialmente Sul
+e Sudeste, maiores centros de formação médica) historicamente
+concentraram a oferta de procedimentos especializados. Para a IU
+cirúrgica, essa concentração não é novidade: TATIELI (2022) já a
+documentava no recorte 2015\textendash 2020. O que este Working
+Paper acrescenta é que a desigualdade não diminuiu ao longo do
+período examinado,
+\textit{e} que o pipeline público até abril de 2026 estava
+publicando uma versão \textit{ainda mais desigual do que a real},
+por força do bug descrito na seção metodológica.
+
+% =====================================================================
+\section{Aspectos Metodológicos}\label{sec:metodo}
+% =====================================================================
+
+\subsection{Fontes de dados}
+
+A análise utiliza três fontes públicas:
+\begin{itemize}
+\item \textbf{SIH-AIH-RD} (DATASUS): microdados de Autorizações de
+Internação Hospitalar reduzidas, distribuídos via servidor FTP em
+arquivos DBC mensais por UF. Período coberto: janeiro/2008 a
+dezembro/2025.
+\item \textbf{IPCA} (Banco Central do Brasil, série SGS\,433):
+Índice de Preços ao Consumidor Amplo para deflação de despesas
+para reais constantes (\rs 2021).
+\item \textbf{Estimativas populacionais} (IBGE\,/\,SIDRA, tabela
+6579): população residente por UF, base anual.
+\end{itemize}
+
+\subsection{Pipeline de dados (arquitetura medalhão)}
+
+A arquitetura adotada segue o padrão \textit{lakehouse}
+(ARMBRUST \textit{et al.}, 2021), com três camadas:
+
+\begin{itemize}
+\item \textbf{Bronze}: ingestão crua via Auto Loader. Os arquivos
+DBC originais são mantidos em volumes Unity Catalog; uma camada
+\textit{bronze} de Delta Lake armazena cada linha do DBC convertida
+para Parquet com tipos exclusivamente \texttt{string}, sem
+inferência. Essa decisão (camada \textit{bronze} \textit{string-only})
+preserva a fidelidade ao dado de origem e remete decisões de
+tipagem para o \textit{silver}.
+
+\item \textbf{Silver}: limpeza, normalização e agregação. Aqui
+ocorrem (i) \textit{cast} de tipos para os domínios canônicos
+(inteiro, decimal, data, código), (ii) deduplicação e validação,
+e (iii) agregação por chave analítica
+(uf $\times$ ano $\times$ mês $\times$ \texttt{proc\_rea}
+$\times$ caráter $\times$ gestão).
+
+\item \textbf{Gold}: vista analítica colapsada por
+(uf $\times$ ano $\times$ \texttt{proc\_rea}), enriquecida com
+populações IBGE e deflatores IPCA. É a camada consumida pelo
+\textit{front-end} da plataforma e por exportações.
+\end{itemize}
+
+\subsection{Sobre o defeito do pipeline silver e sua correção}\label{sub:bug}
+
+Em abril de 2026, durante uma inspeção visual do mapa de
+\textit{Distribuição geográfica} da plataforma, observou-se que
+diversas unidades da federação apareciam como \textit{sem dado}
+para combinações (ano, procedimento) em que o sistema deveria, em
+princípio, ter registros. Uma sequência de consultas SQL diretas
+ao Delta da camada \textit{silver} revelou que, para o procedimento
+de maior volume nacional (0409070270, via vaginal), apenas 13 das
+27 UFs apareciam por ano \textemdash{} mesmo nos anos em que o
+\textit{bronze} continha registros para todas as 27.
+
+\noindent
+A causa raiz, identificada por inspeção do código, foi a seguinte
+linha no \textit{notebook silver}:
+
+\begin{singlespace}\small
+\begin{verbatim}
+latest_ts = bronze.agg(F.max("_ingest_ts")).first()[0]
+src = bronze.where(F.col("_ingest_ts") == latest_ts)
+\end{verbatim}
+\end{singlespace}
+
+\noindent
+A intenção declarada (em comentário) era \textit{evitar dupla
+contagem se rodaram o ingest mais de uma vez}. O bug está na
+hipótese implícita: o filtro pressupõe que \textit{cada} valor
+de \texttt{\_ingest\_ts} representa um \textit{snapshot} completo
+do \textit{bronze}. Isso não é verdade. O Auto Loader processa
+arquivos em micro-\textit{batches} dentro de uma mesma execução,
+e \textit{cada} micro-batch recebe seu próprio
+\texttt{\_ingest\_ts}. No caso real, os 408 arquivos por UF foram
+distribuídos em quatro micro-batches separados por poucos segundos
+(00:07:17, 00:07:19, 00:07:21 e 00:07:25 UTC). O filtro
+\texttt{== max} preservava \textit{apenas} o último micro-batch,
+descartando 73\,\% das linhas \textit{bronze} \textit{e} 14 das 27
+UFs \textit{em silêncio}.
+
+\noindent
+A correção foi remover o filtro. A idempotência por arquivo é
+garantida pelo \textit{checkpoint} do próprio Auto Loader (cada
+arquivo é processado uma única vez), o que torna o filtro
+\texttt{max(\_ingest\_ts)} não apenas defeituoso mas também
+redundante. O \textit{commit} público que aplica a correção é o
+\texttt{fa869cf} no repositório do projeto (abril de 2026). Toda a
+camada \textit{silver} e \textit{gold} foi regenerada em seguida,
+e os números apresentados neste Working Paper já refletem essa
+reconstituição. Comparações com o Working Paper n. 3 ficam
+prejudicadas em magnitudes absolutas, mas \textit{não} nas
+direções de tendência \textemdash{} o que é um achado
+metodológico relevante por si só.
+
+\subsection{Procedimentos analisados}
+
+Foram considerados dois procedimentos da Tabela SIGTAP:
+\begin{itemize}
+\item \textbf{0409010499} \textemdash{} \textit{Tratamento
+Cirúrgico de Incontinência Urinária por Via Abdominal}.
+\item \textbf{0409070270} \textemdash{} \textit{Tratamento
+Cirúrgico de Incontinência Urinária por Via Vaginal}.
+\end{itemize}
+
+O código residual 0409020117 (\textit{Genérico}), embora citado
+em estudos prévios, não apresenta registros não-nulos na série
+\textit{bronze} obtida pelo \textit{ingest} via FTP do DATASUS, o
+que sugere que se trata de código histórico \textit{deprecated}.
+Excluímo-lo da análise.
+
+\subsection{Indicadores construídos}
+
+A camada \textit{gold} produz, por \texttt{(uf, ano, proc\_rea)},
+os seguintes indicadores que serão usados ao longo do texto:
+
+\begin{itemize}
+\item \texttt{n\_aih}: número de internações aprovadas. \textit{Proxy}
+direto do volume de cirurgias.
+\item \texttt{val\_tot\_2021}: valor total pago em \rs 2021,
+deflacionado pelo IPCA.
+\item \texttt{val\_per\_aih\_2021}: valor médio pago por AIH em
+\rs 2021. Sensível à composição (mix abd/vag) e a reajustes da
+SIGTAP.
+\item \texttt{dias\_perm\_avg}: permanência hospitalar média
+\textit{ponderada por AIH}. Métrica chave deste artigo.
+\item \texttt{mortalidade}: taxa de óbito intra-hospitalar
+($\#\text{mortes}\,/\,\#\text{AIH}$).
+\item \texttt{n\_aih\_por100k}: razão por 100\,mil habitantes,
+usando a estimativa IBGE da UF no ano correspondente. Permite
+comparação direta entre estados com populações distintas.
+\end{itemize}
+
+\subsection{Limitações}
+
+(i) A análise é \textit{descritiva} \textemdash{} não há controle
+para confundidores demográficos (estrutura etária da população
+feminina, paridade, prevalência subjacente de IU) nem para
+heterogeneidade da capacidade hospitalar. (ii) O SIH captura
+apenas a parte da prática efetivamente \textit{paga} pelo SUS;
+cirurgias particulares e por planos privados não aparecem.
+(iii) A definição de IU empregada é a operacional do SIGTAP
+(o procedimento foi codificado como tal), não uma definição
+clínica externa. (iv) Anos parciais (em geral o ano corrente até
+o último mês fechado) são descartados na regra
+\textit{full-year-only} aplicada na camada \textit{silver}; isso
+mantém a comparabilidade temporal mas exige cautela ao interpretar
+o ano final disponível.
+
+% =====================================================================
+\section{Resultados}\label{sec:resultados}
+% =====================================================================
+
+\subsection{Volumes nacionais e razão entre vias}\label{sub:volumes}
+
+A Tabela~\ref{tab:nat-aih} consolida o volume nacional anual por
+via para o período 2008\textendash 2025. A via vaginal predomina
+de forma estável: nos anos pré-pandêmicos (2015\textendash 2019),
+a razão vaginal:abdominal foi de aproximadamente 7{,}5:1,
+ligeiramente maior do que o reportado no Working Paper n. 3
+(que utilizou dados parciais por força do bug descrito na
+Seção~\ref{sub:bug}). Em 2025, a razão sobe para 13{,}7:1
+\textemdash{} um indício de que a represa cirúrgica em escoamento
+está concentrada \textit{quase exclusivamente} na via vaginal,
+provavelmente porque é a via majoritária da prática contemporânea.
+
+\begin{table}[H]
+\centering
+\caption{Volume anual nacional por via cirúrgica (n. de AIH).
+Fonte: SIH-AIH-RD (DATASUS), processado pelo Mirante dos Dados.}
+\label{tab:nat-aih}
+\small
+\begin{tabular}{rrrr}
+\toprule
+\textbf{Ano} & \textbf{Abdominal} & \textbf{Vaginal} & \textbf{Razão V:A} \\
+\midrule
+2008 & 2\,074 & 6\,558  &  3{,}2:1 \\
+2009 & 1\,755 & 5\,888  &  3{,}4:1 \\
+2010 & 1\,542 & 6\,324  &  4{,}1:1 \\
+2011 & 1\,388 & 6\,085  &  4{,}4:1 \\
+2012 & 1\,216 & 5\,982  &  4{,}9:1 \\
+2013 & 1\,046 & 5\,494  &  5{,}3:1 \\
+2014 & 1\,032 & 5\,785  &  5{,}6:1 \\
+2015 & 1\,020 & 5\,722  &  5{,}6:1 \\
+2016 &   789  & 5\,467  &  6{,}9:1 \\
+2017 &   760  & 5\,419  &  7{,}1:1 \\
+2018 &   760  & 5\,555  &  7{,}3:1 \\
+2019 &   759  & 5\,959  &  7{,}9:1 \\
+2020 &   384  & 2\,566  &  6{,}7:1 \\
+2021 &   323  & 2\,511  &  7{,}8:1 \\
+2022 &   646  & 5\,578  &  8{,}6:1 \\
+2023 &   821  & 6\,785  &  8{,}3:1 \\
+2024 &   863  & 8\,966  & 10{,}4:1 \\
+2025 &   740  & 10\,144 & 13{,}7:1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Três fenômenos saltam à vista. Primeiro, a via abdominal vinha
+caindo gradualmente \textit{antes} da pandemia: de 2\,074 em 2008
+para 759 em 2019, uma redução de 63\,\% em 11 anos. Esse declínio
+é consistente com a difusão internacional dos \textit{slings} e
+com a substituição clínica da via abdominal pela vaginal. Segundo,
+ambas as vias colapsaram em 2020\textendash 2021, mas a magnitude
+relativa foi diferente: a abdominal caiu mais (\textendash 49{,}4\,\%
+em 2020) que a vaginal (\textendash 56{,}9\,\%); contudo, em base
+absoluta, a vaginal perdeu 3\,393 procedimentos\,/\,ano enquanto
+a abdominal perdeu 375. Terceiro, a recuperação pós-pandêmica é
+\textit{heterogênea entre vias}: a vaginal não apenas voltou ao
+patamar pré-pandêmico em 2022\textendash 2023 (5\,578 e 6\,785,
+contra 5\,959 em 2019) como o ultrapassou em 2024\textendash 2025
+(8\,966 e 10\,144), enquanto a abdominal estabilizou-se em torno
+de 800\,/\,ano \textemdash{} um patamar inferior ao último ano
+pré-pandêmico (759), mas dentro da banda de variação histórica
+observada desde 2017.
+
+A Figura~\ref{fig:evolucao-vol} ilustra o padrão. O salto de
+2024\textendash 2025 na via vaginal é a evidência mais direta
+disponível de que a represa cirúrgica acumulada durante a pandemia
+está em fase final de escoamento.
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering
+\textit{[Figura disponível na versão interativa da plataforma.}\\
+\textit{Reprodução estática deste Working Paper omitida nesta
+versão; ver gráfico empilhado por via cirúrgica em
+leonardochalhoub.github.io/mirante-dos-dados-br/incontinencia-urinaria.]}}}
+\caption{Evolução nacional do número de cirurgias por via,
+2008\textendash 2025. Barras empilhadas por via (abdominal, vaginal).
+A queda 2020\textendash 2021 e o pico 2024\textendash 2025 na via
+vaginal são as duas anomalias mais evidentes.}
+\label{fig:evolucao-vol}
+\end{figure}
+
+\subsection{Permanência hospitalar: a queda silenciosa}\label{sub:permanencia}
+
+Este é, de longe, o achado mais relevante deste Working Paper para
+o debate sobre \textit{eficiência} do gasto público em saúde. A
+permanência hospitalar média \textit{caiu continuamente em ambas
+as vias} ao longo de todo o período, sem interrupção pela pandemia
+(que de fato \textit{acelerou} a queda em 2020\textendash 2021).
+A Tabela~\ref{tab:nat-perm} sintetiza.
+
+\begin{table}[H]
+\centering
+\caption{Permanência hospitalar média nacional, em dias por AIH.
+Ponderação: número de AIH em cada ano. Fonte: SIH-AIH-RD.}
+\label{tab:nat-perm}
+\small
+\begin{tabular}{rrr}
+\toprule
+\textbf{Ano} & \textbf{Abdominal} & \textbf{Vaginal} \\
+\midrule
+2008 & 2{,}47 & 2{,}39 \\
+2009 & 2{,}44 & 2{,}41 \\
+2010 & 2{,}47 & 2{,}37 \\
+2011 & 2{,}13 & 2{,}29 \\
+2012 & 2{,}22 & 2{,}22 \\
+2013 & 2{,}22 & 2{,}02 \\
+2014 & 2{,}48 & 1{,}97 \\
+2015 & 2{,}24 & 1{,}92 \\
+2016 & 2{,}16 & 1{,}90 \\
+2017 & 2{,}15 & 1{,}83 \\
+2018 & 2{,}23 & 1{,}77 \\
+2019 & 2{,}14 & 1{,}86 \\
+2020 & 1{,}96 & 1{,}68 \\
+2021 & 1{,}94 & 1{,}55 \\
+2022 & 1{,}86 & 1{,}52 \\
+2023 & 1{,}79 & 1{,}53 \\
+2024 & 1{,}86 & 1{,}45 \\
+2025 & 1{,}81 & 1{,}43 \\
+\midrule
+\textbf{$\Delta$ 2008$\rightarrow$2025} & \textbf{\textendash 26{,}7\,\%} & \textbf{\textendash 40{,}2\,\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Em 2008, a permanência média na via vaginal era de 2{,}39 dias.
+Em 2025, é de 1{,}43 \textemdash{} uma redução de 40{,}2\,\% em
+17 anos, ou pouco mais de 1\,\% ao ano em média geométrica. Na
+via abdominal, a queda foi de 2{,}47 para 1{,}81 dia
+(\textendash 26{,}7\,\%), também substantiva. Esses números têm
+três implicações imediatas.
+
+\textbf{Primeira, e mais óbvia: o sistema produz hoje, com o
+mesmo leito-dia, mais cirurgias do que em 2008.} Em ordem de
+grandeza: 1\,000 leitos-dia em 2008 entregavam aproximadamente
+418 procedimentos vaginais (1\,000 / 2{,}39); em 2025 entregam
+699 (1\,000 / 1{,}43) \textemdash{} um ganho de produtividade
+hospitalar de 67\,\%. Isso é um \textit{economia real de recurso
+público} mantida silenciosamente fora do radar do debate
+político-orçamentário.
+
+\textbf{Segunda: a queda é compatível, em ritmo e direção, com
+a difusão internacional dos \textit{slings} sub-uretrais
+minimamente invasivos.} A literatura clínica (FORD \textit{et
+al.}, 2017; CHAPPLE \textit{et al.}, 2020) reporta permanência
+de 1\textendash 2 dias para TVT/TOT em centros bem treinados.
+O Brasil, em 2025, está dentro dessa banda \textemdash{}
+embora, como veremos, com forte heterogeneidade entre UFs.
+
+\textbf{Terceira: a pandemia não estancou nem reverteu o
+\textit{trend}.} Os anos 2020\textendash 2021 mostram, ao
+contrário, \textit{aceleração} da queda (de 1{,}86 em 2019 para
+1{,}68 em 2020 e 1{,}55 em 2021 na via vaginal). A interpretação
+plausível: durante a pandemia, apenas casos com indicação mais
+clara, equipes mais treinadas e logística hospitalar mais
+azeitada mantiveram-se em operação \textemdash{} um efeito de
+\textit{seleção de qualidade} no \textit{numerador} do volume,
+que reduz a permanência média mesmo sem mudança técnica adicional.
+A relevância desse efeito persiste no pós-pandemia (1{,}52 em
+2022, 1{,}43 em 2025): a pandemia parece ter atuado como um
+catalisador irreversível de eficiência.
+
+\subsection{Despesa pública e custo médio por AIH}\label{sub:despesa}
+
+A despesa total deflacionada (Tabela~\ref{tab:nat-val}) acompanha
+fielmente o volume, com uma exceção interessante: o salto entre
+2012 e 2013, em que o valor médio por AIH (vaginal) sobe de
+\rs 386 para \rs 677 sem queda equivalente no volume. Esse salto
+não é movimento real de mercado; é o reajuste da Tabela SIGTAP
+do procedimento (BRASIL, 2024). De 2013 em diante, o valor por
+AIH em moeda constante \textit{deflacionada} cai gradualmente
+\textemdash{} ou seja, a tabela do SUS perdeu poder real ao
+longo dos anos seguintes, sendo apenas parcialmente reajustada
+nominal.
+
+\begin{table}[H]
+\centering
+\caption{Despesa pública nacional total e por AIH, em \rs 2021,
+deflacionada pelo IPCA. Procedimento vaginal (0409070270).}
+\label{tab:nat-val}
+\small
+\begin{tabular}{rrrr}
+\toprule
+\textbf{Ano} & \textbf{Total (R\$\,2021)} & \textbf{Por AIH (R\$\,2021)} & \textbf{n.\,AIH} \\
+\midrule
+2008 & 2\,181\,785 & 332{,}69 &  6\,558 \\
+2010 & 2\,404\,941 & 380{,}29 &  6\,324 \\
+2012 & 2\,309\,820 & 386{,}13 &  5\,982 \\
+2013 & 3\,719\,105 & 676{,}94 &  5\,494 \\
+2015 & 3\,523\,114 & 615{,}71 &  5\,722 \\
+2017 & 2\,773\,664 & 511{,}84 &  5\,419 \\
+2019 & 2\,951\,955 & 495{,}38 &  5\,959 \\
+2020 & 1\,093\,490 & 426{,}15 &  2\,566 \\
+2021 &   966\,605 & 384{,}95 &  2\,511 \\
+2022 & 2\,071\,890 & 371{,}44 &  5\,578 \\
+2023 & 2\,631\,654 & 387{,}86 &  6\,785 \\
+2024 & 4\,995\,926 & 557{,}21 &  8\,966 \\
+2025 & 4\,328\,034 & 426{,}66 & 10\,144 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Em 2025, o gasto público nacional na via vaginal foi de
+\rs 4{,}33\,milhões (em \rs 2021), o maior valor da série
+em volume real. Por AIH, contudo, o valor foi de \rs 426{,}66
+\textemdash{} 16\,\% \textit{abaixo} do pico de 2015
+(\rs 615{,}71) e 14\,\% \textit{abaixo} de 2019 (\rs 495{,}38).
+O sistema fez \textit{mais cirurgias} pagando \textit{menos por
+cirurgia} em moeda constante. Combinada com a redução de
+permanência da seção anterior, a leitura é:
+\textbf{o gasto cresceu em volume mas o custo unitário caiu}.
+
+\subsection{Geografia: concentração e desigualdade}\label{sub:geografia}
+
+A Tabela~\ref{tab:uf-100k} apresenta a taxa por 100\,mil habitantes
+em 2025 para a via vaginal, ordenada do maior ao menor.
+
+\begin{table}[H]
+\centering
+\caption{Acesso à cirurgia vaginal de IU em 2025: AIH por
+100\,mil habitantes, por UF. População IBGE/SIDRA tabela 6579.}
+\label{tab:uf-100k}
+\small
+\begin{tabular}{lrrr}
+\toprule
+\textbf{UF} & \textbf{AIH 2025} & \textbf{Pop. (M)} & \textbf{AIH/100k} \\
+\midrule
+SC          & 1\,204 &  8{,}19 & 14{,}71 \\
+PR          & 1\,381 & 11{,}89 & 11{,}61 \\
+GO          &   621  &  7{,}42 &  8{,}37 \\
+MS          &   198  &  2{,}92 &  6{,}77 \\
+SP          & 2\,847 & 46{,}08 &  6{,}18 \\
+ES          &   237  &  4{,}13 &  5{,}74 \\
+RS          &   638  & 11{,}23 &  5{,}68 \\
+TO          &    87  &  1{,}59 &  5{,}48 \\
+MT          &   160  &  3{,}89 &  4{,}11 \\
+MG          &   816  & 21{,}39 &  3{,}81 \\
+AM          &   155  &  4{,}32 &  3{,}59 \\
+MA          &   251  &  7{,}02 &  3{,}58 \\
+RO          &    59  &  1{,}75 &  3{,}37 \\
+PI          &   111  &  3{,}38 &  3{,}28 \\
+BA          &   457  & 14{,}87 &  3{,}07 \\
+CE          &   195  &  9{,}27 &  2{,}10 \\
+DF          &    62  &  3{,}00 &  2{,}07 \\
+RN          &    69  &  3{,}46 &  2{,}00 \\
+AC          &    17  &  0{,}88 &  1{,}92 \\
+RJ          &   317  & 17{,}22 &  1{,}84 \\
+SE          &    39  &  2{,}30 &  1{,}70 \\
+PB          &    67  &  4{,}16 &  1{,}61 \\
+AP          &    12  &  0{,}81 &  1{,}49 \\
+PE          &    70  &  9{,}56 &  0{,}73 \\
+PA          &    63  &  8{,}71 &  0{,}72 \\
+AL          &    10  &  3{,}22 &  0{,}31 \\
+RR          &     1  &  0{,}74 &  0{,}14 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Os números são notáveis. Santa Catarina, no topo, atinge 14{,}71
+procedimentos por 100\,mil habitantes em 2025. Roraima, na ponta
+inferior, registra 0{,}14 \textemdash{} uma diferença de cerca
+de 100 vezes. Pernambuco, com quase 10 milhões de habitantes,
+realiza apenas 70 cirurgias vaginais no ano, o que corresponde a
+0{,}73\,/\,100k, taxa similar à de Roraima e oito vezes inferior
+à de SP.
+
+Algumas observações qualitativas:
+
+\textbf{(i) A liderança do Sul é estrutural, não casual.} SC e
+PR ocupam topo do \textit{ranking} sistematicamente desde 2015,
+e a vantagem só se ampliou nos anos pós-pandêmicos: a comparação
+entre as médias 2015\textendash 2019 e 2022\textendash 2025
+mostra crescimento do volume médio em SC ($\Delta$ +138\,\%)
+e PR ($\Delta$ +84\,\%) acima do crescimento médio nacional.
+
+\textbf{(ii) A região Sudeste é heterogênea.} SP é forte
+(6{,}18/100k), MG modesta (3{,}81), RJ baixa (1{,}84). RJ chama
+particular atenção porque, com 17 milhões de habitantes, realiza
+em 2025 apenas 317 cirurgias vaginais \textemdash{} aproximadamente
+um terço do volume \textit{absoluto} de SC (que tem menos da
+metade da população).
+
+\textbf{(iii) A região Nordeste apresenta um vácuo de oferta
+mesmo em estados populosos.} BA (3{,}07/100k), PE (0{,}73),
+CE (2{,}10), AL (0{,}31) operam taxas muito inferiores às
+do Sul. A diferença não é explicada por demanda demográfica
+(estrutura etária da população feminina nordestina é, se
+algo, mais favorável à incidência de IU que a do Sul), mas
+provavelmente por densidade hospitalar especializada e
+treinamento médico em cirurgia uroginecológica.
+
+\textbf{(iv) Estados periféricos têm volumes irrelevantes em
+qualquer ano.} RR, AP, AL e SE operam taxas abaixo de 2/100k
+em toda a série \textemdash{} o que, em termos absolutos,
+significa entre uma e algumas dezenas de cirurgias por ano.
+Para essas UFs, a hipótese mais econômica é que o tratamento
+cirúrgico é deslocado para grandes centros de referência fora
+do estado, via Tratamento Fora do Domicílio (TFD) do SUS.
+
+\subsection{O choque pandêmico e a forma da recuperação}\label{sub:covid}
+
+A Tabela~\ref{tab:uf-pre-post} compara, para a via vaginal, as
+médias anuais por UF nos três regimes: pré-pandemia
+(2015\textendash 2019), pandemia (2020\textendash 2021) e
+pós-pandemia (2022\textendash 2025). A coluna $\Delta$pré$\rightarrow$pós
+captura a variação relativa entre o regime pré e o pós, e é a
+quantidade-chave para detectar represa cirúrgica.
+
+\begin{table}[H]
+\centering
+\caption{Heterogeneidade da resposta pandêmica por UF: média anual
+de cirurgias vaginais (n. AIH) em três regimes.
+$\Delta$pré$\rightarrow$pós: variação relativa entre 2015\textendash 19
+e 2022\textendash 25.}
+\label{tab:uf-pre-post}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{UF} & \textbf{2015\textendash 19} & \textbf{2020\textendash 21} & \textbf{2022\textendash 25} & \textbf{$\Delta$pré$\rightarrow$pós} \\
+\midrule
+SP & 1\,964 & 1\,032 & 2\,410 & +22{,}7\,\% \\
+PR &   522  &   184  &   958  & +83{,}5\,\% \\
+RS &   448  &   199  &   530  & +18{,}3\,\% \\
+MG &   440  &   145  &   647  & +47{,}0\,\% \\
+GO &   382  &   102  &   437  & +14{,}4\,\% \\
+SC &   290  &   181  &   691  & +138{,}3\,\% \\
+RJ &   239  &    79  &   231  & \textendash 3{,}3\,\% \\
+BA &   202  &    84  &   320  & +58{,}4\,\% \\
+MS &   137  &    28  &   197  & +43{,}8\,\% \\
+MA &   120  &    76  &   290  & +141{,}7\,\% \\
+CE &   117  &   105  &   194  & +65{,}8\,\% \\
+PE &   108  &    33  &    70  & \textendash 35{,}2\,\% \\
+DF &   101  &    56  &    78  & \textendash 22{,}8\,\% \\
+MT &    90  &    45  &   156  & +73{,}3\,\% \\
+ES &    87  &    36  &   119  & +36{,}8\,\% \\
+PA &    66  &    28  &    64  & \textendash 3{,}0\,\% \\
+AM &    55  &    19  &   113  & +105{,}5\,\% \\
+AP &    48  &    13  &     9  & \textendash 81{,}2\,\% \\
+PE/AL/RR \textit{et al.} & \multicolumn{4}{c}{\textit{(ver discussão)}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A figura emergente é a de \textit{três tipos} de UF.
+
+\textbf{Tipo A \textemdash{} represa em escoamento.} Estados
+onde o volume pós-pandêmico ultrapassou \textit{substancialmente}
+o pré-pandêmico, indicando que o sistema absorveu a fila
+acumulada e segue produzindo acima da tendência prévia. Exemplos:
+SC (+138\,\%), MA (+142\,\%), AM (+106\,\%), PR (+84\,\%),
+MT (+73\,\%), CE (+66\,\%), BA (+58\,\%), MG (+47\,\%). Em
+SC e PR, especificamente, o salto é de tal magnitude que sugere
+uma combinação de represa \textit{e} expansão estrutural da
+oferta (mais hospitais, mais equipes treinadas).
+
+\textbf{Tipo B \textemdash{} retorno à tendência.} Estados em
+que o volume pós-pandêmico está dentro de uma banda de
+$\pm$\,25\,\% do pré, sem evidência clara de represa nem de
+expansão. Exemplos: SP (+23\,\%), RS (+18\,\%), GO (+14\,\%),
+ES (+37\,\%), MS (+44\,\%). Esses estados parecem ter
+absorvido o choque e voltado a um regime parecido com o anterior.
+
+\textbf{Tipo C \textemdash{} recuperação incompleta ou regressão.}
+Estados em que o volume pós-pandêmico está \textit{abaixo} do
+pré-pandêmico, sugerindo perda \textit{permanente} de
+capacidade ou de fluxo de pacientes para tratamento cirúrgico
+de IU. Exemplos: RJ (\textendash 3\,\%), PA (\textendash 3\,\%),
+DF (\textendash 23\,\%), PE (\textendash 35\,\%), AP
+(\textendash 81\,\%). RJ e PE são particularmente preocupantes
+porque são estados populosos e com tradição médica
+\textemdash{} a redução não pode ser explicada por escassez
+populacional. Hipóteses qualitativas: (a)~degradação do parque
+hospitalar dedicado; (b)~migração de pacientes para particular;
+(c)~reorganização da rede que deixou IU sem prioridade.
+
+A magnitude bruta do choque pandêmico (a queda de
+2020\textendash 2021) é, ao contrário do padrão de recuperação,
+relativamente \textit{homogênea} entre UFs. A maioria dos
+estados teve queda entre 50 e 75\,\% em relação ao baseline
+2015\textendash 2019. A heterogeneidade emerge \textit{na
+recuperação}, não no choque. Esse é um achado relevante para
+política pública: o sistema federal foi tensionado de forma
+parecida em todos os lugares, mas a capacidade local de
+\textit{escoamento da represa} variou enormemente.
+
+\subsection{Mortalidade hospitalar: piso de segurança}\label{sub:mort}
+
+Por fim, um dado positivo e confortavelmente estável: a
+mortalidade hospitalar associada a esses procedimentos é
+estruturalmente baixíssima. Considerando a série completa
+2008\textendash 2025, registramos no total apenas alguns casos
+isolados de óbito intra-hospitalar entre as dezenas de milhares
+de internações. A taxa nacional anual oscila entre 0\,\% e
+0{,}05\,\%; a maior parte dos anos a mortalidade observada na
+camada \textit{gold} é literalmente zero. Isso é compatível com
+o que a literatura clínica reporta sobre o procedimento: trata-se
+de cirurgia de baixo risco quando bem indicada e bem conduzida.
+
+\textbf{Implicação principal:} as barreiras de acesso documentadas
+na Seção~\ref{sub:geografia} \textit{não são barreiras de risco
+clínico}. Não há justificativa epidemiológica plausível para a
+diferença de 100 vezes entre SC e RR no acesso à cirurgia. A
+barreira é de \textit{oferta}: há ou não há equipe treinada, há
+ou não há hospital com leito disponível, há ou não há fluxo de
+referência funcionando. Quando há, a operação é segura e curta.
+
+% =====================================================================
+\section{Discussão}\label{sec:discussao}
+% =====================================================================
+
+\subsection{Eficiência clínica vs. acesso desigual: a tensão central}
+
+A leitura conjunta dos resultados expõe uma tensão característica
+do SUS. De um lado, a Seção~\ref{sub:permanencia} mostra um sistema
+\textit{tecnologicamente convergente}: a permanência hospitalar
+em 2025 está dentro da banda de centros internacionais de excelência
+para o procedimento. Onde a cirurgia é realizada, ela é
+\textit{tão eficiente quanto a melhor literatura comparável}. De
+outro lado, a Seção~\ref{sub:geografia} mostra um sistema
+\textit{territorialmente fragmentado}: a oferta cirúrgica está
+extremamente concentrada em alguns estados, deixando regiões
+inteiras com taxas de acesso de menos de um décimo do líder.
+
+A combinação dessas duas leituras sugere que o problema da IU
+cirúrgica no Brasil em 2025 \textit{não é tecnológico}, é
+\textit{logístico}. As equipes brasileiras já fazem o procedimento
+bem; o desafio é \textit{onde} ele é feito. A política pública
+relevante seria, portanto, mais voltada à expansão da rede
+hospitalar capacitada (e da oferta de Tratamento Fora do
+Domicílio onde isso for inviável a curto prazo) do que a
+investimentos em pesquisa ou inovação técnica.
+
+\subsection{Lições da pandemia: o que aprendemos sobre fragilidade}
+
+A pandemia teve, sob o aspecto narrativo deste artigo, duas
+funções distintas. Como \textit{choque}, demonstrou que a
+oferta cirúrgica eletiva é altamente sensível a competição por
+recursos hospitalares: bastou cerca de um ano de tensionamento
+para reduzir o volume nacional pela metade. Como
+\textit{revelador}, mostrou que alguns sistemas estaduais
+(notadamente SC e PR) eram capazes de responder à represa
+acumulada com expansões significativas, enquanto outros (RJ,
+PE, AP) não conseguiram sequer voltar ao patamar anterior. A
+pandemia funcionou, em outras palavras, como um \textit{teste
+de carga} que quantificou diferenças de robustez já
+estruturalmente presentes.
+
+A literatura internacional sobre cirurgias eletivas durante e
+após a COVID-19 (NUNES \textit{et al.}, 2022) reportou padrões
+parecidos em outros países: choque homogêneo, recuperação
+heterogênea. O caso brasileiro adiciona uma observação
+específica: a heterogeneidade da recuperação no Brasil não é
+explicada por uma única dimensão (riqueza estadual, densidade
+médica ou tamanho populacional) tomada isoladamente. SC tem PIB
+per capita semelhante ao de SP, mas teve crescimento muito
+maior em volume cirúrgico pós-pandemia; RJ, com PIB e densidade
+médica historicamente altos, regrediu. A explicação parece exigir
+fatores institucionais locais (organização da rede de média
+complexidade, programas estaduais de capacitação, fluxo de
+referência) que não estão capturados na fonte SIH.
+
+\subsection{Sobre o defeito do pipeline e a credibilidade do dado}
+
+Vale a pena tratar explicitamente um ponto incômodo: as tabelas
+deste Working Paper \textit{não coincidem} com as tabelas
+publicadas no Working Paper n. 3 (DA SILVA \& CHALHOUB, 2026c).
+A diferença, contudo, não é pequena: na tabela de volumes por
+UF, por exemplo, mais de metade dos estados aparecia com volume
+zero em vários anos no WP n. 3 \textemdash{} um padrão que era,
+afinal, artefato do filtro \texttt{\_ingest\_ts} descrito na
+Seção~\ref{sub:bug}, não realidade dos dados.
+
+Isso obriga uma reflexão honesta. \textit{Dados públicos de
+qualidade} não são garantidos pela publicação do dado bruto.
+Microdados SIH-AIH-RD foram publicados pelo DATASUS por todos
+os anos da série, completos, com cobertura nacional plena. O
+problema esteve \textit{a jusante}: o pipeline analítico
+introduziu uma decisão algorítmica defeituosa que filtrava
+silenciosamente dois terços do material bruto. Visualizações
+subsequentes pareciam corretas porque as omissões eram
+\textit{consistentes} dentro do que era exibido; nenhum alerta
+automático de qualidade detectou a perda.
+
+A lição prática, e que pretende ser \textit{de fato útil} a
+quem opera pipelines analíticos sobre dados públicos brasileiros:
+
+\begin{enumerate}
+\item Evitar filtros do tipo \texttt{== max(\_ingest\_ts)} sobre
+fontes ingeridas por Auto Loader. A idempotência por arquivo já
+é garantida pelo \textit{checkpoint}; o filtro adicional não é
+defensivo, é destrutivo.
+\item Implementar \textit{contagens-sentinela}: para fontes onde
+sabe-se \textit{a priori} a cardinalidade esperada (como o
+``27 UFs'' brasileiras), validar essa cardinalidade explicitamente
+em cada camada e quebrar o \textit{job} se for menor.
+\item Manter a camada \textit{bronze} como \textit{string-only}:
+isso preserva o dado de origem na sua forma mais auditável e
+facilita a reconstituição quando algum bug \textit{a jusante} é
+descoberto. Foi exatamente o que permitiu a correção rápida deste
+caso.
+\end{enumerate}
+
+A versão atual da plataforma Mirante dos Dados implementa as
+três recomendações acima. O \textit{commit} de correção é
+\texttt{fa869cf} no repositório aberto; a regeneração das camadas
+\textit{silver} e \textit{gold} foi orquestrada via Databricks
+Asset Bundle. O dado consumido pelo \textit{front-end} a partir
+da publicação deste Working Paper representa o estado corrigido.
+
+\subsection{Limitações e agenda de pesquisa}
+
+Este artigo é descritivo. Três extensões são naturais.
+\textbf{Primeira:} estratificação por sexo e faixa etária, que
+exigiria descer para a granularidade de paciente (campo
+\texttt{IDADE} e \texttt{SEXO} já presentes no SIH-RD, ainda
+não incorporados ao \textit{gold}).
+\textbf{Segunda:} cruzamento com a base CNES (estabelecimentos)
+para tipologizar a oferta hospitalar (porte, vínculo, sub-rede)
+e tornar tratável a hipótese de que a heterogeneidade de
+recuperação é explicada pela tipologia da rede local.
+\textbf{Terceira:} análise de sobrevida e reoperação a partir
+do enlace longitudinal de AIHs por paciente, possível via
+campo \texttt{INSC\_PN} mas dependente de tratamento adequado de
+identificadores.
+
+% =====================================================================
+\section{Considerações Finais}\label{sec:conclusao}
+% =====================================================================
+
+A cirurgia uroginecológica no SUS, examinada na escala de
+dezessete anos contínuos (2008\textendash 2025), conta uma
+história mista.
+Ganhamos eficiência clínica continuamente: a permanência caiu
+40\,\% na via vaginal e 27\,\% na abdominal, sem inflexão
+adversa. Mantivemos segurança: a mortalidade hospitalar é
+desprezível em todo período. Conseguimos absorver, mesmo que de
+forma desigual, o choque mais agudo do sistema sanitário
+brasileiro recente \textemdash{} a pandemia COVID-19 \textemdash{}
+e estamos, em 2024\textendash 2025, escoando o estoque de fila
+acumulado.
+
+Falhamos, simultaneamente, em um aspecto estruturalmente sensível:
+a desigualdade territorial de acesso. A diferença de 100 vezes
+entre Santa Catarina e Roraima no acesso por 100\,mil habitantes
+não tem qualquer correspondência epidemiológica. É puramente
+uma desigualdade de oferta. A pandemia tornou essa desigualdade
+ainda mais visível ao mostrar que alguns estados são capazes de
+\textit{ampliar a oferta sob estresse} enquanto outros não.
+
+Em termos do dado público em si, este artigo registra um achado
+metodológico de relevância \textit{a jusante} dos microdados:
+defeitos sutis de \textit{pipeline} podem ocultar mais de
+metade da realidade nacional sem qualquer aviso. O acesso público
+ao dado bruto é necessário, mas não suficiente, para
+caracterizações populacionais robustas. A engenharia de dados
+analítica é parte integral da infraestrutura de dado público,
+e merece os mesmos padrões de auditoria que aplicamos a outros
+componentes da política pública.
+
+% =====================================================================
+\section*{Referências}\label{sec:ref}
+\addcontentsline{toc}{section}{Referências}
+% =====================================================================
+\begin{singlespace}\small
+\noindent\hangindent=1.25cm\hangafter=1
+ARMBRUST, M.; GHODSI, A.; XIN, R.; ZAHARIA, M. Lakehouse: a new
+generation of open platforms that unify data warehousing and
+advanced analytics. In: \textbf{11th CIDR}, 2021.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BANCO CENTRAL DO BRASIL (BCB). \textbf{Sistema Gerenciador de
+Séries Temporais}, série 433: IPCA. Disponível em:
+\url{https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados}.
+Acesso em: abr. 2026.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. Ministério da Saúde. \textbf{Sistema de Informações
+Hospitalares do SUS (SIH-SUS)}. Microdados. Brasília: DATASUS.
+Disponível em:
+\url{https://datasus.saude.gov.br/transferencia-de-arquivos/}.
+Acesso em: abr. 2026.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BRASIL. Ministério da Saúde. \textbf{Tabela de Procedimentos,
+Medicamentos e OPM do SUS \textemdash{} SIGTAP}. Brasília:
+DATASUS, 2024.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CHALHOUB, L. Emendas Parlamentares no Orçamento Federal
+Brasileiro (2015\textendash 2025): distribuição espacial,
+execução orçamentária e efeitos das mudanças institucionais
+recentes. \textbf{Mirante dos Dados \textemdash{} Working Paper
+n. 1}, abr. 2026a.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CHALHOUB, L. Programa Bolsa Família, Auxílio Brasil e Novo
+Bolsa Família (2013\textendash 2025): transformações
+institucionais, expansão da cobertura e desigualdade territorial.
+\textbf{Mirante dos Dados \textemdash{} Working Paper n. 2},
+abr. 2026b.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CHAPPLE, C. R.; CRUZ, F.; DESCHAMPS, C.; HAYLEN, B. T.
+\textit{et al.} Consensus statement of the European Association
+of Urology on the surgical treatment of urinary incontinence in
+women. \textbf{European Urology}, v. 78, n. 5,
+p. 643\textendash 656, 2020.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CHALHOUB, L. Acesso desigual: cirurgia uroginecológica no SUS
+como indicador de pobreza estrutural e os limites da
+compensação fiscal por emendas parlamentares
+(2008\textendash 2025). \textbf{Mirante dos Dados \textemdash{}
+Working Paper n. 4}, abr. 2026d.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+DA SILVA, T.; CHALHOUB, L. Tratamento Cirúrgico da Incontinência
+Urinária no Sistema Único de Saúde (2015\textendash 2020):
+volumes, despesa, permanência e distribuição geográfica por via
+de acesso. \textbf{Mirante dos Dados \textemdash{} Working
+Paper n. 3}, abr. 2026c.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+FORD, A. A.; ROGERSON, L.; CODY, J. D.; OGAH, J. Mid-urethral
+sling operations for stress urinary incontinence in women.
+\textbf{Cochrane Database of Systematic Reviews}, n. 7,
+CD006375, 2017.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+HAYLEN, B. T.; DE RIDDER, D.; FREEMAN, R. M. \textit{et al.}
+An International Urogynecological Association
+(IUGA)\,/\,International Continence Society (ICS) joint report
+on the terminology for female pelvic floor dysfunction.
+\textbf{Neurourology and Urodynamics}, v. 29, n. 1,
+p. 4\textendash 20, 2010.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE).
+\textbf{SIDRA \textemdash{} Sistema IBGE de Recuperação Automática}.
+Tabela 6579: Estimativas anuais da população residente.
+Disponível em: \url{https://sidra.ibge.gov.br/tabela/6579}.
+Acesso em: abr. 2026.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+NUNES, B. P.; FLORES, T. R.; MIELKE, G. I. \textit{et al.} The
+COVID-19 pandemic and elective surgeries in the Brazilian
+Unified Health System (SUS). \textbf{Public Health}, v. 211,
+p. 109\textendash 115, 2022.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+TATIELI DA SILVA. \textbf{Análise Descritiva da Cirurgia para
+Tratamento da Incontinência Urinária no SUS, 2015\textendash 2020}.
+Trabalho de Conclusão de Curso (Especialização em Enfermagem),
+2022.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+WILKINSON, M. D. \textit{et al.} The FAIR Guiding Principles
+for scientific data management and stewardship.
+\textbf{Scientific Data}, v. 3, 2016.
+DOI: 10.1038/sdata.2016.18.\par\smallskip
+\end{singlespace}
+
+\vspace{1cm}
+
+\noindent\textbf{Citar como:}\\
+CHALHOUB, L. Cirurgia uroginecológica no Sistema Único de Saúde,
+2008\textendash 2025: ganhos silenciosos de eficiência,
+desigualdade territorial persistente, choque pandêmico e represa
+cirúrgica. \textit{Mirante dos Dados
+\textemdash{} Working Paper n. 6}, v. 1.0, abr. 2026.
+Disponível em:
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
+
+\vspace{0.5cm}
+
+\noindent\textbf{Reconhecimento:} este Working Paper é continuação
+direta de DA SILVA \& CHALHOUB (2026c, Working Paper n. 3), que
+por sua vez teve como base o trabalho de especialização de
+TATIELI (2022). A presente versão amplia o recorte temporal,
+incorpora a correção da camada \textit{silver} (\textit{commit}
+\texttt{fa869cf}) e introduz a leitura longitudinal de eficiência
+e represa cirúrgica.
+
+\vspace{0.5cm}
+
+\noindent\textbf{Licença:} dados consolidados (camada \textit{gold})
+e código do \textit{pipeline} distribuídos sob licença MIT.
+Texto deste artigo distribuído sob licença Creative Commons
+Atribuição 4.0 Internacional (CC BY 4.0).
+
+\end{document}
