@@ -508,8 +508,9 @@ print("✔ DQ passed")
 spark.sql(f"COMMENT ON TABLE {SILVER_TABLE} IS "
           f"'Mirante · Equipamentos CNES por UF × Ano × (TIPEQUIP, CODEQUIP) — "
           f"split SUS/Privado via IND_SUS, com nomes canônicos do catálogo "
-          f"DATASUS. Composite key `equipment_key = TIPEQUIP:CODEQUIP` é "
-          f"OBRIGATÓRIA: resolve a ambiguidade do bug WP#4-v1 em que CODEQUIP=42 '"
-          f"capturava Eletroencefalógrafo achando que era Ressonância Magnética. "
-          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
+          f"DATASUS. Composite key equipment_key = TIPEQUIP:CODEQUIP é "
+          f"OBRIGATÓRIA: resolve a ambiguidade do bug pré-correção em que "
+          f"CODEQUIP=42 capturava Eletroencefalógrafo achando que era "
+          f"Ressonância Magnética. Reaplicar metadata rico via "
+          f"job_apply_catalog_metadata.'")
 print(f"✔ {SILVER_TABLE} written ({n} rows)")
