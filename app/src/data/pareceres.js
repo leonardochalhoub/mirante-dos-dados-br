@@ -371,14 +371,13 @@ export const PARECER_RAIS = {
     'monografia original, e não da banca. — Detalhe relevante: a ' +
     'monografia defendia Delta Lake como núcleo do argumento, conteúdo ' +
     'que em 2023 era considerado vanguardista e hoje (2026) virou ' +
-    'consenso técnico em engenharia de dados; a banca reprovou mesmo ' +
-    'assim. O vertical RAIS Mirante herda essa base, ganha pontos por ' +
-    'infraestrutura aberta e reprodutível, mas ainda não entregou nenhuma ' +
-    'extensão substantiva — sem dados rodados, sem .tex escrito, sem ' +
-    'método novo. 6,8 lato sensu reflete isso. Subir para 8,0 lato sensu ' +
-    'exige resultados empíricos REAIS na plataforma Mirante; subir para ' +
-    'mestrado exige contribuição metodológica original — não basta ' +
-    'replicar.',
+    'consenso técnico em engenharia de dados. O vertical RAIS Mirante ' +
+    'herda essa base, ganha pontos por infraestrutura aberta e ' +
+    'reprodutível, mas ainda não entregou nenhuma extensão substantiva ' +
+    '— sem dados rodados, sem .tex escrito, sem método novo. 6,8 lato ' +
+    'sensu reflete isso. Subir para 8,0 lato sensu exige resultados ' +
+    'empíricos REAIS na plataforma Mirante; subir para mestrado exige ' +
+    'contribuição metodológica original — não basta replicar.',
   utilidadeSocial:
     'UTILIDADE CONDICIONAL. RAIS Vínculos Públicos é a base de microdados ' +
     'mais completa sobre emprego formal no Brasil — base para estudos de ' +

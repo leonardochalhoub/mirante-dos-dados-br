@@ -131,6 +131,8 @@ export default function Rais() {
         }
       />
 
+      <RaisVerdictBar />
+
       <ScoreCard parecer={PARECER_RAIS} />
 
       <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
@@ -254,6 +256,24 @@ export default function Rais() {
 
       <Footer />
     </>
+  );
+}
+
+// Faixa fina acima do ScoreCard com o veredicto da banca (preto, à esquerda)
+// e a "Nota Modelo: 8" (avaliação IA, à direita do label da banca). Sem
+// qualquer qualificação de quantidade de reprovações — apenas o fato.
+function RaisVerdictBar() {
+  return (
+    <section className="rais-verdict-bar no-print">
+      <div className="rais-verdict-pill rais-verdict-pill--reprovado">
+        <span className="rais-verdict-pill-label">Banca UFRJ (set/2023)</span>
+        <span className="rais-verdict-pill-value">Reprovado</span>
+      </div>
+      <div className="rais-verdict-pill rais-verdict-pill--nota">
+        <span className="rais-verdict-pill-label">Nota Modelo (IA, 2026)</span>
+        <span className="rais-verdict-pill-value">8,0 / 10</span>
+      </div>
+    </section>
   );
 }
 

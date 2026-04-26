@@ -330,6 +330,51 @@ code, pre, .mono {
   margin-bottom: 4px;
 }
 
+/* ── RAIS verdict bar (Banca UFRJ + Nota Modelo IA) ───────────────────── */
+.rais-verdict-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.rais-verdict-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel);
+  font-variant-numeric: tabular-nums;
+}
+.rais-verdict-pill-label {
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--muted);
+}
+.rais-verdict-pill-value {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+/* Pílula da banca: texto preto sólido em ambos temas */
+.rais-verdict-pill--reprovado .rais-verdict-pill-value {
+  color: #000;
+}
+[data-theme="dark"] .rais-verdict-pill--reprovado .rais-verdict-pill-value {
+  color: #fff;
+}
+/* Pílula da nota modelo: cor de destaque (âmbar lato sensu) */
+.rais-verdict-pill--nota .rais-verdict-pill-value {
+  color: #b45309;
+}
+[data-theme="dark"] .rais-verdict-pill--nota .rais-verdict-pill-value {
+  color: #f59e0b;
+}
+
 /* ── Theme toggle ─────────────────────────────────────────────────────── */
 .themeToggle {
   display: inline-flex;

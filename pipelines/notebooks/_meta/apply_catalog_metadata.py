@@ -509,10 +509,6 @@ enrich(
     `massa_salarial_dezembro`, `remun_media_mes`, `n_estabelecimentos_proxy`
     (countDistinct concat(mun_trab, cnae_classe)) e `share_simples`.
 
-    O autor do paper RAIS (CHALHOUB 2026c, WP n. 3) foi reprovado duas
-    vezes na banca antes da aprovação 8.0 — esse contexto histórico está
-    na monografia e na rota /rais da plataforma; não afeta o pipeline.
-
     Fonte: ftp://ftp.mtps.gov.br/pdet/microdados/RAIS/
     """,
     {
@@ -1101,8 +1097,7 @@ enrich(
     Mode: OVERWRITE com `partitionBy(Ano)`.
 
     Vertical RAIS é o WP #3 v1 da plataforma (numeração antiga, deferida
-    no front). O autor do paper foi reprovado duas vezes na banca antes
-    da aprovação 8.0 — contexto histórico documentado em /rais.
+    no front).
     """,
     {
         "Ano":
@@ -1300,8 +1295,6 @@ enrich(
 
     Vertical mantida na plataforma como WP #3 (numeração antiga;
     a numeração global atual reserva #3 para UroPro cross-vertical).
-    O parecer da banca aprovou em 8,0 após duas reprovações — esse
-    contexto não afeta a tabela e é discutido apenas no front (/rais).
     """,
     {
         "Ano":
