@@ -314,59 +314,80 @@ df.groupBy("tipequip", "codequip").count().orderBy(F.desc("count")).show(10)
 
 GROUP_KEYS = ["estado", "ano", "tipequip", "codequip"]
 
-# Monthly totals per (CNES, tipequip, codequip, mes) — sum across sectors
-monthly_all = (
+# ─── DEDUP per (CNES, mês) — fix do double-count crítico ────────────────────
+#
+# Bug histórico (pré-2026-04): `total_avg` era calculado como `sus_total_avg
+# + priv_total_avg` (vide commit `d3b21c6` revertido nesta refatoração). O
+# resultado nacional para Ressonância Magnética (equipment_key='1:12') em
+# 2025 era 7.592 unidades — aproximadamente 35,6/Mhab, ~2× a mediana OCDE
+# (~17/Mhab). O sintoma era de double-counting.
+#
+# Causa raiz: o CNES permite que um mesmo equipamento físico apareça em
+# DUAS linhas no mesmo (CNES, mês) — uma com `IND_SUS=1` (declarando
+# disponibilidade para o SUS) e outra com `IND_SUS=0` (declarando
+# disponibilidade para uso privado). Somar essas duas linhas double-conta a
+# máquina física quando ela é "dual-flagged".
+#
+# Fix: pivotar IND_SUS em duas colunas por (CNES, mês), e tomar
+# `qt_total = GREATEST(qt_sus, qt_priv)` como o número físico canônico.
+# Conservador: assume que dual-flag representa a MESMA máquina disponível
+# para ambos os setores (interpretação compatível com a banda OECD), não
+# duas máquinas físicas.
+#
+# Invariante pós-fix: `sus_total_avg + priv_total_avg ≥ total_avg`, com
+# igualdade quando não há dual-flag. As "shares" (sus/total, priv/total)
+# podem ULTRAPASSAR 100% combinadas — isso é matematicamente correto: uma
+# máquina dual-flagged é 100% disponível ao SUS E 100% disponível ao
+# privado simultaneamente.
+per_cnes_mes = (
     df.groupBy(GROUP_KEYS + ["cnes", "mes"])
-      .agg(F.sum("qt_exist").alias("monthly_total"))
+      .agg(
+          F.sum(F.when(F.col("ind_sus") == F.lit("1"), F.col("qt_exist"))
+                 .otherwise(F.lit(0.0))).alias("qt_sus"),
+          F.sum(F.when(F.col("ind_sus") == F.lit("0"), F.col("qt_exist"))
+                 .otherwise(F.lit(0.0))).alias("qt_priv"),
+      )
+      .withColumn("qt_total", F.greatest(F.col("qt_sus"), F.col("qt_priv")))
 )
 
-# Active months per (CNES, tipequip, codequip, year) — shared denominator
+# Active months per (CNES, key) — shared denominator (only counts months
+# em que o CNES declarou pelo menos 1 unidade do equipamento)
 cnes_month_count = (
-    monthly_all.groupBy(GROUP_KEYS + ["cnes"])
-               .agg(F.count("mes").alias("n_months"))
+    per_cnes_mes.where(F.col("qt_total") > 0)
+                .groupBy(GROUP_KEYS + ["cnes"])
+                .agg(F.count("mes").alias("n_months"))
 )
 
-# All-sector annual average per CNES per (tipequip, codequip)
-cnes_all = (
-    monthly_all.groupBy(GROUP_KEYS + ["cnes"])
-               .agg(F.avg("monthly_total").alias("avg_year"))
-               .where(F.col("avg_year").isNotNull())
+# Annual averages per CNES (deduped — total = max(sus, priv) por mês)
+cnes_year = (
+    per_cnes_mes.groupBy(GROUP_KEYS + ["cnes"])
+                .agg(
+                    F.sum("qt_total").alias("sum_total"),
+                    F.sum("qt_sus").alias("sum_sus"),
+                    F.sum("qt_priv").alias("sum_priv"),
+                )
+                .join(cnes_month_count, on=GROUP_KEYS + ["cnes"], how="left")
+                .withColumn("avg_year_total", F.col("sum_total") / F.col("n_months"))
+                .withColumn("avg_year_sus",   F.col("sum_sus")   / F.col("n_months"))
+                .withColumn("avg_year_priv",  F.col("sum_priv")  / F.col("n_months"))
+                .where(F.col("avg_year_total").isNotNull() & (F.col("avg_year_total") > 0))
 )
-
-
-def sector_year_avg(df_sector):
-    sector_sum = (
-        df_sector.groupBy(GROUP_KEYS + ["cnes"])
-                 .agg(F.sum("qt_exist").alias("sector_sum"))
-    )
-    return (
-        sector_sum
-        .join(cnes_month_count, on=GROUP_KEYS + ["cnes"], how="left")
-        .withColumn("avg_year", F.col("sector_sum") / F.col("n_months"))
-        .where(F.col("avg_year").isNotNull())
-        .select(GROUP_KEYS + ["cnes", "avg_year"])
-    )
-
-
-cnes_sus  = sector_year_avg(df.where(F.col("ind_sus") == F.lit("1")))
-cnes_priv = sector_year_avg(df.where(F.col("ind_sus") == F.lit("0")))
 
 # COMMAND ----------
 
-# State-year-(tipequip,codequip) aggregates per sector
-agg_cnes_count = (
-    cnes_all.groupBy(GROUP_KEYS)
-            .agg(F.countDistinct("cnes").cast("long").alias("cnes_count"))
-)
-
-def agg_sector(df_cnes_sector, prefix: str):
-    return df_cnes_sector.groupBy(GROUP_KEYS).agg(
-        F.countDistinct("cnes").cast("long").alias(f"{prefix}cnes_count"),
-        F.sum("avg_year").alias(f"{prefix}total_avg"),
+# State-year-(tipequip,codequip) aggregates — dedup-aware
+agg_total = (
+    cnes_year.groupBy(GROUP_KEYS).agg(
+        F.countDistinct("cnes").cast("long").alias("cnes_count"),
+        F.sum("avg_year_total").alias("total_avg"),
+        # CNES com pelo menos 1 unidade declarada como SUS-disponível no ano
+        F.countDistinct(F.when(F.col("avg_year_sus") > 0, F.col("cnes"))).cast("long").alias("sus_cnes_count"),
+        # CNES com pelo menos 1 unidade declarada como Priv-disponível no ano
+        F.countDistinct(F.when(F.col("avg_year_priv") > 0, F.col("cnes"))).cast("long").alias("priv_cnes_count"),
+        F.sum("avg_year_sus").alias("sus_total_avg"),
+        F.sum("avg_year_priv").alias("priv_total_avg"),
     )
-
-agg_sus  = agg_sector(cnes_sus,  prefix="sus_")
-agg_priv = agg_sector(cnes_priv, prefix="priv_")
+)
 
 # COMMAND ----------
 
@@ -384,25 +405,24 @@ df_pop = (
          )
 )
 
-equip_keys = cnes_all.select("tipequip", "codequip").distinct()
+equip_keys = cnes_year.select("tipequip", "codequip").distinct()
 print(f"Distinct (tipequip, codequip) combos in bronze: {equip_keys.count()}")
 
 grid = df_pop.crossJoin(equip_keys)
 
 fill_zeros = {
-    "cnes_count": 0,
-    "sus_cnes_count": 0,  "sus_total_avg":  0.0,
+    "cnes_count":      0, "total_avg":      0.0,
+    "sus_cnes_count":  0, "sus_total_avg":  0.0,
     "priv_cnes_count": 0, "priv_total_avg": 0.0,
 }
 df_out = (
     grid
-    .join(agg_cnes_count, on=GROUP_KEYS, how="left")
-    .join(agg_sus,        on=GROUP_KEYS, how="left")
-    .join(agg_priv,       on=GROUP_KEYS, how="left")
+    .join(agg_total, on=GROUP_KEYS, how="left")
     .fillna(fill_zeros)
 )
-
-df_out = df_out.withColumn("total_avg", F.col("sus_total_avg") + F.col("priv_total_avg"))
+# `total_avg` agora vem direto do agg_total (deduped MAX-per-CNES-mês),
+# NÃO mais como `sus_total_avg + priv_total_avg` (que double-contava
+# máquinas dual-flagged). Vide bloco de docstring acima sobre o fix.
 
 scale = F.pow(F.lit(10.0), F.lit(PER_CAPITA_SCALE_POW10).cast("double"))
 pop = F.col("populacao")
@@ -477,14 +497,36 @@ combos = silver_df.select("equipment_key").distinct().count()
 print(f"rows={n}  ufs={ufs}  years={n_years}  (tipequip,codequip)_combos={combos}")
 assert ufs == 27, f"Expected 27 UFs, got {ufs}"
 
-# DQ: validar que a RM básica (1:12) bate com magnitude esperada (~3-4K nacional)
+# DQ: validar que RM (1:12) cai dentro da banda OECD (~10-25 unidades por
+# milhão de habitantes). Pré-dedup, esse total era ~7,6k em 2025 (35,6/Mhab,
+# ~2× a mediana OECD) — sintoma do double-count via dual-flag. Pós-dedup
+# espera-se algo em torno de 3,5-4,5k unidades nacionais (15-20/Mhab),
+# compatível com a literatura.
 last_year = silver_df.agg(F.max("ano").alias("y")).first()["y"]
 rm_row = (
     silver_df.where((F.col("ano") == last_year) & (F.col("equipment_key") == "1:12"))
-             .agg(F.sum("total_avg").alias("rm_total")).first()
+             .agg(
+                 F.sum("total_avg").alias("rm_total"),
+                 F.sum("sus_total_avg").alias("rm_sus"),
+                 F.sum("priv_total_avg").alias("rm_priv"),
+                 F.sum("populacao").alias("pop_br"),
+             ).first()
 )
 rm_total = rm_row["rm_total"] or 0
-print(f"DQ check — Brasil RM (1:12) ano {last_year}: ~{rm_total:.0f} unidades (esperado: 3000–4500)")
+rm_sus   = rm_row["rm_sus"]   or 0
+rm_priv  = rm_row["rm_priv"]  or 0
+pop_br   = rm_row["pop_br"]   or 0
+per_M    = (rm_total / pop_br * 1_000_000) if pop_br else 0
+print(f"DQ check — Brasil RM (1:12) ano {last_year}:")
+print(f"  total = {rm_total:,.0f} unidades  ({per_M:.1f}/Mhab — esperado OCDE 10-25)")
+print(f"  sus   = {rm_sus:,.0f}    priv = {rm_priv:,.0f}    ")
+print(f"  sus + priv = {rm_sus + rm_priv:,.0f}  (≥ total quando há dual-flag)")
+overlap_pct = ((rm_sus + rm_priv - rm_total) / rm_total * 100) if rm_total else 0
+print(f"  overlap (dual-flagged) ≈ {overlap_pct:.1f}% do total")
+# Soft-assert: avisa se a magnitude está fora do esperado, mas não derruba o job
+if rm_total > 0 and (per_M < 8 or per_M > 30):
+    print(f"⚠ DQ WARN: RM/Mhab = {per_M:.1f} fora da banda 8–30. Investigue dual-flag, "
+          f"cobertura CNES ou catálogo de TIPEQUIPs.")
 
 # Log unmapped (tipequip, codequip) combos — sinal pra expandir o dicionário canônico.
 unmapped = (
@@ -514,10 +556,12 @@ print("✔ DQ passed")
 # Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
 spark.sql(f"COMMENT ON TABLE {SILVER_TABLE} IS "
           f"'Mirante · Equipamentos CNES por UF × Ano × (TIPEQUIP, CODEQUIP) — "
-          f"split SUS/Privado via IND_SUS, com nomes canônicos do catálogo "
-          f"DATASUS. Composite key equipment_key = TIPEQUIP:CODEQUIP é "
-          f"OBRIGATÓRIA: resolve a ambiguidade do bug pré-correção em que "
-          f"CODEQUIP=42 capturava Eletroencefalógrafo achando que era "
-          f"Ressonância Magnética. Reaplicar metadata rico via "
-          f"job_apply_catalog_metadata.'")
+          f"split SUS/Privado via IND_SUS, com nomes canônicos DATASUS. "
+          f"Composite key equipment_key=TIPEQUIP:CODEQUIP é OBRIGATÓRIA "
+          f"(fix WP#4-v1: CODEQUIP=42 sozinho colapsava Eletroencefalógrafo "
+          f"com Ressonância Magnética). FIX DEDUP (abr/2026): total_avg agora "
+          f"vem de GREATEST(qt_sus, qt_priv) por (CNES, mês), em vez de "
+          f"sus+priv que double-contava máquinas dual-flagged. Invariante: "
+          f"sus_total_avg + priv_total_avg >= total_avg (igualdade quando "
+          f"sem dual-flag). Reaplicar metadata rico via job_apply_catalog_metadata.'")
 print(f"✔ {SILVER_TABLE} written ({n} rows)")

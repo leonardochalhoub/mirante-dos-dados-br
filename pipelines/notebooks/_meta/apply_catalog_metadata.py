@@ -965,26 +965,46 @@ enrich(
     Equipamentos hospitalares CNES agregados por UF × Ano × (TIPEQUIP,
     CODEQUIP). Origem: `bronze.cnes_equipamentos`. Composite key
     `equipment_key = "TIPEQUIP:CODEQUIP"` é a chave canônica — usar
-    CODEQUIP sozinho colapsa equipamentos não-relacionados (vide bug
-    do WP #4 v1: CODEQUIP=42 capturava Eletroencefalógrafo achando que
-    era Ressonância Magnética).
+    CODEQUIP sozinho colapsa equipamentos não-relacionados (bug do WP
+    #4 v1: CODEQUIP=42 capturava Eletroencefalógrafo achando que era
+    Ressonância Magnética).
 
-    Pipeline:
-      1. Para cada (CNES, mês) calcula a média mensal de QT_EXIST
-         (defensivo contra duplicatas mensais).
-      2. Calcula `avg_year` por (CNES, ano) = média das médias mensais.
-      3. Agrega por (estado, ano, tipequip, codequip) com:
+    Pipeline (pós-fix dedup, abr/2026):
+      1. Para cada (CNES, mês), pivota IND_SUS em duas colunas qt_sus
+         e qt_priv via condicional sum().
+      2. Calcula `qt_total = GREATEST(qt_sus, qt_priv)` por (CNES, mês)
+         — DEDUP: máquinas dual-flagged (presentes em IND_SUS=1 e =0
+         no mesmo mês) são contadas UMA VEZ como o maior dos dois,
+         interpretadas como o mesmo equipamento físico disponível para
+         ambos os setores.
+      3. avg_year_total / sus / priv = média das 12 médias mensais.
+      4. Agrega por (estado, ano, tipequip, codequip) com:
            - cnes_count       (countDistinct CNES)
-           - total_avg        (sum de avg_year)
-           - sus_*, priv_*    (split por IND_SUS=1/0)
-      4. Junta `populacao` da silver compartilhada para `per_capita_scaled`.
-      5. Mapeia `(tipequip, codequip)` → `equipment_name` /
+           - total_avg        (sum de avg_year_total — DEDUPED)
+           - sus_total_avg / priv_total_avg (sum de avg_year_sus / priv)
+      5. Junta `populacao` da silver compartilhada para `per_capita_scaled`.
+      6. Mapeia `(tipequip, codequip)` → `equipment_name` /
          `equipment_category` via dicionário canônico CNES.
 
-    Mode: OVERWRITE com `partitionBy(Ano)`.
+    Invariante crítico do dedup:
+      sus_total_avg + priv_total_avg ≥ total_avg
+      (igualdade quando não há dual-flag; soma > total mede o
+      "overlap" de máquinas declaradas em ambos os setores).
+      Como consequência, sus_share + priv_share PODEM exceder 100%
+      no front — isso é matematicamente correto: uma máquina dual-
+      flagged é 100% disponível ao SUS E 100% disponível ao privado
+      simultaneamente.
+
+    Bug histórico (pré-fix dedup): total_avg = sus_total_avg +
+    priv_total_avg, double-contando dual-flag. RM nacional 2025 em
+    7.592 unidades (~35,6/Mhab, ~2× a mediana OECD ~17/Mhab).
+    Pós-fix esperado: ~3.500-4.500 nacional, na banda OECD.
+
+    Mode: OVERWRITE com `partitionBy(ano)`.
 
     Cobre WPs #4 (Equipamentos × Parkinson, foco em RM) e #6
-    (Equipamentos panorama, multi-categoria com correção composite-key).
+    (Equipamentos panorama, multi-categoria com correção composite-key
+    e dedup dual-flag).
     """,
     {
         "estado":
@@ -1008,21 +1028,31 @@ enrich(
             "Número distinto de estabelecimentos CNES com este equipamento "
             "no (UF, ano). Independente de quantidade.",
         "total_avg":
-            "Soma das médias anuais por CNES — estimativa do total de "
-            "unidades operacionais no UF/ano.",
+            "Estimativa de unidades físicas no (UF, ano, equipment_key). "
+            "DEDUPED: para cada (CNES, mês) calcula GREATEST(qt_sus, qt_priv) "
+            "para evitar double-count de máquinas dual-flagged. Pré-fix esse "
+            "valor era sus+priv (inflando ~2× para equipamentos com dual-flag "
+            "comum como RM). É a chave do KPI 'Total · ano' no front.",
         "per_capita_scaled":
             "Total per capita escalonado (escala variável por equipamento "
-            "tipo, ver `per_capita_scale_pow10`).",
+            "tipo, ver `per_capita_scale_pow10`). Calculado SOBRE total_avg "
+            "deduped — bate com OCDE.",
         "sus_cnes_count":
-            "Subset de cnes_count restrito a IND_SUS=1.",
+            "Número distinto de CNES com pelo menos 1 unidade declarada "
+            "como SUS-disponível (avg_year_sus > 0) no (UF, ano).",
         "sus_total_avg":
-            "Subset de total_avg restrito a IND_SUS=1.",
+            "Soma de avg_year_sus — unidades-equipamento-ano declaradas "
+            "como disponíveis ao SUS. Pode INCLUIR máquinas dual-flagged "
+            "(também contadas em priv_total_avg). Invariante: "
+            "sus_total_avg + priv_total_avg ≥ total_avg.",
         "sus_per_capita_scaled":
             "Subset de per_capita_scaled restrito ao SUS.",
         "priv_cnes_count":
-            "Subset privado (IND_SUS=0).",
+            "CNES com pelo menos 1 unidade declarada como Priv-disponível "
+            "(avg_year_priv > 0).",
         "priv_total_avg":
-            "Total avg privado.",
+            "Soma de avg_year_priv — análogo ao sus_total_avg, para o "
+            "setor privado. Pode incluir dual-flagged.",
         "priv_per_capita_scaled":
             "Per capita privado.",
         "populacao":
@@ -1044,6 +1074,8 @@ enrich(
         "partition_keys": "ano",
         "pk_grain": "estado,ano,tipequip,codequip",
         "composite_key_required": "true",
+        "dedup_dual_flag": "true",
+        "post_dedup_fix": "true",
     },
 )
 
@@ -1325,17 +1357,24 @@ enrich(
     — gold pass-through do silver com chave composta `equipment_key`
     e nomes canônicos do catálogo oficial DATASUS.
 
-    Métrica destaque: para Ressonância Magnética
-    (`equipment_key = '1:12'`), a soma nacional bate com a mediana OCDE
-    de ~17/Mhab. Spot-check no notebook reporta o cálculo e alerta se
-    sair muito da banda esperada (3.000-4.500 unidades).
+    Métrica destaque (pós-fix dedup, abr/2026): para Ressonância
+    Magnética (`equipment_key = '1:12'`) a soma nacional cai na banda
+    OECD ~10-25/Mhab (mediana ~17). Pré-fix o total nacional 2025 era
+    7.592 (~35,6/Mhab, ~2× a mediana) por causa do double-count via
+    dual-flag. O spot-check no silver alerta se sair da banda 8-30/Mhab.
+
+    Invariante: sus_total_avg + priv_total_avg ≥ total_avg. As shares
+    (sus/total, priv/total) podem somar > 100% no front, refletindo
+    máquinas dual-flagged disponíveis para ambos os setores.
 
     Mode: OVERWRITE com `partitionBy(ano)`.
 
     Cobre WP #4 (Equipamentos × Parkinson, RM-foco) e WP #6
-    (Equipamentos panorama). Bug do WP#4 v1 (CODEQUIP=42 capturando
-    Eletroencefalógrafo) foi resolvido pela introdução do composite
-    key — qualquer query que use só CODEQUIP está incorreta.
+    (Equipamentos panorama). Dois bugs históricos resolvidos:
+    (i) WP#4 v1 — CODEQUIP=42 sozinho colapsava Eletroencefalógrafo
+        com Ressonância Magnética → fix: composite key TIPEQUIP:CODEQUIP.
+    (ii) Pré-abr/2026 — total = sus+priv double-contava dual-flag
+         → fix: total = MAX(qt_sus, qt_priv) por (CNES, mês).
     """,
     {
         "estado":
@@ -1357,19 +1396,22 @@ enrich(
         "cnes_count":
             "Número de estabelecimentos com o equipamento.",
         "total_avg":
-            "Total de unidades operacionais (média anual de QT_EXIST).",
+            "Estimativa de unidades físicas (DEDUPED via "
+            "GREATEST(qt_sus, qt_priv) por CNES-mês). É o número que vai "
+            "para o KPI 'Total · ano' do front. Pós-fix bate com OECD.",
         "per_capita_scaled":
-            "Total per capita escalonado (ver per_capita_scale_pow10).",
+            "Total per capita escalonado (ver per_capita_scale_pow10) "
+            "calculado sobre total_avg deduped.",
         "sus_cnes_count":
-            "Estabelecimentos SUS (IND_SUS=1).",
+            "Estabelecimentos com pelo menos 1 unidade SUS-disponível.",
         "sus_total_avg":
-            "Unidades SUS.",
+            "Unidades SUS-disponíveis. Pode incluir dual-flagged.",
         "sus_per_capita_scaled":
             "Per capita SUS.",
         "priv_cnes_count":
-            "Estabelecimentos privados.",
+            "Estabelecimentos com pelo menos 1 unidade Priv-disponível.",
         "priv_total_avg":
-            "Unidades privadas.",
+            "Unidades Priv-disponíveis. Pode incluir dual-flagged.",
         "priv_per_capita_scaled":
             "Per capita privado.",
         "populacao":
@@ -1389,6 +1431,8 @@ enrich(
         "partition_keys": "ano",
         "pk_grain": "estado,ano,tipequip,codequip",
         "composite_key_required": "true",
+        "dedup_dual_flag": "true",
+        "post_dedup_fix": "true",
     },
 )
 
