@@ -452,6 +452,44 @@ function Footer() {
           Quando você seleciona <b>2+ equipamentos</b>, o "Total" é a soma direta dos averages. O "por milhão" é recomputado como (soma de equipamentos) / população × 10⁶ — não é a soma das taxas individuais. Isso garante comparação correta entre UFs com tamanhos diferentes.
         </div>
       </div>
+
+      <div className="footerSection">
+        <div className="footerHeading">Limitações da fonte</div>
+        <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
+          Caveats estruturais do CNES (não do pipeline) que valem ler antes de
+          usar os números pra decisão clínica ou orçamentária:
+          <ul style={{ marginTop: 6, marginBottom: 0, paddingLeft: 18 }}>
+            <li>
+              <b>Cadastrado ≠ operacional.</b> O CNES conta equipamento{' '}
+              <i>cadastrado</i>, não necessariamente em uso. O DBF separa{' '}
+              <code>QT_EXIST</code> (cadastrado) de <code>QT_USO</code> (em
+              uso); este painel usa <code>QT_EXIST</code>.
+            </li>
+            <li>
+              <b>Possível dupla contagem por estabelecimento.</b> A mesma
+              máquina física pode, em casos raros, ser registrada por 2
+              estabelecimentos diferentes (CNES distintos compartilhando
+              equipamento).
+            </li>
+            <li>
+              <b>Latência cadastral.</b> Equipamento cadastrado em mês X pode
+              ter sido instalado fisicamente em mês X−3 a X−6 — o CNES não
+              expõe data-de-instalação granular.
+            </li>
+            <li>
+              <b>Nenhum dado sobre estado/idade do parque.</b> CNES não
+              registra ano-modelo, vida útil restante, manutenção pendente
+              ou utilização efetiva (frequência de uso).
+            </li>
+          </ul>
+          Esses são limites da fonte primária (DATASUS), não do nosso
+          processamento. Para análise de tendência (comparação entre UFs,
+          evolução temporal, % SUS vs Privado), os números são
+          confiáveis. Para uso operacional (planejamento de manutenção,
+          alocação de turnos), seria necessário cruzamento com produção
+          (SIH-RD, SIA-RD).
+        </div>
+      </div>
     </footer>
   );
 }
