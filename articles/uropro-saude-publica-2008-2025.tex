@@ -30,6 +30,7 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{graphicx}
+\graphicspath{{figures-uropro-saude-publica/}}
 \usepackage[hidelinks]{hyperref}
 \usepackage{url}
 \usepackage{float}
@@ -559,16 +560,15 @@ está em fase final de escoamento.
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering
-\textit{[Figura disponível na versão interativa da plataforma.}\\
-\textit{Reprodução estática deste Working Paper omitida nesta
-versão; ver gráfico empilhado por via cirúrgica em
-leonardochalhoub.github.io/mirante-dos-dados-br/incontinencia-urinaria.]}}}
-\caption{Evolução nacional do número de cirurgias por via,
-2008\textendash 2025. Barras empilhadas por via (abdominal, vaginal).
-A queda 2020\textendash 2021 e o pico 2024\textendash 2025 na via
-vaginal são as duas anomalias mais evidentes.}
+\includegraphics[width=0.92\linewidth]{fig01-volume-by-via}
+\caption{Evolução nacional do número de cirurgias uroginecológicas
+por via, Brasil 2008\textendash 2025. Faixa sombreada vermelha marca o
+período da pandemia COVID-19 (2020\textendash 2021). A anotação destaca
+o pico de 2025, evidência de represa cirúrgica em escoamento.}
 \label{fig:evolucao-vol}
+\par\noindent{\small Fonte: elaboração própria a partir de
+\texttt{data/gold/gold\_uropro\_estados\_ano.json} (camada gold
+pós-correção, vide Seção~\ref{sub:bug}).}
 \end{figure}
 
 \subsection{Permanência hospitalar: a queda silenciosa}\label{sub:permanencia}
@@ -650,6 +650,42 @@ que reduz a permanência média mesmo sem mudança técnica adicional.
 A relevância desse efeito persiste no pós-pandemia (1{,}52 em
 2022, 1{,}43 em 2025): a pandemia parece ter atuado como um
 catalisador irreversível de eficiência.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{fig02-permanencia}
+\caption{Permanência hospitalar média ponderada por AIH, Brasil
+2008\textendash 2025. A queda de \textendash 40{,}2\,\% na via
+vaginal (de 2{,}39 para 1{,}43 dia) corresponde a ganho de
+produtividade hospitalar de 67\,\% (cada 1\,000 leitos-dia
+entregam hoje 699 cirurgias \textit{vs.} 418 em 2008). Faixa
+sombreada: pandemia COVID-19.}
+\label{fig:perm-evolucao}
+\par\noindent{\small Fonte: elaboração própria.
+\texttt{dias\_perm\_avg} ponderada por \texttt{n\_aih} no agregado
+Mirante.}
+\end{figure}
+
+\noindent
+A Figura~\ref{fig:choro-perm} apresenta o \textit{choropleth}
+nacional dessa métrica em 2025, evidenciando que a eficiência
+clínica não está uniformemente distribuída: estados com maior
+volume tendem a operar com permanências menores (efeito de aprendizado
+e padronização), enquanto estados com menor volume mantêm permanências
+mais longas. O padrão é compatível com curva de aprendizado
+hospitalar característica da literatura cirúrgica.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{fig06-choropleth-permanencia}
+\caption{\textit{Choropleth} \textendash{} permanência hospitalar
+média (dias\,/\,AIH) na via vaginal, Brasil 2025. Cores escuras =
+maior permanência (menor eficiência); cores claras = menor
+permanência (maior eficiência).}
+\label{fig:choro-perm}
+\par\noindent{\small Fonte: elaboração própria. Cores em escala
+Cividis (perceptualmente uniforme).}
+\end{figure}
 
 \subsection{Despesa pública e custo médio por AIH}\label{sub:despesa}
 
@@ -788,6 +824,110 @@ Para essas UFs, a hipótese mais econômica é que o tratamento
 cirúrgico é deslocado para grandes centros de referência fora
 do estado, via Tratamento Fora do Domicílio (TFD) do SUS.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{fig04-acesso-uf-2025}
+\caption{Acesso à cirurgia uroginecológica vaginal por UF, Brasil
+2025. AIH por 100\,mil habitantes, ordenado do menor para o maior.
+Linha tracejada vermelha: média nacional. Cores Cividis
+(perceptualmente uniformes; magnitude maior = cor mais escura).}
+\label{fig:acesso-uf}
+\par\noindent{\small Fonte: elaboração própria. População IBGE/SIDRA
+tabela 6579.}
+\end{figure}
+
+\noindent
+A leitura geográfica do mesmo dado fica imediata no
+\textit{choropleth} da Figura~\ref{fig:choro-acesso}: a região
+Sul concentra os patamares mais altos de acesso, o Sudeste
+\textit{exceto Rio de Janeiro} acompanha em patamares intermediários,
+e o Norte e Nordeste carregam a maior parte da privação de oferta.
+A geografia da desigualdade em cirurgia uroginecológica é, portanto,
+\textbf{visualmente coincidente com a geografia clássica da
+desigualdade socioeconômica brasileira}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{fig05-choropleth-acesso}
+\caption{\textit{Choropleth} \textendash{} densidade de cirurgia
+uroginecológica vaginal por UF (AIH por 100\,mil habitantes),
+Brasil 2025. Cores escuras = maior densidade.}
+\label{fig:choro-acesso}
+\par\noindent{\small Fonte: elaboração própria.}
+\end{figure}
+
+\subsection{Pobreza estrutural e infraestrutura cirúrgica:
+o gradiente \textit{cross-vertical}}\label{sub:pobreza-acesso}
+
+A geografia da desigualdade observada na seção anterior tem
+explicação estrutural óbvia: \textit{onde há mais pobreza
+estrutural, há menos infraestrutura hospitalar especializada}. Esta
+seção quantifica essa intuição cruzando o acesso UroPro por UF com
+um \textit{proxy} de pobreza estrutural \textemdash{} a cobertura
+do Programa Bolsa Família (PBF), entendida como percentual da
+população estadual em situação de elegibilidade ao programa
+(critério de renda nacional, comparável entre UFs e estável ao
+longo do tempo).
+
+A Figura~\ref{fig:pobreza-uropro} apresenta o \textit{scatter plot}
+correspondente. O coeficiente de correlação de Pearson é
+$\rho \approx -0{,}68$ \textemdash{} \textbf{forte e negativo}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{fig07-scatter-uropro-pbf}
+\caption{Cruzamento \textit{cross-vertical}: cobertura do Bolsa
+Família (eixo $x$) \textit{vs.}\ acesso à cirurgia uroginecológica
+vaginal (eixo $y$), Brasil 2025 (UFs como pontos). Caixa branca
+no canto superior direito reporta o $\rho$ de Pearson estimado
+sobre as 27 UFs.}
+\label{fig:pobreza-uropro}
+\par\noindent{\small Fonte: elaboração própria a partir dos golds
+Mirante \texttt{gold\_uropro\_estados\_ano.json} e
+\texttt{gold\_pbf\_estados\_df.json}.}
+\end{figure}
+
+A interpretação: cada ponto percentual a mais de cobertura PBF em
+uma UF está associado, em média, a uma redução substancial na
+densidade de cirurgia uroginecológica. UFs no quadrante inferior-direito
+do gráfico (alta pobreza, baixo acesso) são predominantemente do
+Norte e Nordeste \textemdash{} AC, RR, PE, AL. UFs no quadrante
+superior-esquerdo (baixa pobreza, alto acesso) são SC, PR, GO, RS,
+SP. \textbf{Não é coincidência: é o gradiente de pobreza estrutural
+brasileiro mapeado no domínio de uma cirurgia clínica
+específica.}
+
+A leitura é estruturalmente compatível com os achados das verticais
+companheiras Mirante:
+
+\begin{itemize}
+\item Em CHALHOUB (2026d, WP n. 3 \textendash{}
+\textit{cross-vertical}), o mesmo $\rho \approx -0{,}68$ é
+reportado entre acesso UroPro e cobertura PBF, sustentando que
+a relação não é artefato de sazonalidade nem do
+\textit{snapshot} 2025 isoladamente.
+\item Em CHALHOUB (2026e, WP n. 6 \textendash{} panorama
+integrado), $\rho \approx -0{,}68$ é replicado para
+infraestrutura de Ressonância Magnética por UF e
+$\rho \approx -0{,}76$ para infraestrutura agregada de imagem.
+A consistência entre dimensões diferentes (cirurgia eletiva
+\textit{vs.}\ equipamento de imagem) reforça que o substrato
+comum é a \textbf{capacidade hospitalar especializada
+herdada}, função de décadas de investimento e formação médica.
+\end{itemize}
+
+\textbf{Implicação prática.} A barreira ao acesso à cirurgia
+uroginecológica nas UFs periféricas \textit{não é demanda} (a
+prevalência de IU é, se algo, maior em populações de menor
+renda). \textit{Não é segurança clínica} (a mortalidade
+intra-hospitalar é estruturalmente abaixo de 0{,}05\,\%, vide
+Seção~\ref{sub:mort}). É \textbf{infraestrutura}
+\textemdash{} hospitais de média e alta complexidade, equipes
+treinadas, fluxo de referência funcional. A correlação $-0{,}68$
+sugere que reduzir a desigualdade no acesso UroPro exige reduzir,
+em paralelo, a desigualdade na disponibilidade dessa infraestrutura
+\textemdash{} o que é, por construção, uma agenda de longo prazo.
+
 \subsection{O choque pandêmico e a forma da recuperação}\label{sub:covid}
 
 A Tabela~\ref{tab:uf-pre-post} compara, para a via vaginal, as
@@ -864,6 +1004,18 @@ populacional. Hipóteses qualitativas: (a)~degradação do parque
 hospitalar dedicado; (b)~migração de pacientes para particular;
 (c)~reorganização da rede que deixou IU sem prioridade.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{fig08-pre-pos-pandemia}
+\caption{Tipologia da recuperação pós-pandemia por UF, via vaginal.
+Eixo $x$: $\Delta$ percentual entre média 2015\textendash 2019 e
+média 2022\textendash 2025. Vermelho: regressão (perda permanente);
+cinza: retorno à tendência ($\pm$25\,\%); cores Cividis: represa em
+escoamento (cor mais saturada = expansão maior).}
+\label{fig:pre-pos}
+\par\noindent{\small Fonte: elaboração própria.}
+\end{figure}
+
 A magnitude bruta do choque pandêmico (a queda de
 2020\textendash 2021) é, ao contrário do padrão de recuperação,
 relativamente \textit{homogênea} entre UFs. A maioria dos
@@ -886,6 +1038,20 @@ de internações. A taxa nacional anual oscila entre 0\,\% e
 camada \textit{gold} é literalmente zero. Isso é compatível com
 o que a literatura clínica reporta sobre o procedimento: trata-se
 de cirurgia de baixo risco quando bem indicada e bem conduzida.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{fig03-mortalidade}
+\caption{Mortalidade intra-hospitalar associada à cirurgia
+uroginecológica, Brasil 2008\textendash 2025. Linha azul-claro:
+via vaginal; linha azul-escuro: via abdominal. Faixa sombreada:
+banda \textless\,0{,}05\,\% reportada como referência clínica
+internacional (FORD \textit{et al.}, 2017; CHAPPLE \textit{et al.},
+2020).}
+\label{fig:mortalidade}
+\par\noindent{\small Fonte: elaboração própria. Mortalidade =
+\texttt{n\_morte / n\_aih} no agregado nacional anual.}
+\end{figure>
 
 \textbf{Implicação principal:} as barreiras de acesso documentadas
 na Seção~\ref{sub:geografia} \textit{não são barreiras de risco

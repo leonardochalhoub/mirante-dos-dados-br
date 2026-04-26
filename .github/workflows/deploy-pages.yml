@@ -55,10 +55,18 @@ jobs:
           latexmk_use_xelatex: false
           args: -pdf -interaction=nonstopmode -file-line-error
 
-      - name: Compile Equipamentos × Parkinson LaTeX → PDF
+      - name: Compile Equipamentos × Parkinson (WP #4) LaTeX → PDF
         uses: xu-cheng/latex-action@v3
         with:
           root_file: equipamentos-rm-parkinson.tex
+          working_directory: articles
+          latexmk_use_xelatex: false
+          args: -pdf -interaction=nonstopmode -file-line-error
+
+      - name: Compile Equipamentos · Panorama Cross-Vertical (WP #6) LaTeX → PDF
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: equipamentos-panorama-cnes.tex
           working_directory: articles
           latexmk_use_xelatex: false
           args: -pdf -interaction=nonstopmode -file-line-error
@@ -86,6 +94,7 @@ jobs:
           cp articles/bolsa-familia.pdf                 app/public/articles/
           cp articles/rais-fair-lakehouse.pdf           app/public/articles/
           cp articles/equipamentos-rm-parkinson.pdf     app/public/articles/
+          cp articles/equipamentos-panorama-cnes.pdf    app/public/articles/
           cp articles/uropro-serie-2008-2025.pdf        app/public/articles/
           cp articles/uropro-saude-publica-2008-2025.pdf app/public/articles/
           # Stage .tex sources for the "Baixar fonte" button (all verticais).
@@ -93,6 +102,7 @@ jobs:
           cp articles/bolsa-familia.tex                 app/public/articles/
           cp articles/rais-fair-lakehouse.tex           app/public/articles/
           cp articles/equipamentos-rm-parkinson.tex     app/public/articles/
+          cp articles/equipamentos-panorama-cnes.tex    app/public/articles/
           cp articles/uropro-serie-2008-2025.tex        app/public/articles/
           cp articles/uropro-saude-publica-2008-2025.tex app/public/articles/
           ls -la app/public/articles/

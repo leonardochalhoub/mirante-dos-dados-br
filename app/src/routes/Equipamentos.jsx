@@ -531,65 +531,125 @@ function Footer() {
   );
 }
 
-// ─── Working Paper #5 — Equipamentos × Parkinson (Rolim + Chalhoub) ─────
-// Artigo focado em RM (equipment_key=1:12, ou seja TIPEQUIP=1 + CODEQUIP=12)
-// no diagnóstico diferencial da Doença
-// de Parkinson. Coautoria com Alexandre Maciel Rolim (manuscrito original
-// epidemiológico, abr/2026).
+// ─── Equipamentos tem DOIS Working Papers, cada um em seu próprio card empilhado:
+//   - WP #4 — Equipamentos × Parkinson (RM-foco, coautoria Rolim + Chalhoub)
+//   - WP #6 — Panorama integrado cross-vertical (neuroimaging trio + PBF/Emendas/UroPro)
 function ArticleSection() {
+  return (
+    <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
+      <DocCardWP4 />
+      <DocCardWP6 />
+    </section>
+  );
+}
+
+// WP #4 — Equipamentos × Parkinson (Rolim + Chalhoub)
+function DocCardWP4() {
   const base = import.meta.env.BASE_URL || '/';
   const pdfUrl     = `${base}articles/equipamentos-rm-parkinson.pdf`.replace(/\/{2,}/g, '/');
   const texUrl     = `${base}articles/equipamentos-rm-parkinson.tex`.replace(/\/{2,}/g, '/');
   const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
-
   return (
-    <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
-      <div className="doc-block">
-        <div className="kicker">Working Paper n. 4 — Mirante dos Dados</div>
-        <p style={{ marginTop: 6, fontSize: 13.5 }}>
-          <b>"Análise estatística da prevalência da Doença de Parkinson no
-          Brasil: desafios, tecnologias de neuroimagem e perspectivas de
-          políticas públicas"</b> — coautoria com <b>Alexandre Maciel
-          Rolim</b> (manuscrito original epidemiológico, abr/2026). O
-          artigo combina os achados do ELSI-Brazil (prevalência de DP de
-          0,84% em brasileiros 50+, projeção de 1,25 milhão de casos até
-          2060) com análise atualizada e reproduzível da infraestrutura
-          de RM no SUS via microdados CNES 2013–2025 (filtro{' '}
-          <code>equipment_key=1:12</code>): 3.900 aparelhos em 2025
-          (18,3/Mhab, acima da mediana OCDE de 17), com iniquidade
-          regional severa que NÃO se reduziu apesar do crescimento
-          agregado.
-        </p>
-        <div className="doc-actions">
-          <a className="doc-toggle doc-toggle-primary"
-             href={pdfUrl} target="_blank" rel="noreferrer"
-             title="Abrir PDF em nova aba (visualizador nativo do navegador)">
-            📖 Ler artigo (PDF)
-          </a>
-          <a className="doc-toggle"
-             href={pdfUrl} download="Mirante-Equipamentos-RM-Parkinson-Rolim-Chalhoub-2026.pdf"
-             title="PDF compilado em LaTeX, padrão ABNT">
-            ⤓ Baixar PDF (ABNT)
-          </a>
-          <a className="doc-toggle"
-             href={texUrl} download="equipamentos-rm-parkinson.tex"
-             title="Fonte LaTeX (.tex)">
-            ⤓ Baixar fonte (.tex)
-          </a>
-          <a className="doc-toggle"
-             href={overleafUrl} target="_blank" rel="noreferrer"
-             title="Compilação online em 1 clique no Overleaf">
-            ↗ Abrir no Overleaf
-          </a>
-        </div>
-        <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10, marginBottom: 0, lineHeight: 1.5 }}>
-          A vertical Equipamentos suporta multi-seleção entre 99
-          códigos CNES; este artigo extrai o subconjunto{' '}
-          <code>equipment_key=1:12</code> (Ressonância Magnética; TIPEQUIP=1,
-          CODEQUIP=12) e cruza com carga estimada de DP por UF.
-        </p>
+    <div className="doc-block" style={{ marginBottom: 14 }}>
+      <div className="kicker">Working Paper n. 4 — Mirante dos Dados</div>
+      <p style={{ marginTop: 6, fontSize: 13.5 }}>
+        <b>"Análise estatística da prevalência da Doença de Parkinson no
+        Brasil: desafios, tecnologias de neuroimagem e perspectivas de
+        políticas públicas"</b> — coautoria com <b>Alexandre Maciel
+        Rolim</b> (manuscrito original epidemiológico, abr/2026). O
+        artigo combina os achados do ELSI-Brazil (prevalência de DP de
+        0,84% em brasileiros 50+, projeção de 1,25 milhão de casos até
+        2060) com análise atualizada e reproduzível da infraestrutura
+        de RM no SUS via microdados CNES 2013–2025 (filtro{' '}
+        <code>equipment_key=1:12</code>): 3.900 aparelhos em 2025
+        (18,3/Mhab, acima da mediana OCDE de 17), com iniquidade
+        regional severa que NÃO se reduziu apesar do crescimento
+        agregado.
+      </p>
+      <div className="doc-actions">
+        <a className="doc-toggle doc-toggle-primary"
+           href={pdfUrl} target="_blank" rel="noreferrer"
+           title="Abrir PDF em nova aba (visualizador nativo do navegador)">
+          📖 Ler artigo (PDF)
+        </a>
+        <a className="doc-toggle"
+           href={pdfUrl} download="Mirante-Equipamentos-RM-Parkinson-Rolim-Chalhoub-2026.pdf"
+           title="PDF compilado em LaTeX, padrão ABNT">
+          ⤓ Baixar PDF (ABNT)
+        </a>
+        <a className="doc-toggle"
+           href={texUrl} download="equipamentos-rm-parkinson.tex"
+           title="Fonte LaTeX (.tex)">
+          ⤓ Baixar fonte (.tex)
+        </a>
+        <a className="doc-toggle"
+           href={overleafUrl} target="_blank" rel="noreferrer"
+           title="Compilação online em 1 clique no Overleaf">
+          ↗ Abrir no Overleaf
+        </a>
       </div>
-    </section>
+      <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10, marginBottom: 0, lineHeight: 1.5 }}>
+        A vertical Equipamentos suporta multi-seleção entre 99
+        códigos CNES; este artigo extrai o subconjunto{' '}
+        <code>equipment_key=1:12</code> (Ressonância Magnética; TIPEQUIP=1,
+        CODEQUIP=12) e cruza com carga estimada de DP por UF.
+      </p>
+    </div>
+  );
+}
+
+// WP #6 — Panorama integrado cross-vertical (neuroimaging trio + PBF/Emendas/UroPro)
+function DocCardWP6() {
+  const base = import.meta.env.BASE_URL || '/';
+  const pdfUrl     = `${base}articles/equipamentos-panorama-cnes.pdf`.replace(/\/{2,}/g, '/');
+  const texUrl     = `${base}articles/equipamentos-panorama-cnes.tex`.replace(/\/{2,}/g, '/');
+  const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
+    encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
+  return (
+    <div className="doc-block">
+      <div className="kicker">Working Paper n. 6 — Mirante dos Dados</div>
+      <p style={{ marginTop: 6, fontSize: 13.5 }}>
+        <b>"Panorama integrado: equipamentos de saúde como nó
+        cross-vertical do Mirante dos Dados — análise do trio de
+        neuroimagem (RM, CT, PET/CT) e seus cruzamentos com Bolsa
+        Família, emendas parlamentares e acesso cirúrgico
+        (2013–2025)"</b> — paper agregador que sintetiza as quatro
+        verticais não-equipamentos do Mirante usando o trio de
+        neuroimagem como lente focal. Documenta correlação{' '}
+        <code>ρ ≈ -0,68</code> entre cobertura PBF e densidade de RM,
+        replicação independente do <i>paradoxo das emendas</i>{' '}
+        (<code>ρ ≈ -0,31</code> com emendas <i>per capita</i>) e o
+        <i>fix</i> metodológico do <i>double-count</i> via
+        dual-flag IND_SUS no CNES.
+      </p>
+      <div className="doc-actions">
+        <a className="doc-toggle doc-toggle-primary"
+           href={pdfUrl} target="_blank" rel="noreferrer"
+           title="Abrir PDF em nova aba (visualizador nativo do navegador)">
+          📖 Ler artigo (PDF)
+        </a>
+        <a className="doc-toggle"
+           href={pdfUrl} download="Mirante-Equipamentos-Panorama-CrossVertical-Chalhoub-2026.pdf"
+           title="PDF compilado em LaTeX, padrão ABNT">
+          ⤓ Baixar PDF (ABNT)
+        </a>
+        <a className="doc-toggle"
+           href={texUrl} download="equipamentos-panorama-cnes.tex"
+           title="Fonte LaTeX (.tex)">
+          ⤓ Baixar fonte (.tex)
+        </a>
+        <a className="doc-toggle"
+           href={overleafUrl} target="_blank" rel="noreferrer"
+           title="Compilação online em 1 clique no Overleaf">
+          ↗ Abrir no Overleaf
+        </a>
+      </div>
+      <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10, marginBottom: 0, lineHeight: 1.5 }}>
+        <b>Palavras-chave:</b> CNES; neuroimagem; Bolsa Família;
+        emendas parlamentares; análise <i>cross-vertical</i>; FAIR
+        data; federalismo brasileiro.
+      </p>
+    </div>
   );
 }

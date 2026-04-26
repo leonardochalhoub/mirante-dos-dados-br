@@ -265,7 +265,9 @@ def fig_top_uf_rm():
     fig, ax = plt.subplots(figsize=(7.5, 7))
     y = np.arange(len(items))
     pm = [t[2] for t in items]
-    colors = [CIVIDIS(0.15 + 0.7*(1 - p/max(pm))) for p in pm]
+    # Convenção Mirante: maior valor → cor mais escura/saturada
+    # (cividis_r maps t=1 → dark navy; magnitude alta = cor saturada).
+    colors = [CIVIDIS(0.15 + 0.7 * p/max(pm)) for p in pm]
     bars = ax.barh(y, pm, color=colors, edgecolor='#222', linewidth=0.5)
     ax.set_yticks(y)
     ax.set_yticklabels([f'{u} ({a:.0f} un)' for u, a, p in items], fontsize=8.5)
@@ -295,7 +297,8 @@ def fig_choropleth_rm():
     fig, ax = plt.subplots(figsize=(7, 4))
     names = [n for n, _ in items]; tots = [v['tot'] for _, v in items]
     pms = [v['tot']/v['pop']*1e6 if v['pop'] else 0 for _, v in items]
-    colors = [CIVIDIS(0.15 + 0.7*(1 - p/max(pms))) for p in pms]
+    # Convenção Mirante: maior valor → cor mais escura/saturada (cividis_r).
+    colors = [CIVIDIS(0.15 + 0.7 * p/max(pms)) for p in pms]
     bars = ax.bar(names, pms, color=colors, edgecolor='#222', linewidth=0.6)
     for b, t, p in zip(bars, tots, pms):
         ax.text(b.get_x()+b.get_width()/2, p+0.5, f'{t:.0f} un\n{p:.1f}/Mhab',
