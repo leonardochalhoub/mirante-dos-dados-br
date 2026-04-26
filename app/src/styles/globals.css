@@ -269,28 +269,35 @@ code, pre, .mono {
 }
 
 /* TechBadges: caixa com altura igual à soma dos 2 botões de DownloadActions
-   (2 × 36px + 8px gap = 80px). Logos centralizados vertical/horizontalmente. */
+   (2 × 36px + 8px gap = 80px). Logos centralizados vertical/horizontalmente.
+   Light mode usa --bg-soft para destacar do panel; dark mode mantém panel
+   (que já contrasta com o bg). */
 .tech-badges {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  padding: 0 22px;
+  gap: 14px;
+  padding: 0 16px;
   height: 80px;             /* iguala altura do bloco de DownloadActions */
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--panel);
+  background: var(--bg-soft);
   box-shadow: var(--shadow-sm);
+  flex-shrink: 0;           /* não estica em flex-wrap */
+}
+[data-theme="dark"] .tech-badges {
+  background: var(--panel);
+  border-color: var(--border-strong);
 }
 .tech-badges-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
   align-self: center;
 }
-.tech-badges-sep { color: var(--faint); font-size: 16px; align-self: center; }
+.tech-badges-sep { color: var(--faint); font-size: 14px; align-self: center; }
 .tech-badges a {
   display: inline-flex;
   align-items: center;
@@ -301,7 +308,7 @@ code, pre, .mono {
 }
 .tech-badges a:hover { opacity: 1; text-decoration: none; }
 .tech-badges img {
-  height: 40px;             /* logos 40px → ~50% da altura do box */
+  height: 32px;             /* logos compactos para layout caber em uma linha */
   width: auto;
   display: block;
 }
@@ -316,9 +323,9 @@ code, pre, .mono {
 
 [data-theme="dark"] .tech-badges img[alt="Apache Spark"] {
   background: #f8fafc;
-  padding: 4px 6px;
-  border-radius: 6px;
-  height: 40px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  height: 32px;
   box-sizing: content-box;
 }
 
