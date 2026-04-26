@@ -305,6 +305,15 @@ code, pre, .mono {
   width: auto;
   display: block;
 }
+
+/* Theme-aware logo swap (CSS-only, no React state).
+   Both variants render in DOM; the wrong one is hidden by data-theme
+   attribute on <html>. Robust against useTheme's per-instance state
+   not propagating on theme toggle. */
+.theme-img-dark { display: none; }
+[data-theme="dark"] .theme-img-light { display: none; }
+[data-theme="dark"] .theme-img-dark { display: block; }
+
 [data-theme="dark"] .tech-badges img[alt="Apache Spark"] {
   background: #f8fafc;
   padding: 4px 6px;

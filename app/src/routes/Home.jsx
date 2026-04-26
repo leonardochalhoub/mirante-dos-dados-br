@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DeltaLogoLarge } from '../components/TechBadges';
+import { DeltaLogoLarge, ClaudeLogoLarge } from '../components/TechBadges';
 import ScoreCard from '../components/ScoreCard';
 import { PARECER_GLOBAL } from '../data/pareceres';
 import { loadStats } from '../lib/data';
@@ -94,7 +94,7 @@ export default function Home() {
               <img src={`${import.meta.env.BASE_URL}spark-logo.svg`.replace(/\/{2,}/g, '/')} alt="Apache Spark" />
             </a>
             <a className="hero-logo-card" href="https://www.anthropic.com/claude-code" target="_blank" rel="noreferrer" title="Built with Claude Code (Anthropic)">
-              <img src={`${import.meta.env.BASE_URL}claude-code-logo.svg`.replace(/\/{2,}/g, '/')} alt="Claude Code" style={{ height: 56, width: 'auto' }} />
+              <ClaudeLogoLarge height={56} />
             </a>
           </div>
         </div>
