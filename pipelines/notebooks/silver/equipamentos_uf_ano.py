@@ -207,18 +207,25 @@ EQUIPMENT_NAMES = {
     ("9","10"): "Retinógrafo Portátil",
     ("9","11"): "Ultrassom Portátil",
     ("9","12"): "Eletrocardiograma (Telemedicina)",
+
+    # ── TIPEQUIP=10 — Diálise ──────────────────────────────────────────
+    ("10","01"): "Aparelho de Hemodiálise — Ambulatorial",
+    ("10","02"): "Aparelho de Hemodiálise — Hospitalar",
+    ("10","03"): "Aparelho de Hemodiálise Reserva",
+    ("10","04"): "Aparelho para Diálise Peritoneal",
 }
 
 CATEGORY_NAMES = {
-    "1": "Diagnóstico por Imagem",
-    "2": "Infraestrutura",
-    "3": "Métodos Ópticos",
-    "4": "Métodos Gráficos",
-    "5": "Manutenção da Vida",
-    "6": "Outros Equipamentos",
-    "7": "Odontologia",
-    "8": "Audiologia",
-    "9": "Telemedicina",
+    "1":  "Diagnóstico por Imagem",
+    "2":  "Infraestrutura",
+    "3":  "Métodos Ópticos",
+    "4":  "Métodos Gráficos",
+    "5":  "Manutenção da Vida",
+    "6":  "Outros Equipamentos",
+    "7":  "Odontologia",
+    "8":  "Audiologia",
+    "9":  "Telemedicina",
+    "10": "Diálise",
 }
 
 # COMMAND ----------

@@ -128,3 +128,7 @@ tipequip,codequip,equipment_key,equipment_name,equipment_category
 9,10,9:10,Retinógrafo Portátil,Telemedicina
 9,11,9:11,Ultrassom Portátil,Telemedicina
 9,12,9:12,Eletrocardiograma (Telemedicina),Telemedicina
+10,01,10:01,Aparelho de Hemodiálise — Ambulatorial,Diálise
+10,02,10:02,Aparelho de Hemodiálise — Hospitalar,Diálise
+10,03,10:03,Aparelho de Hemodiálise Reserva,Diálise
+10,04,10:04,Aparelho para Diálise Peritoneal,Diálise
