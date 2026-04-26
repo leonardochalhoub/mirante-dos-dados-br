@@ -45,7 +45,6 @@ resources:
       name: mirante · refresh populacao_uf_ano
       tags:
         team: mirante
-        owner: leonardochalhoub
         domain: populacao
         layer: orchestration
         pattern: medallion
@@ -89,7 +88,6 @@ resources:
       name: mirante · refresh ipca_deflators_2021
       tags:
         team: mirante
-        owner: leonardochalhoub
         domain: ipca
         layer: orchestration
         pattern: medallion
@@ -131,7 +129,6 @@ resources:
       name: mirante · refresh PBF (ingest → bronze → silver → gold → export)
       tags:
         team: mirante
-        owner: leonardochalhoub
         domain: pbf
         layer: orchestration
         pattern: medallion
@@ -201,7 +198,6 @@ resources:
       name: mirante · refresh Equipamentos (ingest → bronze → silver → gold → export)
       tags:
         team: mirante
-        owner: leonardochalhoub
         domain: equipamentos
         layer: orchestration
         pattern: medallion
@@ -266,7 +262,6 @@ resources:
       name: mirante · refresh RAIS (ingest → bronze → silver → gold → export)
       tags:
         team: mirante
-        owner: leonardochalhoub
         domain: rais
         layer: orchestration
         pattern: medallion
@@ -334,7 +329,6 @@ resources:
       name: mirante · refresh Emendas (ingest → bronze → silver → gold → export)
       tags:
         team: mirante
-        owner: leonardochalhoub
         domain: emendas
         layer: orchestration
         pattern: medallion
@@ -397,7 +391,6 @@ resources:
       name: mirante · refresh UroPro (ingest → bronze → silver → gold → export)
       tags:
         team: mirante
-        owner: leonardochalhoub
         domain: uropro
         layer: orchestration
         pattern: medallion
@@ -473,7 +466,6 @@ resources:
       name: mirante · apply catalog/schema/table/column metadata + tags
       tags:
         team: mirante
-        owner: leonardochalhoub
         domain: meta
         layer: governance
         pattern: catalog_enrichment
