@@ -260,14 +260,22 @@ print(f"bronze UFs distintas: {src.select('estado').distinct().count()}")
 
 # Normalize types — KEEP both TIPEQUIP and CODEQUIP (composite key).
 # IND_SUS=='1' significa equipamento à disposição do SUS (sector split).
+#
+# IMPORTANTE: bronze pode ter TIPEQUIP em DOIS formatos por causa de
+# conversões DBC→parquet diferentes ('1' single-char OU '01' zero-padded).
+# Forma canônica: TIPEQUIP sem zeros à esquerda (CHAR(1) per spec DATASUS),
+# CODEQUIP com 2 chars zero-padded (CHAR(2) per spec). Isso garante 1
+# representação por equipamento.
 df = (
     src.select(
         F.col("estado").cast("string"),
         F.col("ano").cast("int"),
         F.col("mes").cast("string"),
         F.col("CNES").cast("string").alias("cnes"),
-        F.col("TIPEQUIP").cast("string").alias("tipequip"),
-        F.col("CODEQUIP").cast("string").alias("codequip"),
+        # TIPEQUIP: cast to int then to string strips leading zeros ("01"→"1", "5"→"5")
+        F.col("TIPEQUIP").cast("int").cast("string").alias("tipequip"),
+        # CODEQUIP: lpad to 2 chars zero-padded ("1"→"01", "12"→"12")
+        F.lpad(F.col("CODEQUIP"), 2, "0").alias("codequip"),
         F.col("QT_EXIST").cast("double").alias("qt_exist"),
         F.col("IND_SUS").cast("string").alias("ind_sus"),
     )
@@ -496,8 +504,12 @@ print("✔ DQ passed")
         .partitionBy("ano")
         .saveAsTable(SILVER_TABLE)
 )
+# Inline minimal COMMENT — full enrichment via _meta/apply_catalog_metadata.py.
 spark.sql(f"COMMENT ON TABLE {SILVER_TABLE} IS "
-          f"'Mirante · Equipamentos CNES por UF × Ano × (TIPEQUIP, CODEQUIP), "
-          f"com split SUS/Privado. Composite key resolve a ambiguidade pré-WP#6 "
-          f"em que CODEQUIP sozinho colapsava 8 categorias.'")
+          f"'Mirante · Equipamentos CNES por UF × Ano × (TIPEQUIP, CODEQUIP) — "
+          f"split SUS/Privado via IND_SUS, com nomes canônicos do catálogo "
+          f"DATASUS. Composite key `equipment_key = TIPEQUIP:CODEQUIP` é "
+          f"OBRIGATÓRIA: resolve a ambiguidade do bug WP#4-v1 em que CODEQUIP=42 '"
+          f"capturava Eletroencefalógrafo achando que era Ressonância Magnética. "
+          f"Reaplicar metadata rico via job_apply_catalog_metadata.'")
 print(f"✔ {SILVER_TABLE} written ({n} rows)")
