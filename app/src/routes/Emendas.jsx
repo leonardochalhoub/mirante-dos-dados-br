@@ -68,12 +68,10 @@ export default function Emendas() {
   useEffect(() => {
     loadGold('gold_emendas_estados_df.json')
       .then((all) => {
-        // Cap a anos completos (Jan-Dez). O CSV CGU consolidado é atualizado
-        // continuamente durante o ano corrente — só comparamos anos cheios.
-        const currentYear = new Date().getFullYear();
-        const fullYears = all.filter((r) => r.Ano != null && r.Ano < currentYear);
-        setRows(fullYears);
-        const last = Math.max(...fullYears.map((r) => r.Ano));
+        // loadGold já aplica o cap universal (drop ano corrente parcial) —
+        // ver app/src/lib/data.js.
+        setRows(all);
+        const last = Math.max(...all.map((r) => r.Ano));
         setYear(String(last));
       })
       .catch((e) => setError(e.message));
