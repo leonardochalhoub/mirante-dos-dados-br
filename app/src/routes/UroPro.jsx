@@ -100,6 +100,32 @@ export default function UroPro() {
     [rows],
   );
 
+  // Procedures que aparecem no menu = só os que têm soma de n_aih > 0 em
+  // pelo menos UM (ano, UF) na série inteira. Procedimentos zerados em
+  // todo o histórico (ex.: 0409020117 Genérico, código residual) são
+  // ocultados — não confundem o usuário com seleção que não rende dado.
+  const availableProcs = useMemo(() => {
+    if (!rows || !rows.length) return Object.keys(PROCEDURES);
+    const sums = new Map();
+    for (const r of rows) {
+      sums.set(r.proc_rea, (sums.get(r.proc_rea) || 0) + (r.n_aih || 0));
+    }
+    return Object.keys(PROCEDURES).filter((p) => (sums.get(p) || 0) > 0);
+  }, [rows]);
+
+  // Quando availableProcs muda, sane selectedProcs (descarta os ocultos)
+  useEffect(() => {
+    if (!rows) return;
+    const avail = new Set(availableProcs);
+    const next = selectedProcs.filter((p) => avail.has(p));
+    if (next.length === 0 && availableProcs.length > 0) {
+      setSelectedProcs(availableProcs);
+    } else if (next.length !== selectedProcs.length) {
+      setSelectedProcs(next);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableProcs, rows]);
+
   // Filter to selected year + selected procedures, then aggregate per UF.
   // For per-AIH-style metrics (avg, perm, mortalidade), we recompute weighted
   // average using n_aih as weight; otherwise we sum.
@@ -240,6 +266,7 @@ export default function UroPro() {
                     <ProcedureMultiSelect
                       selected={selectedProcs}
                       onChange={setSelectedProcs}
+                      availableProcs={availableProcs}
                     />
                   </div>
 
@@ -350,7 +377,7 @@ function aggregateForMetric(rows, metricKey, nationwide = false) {
 }
 
 // ─── Procedure multi-select (reused pattern from Equipamentos) ───────────
-function ProcedureMultiSelect({ selected, onChange }) {
+function ProcedureMultiSelect({ selected, onChange, availableProcs }) {
   const [open, setOpen] = useState(false);
   const sel = new Set(selected);
 
@@ -376,7 +403,9 @@ function ProcedureMultiSelect({ selected, onChange }) {
       {open && (
         <div className="multi-select-popover">
           <div className="multi-select-options">
-            {Object.entries(PROCEDURES).map(([code, info]) => (
+            {Object.entries(PROCEDURES)
+              .filter(([code]) => !availableProcs || availableProcs.includes(code))
+              .map(([code, info]) => (
               <label key={code} className="multi-select-option">
                 <input
                   type="checkbox"

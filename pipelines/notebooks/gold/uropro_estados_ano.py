@@ -32,7 +32,11 @@ from pyspark.sql import functions as F
 silver = spark.read.table(SILVER_TABLE)
 print(f"silver rows: {silver.count():,}")
 
-# Total annual base — somando todos os meses, todos caráteres, todas gestões
+# Total annual base — somando todos os meses, todos caráteres, todas gestões.
+# Importante: NÃO preenchemos UFs ausentes com zero. Se uma UF×ano×proc não
+# tem linha aqui, é porque silver/bronze não viu aquela combinação — usuário
+# quer ver isso explicitamente (como "sem dado") em vez de mascarar com zeros
+# falsos. Diagnóstico de cobertura ao final do notebook ajuda a investigar.
 base = (
     silver.groupBy("uf", "ano", "proc_rea", "proc_label")
           .agg(
@@ -44,6 +48,20 @@ base = (
               F.sum("n_morte").alias("n_morte"),
           )
 )
+
+# Diagnóstico: quais UFs faltam (vs as 27 esperadas) por (ano, proc)?
+all_ufs_set = {r["uf"] for r in spark.read.table(SILVER_POPULACAO).select("uf").distinct().collect()}
+silver_ufs_per_year_proc = (
+    base.groupBy("ano", "proc_rea")
+        .agg(F.collect_set("uf").alias("ufs_present"))
+        .collect()
+)
+print("\n=== Cobertura por (ano, proc): UFs ausentes ===")
+for r in sorted(silver_ufs_per_year_proc, key=lambda r: (r["ano"], r["proc_rea"])):
+    present = set(r["ufs_present"])
+    missing = sorted(all_ufs_set - present)
+    if missing:
+        print(f"  ano={r['ano']} proc={r['proc_rea']} faltando ({len(missing)}): {missing}")
 
 # Caráter wide
 car_pivot = (

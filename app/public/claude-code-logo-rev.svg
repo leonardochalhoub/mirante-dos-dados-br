@@ -1,12 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 50" width="220" height="50" role="img" aria-label="Claude Code">
+  <rect width="220" height="50" fill="none"/>
   <!-- Anthropic mark in brand orange (works on both themes) -->
-  <g transform="translate(8, 25)">
-    <path d="M 0 -12 L 0 12 M -10.4 -6 L 10.4 6 M -10.4 6 L 10.4 -6"
-          stroke="#D97757" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <g transform="translate(8, 25)" stroke="#D97757" stroke-width="3" stroke-linecap="round" fill="none" style="stroke:#D97757">
+    <line x1="0" y1="-12" x2="0" y2="12"/>
+    <line x1="-10.4" y1="-6" x2="10.4" y2="6"/>
+    <line x1="-10.4" y1="6" x2="10.4" y2="-6"/>
   </g>
-  <!-- Wordmark — WHITE for dark background -->
+  <!-- Wordmark — WHITE for dark background. style attribute as belt-and-suspenders. -->
   <text x="32" y="32"
-        font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif"
-        font-size="20" font-weight="600" letter-spacing="-0.01em"
-        fill="#ffffff">Claude Code</text>
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="20" font-weight="700"
+        fill="#ffffff"
+        style="fill:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:700">Claude Code</text>
 </svg>
