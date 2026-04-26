@@ -74,11 +74,13 @@ if n_bronze == 0:
     raise ValueError(f"{BRONZE_TABLE} is empty.")
 print(f"bronze rows: {n_bronze:,}")
 
-# Reescolhe APENAS o último snapshot do bronze para evitar dupla contagem
-# se rodaram o ingest mais de uma vez (Auto Loader append).
-latest_ts = bronze.agg(F.max("_ingest_ts")).first()[0]
-src = bronze.where(F.col("_ingest_ts") == latest_ts)
-print(f"latest snapshot rows: {src.count():,}")
+# Lê todo o bronze. Auto Loader já garante idempotência por arquivo
+# (_metadata.file_path no checkpoint), então não há risco de dupla contagem.
+# NOTA: NÃO filtrar por max(_ingest_ts) — Auto Loader divide a ingestão em
+# múltiplos micro-batches, cada um com seu próprio timestamp. Filtrar pelo
+# último derruba ~73% dos dados e deixa só ~13 das 27 UFs.
+src = bronze
+print(f"bronze rows used: {src.count():,}")
 
 # COMMAND ----------
 
@@ -168,7 +170,7 @@ silver_df = (
     .withColumn("proc_label",   F.coalesce(proc_map.getItem(F.col("proc_rea")), F.col("proc_rea")))
     .withColumn("car_label",    F.coalesce(car_map.getItem(F.col("car_int")), F.lit("Outro")))
     .withColumn("gestao_label", F.coalesce(gestao_map.getItem(F.col("gestao")), F.lit("Outro/NA")))
-    .withColumn("_bronze_snapshot_ts", F.lit(latest_ts))
+    .withColumn("_bronze_snapshot_ts", F.lit(bronze.agg(F.max("_ingest_ts")).first()[0]))
     .withColumn("_silver_built_ts",    F.current_timestamp())
     .select(
         "uf", "ano", "mes", "proc_rea", "proc_label",
