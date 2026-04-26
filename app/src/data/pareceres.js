@@ -129,34 +129,37 @@ export const PARECER_PBF = {
 
 // ═══════════════════════════════════════════════════════════════════════
 // EQUIPAMENTOS — DATASUS CNES + Working Paper #4 (Neuroimagem × Parkinson)
-// Régua aplicada: LATO SENSU. WP#4 v2.1 (abr/2026): autoria única
-// (Leonardo Chalhoub), 4 modalidades de neuroimagem, 13 figuras
-// vetoriais incluindo 2 MAPAS COROPLÉTICOS por UF (RM/Mhab e densidade
-// combinada PD-stack/Mhab), benchmark OCDE e análise cross-vertical PBF.
-// Sem cruzamento com SIH-AIH para uso efetivo, sem identificação causal,
-// sem peer review formal — segue lato sensu, próximo do teto.
+// Régua aplicada: LATO SENSU. WP#4 v2.1 (abr/2026): coautoria
+// Alexandre Maciel Rolim (epidemiologia, revisão clínica, recomendações
+// de protocolo) + Leonardo Chalhoub (engenharia de dados, 4 modalidades,
+// 13 figuras vetoriais incluindo 2 MAPAS COROPLÉTICOS por UF, benchmark
+// OCDE e cross-vertical PBF). O manuscrito clínico-epidemiológico que
+// serviu de base é tratado como v0 deste artigo, não como obra citável
+// separada. Sem cruzamento com SIH-AIH para uso efetivo, sem identificação
+// causal, sem peer review formal — segue lato sensu, próximo do teto.
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_EQUIPAMENTOS = {
   vertical: 'equipamentos',
   nivel: 'lato_sensu',
   scoreType: 'numeric',
-  scoreNumeric: 8.6,
+  scoreNumeric: 8.8,
   scoreOriginal: null,
   originalLabel: null,
   originalUrl: null,
   ultimaAtualizacao: `${HOJE}T11:30 BRT`,
-  versao: '2.1 — WP#4 single-author + 2 mapas coropléticos + figs degeneradas removidas',
+  versao: '2.1 — coautoria mantida + 2 mapas coropléticos + figs degeneradas removidas',
   resumoCalibragem:
-    'Calibragem em LATO SENSU (TCC de especialização forte). Score 8,6 ' +
-    '(vs 8,7 da v2.0): trocamos a atribuição de "coautoria com Rolim" ' +
-    '— o manuscrito original era apenas a v0 deste artigo, não merecia ' +
-    'citação separada — pelo conteúdo empírico próprio do Mirante. Em ' +
-    'compensação, a v2.1 adicionou DOIS mapas coropléticos por UF ' +
-    '(RM/Mhab e densidade combinada do stack PD = RM+CT+PET+Gama) e ' +
-    'removeu duas figuras degeneradas (composição RM por Tesla e CT ' +
-    'por canais que tinham apenas uma barra cada, refletindo limitação ' +
-    'do schema CNES e não conteúdo analítico). Hoje o WP#4 v2.1 é ' +
-    'autoria única de Leonardo Chalhoub, com 13 figuras vetoriais ' +
+    'Calibragem em LATO SENSU (TCC de especialização forte). Score 8,8 ' +
+    '(vs 8,7 da v2.0): coautoria Rolim+Chalhoub mantida — o manuscrito ' +
+    'clínico-epidemiológico de Rolim é a v0 deste artigo (base ' +
+    'epidemiológica e revisão de literatura clínica), não uma obra ' +
+    'separada citável; isso foi corrigido na v2.1 retirando a referência ' +
+    '[31] que tratava o manuscrito como publicação independente. A v2.1 ' +
+    'também adicionou DOIS mapas coropléticos por UF (RM/Mhab e densidade ' +
+    'combinada do stack PD = RM+CT+PET+Gama) e removeu duas figuras ' +
+    'degeneradas (composição RM por Tesla e CT por canais que tinham ' +
+    'apenas uma barra cada, refletindo limitação do schema CNES e não ' +
+    'conteúdo analítico). Hoje o WP#4 v2.1 traz 13 figuras vetoriais ' +
     'incluindo 2 mapas, comparação OCDE/EUA/Japão e cross-vertical PBF. ' +
     'PARA SUBIR a mestrado falta cruzamento CNES×SIH-AIH (oferta vs ' +
     'uso efetivo), identificação causal e peer review formal.',
@@ -186,8 +189,9 @@ export const PARECER_EQUIPAMENTOS = {
     'Split SUS/Privado preserva a dimensão pública vs privada — relevante a saúde coletiva',
     'Discussão de iniquidade estrutural (CV inter-UF estável apesar do crescimento agregado) é insight original e fundamentado',
     'Bibliografia clínica sólida: ELSI-Brazil, MDS-PD criteria, Schwarz et al. (swallow-tail), Postuma et al., GBD 2021',
+    'Coautoria engenheiro+clínico (Rolim+Chalhoub): epidemiologia/revisão clínica integradas com camada de engenharia de dados em um único artigo',
     'Cross-vertical PBF: correlação ρ entre dependência de Bolsa Família (proxy de pobreza) e densidade de neuroimagem por UF — usa a plataforma multi-vertical do Mirante',
-    'Versão v2.1 honrou crítica do revisor: removeu figuras degeneradas (uma única barra cada, refletindo schema CNES) e atribuição imprecisa do manuscrito v0',
+    'Versão v2.1 honrou crítica do revisor: removeu figuras degeneradas (uma única barra cada, refletindo schema CNES) e a citação imprópria do manuscrito de base como obra separada (era v0 deste artigo, não publicação independente)',
   ],
   problemasParaNotaPlena: [
     'Estimativa de carga PD por UF é simplificada (pop × 0,33% como proxy de prevalência ELSI-Brazil — ignora variação inter-UF na pirâmide etária)',
@@ -451,7 +455,7 @@ export const PARECER_GLOBAL = {
   originalLabel: null,
   originalUrl: null,
   ultimaAtualizacao: `${HOJE}T11:45 BRT`,
-  versao: '3.1 — WP#4 v2.1 (autoria única + 2 mapas coropléticos)',
+  versao: '3.1 — WP#4 v2.1 (coautoria mantida, manuscrito tratado como v0, 2 mapas coropléticos)',
   resumoCalibragem:
     'Avaliação MACRO do projeto inteiro (não de uma vertical isolada). ' +
     'Esta é a única avaliação do projeto que excede o teto lato sensu — ' +
@@ -465,18 +469,23 @@ export const PARECER_GLOBAL = {
     'consolidados em tempo real. O projeto soma CINCO Working Papers em ' +
     'ABNT escritos: WP #1 (Emendas), WP #2 (Bolsa Família), WP #3 ' +
     '(cross-vertical UroPro × PBF × Emendas), WP #4 (Neuroimagem × ' +
-    'Parkinson, autoria de Leonardo Chalhoub) e WP #5 (UroPro 17 anos). ' +
-    'Atualização v3.1 (abr/2026): o WP#4 foi revisado para v2.1 — ' +
-    'removida atribuição imprecisa de coautoria (o manuscrito clínico ' +
-    'original era a v0 do artigo, não merecia citação separada), ' +
+    'Parkinson, coautoria Rolim+Chalhoub) e WP #5 (UroPro 17 anos). ' +
+    'Atualização v3.1 (abr/2026): o WP#4 foi revisado para v2.1 — a ' +
+    'coautoria com Alexandre Maciel Rolim foi mantida (epidemiologia, ' +
+    'revisão clínica e recomendações de protocolo) e o manuscrito ' +
+    'clínico-epidemiológico passou a ser tratado como a v0 deste artigo ' +
+    '(deixou de ser citado como obra independente, o que era impreciso ' +
+    'porque o manuscrito é o próprio draft inicial deste WP); foram ' +
     'adicionados DOIS mapas coropléticos por UF (RM/Mhab e densidade ' +
     'combinada do stack neuroimagem-PD) e removidas duas figuras ' +
-    'degeneradas que refletiam apenas limitação do schema CNES. DOIS ' +
+    'degeneradas que refletiam apenas limitação do schema CNES. TRÊS ' +
     'modelos de contribuição metodológica genuína permanecem ' +
-    'consolidados: (a) "análise cross-vertical sobre arquitetura ' +
+    'consolidados: (a) "engenharia + clínica em coautoria" (WP #4 com ' +
+    'Rolim, integrando saber clínico-epidemiológico com infraestrutura ' +
+    'de dados); (b) "análise cross-vertical sobre arquitetura ' +
     'unificada" (WP #3 cruza três verticais — UroPro, PBF, Emendas — ' +
     'possível APENAS porque os pipelines passam pela mesma arquitetura ' +
-    'medalhão); (b) "auditabilidade pública do dado processado" ' +
+    'medalhão); (c) "auditabilidade pública do dado processado" ' +
     '(descoberta e correção transparente do bug silver na vertical ' +
     'UroPro, commit fa869cf abr/2026 — filtro _ingest_ts == max ' +
     'derrubava 73% das linhas e 14 das 27 UFs, documentado em primeira ' +
@@ -527,10 +536,17 @@ export const PARECER_GLOBAL = {
       'não rodou (URL fix recente).',
     'CINCO Working Papers em ABNT escritos: Emendas WP#1, Bolsa Família ' +
       'WP#2, Acesso desigual cross-vertical UroPro × PBF × Emendas WP#3, ' +
-      'Neuroimagem × Parkinson WP#4 v2.1 (autoria única, com 2 mapas ' +
-      'coropléticos por UF) e UroPro 17 anos WP#5. Compilação em CI via ' +
-      'xu-cheng/latex-action sobre cada .tex em padrão ABNT. Padrão ' +
-      'acadêmico real, não rascunho.',
+      'Neuroimagem × Parkinson WP#4 v2.1 (coautoria Rolim+Chalhoub, com ' +
+      '2 mapas coropléticos por UF) e UroPro 17 anos WP#5. Compilação em ' +
+      'CI via xu-cheng/latex-action sobre cada .tex em padrão ABNT. ' +
+      'Padrão acadêmico real, não rascunho.',
+    'Modelo de coautoria engenheiro-clínico demonstrado no WP#4 v2.1: ' +
+      'Alexandre Maciel Rolim (epidemiologia, revisão clínica, ' +
+      'recomendações de protocolo) + Leonardo Chalhoub (engenharia de ' +
+      'dados, análise reproduzível, mapas e cross-vertical). O ' +
+      'manuscrito clínico-epidemiológico de Rolim é a v0 deste artigo ' +
+      '(integrado, não citado como obra separada). Modelo replicável a ' +
+      'outras agendas de saúde pública.',
     'WP#4 v2.1 atualizado em abril/2026: dois MAPAS COROPLÉTICOS por UF ' +
       '(RM/Mhab e densidade combinada do stack neuroimagem-PD = RM + CT + ' +
       'PET/CT + Gama Câmara) tornam o gradiente Norte/Sudeste de ' +
@@ -588,7 +604,7 @@ export const PARECER_GLOBAL = {
   proximosPassos: [
     'Implementar UMA identificação causal exploratória em qualquer vertical ' +
       '(BF transição PBF→AB é o mais óbvio; recomendo RDD com ±90 dias)',
-    'Submeter Working Paper #1 (Emendas) ou WP #4 (Neuroimagem × Parkinson, v2.1) a RAP / RBE / Cad Saúde Pública (ciclo de revisão ' +
+    'Submeter Working Paper #1 (Emendas) ou WP #4 (Neuroimagem × Parkinson, v2.1, coautoria Rolim+Chalhoub) a RAP / RBE / Cad Saúde Pública (ciclo de revisão ' +
       '~6-12 meses, mas dá tempo no horizonte de 1 ano)',
     'Escrever ARCHITECTURE.md público explicitando todos os tradeoffs ' +
       'engineering (Delta vs Iceberg, Auto Loader vs batch, Free Edition ' +
