@@ -102,6 +102,8 @@ export default function Home() {
 
       {stats && <BigDataStrip stats={stats} />}
 
+      <ManifestoTese />
+
       <ScoreCard parecer={PARECER_GLOBAL} />
 
       <section className="vertical-grid">
@@ -155,6 +157,42 @@ export default function Home() {
         </div>
       </section>
     </>
+  );
+}
+
+// ── Manifesto-tese (Conselho do Mirante, abr/2026) ────────────────────────
+// Parágrafo-tese formalizado na Reunião #1 do Conselho do Mirante (2026-04-26)
+// como horizonte de doutorado do projeto. Estética sóbria, sem ornamento.
+function ManifestoTese() {
+  return (
+    <section className="panel" style={{
+      marginTop: 14,
+      borderLeft: '4px solid #ca8a04',
+      background: 'linear-gradient(180deg, rgba(202,138,4,0.04), rgba(202,138,4,0.01))',
+    }}>
+      <div className="panelHead">
+        <span className="panelLabel">
+          Tese embutida — horizonte de doutorado
+        </span>
+        <span className="kicker">
+          Formalizada na Reunião #1 do Conselho do Mirante · 2026-04-26
+        </span>
+      </div>
+      <p style={{
+        fontSize: 14, lineHeight: 1.7, margin: 0,
+        fontStyle: 'italic', color: 'var(--text)',
+      }}>
+        O Mirante dos Dados é, ao mesmo tempo, plataforma e demonstração — uma
+        prova-de-conceito de que pesquisa aplicada sobre dados públicos
+        brasileiros pode ser construída como artefato de engenharia de
+        software (versionada, reprodutível, auditável <i>end-to-end</i>), com
+        identificação causal sobre descontinuidades institucionais,
+        visualização honesta como evidência primária e acesso democraticamente
+        simétrico — e que essa quádrupla virada (engenharia + causalidade +
+        viz + redistribuição epistêmica) é em si contribuição metodológica
+        original passível de defesa de doutorado.
+      </p>
+    </section>
   );
 }
 
