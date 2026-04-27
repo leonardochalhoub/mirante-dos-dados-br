@@ -2914,7 +2914,7 @@ estatisticamente justificável.
 \caption{Dendrograma hierárquico (Ward) das 27 UFs sobre
 assinatura multi-categoria de capacidade hospitalar (vetor de
 117 \textit{equipment\_keys} em 2025). Linha vermelha tracejada:
-corte ótimo em $K^\ast = 4$ clusters.}
+corte ótimo em $K^\ast = 2$ clusters.}
 \label{fig:dendrograma-ufs}
 \par\noindent{\small Fonte: elaboração própria via
 \texttt{scipy.cluster.hierarchy.linkage(method='ward')}.}
@@ -2924,7 +2924,7 @@ corte ótimo em $K^\ast = 4$ clusters.}
 \centering
 \IfFileExists{figures-equipamentos-panorama/fig20-silhouette.pdf}{\includegraphics[width=0.78\linewidth]{fig20-silhouette}}{\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering\textit{Figura em produção --- arquivo \texttt{fig20-silhouette} a ser gerado pelo \texttt{build-figures-equipamentos-panorama.py}.}}}}
 \caption{Silhouette score médio em função do número de clusters
-$K \in \{2, \ldots, 8\}$. Máximo em $K^\ast = 4$.}
+$K \in \{2, \ldots, 8\}$. Máximo em $K^\ast = 2$.}
 \label{fig:silhouette}
 \par\noindent{\small Fonte: elaboração própria.}
 \end{figure}
