@@ -1,0 +1,7 @@
+# Dependencies for articles/build-figures-*.py scripts
+# Identidade visual editorial Mirante (memory: feedback_chart_visual_identity.md)
+matplotlib>=3.5
+numpy>=1.23
+shapely>=2.0           # polylabel + representative_point para mapas
+adjustText>=1.0        # auto-posicionamento de labels em scatter denso
+SciencePlots>=2.1      # legacy compat (não mais usado no padrão final)
