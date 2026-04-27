@@ -20,7 +20,7 @@ import matplotlib as mpl
 # SciencePlots: estilo Nature/Lancet aplicado ANTES dos rcParams customizados.
 try:
     import scienceplots  # noqa: F401
-    plt.style.use(["science", "no-latex"])
+    plt.style.use(["science", "no-latex", "grid"])
 except ImportError:
     pass
 import numpy as np

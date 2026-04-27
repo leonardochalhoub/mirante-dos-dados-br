@@ -1,9 +1,13 @@
 {
-  "manifest_built_at": "2026-04-27T01:46:32.401Z",
+  "manifest_built_at": "2026-04-27T01:53:56.602Z",
   "articles": {
     "bolsa-familia": {
       "tex_last_edited": "2026-04-26T22:36:33-03:00",
       "tex_last_sha": "e24c78f"
+    },
+    "compile-stamp": {
+      "tex_last_edited": null,
+      "tex_last_sha": null
     },
     "emendas-parlamentares": {
       "tex_last_edited": "2026-04-26T22:36:33-03:00",

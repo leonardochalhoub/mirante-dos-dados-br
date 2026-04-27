@@ -20,7 +20,7 @@ import matplotlib as mpl
 # rcParams customizados, que refinam font sizes para o nosso A4 12pt.
 try:
     import scienceplots  # noqa: F401
-    plt.style.use(["science", "no-latex"])
+    plt.style.use(["science", "no-latex", "grid"])
 except ImportError:
     pass   # ambiente sem SciencePlots cai pro estilo default + rcParams
 import numpy as np

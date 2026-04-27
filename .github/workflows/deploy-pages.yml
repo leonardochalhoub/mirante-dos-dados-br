@@ -25,6 +25,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # precisamos do log do .tex pra timestamp granular
+
+      # ─── Compile-stamp: timestamp BRT + SHA do commit do deploy gravados
+      # em articles/compile-stamp.tex; cada .tex faz \input{compile-stamp}
+      # e estampa "Compilada em DD/MM/YYYY às HH:MM (BRT) • <sha>" na capa.
+      - name: Generate articles/compile-stamp.tex
+        run: |
+          TS=$(TZ='America/Sao_Paulo' date '+%d/%m/%Y às %H:%M (BRT)')
+          SHA=$(git rev-parse --short HEAD)
+          printf '%% AUTO-GERADO em CI por deploy-pages.yml -- nao edite a mao.\n\\newcommand{\\COMPILESTAMP}{%s}\n\\newcommand{\\COMPILESHA}{%s}\n' "$TS" "$SHA" > articles/compile-stamp.tex
+          echo "─── compile-stamp.tex gerado ───"
+          cat articles/compile-stamp.tex
 
       # ─── LaTeX article compile (Emendas) ─────────────────────────────
       # Compila articles/emendas-parlamentares.tex → PDF e copia pra
