@@ -831,13 +831,12 @@ export const PARECERES_BY_SLUG = {
 // Nas com 2 (Equipamentos: WP#4+#6, UroPro: WP#3+#5, PBF: WP#2+#7), elege-se
 // o WP de maior escopo/score como principal.
 export const PARECERES_BY_VERTICAL = {
-  pbf:                  PARECER_WP2_BOLSA_FAMILIA,
-  'pbf-municipios':     PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS,
-  equipamentos:         PARECER_WP4_EQUIPAMENTOS,
-  emendas:              PARECER_WP1_EMENDAS,
-  uropro:               PARECER_WP3_UROPRO,
-  rais:                 PARECER_WP_RAIS,
-  global:               PARECER_GLOBAL,
+  pbf:           PARECER_WP2_BOLSA_FAMILIA,
+  equipamentos:  PARECER_WP4_EQUIPAMENTOS,
+  emendas:       PARECER_WP1_EMENDAS,
+  uropro:        PARECER_WP3_UROPRO,
+  rais:          PARECER_WP_RAIS,
+  global:        PARECER_GLOBAL,
 };
 
 // Aliases legacy (mantém imports antigos funcionando).

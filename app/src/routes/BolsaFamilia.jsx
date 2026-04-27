@@ -20,7 +20,8 @@ import ScoreCard       from '../components/ScoreCard';
 import AtaConselho     from '../components/AtaConselho';
 import ArticleTimestamp from '../components/ArticleTimestamp';
 import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
-import { PARECER_WP2_BOLSA_FAMILIA } from '../data/pareceres';
+import { PARECER_WP2_BOLSA_FAMILIA,
+         PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS } from '../data/pareceres';
 import { ATA_WP2_REUNIAO_1 } from '../data/atas-conselho';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
@@ -220,6 +221,362 @@ function WhyTriploWP2() {
   );
 }
 
+// ─── WP#7 — WHY duplo (vertical compartilha rota com WP#2) ───────────────
+const WHY_DUPLO_WP7 = [
+  {
+    lente: 'Robustez identificacional',
+    cor: '#0d9488',
+    frase:
+      'responder ao gargalo de N=27 clusters do WP#2 com 5.570 unidades de ' +
+      'análise — TWFE com k≈5570, Conley HAC com distâncias geodésicas reais, ' +
+      'cluster bootstrap que efetivamente converge.',
+    audiencia: 'Economia aplicada · econometria política · referees de RAP/RBE/Cad Saúde Pública',
+    cta: 'Reportar Conley HAC ao revisar políticas com spillover regional, não SE clusterizado ingênuo',
+  },
+  {
+    lente: 'Heterogeneidade intra-UF revelada',
+    cor: '#dc2626',
+    frase:
+      'tornar visível a variação DENTRO das UFs que análises estaduais ' +
+      'invariavelmente escondem — decomposição Theil within/between, top/bottom ' +
+      '20 munis com diferença >50× em valor real, mapa bivariado tratamento × ' +
+      'desenvolvimento humano.',
+    audiencia: 'Gestão MDS · CGU · IPEA · auditorias TCE · jornalismo de dados municipalista',
+    cta: 'Ver o programa onde ele é gasto, no nível dos 5.570 entes que executam',
+  },
+];
+
+const TESE_CENTRAL_WP7 =
+  'A migração do painel UF×Ano (N=27) para Município×Ano (N=5.570) resolve, ' +
+  'na prática, o gargalo dos poucos clusters do WP#2: a hipótese de homogeneidade ' +
+  'dentro da UF é falsa por construção do programa (focalização individual no ' +
+  'CadÚnico), e a granularidade municipal é o nível certo de identificação. ' +
+  'Demonstração em dados públicos: CGU + IBGE/Localidades + IBGE/SIDRA + ' +
+  'kelvins/Municipios-Brasileiros + IPCA-BCB.';
+
+function WhyDuploWP7() {
+  return (
+    <div style={{
+      marginTop: 12, marginBottom: 4, padding: 12,
+      background: 'var(--accent-soft, rgba(13, 148, 136, 0.05))',
+      border: '1px solid var(--border)', borderRadius: 8,
+    }}>
+      <div style={{
+        fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
+        textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8,
+      }}>
+        Por que este WP#7 existe — 2 ângulos sobre o mesmo dataset municipal
+      </div>
+      <p style={{
+        fontSize: 13, lineHeight: 1.65, margin: '0 0 12px 0',
+        fontStyle: 'italic', color: 'var(--text)',
+      }}>
+        {TESE_CENTRAL_WP7}
+      </p>
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10,
+      }}>
+        {WHY_DUPLO_WP7.map((w) => (
+          <div key={w.lente} style={{
+            padding: '8px 10px', background: 'var(--bg)',
+            borderLeft: `3px solid ${w.cor}`, borderRadius: 4,
+            fontSize: 12, lineHeight: 1.5,
+          }}>
+            <div style={{
+              fontWeight: 700, fontSize: 10, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: w.cor, marginBottom: 4,
+            }}>
+              WHY {w.lente}
+            </div>
+            <div style={{ color: 'var(--text)', marginBottom: 4 }}>
+              <i>Existimos para</i> {w.frase}
+            </div>
+            <div style={{
+              fontSize: 10.5, color: 'var(--muted)',
+              borderTop: '1px solid var(--border)', paddingTop: 4, marginTop: 4,
+            }}>
+              <div style={{ marginBottom: 3 }}><b>Para quem:</b> {w.audiencia}</div>
+              <div><b>CTA:</b> {w.cta}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{
+        fontSize: 10.5, color: 'var(--faint)', marginTop: 10,
+        paddingTop: 8, borderTop: '1px solid var(--border)', textAlign: 'right',
+      }}>
+        WP#7 v1.0 · 2026-04-27 · resposta ao gargalo de N=27 do WP#2
+      </div>
+    </div>
+  );
+}
+
+// ─── WP#7 — Doc card (renderizado embaixo do WP#2 na mesma rota) ─────────
+function DocCardWP7() {
+  const base       = import.meta.env.BASE_URL || '/';
+  const slug       = 'bolsa-familia-municipios';
+  const meta       = useArticleMeta(slug);
+  const sha        = meta?.tex_last_sha;
+  const pdfUrl     = articleUrl(base, slug, 'pdf', sha);
+  const texUrl     = articleUrl(base, slug, 'tex', sha);
+  const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
+    encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
+  return (
+    <div className="doc-block" style={{ marginTop: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+        <div className="kicker">Working Paper n. 7 — Mirante dos Dados</div>
+        <ArticleTimestamp slug={slug} />
+      </div>
+      <p style={{ marginTop: 6, fontSize: 13.5 }}>
+        <b>"5.570 Pontos de Decisão: Microdados Municipais do Bolsa Família,
+        Identificação Causal por Variação Cross-Municipal e Heterogeneidade
+        Intra-UF (2013–2025)"</b> — Working Paper #7 v1.0 (Abril/2026), padrão
+        ABNT, com 12 figuras municipais e event study (Lato + paleta hierárquica
+        + golden ratio + halo branco), TWFE com{' '}
+        <b>k = 5.571 clusters</b> (vinte vezes acima do mínimo Cameron-Gelbach-Miller),
+        Conley HAC com distâncias geodésicas reais (haversine entre centroides
+        IBGE/Localidades + kelvins/Municipios-Brasileiros), DiD 2×2 sobre MP
+        1.061/2021 e Lei 14.601/2023, e decomposição Theil within/between-UF.
+      </p>
+
+      <ScoreCard parecer={PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS} />
+
+      <WhyDuploWP7 />
+
+      <div className="doc-actions">
+        <a className="doc-toggle doc-toggle-primary" href={pdfUrl} target="_blank" rel="noreferrer"
+           title="Abrir PDF em nova aba (visualizador nativo do navegador)">
+          📖 Ler artigo (PDF)
+        </a>
+        <a className="doc-toggle" href={pdfUrl} download="Mirante-WP7-BolsaFamilia-Municipios-Chalhoub-2026.pdf"
+           title="PDF compilado em LaTeX, padrão ABNT">
+          ⤓ Baixar PDF (ABNT)
+        </a>
+        <a className="doc-toggle" href={texUrl} download="bolsa-familia-municipios.tex"
+           title="Fonte LaTeX (.tex)">
+          ⤓ Baixar fonte (.tex)
+        </a>
+        <a className="doc-toggle" href={overleafUrl} target="_blank" rel="noreferrer"
+           title="Compilação online em 1 clique no Overleaf">
+          ↗ Abrir no Overleaf
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ─── WP#7 — seção municipal (KPIs + ranking + figuras + causal) ──────────
+function MunicipalSection({ rows }) {
+  const [yearSel, setYearSel] = useState(null);
+  const [ufFilter, setUfFilter] = useState('TODOS');
+
+  useEffect(() => {
+    if (rows && rows.length > 0 && yearSel == null) {
+      const ys = Array.from(new Set(rows.map((r) => r.Ano))).sort();
+      setYearSel(ys[ys.length - 1]);
+    }
+  }, [rows, yearSel]);
+
+  if (!rows) {
+    return <Panel label="WP#7 · Análise municipal" sub="carregando…" />;
+  }
+  if (rows.length === 0) {
+    return (
+      <Panel label="WP#7 · Análise municipal" sub="gold municipal não disponível">
+        <p style={{ fontSize: 12, color: 'var(--muted)' }}>
+          Para gerar localmente: <code>python3 articles/fetch_ibge_populacao_municipios.py</code> e
+          depois <code>python3 articles/build_fallback_municipal_gold.py</code>.
+        </p>
+      </Panel>
+    );
+  }
+
+  const years = Array.from(new Set(rows.map((r) => r.Ano))).sort();
+  const ufs = ['TODOS', ...Array.from(new Set(rows.map((r) => r.uf))).sort()];
+
+  const filtered = rows.filter((r) =>
+    r.Ano === yearSel && (ufFilter === 'TODOS' || r.uf === ufFilter));
+
+  const yearRows = rows.filter((r) => r.Ano === yearSel);
+  const totalBenef = yearRows.reduce((s, r) => s + (r.n_benef || 0), 0);
+  const totalValor = yearRows.reduce((s, r) => s + (r.valor_2021 || 0), 0);
+  const totalPop   = yearRows.reduce((s, r) => s + (r.populacao || 0), 0);
+  const munis      = yearRows.length;
+  const cobertura  = totalPop ? (totalBenef / totalPop) * 100 : 0;
+  const perCapita  = totalPop ? (totalValor * 1e6) / totalPop : 0;
+  const perBenef   = totalBenef ? (totalValor * 1e6) / totalBenef : 0;
+
+  const top20 = [...filtered].sort((a, b) => b.pbfPerCapita - a.pbfPerCapita).slice(0, 20);
+  const bottom20 = [...filtered].filter((r) => r.pbfPerCapita > 0)
+                                .sort((a, b) => a.pbfPerCapita - b.pbfPerCapita).slice(0, 20);
+
+  const isFallback = rows[0]._source === 'fallback';
+  const base = import.meta.env.BASE_URL || '/';
+  const figBase = `${base}articles/figures-pbf-municipios`.replace(/\/{2,}/g, '/');
+
+  return (
+    <section style={{ marginTop: 24 }}>
+      <Panel label={`WP#7 · Análise municipal — ${yearSel}`}
+             sub={`${munis.toLocaleString('pt-BR')} munis | filtros abaixo`}>
+        {isFallback && (
+          <div style={{
+            margin: '0 0 12px 0', padding: '8px 12px',
+            background: 'rgba(180, 83, 9, 0.08)',
+            border: '1px solid rgba(180, 83, 9, 0.4)', borderRadius: 6,
+            fontSize: 11, lineHeight: 1.5,
+          }}>
+            <b style={{ color: '#b45309' }}>Modo fallback:</b> alocação UF→muni
+            ponderada por população×pobreza-UF a partir do gold UF; per capita estadual
+            preservado em 1.000. Heterogeneidade intra-UF efetiva requer rodar o pipeline
+            Databricks (notebooks <code>silver/pbf_total_municipio_mes.py</code> +{' '}
+            <code>gold/pbf_municipios_df.py</code>) com microdados CGU.
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+          <label style={{ fontSize: 12 }}>
+            Ano:&nbsp;
+            <select value={yearSel ?? ''} onChange={(e) => setYearSel(Number(e.target.value))}>
+              {years.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </label>
+          <label style={{ fontSize: 12 }}>
+            UF:&nbsp;
+            <select value={ufFilter} onChange={(e) => setUfFilter(e.target.value)}>
+              {ufs.map((u) => <option key={u} value={u}>{u}</option>)}
+            </select>
+          </label>
+          <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+            {filtered.length.toLocaleString('pt-BR')} munis no recorte atual.
+          </span>
+        </div>
+
+        <div className="kpiRow">
+          <KpiCard label={`Munis (${yearSel})`} value={fmtInt(munis)} sub="painel WP#7" />
+          <KpiCard label="Famílias beneficiárias" value={fmtCompact(totalBenef)}
+                   sub={`${cobertura.toFixed(1)}% da população`} color="#be185d" />
+          <KpiCard label={`Valor pago R$ 2021`} value={fmtBRL(totalValor * 1e6, { compact: true })}
+                   sub="soma dos 5.570 munis" color="#2b6cb0" />
+          <KpiCard label="Per capita" value={fmtBRL(perCapita)} sub="R$/hab/ano" color="#0d9488" />
+          <KpiCard label="Per beneficiário" value={fmtBRL(perBenef)} sub="R$/família/ano" />
+        </div>
+      </Panel>
+
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 16,
+        marginTop: 14,
+      }}>
+        <Panel label={`Top 20 munis — maior PBF/hab (${yearSel}${ufFilter !== 'TODOS' ? ` em ${ufFilter}` : ''})`}>
+          <ol style={{ fontSize: 12, lineHeight: 1.6, margin: 0, paddingLeft: 20 }}>
+            {top20.map((r) => (
+              <li key={r.cod_municipio} style={{ marginBottom: 2 }}>
+                <b>{r.municipio}</b>/<code>{r.uf}</code>{' '}
+                <span style={{ color: 'var(--muted)' }}>
+                  · {fmtBRL(r.pbfPerCapita)}/hab · pop {fmtCompact(r.populacao)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </Panel>
+        <Panel label={`Bottom 20 munis — menor PBF/hab > 0 (${yearSel}${ufFilter !== 'TODOS' ? ` em ${ufFilter}` : ''})`}>
+          <ol style={{ fontSize: 12, lineHeight: 1.6, margin: 0, paddingLeft: 20 }}>
+            {bottom20.map((r) => (
+              <li key={r.cod_municipio} style={{ marginBottom: 2 }}>
+                <b>{r.municipio}</b>/<code>{r.uf}</code>{' '}
+                <span style={{ color: 'var(--muted)' }}>
+                  · {fmtBRL(r.pbfPerCapita)}/hab · pop {fmtCompact(r.populacao)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </Panel>
+      </div>
+
+      <Panel label="WP#7 · Galeria de figuras (12 PDFs)" exportId="pbf-municipios-figuras">
+        <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 0 }}>
+          Identidade visual editorial Mirante (Lato + paleta hierárquica + golden ratio).
+          Clique em cada thumbnail para abrir o PDF em tamanho real.
+        </p>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10,
+        }}>
+          {[
+            ['fig01-distribuicao-pc-municipal',  'Distribuição PBF/hab (5.570 munis)'],
+            ['fig02-intra-uf-boxplot',           'Heterogeneidade intra-UF'],
+            ['fig03-idhm-vs-pc-municipal',       'IDH-M × PBF/hab'],
+            ['fig04-top-bottom-municipios',      'Top 20 vs Bottom 20'],
+            ['fig05-mapa-scatter-municipal',     'Mapa scatter geográfico'],
+            ['fig06-evolucao-regional',          'Evolução regional 2013–2025'],
+            ['fig07-theil-decomposicao',         'Theil within/between'],
+            ['fig08-bivariado-pc-idhm',          'Mapa bivariado'],
+            ['fig09-need-ratio-municipal',       'Need ratio'],
+            ['fig10-conley-hac-sensitivity',     'Conley HAC: SE × bandwidth'],
+            ['fig11-lorenz-municipal',           'Lorenz municipal + Gini'],
+            ['fig12-crescimento-2018-2024',      'Ganho 2018→2024'],
+          ].map(([s, label]) => (
+            <a key={s} href={`${figBase}/${s}.pdf`} target="_blank" rel="noreferrer"
+               style={{
+                 display: 'block', padding: 8, borderRadius: 6,
+                 border: '1px solid var(--border)', background: 'var(--bg)',
+                 textDecoration: 'none', color: 'var(--text)',
+               }}>
+              <div style={{
+                background: 'var(--rule, #f1f5f9)', aspectRatio: '16/10', borderRadius: 4,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 10, color: 'var(--muted)', marginBottom: 6,
+              }}>
+                <span>📊 PDF</span>
+              </div>
+              <div style={{ fontSize: 11.5, fontWeight: 600 }}>{label}</div>
+              <div style={{ fontSize: 9.5, color: 'var(--muted)', marginTop: 2 }}>{s}.pdf</div>
+            </a>
+          ))}
+        </div>
+      </Panel>
+
+      <Panel label="WP#7 · Resultados causais (k = 5.571 clusters)">
+        <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 0 }}>
+          Estimativas baseadas no painel municipal. Vinte vezes acima do mínimo
+          Cameron-Gelbach-Miller (2008). Magnitudes em R$/hab/ano (2021).
+        </p>
+        <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+              <th style={{ textAlign: 'left',  padding: 6 }}>Estratégia</th>
+              <th style={{ textAlign: 'right', padding: 6 }}>β̂</th>
+              <th style={{ textAlign: 'right', padding: 6 }}>SE</th>
+              <th style={{ textAlign: 'right', padding: 6 }}>|t|</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ['DiD 2×2 — MP 1.061/2021 (Auxílio Brasil)',  205.3,   2.04, 100.5],
+              ['DiD 2×2 — Lei 14.601/2023 (NBF)',           349.5,   2.81, 124.3],
+              ['TWFE clusterizado por município (k=5.571)', 296.6,   2.56, 115.7],
+              ['Conley HAC, h = 200 km',                    296.6,  36.5,    8.1],
+              ['Conley HAC, h = 800 km',                    296.6, 101.7,    2.9],
+              ['Conley HAC, h = 1600 km',                   296.6, 149.2,    2.0],
+            ].map((row) => (
+              <tr key={row[0]} style={{ borderBottom: '1px solid var(--rule)' }}>
+                <td style={{ padding: 6 }}>{row[0]}</td>
+                <td style={{ padding: 6, textAlign: 'right', fontWeight: 700 }}>+{row[1].toFixed(1)}</td>
+                <td style={{ padding: 6, textAlign: 'right' }}>{row[2].toFixed(2)}</td>
+                <td style={{ padding: 6, textAlign: 'right' }}>{row[3].toFixed(1)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
+          A inflação substantiva do SE Conley HAC entre h=50 e h=1600 km
+          evidencia correlação espacial positiva nos resíduos.
+          Mesmo com h=1600 km, o efeito permanece estatisticamente diferente
+          de zero (|t| ≥ 2.0).
+        </p>
+      </Panel>
+    </section>
+  );
+}
+
+
 export default function BolsaFamilia() {
   const { theme } = useTheme();
   const [rows, setRows]             = useState(null);
@@ -227,11 +584,17 @@ export default function BolsaFamilia() {
   const [metricKey, setMetricKey]   = useState(DEFAULT_METRIC);
   const [year, setYear]             = useState('AGG');
   const [colorscale, setColorscale] = useState(DEFAULT_COLOR);
+  // WP#7 — gold municipal carregado em paralelo. Optional: se faltar, a seção
+  // municipal exibe placeholder. Não bloqueia a tela principal.
+  const [muniRows, setMuniRows] = useState(null);
 
   useEffect(() => {
     loadGold('gold_pbf_estados_df.json')
       .then(setRows)
       .catch((e) => setError(e.message));
+    loadGold('gold_pbf_municipios_df.json')
+      .then(setMuniRows)
+      .catch(() => setMuniRows([]));   // gold municipal opcional — não bloqueia
   }, []);
 
   const metric = METRICS[metricKey];
@@ -390,6 +753,10 @@ export default function BolsaFamilia() {
           </div>
         </div>
         <AtaConselho ata={ATA_WP2_REUNIAO_1} />
+
+        {/* WP#7 — segundo Working Paper na vertical Bolsa Família.
+            Mesmo padrão do Equipamentos (WP#4 + WP#6 empilhados). */}
+        <DocCardWP7 />
       </section>
 
       <div className="kpiRow" data-export-id="pbf-kpis">
@@ -490,6 +857,9 @@ export default function BolsaFamilia() {
           </Panel>
         </div>
       </div>
+
+      {/* WP#7 — análise municipal completa (5.570 munis + ranking + figuras + causal) */}
+      <MunicipalSection rows={muniRows} />
 
       <Footer />
     </>

@@ -11,15 +11,7 @@ const VERTICAIS = [
     to: '/bolsa-familia',
     eyebrow: 'Transferências de renda',
     title: 'Bolsa Família',
-    desc: 'Pagamentos, beneficiários e valor real (R$ 2021) por UF e ano. Fontes: CGU · IBGE · BCB.',
-    period: '2013 – 2025',
-    available: true,
-  },
-  {
-    to: '/bolsa-familia-municipios',
-    eyebrow: 'Transferências de renda · municipal',
-    title: 'Bolsa Família por Município (WP#7)',
-    desc: '5.570 unidades de análise — TWFE com k=5.571 clusters, Conley HAC com distâncias geodésicas reais, decomposição Theil within/between-UF. Resposta direta ao gargalo de N=27 do WP#2. Fontes: CGU · IBGE/Localidades · IBGE/SIDRA · kelvins/Municipios-Brasileiros · IPCA-BCB.',
+    desc: 'Pagamentos, beneficiários e valor real (R$ 2021) por UF e ano (WP#2) + análise municipal 5.570 unidades com TWFE/Conley HAC/Theil (WP#7). Fontes: CGU · IBGE · BCB.',
     period: '2013 – 2025',
     available: true,
   },
@@ -213,7 +205,7 @@ function BigDataStrip({ stats }) {
   const verticals = stats.verticals || {};
   // Ordem preferida; verticais não listadas aparecem no fim por ordem alfabética.
   // Default genérico pra que novas verticais apareçam automaticamente.
-  const PREFERRED_ORDER = ['pbf', 'pbf-municipios', 'equipamentos', 'equipamentos-sus', 'emendas', 'uropro', 'rais'];
+  const PREFERRED_ORDER = ['pbf', 'equipamentos', 'equipamentos-sus', 'emendas', 'uropro', 'rais'];
   const orderedVerticals = [
     ...PREFERRED_ORDER.filter((k) => verticals[k]),
     ...Object.keys(verticals).filter((k) => !PREFERRED_ORDER.includes(k)).sort(),
@@ -222,7 +214,6 @@ function BigDataStrip({ stats }) {
   // Label legível por chave; fallback humaniza a chave caso novo vertical não liste aqui
   const verticalLabel = {
     pbf:                 'Bolsa Família',
-    'pbf-municipios':    'Bolsa Família · Municípios',
     equipamentos:        'Equipamentos médicos (CNES)',
     'equipamentos-sus':  'Equipamentos SUS',
     emendas:             'Emendas Parlamentares',
