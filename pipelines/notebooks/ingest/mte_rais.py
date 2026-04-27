@@ -64,22 +64,35 @@ def parse_years(expr: str) -> list[int]:
     return sorted(out)
 
 
-def list_year(year: int) -> list[str]:
+def list_year(year: int, retries: int = 3) -> list[str]:
     """Returns list of .7z filenames in /pdet/microdados/RAIS/<year>/.
-    Empty list if year doesn't exist on FTP (some early years have gaps)."""
-    try:
-        ftp = ftplib.FTP(FTP_HOST, timeout=FTP_TIMEOUT)
-        ftp.login()
-        ftp.cwd(f"{FTP_DIR}/{year}/")
-        names = [n for n in ftp.nlst() if n.lower().endswith(".7z")]
-        ftp.quit()
-        return names
-    except ftplib.error_perm:
-        # Year directory doesn't exist yet (e.g., 2025 not published)
-        return []
-    except Exception as e:
-        print(f"  ⚠ list_year({year}) failed: {type(e).__name__}: {e}")
-        return []
+    Empty list ONLY when FTP confirms 550 'file not found' on the year dir.
+    Other 5xx (rate-limit, login refused) and network errors retry with backoff
+    so transient PDET issues don't masquerade as 'year not published'."""
+    last_err: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            ftp = ftplib.FTP(FTP_HOST, timeout=FTP_TIMEOUT)
+            ftp.login()
+            ftp.cwd(f"{FTP_DIR}/{year}/")
+            names = [n for n in ftp.nlst() if n.lower().endswith(".7z")]
+            ftp.quit()
+            return names
+        except ftplib.error_perm as e:
+            msg = str(e)
+            # 550 = file/dir not found → genuinely missing year (e.g., 2025).
+            # Other error_perm (530 login, 553 etc.) → retry, don't mask as empty.
+            if msg.startswith("550"):
+                return []
+            last_err = e
+            print(f"  ⚠ list_year({year}) attempt {attempt}/{retries} error_perm: {msg}")
+        except Exception as e:
+            last_err = e
+            print(f"  ⚠ list_year({year}) attempt {attempt}/{retries} {type(e).__name__}: {e}")
+        if attempt < retries:
+            time.sleep(2 ** attempt)
+    print(f"  ✗ list_year({year}) failed after {retries} attempts; last error: {last_err}")
+    return []
 
 
 def download_one(year: int, filename: str, dest_dir: Path) -> tuple[str, str]:
@@ -169,15 +182,13 @@ dest_dir = Path(VOLUME_DIR)
 dest_dir.mkdir(parents=True, exist_ok=True)
 years = parse_years(YEARS_EXPR)
 
-# Phase 1: list all years to discover the actual files (parallel)
+# Phase 1: list all years to discover the actual files (sequential).
+# PDET FTP rate-limits concurrent connections — listing is fast (~1s/year)
+# so we serialize to keep results reliable. Parallelism stays in Phase 2.
 print(f"Listando {len(years)} anos no FTP {FTP_HOST}{FTP_DIR}/…")
 year_to_files: dict[int, list[str]] = {}
-with ThreadPoolExecutor(max_workers=WORKERS) as ex:
-    futures = {ex.submit(list_year, y): y for y in years}
-    for fut in as_completed(futures):
-        y = futures[fut]
-        files = fut.result()
-        year_to_files[y] = files
+for y in years:
+    year_to_files[y] = list_year(y)
 
 total_targets = sum(len(v) for v in year_to_files.values())
 print(f"\nTotal de .7z descobertos: {total_targets}")
