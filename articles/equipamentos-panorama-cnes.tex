@@ -477,10 +477,6 @@ heterogeneidade de tratamento à la Callaway\textendash Sant'Anna como
 agenda de robustez declarada).
 \end{enumerate}
 
-\noindent
-A linha do tempo do contexto técnico-político analisado é
-sintetizada na Figura~\ref{fig:timeline-cnes}.
-
 \subsection{Estrutura do trabalho}
 
 A Seção~\ref{sec:verticais} sintetiza brevemente as quatro verticais
@@ -1451,7 +1447,7 @@ nominais), com expansão notavelmente acelerada pós-pandemia.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\linewidth]{fig05-evolucao-categorias}
+\IfFileExists{figures-equipamentos-panorama/fig05-evolucao-categorias.pdf}{\includegraphics[width=0.92\linewidth]{fig05-evolucao-categorias}}{\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering\textit{Figura em produção --- arquivo \texttt{fig05-evolucao-categorias} a ser gerado pelo \texttt{build-figures-equipamentos-panorama.py}.}}}}
 \caption{Evolução temporal do parque cadastrado por categoria
 TIPEQUIP, Brasil 2013\textendash 2025. Eixo Y em escala log para
 acomodar diferenças de ordem de grandeza entre categorias.}
@@ -2362,7 +2358,7 @@ zero); e (c)~a precisão (largura do IC).
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\linewidth]{fig16-forest-plot-cross}
+\IfFileExists{figures-equipamentos-panorama/fig16-forest-plot-cross.pdf}{\includegraphics[width=0.92\linewidth]{fig16-forest-plot-cross}}{\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering\textit{Figura em produção --- arquivo \texttt{fig16-forest-plot-cross} a ser gerado pelo \texttt{build-figures-equipamentos-panorama.py}.}}}}
 \caption{Forest plot das oito correlações \textit{cross-vertical}
 estimadas neste paper e em CHALHOUB (2026d). Pontos = $\rho$
 Pearson; barras = IC~95\,\% via transformação $z$ de Fisher.}
@@ -2612,7 +2608,7 @@ para os principais features.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\linewidth]{fig17-shap-summary}
+\IfFileExists{figures-equipamentos-panorama/fig17-shap-summary.pdf}{\includegraphics[width=0.92\linewidth]{fig17-shap-summary}}{\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering\textit{Figura em produção --- arquivo \texttt{fig17-shap-summary} a ser gerado pelo \texttt{build-figures-equipamentos-panorama.py}.}}}}
 \caption{Gráfico SHAP-summary para o modelo Random Forest de
 predição de densidade Hemodiálise Ambulatorial/Mhab. Pontos =
 observações UF$\times$Ano; eixo X = contribuição SHAP (impacto
@@ -2762,7 +2758,7 @@ destaque para os 154 candidatos identificados.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\linewidth]{fig18-isolation-forest-anomalies}
+\IfFileExists{figures-equipamentos-panorama/fig18-isolation-forest-anomalies.pdf}{\includegraphics[width=0.92\linewidth]{fig18-isolation-forest-anomalies}}{\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering\textit{Figura em produção --- arquivo \texttt{fig18-isolation-forest-anomalies} a ser gerado pelo \texttt{build-figures-equipamentos-panorama.py}.}}}}
 \caption{Histograma de \textit{anomaly scores} do Isolation Forest
 sobre 3.082 combinações \texttt{(equipamento, UF)} em 2025. Em
 vermelho, os 154 candidatos a investigação semântica.}
@@ -2859,7 +2855,7 @@ $\bar{s}(5) = 0{,}39$).
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\linewidth]{fig19-dendrograma-ufs}
+\IfFileExists{figures-equipamentos-panorama/fig19-dendrograma-ufs.pdf}{\includegraphics[width=0.92\linewidth]{fig19-dendrograma-ufs}}{\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering\textit{Figura em produção --- arquivo \texttt{fig19-dendrograma-ufs} a ser gerado pelo \texttt{build-figures-equipamentos-panorama.py}.}}}}
 \caption{Dendrograma hierárquico (Ward) das 27 UFs sobre
 assinatura multi-categoria de capacidade hospitalar (vetor de
 117 \textit{equipment\_keys} em 2025). Linha vermelha tracejada:
@@ -2871,7 +2867,7 @@ corte ótimo em $K^\ast = 4$ clusters.}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.78\linewidth]{fig20-silhouette}
+\IfFileExists{figures-equipamentos-panorama/fig20-silhouette.pdf}{\includegraphics[width=0.78\linewidth]{fig20-silhouette}}{\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering\textit{Figura em produção --- arquivo \texttt{fig20-silhouette} a ser gerado pelo \texttt{build-figures-equipamentos-panorama.py}.}}}}
 \caption{Silhouette score médio em função do número de clusters
 $K \in \{2, \ldots, 8\}$. Máximo em $K^\ast = 4$.}
 \label{fig:silhouette}
@@ -3028,7 +3024,7 @@ sobre PC1$\times$PC2.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig21-pca-biplot}
+\IfFileExists{figures-equipamentos-panorama/fig21-pca-biplot.pdf}{\includegraphics[width=0.95\linewidth]{fig21-pca-biplot}}{\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering\textit{Figura em produção --- arquivo \texttt{fig21-pca-biplot} a ser gerado pelo \texttt{build-figures-equipamentos-panorama.py}.}}}}
 \caption{Biplot PCA das 27 UFs nas duas primeiras componentes
 principais (PC1$\times$PC2, 67,4\,\% da variância total). Pontos
 coloridos por cluster identificado em §\ref{sub:ml-cluster}.
@@ -3104,7 +3100,7 @@ credibilidade 80\,\% e 95\,\%.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig22-prophet-brasil}
+\IfFileExists{figures-equipamentos-panorama/fig22-prophet-brasil.pdf}{\includegraphics[width=0.95\linewidth]{fig22-prophet-brasil}}{\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering\textit{Figura em produção --- arquivo \texttt{fig22-prophet-brasil} a ser gerado pelo \texttt{build-figures-equipamentos-panorama.py}.}}}}
 \caption{Projeção Prophet da capacidade nacional de Hemodiálise
 Ambulatorial cadastrada, Brasil 2013\textendash 2030. Linha
 sólida = previsão pontual; faixa azul clara = IC~95\,\%; faixa
@@ -3250,7 +3246,7 @@ os clusters de resíduos correlacionados.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\linewidth]{fig23-car-spatial-effects}
+\IfFileExists{figures-equipamentos-panorama/fig23-car-spatial-effects.pdf}{\includegraphics[width=0.92\linewidth]{fig23-car-spatial-effects}}{\fbox{\parbox[c][6cm][c]{0.85\linewidth}{\centering\textit{Figura em produção --- arquivo \texttt{fig23-car-spatial-effects} a ser gerado pelo \texttt{build-figures-equipamentos-panorama.py}.}}}}
 \caption{Efeitos espaciais $\phi_i$ posteriores do modelo CAR
 bayesiano. Tons azuis = efeito espacial positivo (UF tem
 densidade dialítica acima da prevista pelas covariáveis,
