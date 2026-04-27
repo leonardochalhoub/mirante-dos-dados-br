@@ -188,10 +188,9 @@ export default function BolsaFamilia() {
     }));
   }, [rows, metricKey, years]);
 
-  if (error) return <div className="error-block">Erro ao carregar dados: {error}</div>;
-  if (!rows) return <div className="loading-block">Carregando dados…</div>;
-
-  // Caminhos do artigo Working Paper #2 (Bolsa Família)
+  // Caminhos do artigo Working Paper #2 (Bolsa Família).
+  // IMPORTANTE: useArticleMeta é hook — precisa ficar ANTES dos early returns
+  // pra não violar a regra dos hooks (contagem precisa bater entre renders).
   const base = import.meta.env.BASE_URL || '/';
   const slug = 'bolsa-familia';
   const meta = useArticleMeta(slug);
@@ -200,6 +199,9 @@ export default function BolsaFamilia() {
   const texUrl = articleUrl(base, slug, 'tex', sha);
   const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
+
+  if (error) return <div className="error-block">Erro ao carregar dados: {error}</div>;
+  if (!rows) return <div className="loading-block">Carregando dados…</div>;
 
   return (
     <>
