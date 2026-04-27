@@ -28,11 +28,37 @@ print(f"years={YEARS_EXPR}  dest={VOLUME_DIR}  catalog={CATALOG}")
 
 # COMMAND ----------
 
-import json, time, urllib.request, urllib.error
+import gzip, json, time, urllib.request, urllib.error
 from pathlib import Path
 
 USER_AGENT = "Mirante-dos-Dados/ingest-pop-municipios"
 TIMEOUT_S = 300
+
+
+def fetch_json_gz(url: str) -> tuple[bytes, str]:
+    """GET URL, retorna (raw_decompressed, content_encoding).
+    SIDRA v3 retorna gzip a partir de respostas grandes (>~50KB) sem honrar
+    Accept-Encoding: identity. urllib não decodifica auto, então fazemos manualmente."""
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(req, timeout=TIMEOUT_S) as resp:
+        ce = resp.headers.get("Content-Encoding", "")
+        raw = resp.read()
+    if ce == "gzip":
+        raw = gzip.decompress(raw)
+    return raw, ce
+
+
+def url_for_year(year: int) -> tuple[str, str]:
+    """Retorna (url, source_label) pra cada ano. Cobertura SIDRA municipal:
+      2013-2021, 2024: tabela 6579 var 9324 (Estimativas anuais)
+      2022:            tabela 4709 var 93   (Censo 2022, contagem real)
+      2023:            (gap — sem fonte direta; silver interpola)
+    """
+    if year == 2022:
+        return (f"https://servicodados.ibge.gov.br/api/v3/agregados/4709/periodos/{year}"
+                f"/variaveis/93?localidades=N6"), "censo_2022_t4709"
+    return (f"https://servicodados.ibge.gov.br/api/v3/agregados/6579/periodos/{year}"
+            f"/variaveis/9324?localidades=N6"), "estimativa_t6579"
 
 
 def parse_years_qs(expr: str) -> str:
@@ -68,26 +94,39 @@ print(f"baixando {len(years_list)} anos: {years_list[0]}..{years_list[-1]}")
 dest_dir = Path(VOLUME_DIR)
 dest_dir.mkdir(parents=True, exist_ok=True)
 
-ok = 0; cached = 0; errors: list[str] = []
+ok = 0; cached = 0; errors: list[str] = []; skipped_gap: list[int] = []
+
+# 2023: sem dado SIDRA público (Censo 2022 deslocou estimativas). Pulamos no
+# ingest; silver vai interpolar entre Censo 2022 e Estimativa 2024.
+GAP_YEARS = {2023}
+
 for y in years_list:
+    if y in GAP_YEARS:
+        skipped_gap.append(y)
+        continue
     out_path = dest_dir / f"pop_municipios_{y}.json"
     if out_path.exists() and out_path.stat().st_size > 100_000:
         cached += 1
         continue
-    url = (
-        f"https://servicodados.ibge.gov.br/api/v3/agregados/6579/periodos/{y}"
-        f"/variaveis/9324?localidades=N6"
-    )
+    url, source = url_for_year(y)
     last_err = None
     for attempt in range(1, 5):
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-            with urllib.request.urlopen(req, timeout=TIMEOUT_S) as resp:
-                payload = resp.read().decode("utf-8")
-            data = json.loads(payload)
+            raw, ce = fetch_json_gz(url)
+            data = json.loads(raw.decode("utf-8"))
             n_series = sum(len(r.get("series", [])) for r in data[0].get("resultados", [])) if data else 0
-            out_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
-            print(f"  ✓ {y}: {n_series} munis  {out_path.stat().st_size:,} bytes")
+            if n_series == 0:
+                last_err = f"resposta vazia (ce={ce!r}, {len(raw)} bytes)"
+                if attempt < 4:
+                    print(f"  ⚠ {y} tentativa {attempt}: 0 séries — {last_err}")
+                    time.sleep(2 * attempt)
+                    continue
+                else:
+                    break
+            # Marca origem no payload pra silver saber qual schema (Censo vs Estimativa)
+            envelope = {"_year": y, "_source": source, "_data": data}
+            out_path.write_text(json.dumps(envelope, ensure_ascii=False), encoding="utf-8")
+            print(f"  ✓ {y}: {n_series} munis  {out_path.stat().st_size:,} bytes  (source={source})")
             ok += 1
             break
         except Exception as e:
@@ -99,6 +138,10 @@ for y in years_list:
         errors.append(f"{y}: {last_err}")
         print(f"  ✗ {y}: ABANDONADO após 4 tentativas: {last_err}")
     time.sleep(0.6)  # cortesia c/ rate limit
+
+if skipped_gap:
+    print(f"\n  ⊘ {len(skipped_gap)} ano(s) sem fonte SIDRA direta: {skipped_gap}")
+    print(f"     Silver vai interpolar usando vizinhos (linear).")
 
 print(f"\nResumo: ok={ok}  cached={cached}  errors={len(errors)}")
 if errors:
