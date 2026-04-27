@@ -192,6 +192,69 @@ def _cleanup_partial_extraction(target_dir: Path, expected_names: list[str]) -> 
     return n
 
 
+def _validate_txt_content(txt_path: Path, sample_kb: int = 64) -> tuple[bool, str]:
+    """Validação de conteúdo de um .txt RAIS sem ler o arquivo inteiro.
+
+    Lê apenas primeiros N KB (cabeçalho + amostra) e últimos N KB (verifica
+    truncamento). Total de I/O por arquivo: ~128 KB independente do tamanho real.
+    Aplicável tanto na reconciliação (gate antes de gravar .done) quanto no
+    quality check pós-extração.
+
+    Checagens:
+      1. tamanho > 1 KB (não-vazio nem só header)
+      2. primeira linha (header) decodifica em latin-1 e tem ≥ 5 ';' (CSV PT-BR
+         da RAIS tem ~40 colunas separadas por ';')
+      3. pelo menos 1 linha de dados após o header com nº de ';' próximo do header
+         (tolerância ±2 pra cobrir casos raros de ';' embutido em campo)
+      4. cauda termina com '\\n' (não foi truncado mid-line)
+    """
+    try:
+        size = txt_path.stat().st_size
+        if size < 1024:
+            return False, f"size_too_small({size}B)"
+
+        sample_size = sample_kb * 1024
+        with open(txt_path, "rb") as f:
+            head = f.read(sample_size)
+            if size > 2 * sample_size:
+                f.seek(-sample_size, 2)
+                tail = f.read(sample_size)
+            else:
+                tail = head
+
+        # latin-1 sempre decodifica (1:1 byte→codepoint), mas a RAIS pode ter
+        # bytes que não são caracteres legíveis — tudo bem, não é nosso job
+        head_text = head.decode("latin-1", errors="replace")
+        lines = head_text.split("\n")
+        if len(lines) < 2:
+            return False, "no_data_row_after_header"
+
+        header = lines[0]
+        n_cols_header = header.count(";")
+        if n_cols_header < 5:
+            return False, f"header_no_csv_separator(found_{n_cols_header}_semicolons)"
+
+        # confere que pelo menos 1 das primeiras 5 linhas de dados tem nº de ; consistente
+        data_row_ok = False
+        for line in lines[1:6]:
+            if not line.strip():
+                continue
+            n_cols = line.count(";")
+            if abs(n_cols - n_cols_header) <= 2:
+                data_row_ok = True
+                break
+        if not data_row_ok:
+            return False, f"no_consistent_data_row(header_had_{n_cols_header}_cols)"
+
+        tail_text = tail.decode("latin-1", errors="replace")
+        if not tail_text.rstrip(" \r\t").endswith("\n"):
+            return False, "tail_truncated_no_final_newline"
+
+        return True, "ok"
+    except Exception as e:
+        return False, f"validation_exception_{type(e).__name__}"
+
+
 def _validate_7z(zp: Path) -> tuple[bool, str]:
     """Valida assinatura + central directory SEM descomprimir.
 
@@ -344,17 +407,31 @@ for zp in zips:
 
     zp_size = zp.stat().st_size
     ratio = (total_txt_size / zp_size) if zp_size > 0 else 0
-    if ratio >= 2.0:
-        marker_ok.write_text(f"reconciled at {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
-                             f"txt_total={total_txt_size} 7z={zp_size} ratio={ratio:.2f}\n")
-        reconciled += 1
-    else:
+    if ratio < 2.0:
         # Arquivos existem mas ratio suspeito (provável extração parcial) →
         # deixa SEM marker pra que pré-validação + extração lidem com isso
         reconcile_skipped_partial += 1
         if reconcile_skipped_partial <= 5:
             print(f"  ratio baixo ({ratio:.2f}) {zp.name}: txt={total_txt_size:,}B / 7z={zp_size:,}B "
                   f"→ vai re-extrair")
+        continue
+
+    # Gate adicional: valida conteúdo do PRIMEIRO .txt (header CSV + linha de
+    # dados + truncamento). Se falhar, não reconcilia — extração vai pegar.
+    first_txt = target_dir / expected[0]
+    content_ok, content_reason = _validate_txt_content(first_txt)
+    if not content_ok:
+        reconcile_skipped_partial += 1
+        if reconcile_skipped_partial <= 5:
+            print(f"  conteúdo inválido em {first_txt.name}: {content_reason} → vai re-extrair")
+        continue
+
+    marker_ok.write_text(
+        f"reconciled at {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        f"txt_total={total_txt_size} 7z={zp_size} ratio={ratio:.2f}\n"
+        f"content_check={content_reason}\n"
+    )
+    reconciled += 1
 
 print(f"\n  ✓ reconciliados {reconciled} arquivos (markers .done re-criados)")
 print(f"  ⊘ pulados {reconcile_skipped_partial} (ratio baixo/parcial → re-extrair)")
@@ -578,18 +655,26 @@ for done_marker in sorted(Path(TXT_EXTRACTED).glob("_*.done")):
 
     txt_total = 0
     missing = []
+    invalid_content: list[str] = []
     for name in expected:
         f = target_dir / name
         if not f.exists():
             missing.append(name)
-        else:
-            txt_total += f.stat().st_size
+            continue
+        txt_total += f.stat().st_size
+        # Content check (header CSV + linha de dados + truncamento)
+        ok_c, reason_c = _validate_txt_content(f)
+        if not ok_c:
+            invalid_content.append(f"{name}({reason_c})")
 
     zp_size = zp.stat().st_size
     ratio = (txt_total / zp_size) if zp_size > 0 else 0
 
     if missing:
-        quality_issues.append(f"  ✗ {zp.name}: {len(missing)} .txt esperados estão MISSING: {missing[:3]}")
+        quality_issues.append(f"  ✗ {zp.name}: {len(missing)} .txt esperados MISSING: {missing[:3]}")
+    elif invalid_content:
+        quality_issues.append(f"  ✗ {zp.name}: conteúdo inválido em {len(invalid_content)} arquivo(s): "
+                              f"{invalid_content[:2]}")
     elif ratio < 1.5:
         quality_issues.append(f"  ⚠ {zp.name}: ratio txt/7z={ratio:.2f} (suspeito; "
                               f"txt_total={txt_total/1_048_576:.1f}MB / 7z={zp_size/1_048_576:.1f}MB)")
