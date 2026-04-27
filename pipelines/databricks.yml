@@ -25,8 +25,13 @@ variables:
 
 targets:
   dev:
-    mode: development
+    # mode omitido propositalmente: 'mode: development' adiciona prefixo
+    # "[dev <user>] " obrigatório a TODO resource name. Sem mode, os jobs
+    # ficam com o nome literal do YAML.
     default: true
+    presets:
+      tags:
+        env: dev
     workspace:
       host: https://dbc-cafe0a5f-07e3.cloud.databricks.com
 
@@ -42,7 +47,7 @@ resources:
 
     # ─── Shared dimension: populacao_uf_ano ─────────────────────────────────
     job_populacao_refresh:
-      name: mirante · refresh populacao_uf_ano
+      name: refresh populacao_uf_ano
       tags:
         team: mirante
         domain: populacao
@@ -83,9 +88,47 @@ resources:
         timezone_id: UTC
         pause_status: PAUSED
 
+    # ─── Shared dimension: populacao_municipio_ano ──────────────────────────
+    # Análoga ao job_populacao_refresh mas em granularidade município (5.570
+    # munis × 12 anos) — pra alimentar WP#7 v2 (Bolsa Família por município).
+    # SIDRA v3 não aceita range/list em /periodos/, ingest itera ano-a-ano.
+    job_populacao_municipios_refresh:
+      name: refresh populacao_municipio_ano (5.570 munis × ano)
+      tags:
+        team: mirante
+        domain: populacao
+        layer: orchestration
+        pattern: medallion
+        cadence: anual
+        pii: "false"
+        source: ibge_sidra
+        shared_dim: "true"
+        granularity: municipio
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: ingest_ibge_pop_municipios
+          notebook_task:
+            notebook_path: ./notebooks/ingest/ibge_pop_municipios.py
+            base_parameters:
+              years:      "2013-2024"
+              volume_dir: "/Volumes/${var.catalog}/bronze/raw/ibge/pop_municipios"
+              catalog:    "${var.catalog}"
+
+        - task_key: silver_populacao_municipio_ano
+          depends_on: [{ task_key: ingest_ibge_pop_municipios }]
+          notebook_task:
+            notebook_path: ./notebooks/silver/populacao_municipio_ano.py
+            base_parameters:
+              catalog:  "${var.catalog}"
+
+      schedule:
+        quartz_cron_expression: "0 0 6 1 7 ?"   # yearly: Jul 1 (mesmo IBGE)
+        timezone_id: UTC
+        pause_status: PAUSED
+
     # ─── Shared dimension: ipca_deflators_2021 ──────────────────────────────
     job_ipca_refresh:
-      name: mirante · refresh ipca_deflators_2021
+      name: refresh ipca_deflators_2021
       tags:
         team: mirante
         domain: ipca
@@ -126,7 +169,7 @@ resources:
 
     # ─── Vertical: PBF (Bolsa Família) ──────────────────────────────────────
     job_pbf_refresh:
-      name: mirante · refresh PBF (ingest → bronze → silver → gold → export)
+      name: refresh PBF (ingest → bronze → silver → gold → export)
       tags:
         team: mirante
         domain: pbf
@@ -195,7 +238,7 @@ resources:
 
     # ─── Vertical: Equipamentos (DATASUS CNES, all CODEQUIPs) ───────────────
     job_equipamentos_refresh:
-      name: mirante · refresh Equipamentos (ingest → bronze → silver → gold → export)
+      name: refresh Equipamentos (ingest → bronze → silver → gold → export)
       tags:
         team: mirante
         domain: equipamentos
@@ -259,7 +302,7 @@ resources:
 
     # ─── Vertical: RAIS (Ministério do Trabalho / PDET) ────────────────────
     job_rais_refresh:
-      name: mirante · refresh RAIS (ingest → bronze → silver → gold → export)
+      name: refresh RAIS (ingest → bronze → silver → gold → export)
       tags:
         team: mirante
         domain: rais
@@ -326,7 +369,7 @@ resources:
 
     # ─── Diagnóstico standalone: pente-fino RAIS fonte→volume→txt→bronze ──
     job_rais_integrity:
-      name: mirante · diagnostics RAIS (integrity check fonte → bronze)
+      name: diagnostics RAIS (integrity check fonte → bronze)
       tags:
         team: mirante
         domain: rais
@@ -344,7 +387,7 @@ resources:
 
     # ─── Vertical: Emendas Parlamentares (CGU Portal Transparência) ─────────
     job_emendas_refresh:
-      name: mirante · refresh Emendas (ingest → bronze → silver → gold → export)
+      name: refresh Emendas (ingest → bronze → silver → gold → export)
       tags:
         team: mirante
         domain: emendas
@@ -406,7 +449,7 @@ resources:
     # microdados RD (uma linha por AIH) — granularidade fina, atualizável,
     # extensível para outros procedimentos via parâmetro `procs_filter`.
     job_uropro_refresh:
-      name: mirante · refresh UroPro (ingest → bronze → silver → gold → export)
+      name: refresh UroPro (ingest → bronze → silver → gold → export)
       tags:
         team: mirante
         domain: uropro
@@ -481,7 +524,7 @@ resources:
     # adding a NEW table to the catalog, append it to apply_catalog_metadata.py
     # AND emit inline COMMENT/TAGS in the creating notebook.
     job_apply_catalog_metadata:
-      name: mirante · apply catalog/schema/table/column metadata + tags
+      name: apply catalog/schema/table/column metadata + tags
       tags:
         team: mirante
         domain: meta
