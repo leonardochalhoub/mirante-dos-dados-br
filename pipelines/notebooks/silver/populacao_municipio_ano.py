@@ -2,11 +2,11 @@
 # MAGIC %md
 # MAGIC # silver · populacao_municipio_ano
 # MAGIC
-# MAGIC Lê `bronze.ibge_municipios_populacao_raw` (envelopes JSON do ingest, 1 por
-# MAGIC ano) e produz tabela longa `(Ano, cod_municipio, municipio_nome, uf, populacao,
-# MAGIC populacao_estimada, source)`.
+# MAGIC Lê `bronze.ibge_municipios_populacao_raw` (STRING-ONLY: payload JSON cru
+# MAGIC numa coluna `_raw_json`) e produz tabela longa `(Ano, cod_municipio,
+# MAGIC municipio_nome, uf, populacao, populacao_estimada, source)`.
 # MAGIC
-# MAGIC **Schema do envelope bronze (criado pelo ingest):**
+# MAGIC **Schema do envelope dentro de `_raw_json` (criado pelo ingest):**
 # MAGIC ```
 # MAGIC {
 # MAGIC   "_year":   2024,
@@ -14,6 +14,9 @@
 # MAGIC   "_data":   [...]   ← payload SIDRA original
 # MAGIC }
 # MAGIC ```
+# MAGIC
+# MAGIC Todo parse e cast acontece AQUI (silver) via `from_json` com schema
+# MAGIC explícito — bronze é string-only por padrão da plataforma.
 # MAGIC
 # MAGIC **Cobertura:**
 # MAGIC - 2013-2021: SIDRA tabela 6579 (Estimativas anuais).
@@ -52,38 +55,47 @@ bronze.printSchema()
 
 # COMMAND ----------
 
-# O envelope tem _data (array com payload SIDRA). Explodimos em séries.
-# `_data[0].resultados[].series[].localidade.id` = código muni
-# `_data[0].resultados[].series[].serie` = dict {ano_str: pop_str}
+# Bronze é STRING-ONLY: `_raw_json` é o envelope inteiro como string opaca.
+# Parse aqui com schema explícito — nota que `serie` é declarado MAP<string,string>
+# de cara, evitando o problema de inferência (struct com fields nomeados pelos anos).
+ENVELOPE_SCHEMA = (
+    "struct<"
+      "_year: int,"
+      "_source: string,"
+      "_data: array<struct<"
+        "resultados: array<struct<"
+          "series: array<struct<"
+            "localidade: struct<id: string, nome: string>,"
+            "serie: map<string,string>"
+          ">>"
+        ">>"
+      ">>"
+    ">"
+)
 
-# Bronze pode ter ou não a coluna _data — fallback: se não tem envelope,
-# trata como SIDRA cru (caso runs antigas tenham gravado no formato anterior).
-has_envelope = "_data" in [f.name for f in bronze.schema.fields]
-print(f"envelope detectado: {has_envelope}")
+parsed = bronze.select(
+    F.from_json(F.col("_raw_json"), ENVELOPE_SCHEMA).alias("env"),
+).select(
+    F.col("env._year").alias("year_envelope"),
+    F.col("env._source").alias("source"),
+    F.col("env._data").alias("data"),
+)
 
-if has_envelope:
-    base = bronze.select(
-        F.col("_year").alias("year_envelope"),
-        F.col("_source").alias("source"),
-        F.explode(F.col("_data")).alias("payload"),
-    ).select(
-        F.col("year_envelope"),
-        F.col("source"),
-        F.col("payload.resultados").alias("resultados"),
-    )
-else:
-    base = bronze.select(
-        F.lit(None).cast("int").alias("year_envelope"),
-        F.lit("legacy").alias("source"),
-        F.col("resultados"),
-    )
+# Validação: o parse não pode ter falhado em silêncio (envelope obrigatório)
+n_null_env = parsed.where(F.col("year_envelope").isNull()).count()
+assert n_null_env == 0, f"{n_null_env} envelopes não parsearam (verifique _raw_json malformado em bronze)"
 
 desaninhado = (
-    base
+    parsed
     .select(
         F.col("year_envelope"),
         F.col("source"),
-        F.explode("resultados").alias("res"),
+        F.explode("data").alias("payload"),
+    )
+    .select(
+        F.col("year_envelope"),
+        F.col("source"),
+        F.explode("payload.resultados").alias("res"),
     )
     .select(
         F.col("year_envelope"),
@@ -95,12 +107,7 @@ desaninhado = (
         F.col("source"),
         F.col("s.localidade.id").cast("string").alias("cod_municipio"),
         F.col("s.localidade.nome").alias("municipio_nome"),
-        # `s.serie` é {ano_str: pop_str}. spark.read.json no bronze inferiu como
-        # STRUCT (campos com nome de ano: 2013, 2014, ...) e não MAP — então
-        # explode() falha com DATATYPE_MISMATCH. Round-trip via to_json/from_json
-        # converte struct→map<string,string> sem precisar enumerar os anos.
-        # Fix de raiz: bronze deveria ser STRING-ONLY (ver TODO no ingest).
-        F.from_json(F.to_json(F.col("s.serie")), "map<string,string>").alias("serie_dict"),
+        F.col("s.serie").alias("serie_dict"),   # já MAP<string,string> via schema
     )
 )
 

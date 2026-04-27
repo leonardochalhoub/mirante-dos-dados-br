@@ -149,58 +149,69 @@ if errors:
 
 # COMMAND ----------
 
-# MAGIC %md ## Auto Loader → bronze.ibge_municipios_populacao_raw
+# MAGIC %md ## Bronze STRING-ONLY → bronze.ibge_municipios_populacao_raw
 
 # COMMAND ----------
 
 from pyspark.sql import functions as F
 
-# Nome alinhado com silver/populacao_municipio_ano.py
-BRONZE_TABLE   = f"{CATALOG}.bronze.ibge_municipios_populacao_raw"
-CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/ibge_pop_municipios/_checkpoint"
-SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/ibge_pop_municipios/_schema"
+BRONZE_TABLE = f"{CATALOG}.bronze.ibge_municipios_populacao_raw"
 
-# Como o JSON SIDRA v3 é um ARRAY no top-level com 1 elemento, usamos batch
-# overwrite (não streaming) — é estado natural pra esse tipo de fetch.
+# Bronze STRING-ONLY (padrão da plataforma): NÃO inferir tipo. Cada arquivo
+# JSON do Volume vira uma linha com o payload inteiro como string opaca.
+# Toda conversão de tipo (parse JSON, explode, cast) acontece no silver via
+# from_json com schema explícito.
 #
-# TODO[bronze STRING-ONLY]: spark.read.json() infere tipo, criando STRUCT
-# aninhado pro campo `serie` (cujas chaves são anos numéricos). Isso obriga
-# o silver a fazer round-trip to_json/from_json pra converter STRUCT→MAP.
-# Standard da plataforma manda bronze ser string-only (ler como
-# `binaryFile` ou `text` e guardar o payload bruto numa coluna). Refatorar
-# pra: spark.read.format("text").load(VOLUME_DIR) e silver chama
-# from_json(content, schema) com `serie` declarado MapType<StringType>.
+# Por que: spark.read.json() infere tipo e cria STRUCTs aninhados pra objetos
+# JSON (e.g. `serie: {"2013":"23987",...}` vira STRUCT com fields nomeados
+# pelos anos, não MAP) — quebra explode no silver e te força a workaround.
+# Storing raw text isola bronze de mudanças de schema upstream.
 df = (
     spark.read
-        .option("multiLine", "true")
-        .json(VOLUME_DIR)
-        .withColumn("_source_file", F.col("_metadata.file_path"))
-        .withColumn("_ingest_ts",   F.current_timestamp())
+        .option("wholetext", "true")          # cada arquivo = 1 linha
+        .text(VOLUME_DIR)
+        .select(
+            F.col("value").alias("_raw_json"),
+            F.col("_metadata.file_path").alias("_source_file"),
+            F.current_timestamp().alias("_ingest_ts"),
+        )
 )
 print(f"linhas no DataFrame: {df.count()}")
+df.printSchema()
 
 (df.write.format("delta").mode("overwrite")
     .option("overwriteSchema", "true")
     .saveAsTable(BRONZE_TABLE))
 
 n = spark.read.table(BRONZE_TABLE).count()
-print(f"✔ {BRONZE_TABLE}: {n} documentos")
+print(f"✔ {BRONZE_TABLE}: {n} documentos (STRING-ONLY)")
 
 # COMMAND ----------
 
 spark.sql(f"""
 COMMENT ON TABLE {BRONZE_TABLE} IS
-'IBGE Estimativas Populacionais Municipais — JSON bruto da API v3 agregados/6579,
-variável 9324 (população residente estimada), localidade N6 (município). Cobertura
-2013-2024 anual. Estrutura array com resultados[].series[].(localidade, serie). Silver
-populacao_municipio_ano.py explode em (cod_municipio, ano, populacao).
-Fonte: https://sidra.ibge.gov.br/tabela/6579'
+'IBGE Estimativas Populacionais Municipais — payload JSON bruto (STRING-ONLY)
+da API v3 agregados (tabelas 6579 estimativas + 4709 censo 2022), variável 9324/93,
+localidade N6 (município). Cobertura 2013-2024 anual. Cada linha = 1 arquivo
+de envelope `{{_year, _source, _data}}` salvo pelo ingest. Toda parse/cast
+acontece no silver populacao_municipio_ano.py via from_json com schema explícito.
+Fontes: https://sidra.ibge.gov.br/tabela/6579 + https://sidra.ibge.gov.br/tabela/4709'
 """)
+
+for col, desc in [
+    ("_raw_json",    "Envelope JSON bruto do ingest: {_year:int, _source:string, _data:[<resposta SIDRA v3>]}. Parse via from_json no silver."),
+    ("_source_file", "Path absoluto do arquivo no Volume (ex: /Volumes/.../pop_municipios_2024.json). Permite rastreabilidade ingest→silver."),
+    ("_ingest_ts",   "Timestamp UTC da gravação na bronze (current_timestamp). Não confundir com data de coleta SIDRA."),
+]:
+    try:
+        spark.sql(f"ALTER TABLE {BRONZE_TABLE} ALTER COLUMN `{col}` COMMENT '{desc}'")
+    except Exception as e:
+        print(f"  ⚠ comment {col}: {e}")
 
 for tag, val in [
     ("layer", "bronze"), ("domain", "demografia"), ("source", "ibge_sidra"),
-    ("source_table", "6579"), ("source_level", "N6"), ("pii", "false"),
-    ("grain", "json_array_with_series"),
+    ("source_tables", "6579+4709"), ("source_level", "N6"), ("pii", "false"),
+    ("grain", "raw_json_envelope_per_year"), ("string_only", "true"),
 ]:
     try: spark.sql(f"ALTER TABLE {BRONZE_TABLE} SET TAGS ('{tag}' = '{val}')")
     except Exception as e: print(f"  ⚠ tag {tag}: {e}")
