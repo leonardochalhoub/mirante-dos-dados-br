@@ -712,13 +712,12 @@ function MunicipalFigures() {
         ['fig03-idhm-vs-pc-municipal',       'Fig. 3 — IDH-M × PBF per capita'],
       ],
     },
-    {
-      titulo: 'Geografia',
-      figs: [
-        ['fig05-mapa-scatter-municipal',     'Fig. 5 — Mapa scatter geográfico dos municípios'],
-        ['fig08-bivariado-pc-idhm',          'Fig. 8 — Mapa bivariado (per capita × IDH-M)'],
-      ],
-    },
+    // Grupo "Geografia" REMOVIDO — fig05 (mapa scatter) e fig08 (bivariado)
+    // eram bubble/scatter matplotlib que ficavam feios embedded inline.
+    // Visualização geográfica vive no BrazilMap UF do topo da tab Municipal
+    // (agregado de 5.570 munis em 27 UFs). Mapas choropléticos AO NÍVEL
+    // MUNICIPAL (5.570 polígonos) entram quando WP#7 v2 pipeline completar:
+    // IBGE/Malha N6 GeoJSON + geopandas + matplotlib choropleth Cividis_r.
     {
       titulo: 'Rankings & desigualdade',
       figs: [
@@ -1063,10 +1062,11 @@ function MunicipalSection({ rows }) {
             ['fig02-intra-uf-boxplot',           'Heterogeneidade intra-UF'],
             ['fig03-idhm-vs-pc-municipal',       'IDH-M × PBF/hab'],
             ['fig04-top-bottom-municipios',      'Top 20 vs Bottom 20'],
-            ['fig05-mapa-scatter-municipal',     'Mapa scatter geográfico'],
+            // fig05 (scatter geográfico) e fig08 (bivariado) removidos —
+            // bubble/scatter feios. Choropleth municipal vai entrar com
+            // pipeline WP#7 v2 (IBGE/Malha N6 + geopandas).
             ['fig06-evolucao-regional',          'Evolução regional 2013–2025'],
             ['fig07-theil-decomposicao',         'Theil within/between'],
-            ['fig08-bivariado-pc-idhm',          'Mapa bivariado'],
             ['fig09-need-ratio-municipal',       'Need ratio'],
             ['fig10-conley-hac-sensitivity',     'Conley HAC: SE × bandwidth'],
             ['fig11-lorenz-municipal',           'Lorenz municipal + Gini'],
