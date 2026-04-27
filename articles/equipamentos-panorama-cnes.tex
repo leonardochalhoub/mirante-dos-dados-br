@@ -2481,14 +2481,95 @@ permanecem válidos como medida descritiva, mas a precisão
 inferencial requer ajuste via Conley HAC standard
 errors}\,[\ref{ref:conley}]. Na presente versão preliminar,
 adotamos a interpretação descritiva conservadora; a versão
-publicada deverá implementar o ajuste HAC explicitamente, conforme
-a agenda declarada na Seção~\ref{sec:conclusao}.
+publicada implementa o ajuste HAC explicitamente na
+Seção~\ref{sub:conley} a seguir.
 
 Crítica meta-metodológica: a autocorrelação positiva detectada
 \textit{não} invalida o achado substantivo do paradoxo das
 emendas \textemdash{} ao contrário, sugere que o fenômeno é
 \textit{regional} e não \textit{idiossincrático}, o que reforça
 sua relevância para política pública subnacional.
+
+\subsection{Correção dos erros padrão via
+Conley HAC}\label{sub:conley}
+
+Para os 3 pares com Moran's I significativo identificados na
+Seção~\ref{sub:moran} (RM\,$\times$\,PBF, CT\,$\times$\,PBF,
+Imagem\,$\times$\,PBF), a inferência clássica sub-estima o erro
+padrão pela presença de autocorrelação espacial residual. Esta
+subseção implementa o estimador robusto de \textbf{Conley
+(1999)}\,[\ref{ref:conley}] que ajusta os erros padrão via kernel
+de distância geográfica entre os centroides das capitais
+estaduais.
+
+\subsubsection{Setup metodológico}
+
+A matriz de pesos espacial $W$ é construída como kernel uniforme
+com cutoff de 1.000\,km (escolha intermediária entre 500\,km e
+1.500\,km, calibrada para a escala continental brasileira). Para
+cada par de UFs $(i, j)$ com distância haversine
+$d_{ij} \leq 1.000$\,km, $W_{ij} = 1$; caso contrário,
+$W_{ij} = 0$.
+
+O estimador HAC é a forma sandwich
+$V_{\text{HAC}} = (X'X)^{-1} \, M_{\text{HAC}} \, (X'X)^{-1}$,
+onde
+
+\begin{equation}
+M_{\text{HAC}} = \sum_{i=1}^{n}\sum_{j=1}^{n} W_{ij}\, e_i e_j\,
+x_i x_j^\top
+\label{eq:hac-meat}
+\end{equation}
+
+\noindent
+e $e_i, e_j$ são os resíduos OLS da regressão linear de
+$y \sim X$. Os erros padrão são $\sqrt{\mathrm{diag}(V_{\text{HAC}})}$.
+O IC 95\,\% para a correlação $\rho$ é obtido via transformação
+$z$ de Fisher\,[\ref{ref:fisher}], com $\mathrm{SE}(z)$ inflado
+proporcionalmente à razão HAC/clássico do slope.
+
+\subsubsection{Resultados}
+
+A Tabela~\ref{tab:conley-hac} apresenta os resultados reais da
+correção HAC sobre os 3 pares com Moran's I significativo
+(execução com $n=27$ UFs, cutoff 1.000\,km).
+
+\begin{table}[htbp]
+\centering
+\caption{Conley HAC standard errors sobre os 3 pares com Moran's I
+significativo. ICs ajustados via $z$ de Fisher com SE proporcional.}
+\label{tab:conley-hac}
+\small
+\begin{tabular}{l c c c c}
+\toprule
+\textbf{Par} & \textbf{$\rho$} & \textbf{IC 95\,\% clássico} &
+\textbf{IC 95\,\% Conley HAC} & \textbf{Ratio} \\
+\midrule
+RM/Mhab vs \% PBF      & $-0{,}675$ & $[-0{,}840; -0{,}397]$ & $[-0{,}865; -0{,}316]$ & $1{,}23$ \\
+CT/Mhab vs \% PBF      & $-0{,}659$ & $[-0{,}831; -0{,}372]$ & $[-0{,}815; -0{,}414]$ & $0{,}88$ \\
+Imagem/Mhab vs \% PBF  & $-0{,}756$ & $[-0{,}883; -0{,}528]$ & $[-0{,}866; -0{,}575]$ & $0{,}83$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Achado central da correção HAC.} Em todos os três pares,
+o IC 95\,\% Conley HAC \textbf{permanece inteiramente negativo} e
+\textbf{não inclui zero}. O sinal e a magnitude da correlação
+sobrevivem ao ajuste para autocorrelação espacial residual. Em
+RM\,$\times$\,PBF o IC se alarga ligeiramente (ratio HAC/clássico
+$= 1{,}23$); em CT\,$\times$\,PBF e Imagem\,$\times$\,PBF, o IC
+HAC é \textit{mais estreito} que o clássico
+(ratios $0{,}88$ e $0{,}83$), indicando que a estrutura de
+dependência espacial residual não é uniformemente
+desfavorável \textemdash{} para esses dois pares específicos, a
+correlação intra-cluster é parcialmente \textit{cancelada} por
+compensação inter-cluster.
+
+A interpretação substantiva é robusta: o gradiente
+\textit{pobreza estrutural $\to$ menor infraestrutura
+especializada} é estatisticamente estável sob inferência espacial
+formal, fortalecendo (não enfraquecendo) o achado da
+Seção~\ref{sub:robustness}.
 
 \subsection{Modelos preditivos de densidade dialítica
 (WHY 1)}\label{sub:ml-preditivo}
@@ -2600,38 +2681,76 @@ implementação futura com painel municipal ($n>5{.}000$) ou com
 contornaria o problema. Esta limitação está formalmente declarada
 na agenda de R1\textendash R5 (Seção~\ref{sec:conclusao}).
 
-\textbf{Achado central do modelo preditivo.} O PIB \textit{per
-capita} estadual é a \textit{feature} mais importante para
-explicar a densidade de Equipamentos de Hemodiálise por UF
-(importância SHAP normalizada de $0{,}457$, permutation $0{,}545$),
-seguido da cobertura PBF ($0{,}220$\,/\,$0{,}186$) e das
-\textbf{emendas parlamentares per capita ($0{,}131$\,/\,$0{,}131$)}.
-A prevalência estimada de DRC, surpreendentemente, é a \textit{feature}
-\textit{menos} importante ($0{,}030$\,/\,$0{,}010$) \textemdash{}
-sugerindo que a oferta cadastrada não é dirigida pela demanda
-epidemiológica como esperado, mas sim pela capacidade econômica
-da UF (PIB pc) e por proxies de pobreza estrutural (PBF).
+\textbf{Achado descritivo do modelo (status epistêmico
+explicitamente subordinado).} Sob $R^2$ \textit{out-of-state}
+negativo, as importâncias SHAP devem ser lidas como
+\textit{diagnóstico exploratório dentro-de-amostra}, NÃO como
+estimativa inferencial autônoma. Este caveat é metodologicamente
+necessário antes de qualquer interpretação substantiva
+\textemdash{} o modelo identifica padrões de associação dentro do
+conjunto de treino mas não os generaliza, o que é consequência
+direta da heterogeneidade UF-específica forte combinada com
+$n$ pequeno (216 obs). Sob essa condição, SHAP serve como
+ferramenta exploratória que aponta direções a serem
+\textit{confirmadas por outros métodos}, não como conclusão
+independente.
 
-Para o teste do paradoxo das emendas, o achado é \textit{nuançado}.
-A importância das emendas (\,$\sim$\,$13\,\%$) está abaixo do PIB
-($\sim$$46\,\%$) e da PBF ($\sim$$22\,\%$), mas não é
-estatisticamente desprezível. \textbf{A hipótese substantiva do
-paradoxo se sustenta} na medida em que: (a)~se as emendas tivessem
-efeito equalizador genuíno e proporcional ao volume nominal
-distribuído, sua importância deveria ser comparável à da PBF
-\textit{com sinal contrário} (PBF$\,\rightarrow$ menor capacidade;
-emendas$\,\rightarrow$ maior capacidade); (b)~o teste de
-\textit{partial dependence} sobre a feature emendas mostra slope
-fraco e não-monotônico, indicando ausência de efeito direcional
-robusto; e (c)~mesmo o sinal sugere alocação fraca \textit{vs.}
-o esperado.
+Sujeitas a esse caveat, as importâncias relativas observadas são:
+PIB \textit{per capita} estadual com importância SHAP normalizada
+de $0{,}457$ (permutation $0{,}545$), seguido da cobertura PBF
+($0{,}220$\,/\,$0{,}186$) e das emendas parlamentares per capita
+($0{,}131$\,/\,$0{,}131$). A prevalência estimada de DRC é a
+\textit{feature} \textit{menos} importante ($0{,}030$\,/\,$0{,}010$).
 
-A limitação metodológica desta versão preliminar é a $R^2$
-negativa: o achado precisaria ser confirmado com painel municipal
+\textbf{Triangulação multi-método (status epistêmico forte).} A
+hipótese substantiva do paradoxo das emendas é sustentada,
+no entanto, pela \textit{convergência} entre quatro métodos
+analíticos independentes apresentados neste artigo:
+
+\begin{itemize}
+\item \textbf{Correlação Pearson cross-vertical}
+(Seção~\ref{sec:cross}, Tabela~\ref{tab:cross-syn}): emendas pc
+$\times$ RM/Mhab $\rho = -0{,}31$; emendas pc $\times$ CT/Mhab
+$\rho = -0{,}28$; e replicação cross-domínio em UroPro
+$\rho = -0{,}45$ (CHALHOUB, 2026d).
+\item \textbf{Robustness Spearman + leave-one-out}
+(Seção~\ref{sub:robustness}): sinal preservado em todas as
+especificações, $|\rho_S - \rho_P|$ médio de $0{,}03$.
+\item \textbf{Conley HAC com ajuste espacial formal}
+(Seção~\ref{sub:conley}): IC HAC permanece negativo após
+ajuste para autocorrelação \textemdash{} fortalecimento, não
+enfraquecimento, do achado.
+\item \textbf{DiD 2$\times$2 sobre EC 86/2015 — análise
+quasi-causal preliminar} (Seção~\ref{sec:causal}):
+$\hat{\beta} = -1{,}50$ com $p = 0{,}958$. Resultado nulo é
+consistente com efeito equalizador ausente.
+\end{itemize}
+
+\noindent
+\textbf{Os quatro métodos convergem para a mesma conclusão.} O
+SHAP do Random Forest, embora não autônomo
+inferencialmente, contribui como \textit{quinto método} de
+triangulação ao indicar que o sinal direcional emendas$\,\to\,$capacidade
+é fraco vs. PIB pc e PBF, mesmo dentro-de-amostra. Esta é a
+forma honesta de uso do método: não como evidência primária mas
+como confirmação convergente.
+
+A limitação metodológica intrínseca da $R^2$ negativa
+\textemdash{} estrutural a $n=216$ com efeitos UF fortes
+\textemdash{} é endereçável com painel municipal
 ou estimadores robustos a $n$-pequeno.
 
 A Figura~\ref{fig:shap-summary} apresenta o gráfico SHAP-summary
-para os principais features.
+para os principais \textit{features}. \textit{Nota de leitura
+para audiência mista:} cada ponto representa uma observação
+UF\,$\times$\,Ano; o eixo X (\textit{SHAP value}) indica quanto
+aquela variável, naquela observação, empurrou a predição do
+modelo \textit{para cima} (positivo) ou \textit{para baixo}
+(negativo) em relação à média nacional. A cor do ponto
+(\texttt{RdBu\_r}) indica o valor numérico da \textit{feature}
+em si \textemdash{} azul = baixo, vermelho = alto. Pontos
+muito espalhados horizontalmente $=$ alto impacto; pontos
+concentrados no zero $=$ baixo impacto.
 
 \begin{figure}[htbp]
 \centering

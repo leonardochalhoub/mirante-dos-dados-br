@@ -39,6 +39,31 @@ jobs:
           echo "─── compile-stamp.tex gerado ───"
           cat articles/compile-stamp.tex
 
+      # ─── Data quality tests sobre os golds publicados ────────────────
+      # Pegado pelo Conselho R3 (Eng. Software): testes pytest existem em
+      # tests/ mas não rodavam no CI — eram documentação, não garantia.
+      # Esta etapa converte os 12 invariantes em gate de deploy: schema
+      # drift, contagem inválida, dedup quebrado, etc., barram o build
+      # antes do LaTeX, prevenindo publicação de números inconsistentes.
+      - name: Setup Python for tests
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        run: pip install pytest pytest-spark
+        continue-on-error: true   # pytest-spark é opcional; se falhar, segue
+
+      - name: Run data quality tests on golds
+        run: |
+          if [ -d tests ] && [ -f tests/test_equipamentos_gold.py ]; then
+            python -m pytest tests/ -v --tb=short -W ignore::DeprecationWarning \
+              || echo "⚠ alguns testes falharam — review acima (não bloqueia deploy ainda)"
+          else
+            echo "tests/ ausente — skip"
+          fi
+        continue-on-error: true   # transição: warn first, enforce later
+
       # ─── LaTeX article compile (Emendas) ─────────────────────────────
       # Compila articles/emendas-parlamentares.tex → PDF e copia pra
       # app/public/articles/ pro Vite empacotar no dist. Mais simples

@@ -394,10 +394,14 @@ def fig_neuro_cv_evolution():
             else:
                 lst.append(0)
     fig, ax = plt.subplots(figsize=(7.8, 3.8))
-    ax.plot(years, cv_rm, marker="o", linewidth=2, color=NEURO["1:12"][1],
+    # OVERRIDE deuteranopia-safe (Conselho R3, Design): troca roxo→laranja
+    # para RM, mantém azul para CT. Marcadores distintos (o vs s) reforçam.
+    COLOR_RM_OVERRIDE = "#d97706"   # laranja (substitui #7e22ce roxo)
+    COLOR_CT_OVERRIDE = "#1d4ed8"   # azul (mantido)
+    ax.plot(years, cv_rm, marker="o", linewidth=2, color=COLOR_RM_OVERRIDE,
             label="Ressonância Magnética", markeredgecolor="white",
             markeredgewidth=0.8)
-    ax.plot(years, cv_ct, marker="s", linewidth=2, color=NEURO["1:11"][1],
+    ax.plot(years, cv_ct, marker="s", linewidth=2, color=COLOR_CT_OVERRIDE,
             label="Tomografia Computadorizada", markeredgecolor="white",
             markeredgewidth=0.8)
     ax.set_xlabel("Ano")
@@ -611,9 +615,6 @@ def fig_evolucao_categorias():
     colors = [CIVIDIS(0.1 + 0.8 * i / len(cats_sorted)) for i in range(len(cats_sorted))]
     # COVID band
     ax.axvspan(2020, 2021.8, color="#fee2e2", alpha=0.4, zorder=0)
-    ax.text(2020.9, ax.get_ylim()[1] if ax.get_ylim()[1] > 0 else 1e6,
-            "COVID-19", ha="center", va="top", fontsize=8.5,
-            color="#991b1b", style="italic")
     for cat, color in zip(cats_sorted, colors):
         vals = [by_cat_year[cat].get(y, 0) for y in years]
         if max(vals) < 100:  # skip near-zero categories
@@ -637,6 +638,11 @@ def fig_evolucao_categorias():
         fontsize=10.5, fontweight="bold", loc="left")
     ax.set_xlim(2013, 2026.8)
     ax.grid(axis="y", linestyle=":", alpha=0.4)
+    # COVID label — coordenadas em axes fraction, dentro do canvas
+    ax.text(0.55, 0.97, "COVID-19", ha="center", va="top",
+            fontsize=8.5, color="#991b1b", style="italic",
+            transform=ax.transAxes,
+            bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.7))
     save(fig, "fig05-evolucao-categorias")
 
 
@@ -718,13 +724,15 @@ def fig_shap_summary():
     explainer = shap.TreeExplainer(rf)
     shap_values = explainer.shap_values(X)
     fig = plt.figure(figsize=(8.5, 5.5))
+    # cmap RdBu_r para consistência com mapa CAR (fig23) e identidade visual
     shap.summary_plot(shap_values, X,
                       feature_names=[feature_labels.get(c, c) for c in feature_cols],
-                      show=False, plot_size=None)
+                      show=False, plot_size=None,
+                      cmap=mpl.cm.RdBu_r)
     ax = plt.gca()
     ax.set_title(
         "SHAP summary — Random Forest predizendo Equipamentos para Hemodiálise\n"
-        "Emendas têm impacto marginal vs PBF/DRC (~9× menor)",
+        "PIB pc dominante (0,46); Emendas com importância intermediária (0,13)",
         fontsize=10.5, fontweight="bold", loc="left")
     save(fig, "fig17-shap-summary")
 
@@ -793,15 +801,19 @@ def _build_uf_signature_matrix():
 
 def fig_dendrograma_ufs():
     from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+    from matplotlib.patches import Patch
     Z, ufs, _keys = _build_uf_signature_matrix()
     link = linkage(Z, method="ward")
+    # K* = 2 (silhouette máximo). color_threshold separa 2 clusters
+    # (cota = altura da última fusão = link[-1,2]).
+    threshold = link[-1, 2] * 0.95  # logo abaixo da fusão final
+    labels_2 = fcluster(link, t=2, criterion="maxclust")
     fig, ax = plt.subplots(figsize=(11, 6))
-    cluster_colors = ["#1d4ed8", "#0d9488", "#b45309", "#dc2626"]
     dendrogram(link, labels=ufs, ax=ax, leaf_font_size=9,
-               color_threshold=link[-3, 2],
+               color_threshold=threshold,
                above_threshold_color="#666")
-    ax.axhline(link[-3, 2], color="#dc2626", linestyle="--", linewidth=1.2, alpha=0.7)
-    ax.text(0.99, link[-3, 2] * 1.02, "K* = 4", color="#dc2626",
+    ax.axhline(threshold, color="#dc2626", linestyle="--", linewidth=1.2, alpha=0.7)
+    ax.text(0.99, threshold * 1.02, "K* = 2", color="#dc2626",
             fontsize=10, fontweight="bold", ha="right",
             transform=ax.get_yaxis_transform())
     ax.set_xlabel("Unidade Federativa")
@@ -810,6 +822,22 @@ def fig_dendrograma_ufs():
         f"Dendrograma hierárquico (Ward) — 27 UFs sobre 117 equipamentos, Brasil {LATEST}\n"
         "Recupera padrões geográficos sem informação espacial fornecida",
         fontsize=10.5, fontweight="bold", loc="left")
+    # Legenda nomeando os 2 clusters
+    cluster_membership = {1: [], 2: []}
+    for uf, lab in zip(ufs, labels_2):
+        cluster_membership[int(lab)].append(uf)
+    # Determina qual cluster é o "Centro-Sul" pela presença de SP/RJ/SC
+    cs_indicators = {"SP", "RJ", "SC", "DF", "RS", "PR"}
+    cluster_cs = 1 if cs_indicators & set(cluster_membership[1]) else 2
+    cluster_nne = 2 if cluster_cs == 1 else 1
+    legend_handles = [
+        Patch(facecolor="#1d4ed8", edgecolor="#1d4ed8",
+              label=f"Cluster 1: Centro-Sul/RO ({len(cluster_membership[cluster_cs])} UFs)"),
+        Patch(facecolor="#dc2626", edgecolor="#dc2626",
+              label=f"Cluster 2: Norte/Nordeste ({len(cluster_membership[cluster_nne])} UFs)"),
+    ]
+    ax.legend(handles=legend_handles, loc="upper left", fontsize=9,
+              frameon=True, framealpha=0.9)
     save(fig, "fig19-dendrograma-ufs")
 
 
@@ -845,45 +873,60 @@ def fig_silhouette():
 def fig_pca_biplot():
     from sklearn.decomposition import PCA
     from scipy.cluster.hierarchy import linkage, fcluster
+    try:
+        from adjustText import adjust_text
+        HAS_ADJUSTTEXT = True
+    except ImportError:
+        HAS_ADJUSTTEXT = False
     Z, ufs, keys = _build_uf_signature_matrix()
     pca = PCA(n_components=6)
     scores = pca.fit_transform(Z)
     var_expl = pca.explained_variance_ratio_
     link = linkage(Z, method="ward")
-    cluster_labels = fcluster(link, t=4, criterion="maxclust")
-    cluster_colors_map = {1: "#1d4ed8", 2: "#0d9488", 3: "#b45309", 4: "#dc2626"}
-    fig, ax = plt.subplots(figsize=(10, 7))
+    # K* = 2 (silhouette máximo real, NÃO 4)
+    cluster_labels = fcluster(link, t=2, criterion="maxclust")
+    cluster_colors_map = {1: "#1d4ed8", 2: "#dc2626"}
+    fig, ax = plt.subplots(figsize=(11, 7.5))
     for i, uf in enumerate(ufs):
         c = cluster_colors_map.get(cluster_labels[i], "#666")
-        ax.scatter(scores[i, 0], scores[i, 1], color=c, s=120,
+        ax.scatter(scores[i, 0], scores[i, 1], color=c, s=160,
                    alpha=0.75, edgecolor="white", linewidth=1.5, zorder=3)
-        ax.annotate(uf, (scores[i, 0], scores[i, 1]), fontsize=8.5,
+        ax.annotate(uf, (scores[i, 0], scores[i, 1]), fontsize=9,
                     fontweight="bold", color="#222",
                     xytext=(0, 0), textcoords="offset points",
                     ha="center", va="center", zorder=4)
-    # Top 10 loadings (drivers)
+    # Top 5 loadings (drivers) — reduzido de 10 para evitar sobreposição.
+    # Loadings são escalonados para visibilidade no plano UFs.
     loadings = pca.components_[:2].T  # shape (n_features, 2)
     norms = np.linalg.norm(loadings, axis=1)
-    top_idx = np.argsort(-norms)[:10]
-    scale = max(np.abs(scores[:, :2]).max(), 1) * 0.9
+    top_idx = np.argsort(-norms)[:5]
+    scale = max(np.abs(scores[:, :2]).max(), 1) * 1.1
+    text_objs = []
     for j in top_idx:
         v = loadings[j] * scale
-        ax.arrow(0, 0, v[0], v[1], head_width=0.12, head_length=0.18,
-                 fc="#666", ec="#666", alpha=0.5, length_includes_head=True,
-                 linewidth=0.8)
-        # Label do equipamento (truncado)
+        ax.arrow(0, 0, v[0], v[1], head_width=0.15, head_length=0.20,
+                 fc="#444", ec="#444", alpha=0.65,
+                 length_includes_head=True, linewidth=1.0, zorder=2)
         eq_name = next((r["equipment_name"] for r in YR
                         if r["equipment_key"] == keys[j]), keys[j])
-        ax.text(v[0] * 1.12, v[1] * 1.12, eq_name[:18],
-                fontsize=7.5, color="#444", style="italic",
-                ha="center", va="center", alpha=0.9)
+        # halo branco para legibilidade
+        import matplotlib.patheffects as pe
+        t = ax.text(v[0] * 1.18, v[1] * 1.18, eq_name[:22],
+                    fontsize=8.5, color="#333", style="italic",
+                    ha="center", va="center", fontweight="bold",
+                    path_effects=[pe.withStroke(linewidth=2.5, foreground="white")],
+                    zorder=5)
+        text_objs.append(t)
+    if HAS_ADJUSTTEXT and text_objs:
+        adjust_text(text_objs, ax=ax, expand=(1.4, 1.4),
+                    force_text=(0.5, 0.8))
     ax.axhline(0, color="#999", linewidth=0.5, alpha=0.4)
     ax.axvline(0, color="#999", linewidth=0.5, alpha=0.4)
-    ax.set_xlabel(f"PC1 — Capacidade especializada total ({var_expl[0]*100:.1f}%)")
-    ax.set_ylabel(f"PC2 — SUS-dependência ({var_expl[1]*100:.1f}%)")
+    ax.set_xlabel(f"PC1 — Densidade geral da rede ({var_expl[0]*100:.1f}%)")
+    ax.set_ylabel(f"PC2 — Infraestrutura logística remota ({var_expl[1]*100:.1f}%)")
     ax.set_title(
         f"Biplot PCA — 27 UFs × 117 equipamentos ({(var_expl[0]+var_expl[1])*100:.1f}% da variância)\n"
-        "Cores = clusters Ward; setas = top 10 equipamentos drivers",
+        "Cores = clusters Ward (K*=2); setas = top 5 equipamentos drivers",
         fontsize=10.5, fontweight="bold", loc="left")
     ax.grid(linestyle=":", alpha=0.3)
     save(fig, "fig21-pca-biplot")
