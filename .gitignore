@@ -16,5 +16,8 @@ __pycache__/
 
 test-docs/
 
-# Claude Code session state
+# Claude Code session state — ignore everything under .claude/
 .claude/
+# Exception: subagent personas are part of Mirante's identity (Conselho)
+!.claude/agents/
+!.claude/agents/**
