@@ -5,16 +5,30 @@
 # MAGIC Pipeline em 2 estágios — Auto Loader não lê `.dbc` (binário PKWARE).
 # MAGIC
 # MAGIC 1. **Convert+Filter**: `.dbc` → `.dbf` (PySUS/blast_decoder) → filtra
-# MAGIC    `PROC_REA ∈ {procs_filter}` → Parquet (uma partição por arquivo)
-# MAGIC    Idempotente: pula se o `.parquet` correspondente já existe
-# MAGIC 2. **Auto Loader** sobre o folder de Parquet → Delta append
+# MAGIC    LINHAS por `PROC_REA ∈ {procs_filter}` → Parquet com **TODAS as
+# MAGIC    colunas do DBF como string** (uma partição por arquivo).
+# MAGIC    Idempotente: pula se o `.parquet` correspondente já existe.
+# MAGIC 2. **Auto Loader** sobre o folder de Parquet → Delta append.
 # MAGIC
 # MAGIC Filename pattern: `RD<UF><YY><MM>.dbc` → metadados extraídos do nome.
 # MAGIC
-# MAGIC ## Por que filtrar antes do Delta?
+# MAGIC ## Por que filtrar LINHAS antes do Delta?
 # MAGIC RD bruto é gigantesco (~1-2M linhas por UF×mês). Para a vertical de
 # MAGIC Incontinência Urinária, restamos com ~milhares de linhas no total.
-# MAGIC Filtrar no convert mantém Delta minúsculo e rápido.
+# MAGIC Filtrar LINHAS no convert mantém Delta minúsculo e rápido.
+# MAGIC
+# MAGIC ## Por que NÃO filtrar COLUNAS?
+# MAGIC Bronze é raw mirror. Mantemos TODAS as ~120 colunas do DBF, não um
+# MAGIC subset "relevante pra análise". Cortar coluna no bronze força reler
+# MAGIC 23 GB de DBC sempre que silver/gold quiser uma nova feature
+# MAGIC (e quebra promessas do catálogo Unity em `_meta/apply_catalog_metadata.py`,
+# MAGIC que documenta DT_INTER, DT_SAIDA, etc. — colunas que o subset antigo
+# MAGIC silenciosamente derrubava).
+# MAGIC
+# MAGIC ## Por que tudo string?
+# MAGIC Padrão da plataforma Mirante: bronze é STRING-ONLY (vide
+# MAGIC `memory/feedback_bronze_string_only.md`). Cast de tipos só em silver+.
+# MAGIC Idêntico ao pattern já usado em `bronze/cnes_equipamentos.py`.
 # MAGIC
 # MAGIC Para reaproveitar essa pipeline para outras agendas (ex: MEDICINA NUCLEAR,
 # MAGIC ortopedia, oncologia), basta passar `procs_filter` diferente em outra task
@@ -24,6 +38,19 @@
 # MAGIC - 0409010499 — Incontinência Urinária Via Abdominal
 # MAGIC - 0409070270 — Incontinência Urinária Por Via Vaginal
 # MAGIC - 0409020117 — Incontinência Urinária (genérico)
+# MAGIC
+# MAGIC ## ⚠ Reprocessamento após esse fix (2026-04-27)
+# MAGIC Schema do parquet mudou (~18 → ~120 colunas, todas string). Cache
+# MAGIC antigo é incompatível. Antes de rerodar:
+# MAGIC ```
+# MAGIC # 1. apaga parquet intermediário (idempotência via .exists)
+# MAGIC dbutils.fs.rm("/Volumes/mirante_prd/bronze/raw/datasus/sih_rd_uropro_parquet", True)
+# MAGIC # 2. apaga checkpoint + schema location do Auto Loader
+# MAGIC dbutils.fs.rm("/Volumes/mirante_prd/bronze/raw/_autoloader/sih_aih_rd_uropro", True)
+# MAGIC # 3. dropa a Delta (recreia com schema novo)
+# MAGIC spark.sql("DROP TABLE IF EXISTS mirante_prd.bronze.sih_aih_rd_uropro")
+# MAGIC ```
+# MAGIC Silver `sih_uropro_uf_ano` já casteia explícito por coluna — não muda.
 
 # COMMAND ----------
 
@@ -85,28 +112,11 @@ from pyreaddbc import dbc2dbf
 
 RE_RD_FILE = re.compile(r"^RD(?P<uf>[A-Z]{2})(?P<yy>\d{2})(?P<mm>\d{2})\.dbc$", re.IGNORECASE)
 
-# Subset de colunas — RD tem ~120 colunas, mantemos só as relevantes pra análise.
-# O filtro acontece no convert; mais colunas = mais bytes em memória/disco.
-KEEP_COLS = (
-    "N_AIH",       # AIH number
-    "ANO_CMPT",    # ano de competência
-    "MES_CMPT",    # mês de competência
-    "UF_ZI",       # UF do estabelecimento
-    "MUNIC_RES",   # município de residência (cod IBGE 7-dig)
-    "PROC_REA",    # procedimento realizado (SIGTAP)
-    "VAL_TOT",     # valor total da AIH
-    "VAL_SH",      # valor serviços hospitalares
-    "VAL_SP",      # valor serviços profissionais
-    "DIAS_PERM",   # dias de permanência
-    "MORTE",       # 1=óbito, 0=alta
-    "CAR_INT",     # caráter atendimento (01=eletivo, 02=urgência, ...)
-    "GESTAO",      # E=estadual, M=municipal, D=dupla
-    "IDADE",       # idade
-    "COD_IDADE",   # unidade da idade (4=anos, 3=meses, ...)
-    "SEXO",        # 1=M, 3=F
-    "ESPEC",       # especialidade do leito
-    "CGC_HOSP",    # CNPJ do hospital
-)
+# Bronze = raw mirror: TODAS as colunas do DBF são preservadas. Nada de
+# subset "relevante pra análise" no bronze — esse é trabalho de silver.
+# Apenas o filtro de LINHAS por PROC_REA permanece (escopo da vertical).
+
+META_COLS = ("source_file", "estado", "ano", "mes")
 
 
 @contextmanager
@@ -159,26 +169,41 @@ def convert_one(dbc_path_str: str, out_dir_str: str, procs_filter: tuple[str, ..
             # Em alguns layouts antigos pode vir numérico — comparamos como string.
             procs_set = set(procs_filter)
             kept = []
-            for rec in DBF(str(dbf_path), encoding="latin-1", lowernames=False, ignore_missing_memofile=True):
+            dbf = DBF(str(dbf_path), encoding="latin-1", lowernames=False,
+                      ignore_missing_memofile=True)
+            # Lista de campos do layout deste DBF — usada no caso vazio para
+            # preservar o schema (parquet vazio + colunas = Auto Loader feliz).
+            dbf_field_names = [f.name for f in dbf.fields]
+            for rec in dbf:
                 proc = str(rec.get("PROC_REA", "")).strip().zfill(10)
                 if proc in procs_set:
-                    kept.append({k: rec.get(k) for k in KEEP_COLS})
+                    # dict(rec) preserva TODAS as colunas (raw mirror). Sem subset.
+                    kept.append(dict(rec))
 
-            df = pd.DataFrame(kept, columns=list(KEEP_COLS))
-
-        if df.empty:
-            # Marca arquivo como processado escrevendo um parquet vazio (mas tipado).
-            # Idempotência: próxima execução pula via .exists().
-            empty = pd.DataFrame(
-                columns=list(KEEP_COLS) + ["source_file", "estado", "ano", "mes"]
-            )
-            empty.to_parquet(out_path, index=False)
-            return dbc_path.name, "empty", 0
+            df = pd.DataFrame(kept, columns=dbf_field_names)
 
         df["source_file"] = dbc_path.name
         df["estado"]      = meta["estado"]
         df["ano"]         = meta["ano"]
         df["mes"]         = meta["mes"]
+
+        # Padrão Mirante: BRONZE É STRING-ONLY.
+        # Vide memory/feedback_bronze_string_only.md — bronze é registro
+        # fiel da fonte, sem inferência de tipo. Todo cast acontece em
+        # silver+ onde há semântica de negócio. Idêntico ao pattern de
+        # bronze/cnes_equipamentos.py.
+        for c in df.columns:
+            if c in META_COLS:
+                continue
+            df[c] = df[c].astype("string").fillna("")
+
+        if df.empty:
+            # Marca arquivo como processado escrevendo um parquet vazio mas
+            # com o schema completo (todas as colunas DBF + meta). Idempotência:
+            # próxima execução pula via .exists().
+            df.to_parquet(out_path, index=False)
+            return dbc_path.name, "empty", 0
+
         df.to_parquet(out_path, index=False)
         return dbc_path.name, "ok", len(df)
 
@@ -226,7 +251,14 @@ stream = (
     spark.readStream
         .format("cloudFiles")
         .option("cloudFiles.format", "parquet")
-        .option("cloudFiles.inferColumnTypes", "true")
+        # Bronze é STRING-ONLY (padrão da plataforma): silver downstream
+        # casteia tipos via cast explícito (DoubleType, IntegerType,
+        # StringType normalizada). Para Parquet o flag é semanticamente
+        # cosmético — o Spark lê o schema do footer — mas mantemos `false`
+        # por consistência com bronze/pbf_pagamentos.py e como sinal de
+        # intenção. O parquet em si já vem string-only por
+        # `df[c].astype("string")` no convert acima.
+        .option("cloudFiles.inferColumnTypes", "false")
         .option("cloudFiles.schemaLocation", SCHEMA_LOC)
         .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
         .load(PARQUET_DIR)
