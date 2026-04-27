@@ -120,6 +120,30 @@ def _try_extract(zp: Path) -> tuple[bool, str]:
         print(f"    ✗ {kind}: {str(e)[:200]}")
         return False, "other"
 
+
+def _validate_7z(zp: Path) -> tuple[bool, str]:
+    """Valida assinatura + central directory SEM descomprimir.
+
+    Captura: magic bytes incorretos (HTML/redirect renomeado .7z), arquivos
+    truncados (header lê mas central directory está faltando), arquivos vazios.
+    NÃO captura: corrupção de bloco interno (só pega na extração real).
+    """
+    try:
+        if not py7zr.is_7zfile(zp):
+            return False, "magic_bytes_invalid"
+    except Exception as e:
+        return False, f"is_7zfile_raised_{type(e).__name__}"
+    try:
+        with py7zr.SevenZipFile(zp, mode='r') as z:
+            names = z.getnames()
+        if not names:
+            return False, "empty_archive"
+        return True, ""
+    except Exception as e:
+        kind = type(e).__name__
+        msg = str(e)[:120]
+        return False, f"{kind}: {msg}" if msg else kind
+
 # DIAGNÓSTICO: o que está no volume antes da extração
 print(f"\n=== DIAGNÓSTICO DOS VOLUMES ===")
 print(f"ZIPS_DIR    : {ZIPS_DIR}")
@@ -163,6 +187,82 @@ if not zips:
     print(f"  3. Ou copiar via CLI:")
     print(f"     databricks fs cp ./RAIS_VINC_PUB_BR_2021.7z dbfs:{ZIPS_DIR}/")
     dbutils.notebook.exit("SKIPPED: no .7z files to extract")
+
+# ─── Pré-validação: cada .7z é checado antes do loop de extração ────────────
+# Pega TODOS os arquivos corrompidos de uma vez (não só os que o glob alcança
+# antes do loop falhar). Re-baixa do FTP PDET cada um que falhar a validação;
+# se persistir → quarentena. Pula arquivos com .done (já extraídos OK).
+print("=== PRÉ-VALIDAÇÃO DE CADA .7z ===")
+v_ok = 0; v_bad = 0; v_recovered = 0; v_quarantined = 0
+v_still_bad: list[str] = []
+
+for zp in list(zips):  # cópia: vamos re-glob no fim
+    marker_ok  = Path(TXT_EXTRACTED) / f"_{zp.stem}.done"
+    marker_bad = Path(TXT_EXTRACTED) / f"_{zp.stem}.bad"
+    if marker_ok.exists() and not FORCE_RECONVERT:
+        # Já foi extraído com sucesso em run anterior → .txt já está em TXT_EXTRACTED;
+        # não re-validamos o .7z (irrelevante pro pipeline downstream).
+        continue
+    if marker_bad.exists() and not FORCE_RECONVERT:
+        # Já tentamos antes e falhou re-download; pula até force_reconvert=true.
+        continue
+
+    is_valid, why = _validate_7z(zp)
+    if is_valid:
+        v_ok += 1
+        continue
+
+    v_bad += 1
+    print(f"  ✗ {zp.name} ({zp.stat().st_size:,} bytes) — {why}")
+    print(f"    → deletando e re-baixando do FTP {FTP_HOST}…")
+    try:
+        zp.unlink()
+    except Exception as e:
+        print(f"      ⚠ falha ao deletar: {type(e).__name__}: {e}")
+        continue
+
+    if not _ftp_redownload(zp):
+        marker_bad.write_text(
+            f"redownload_failed (validation) at {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"reason: {why}\n"
+        )
+        v_quarantined += 1
+        v_still_bad.append(zp.name)
+        continue
+
+    is_valid, why2 = _validate_7z(zp)
+    if is_valid:
+        v_recovered += 1
+        print(f"      ✓ recuperado e validado")
+        continue
+
+    print(f"      ✗ ainda inválido após re-download: {why2}")
+    bad_dest = QUARANTINE_DIR / zp.name
+    try:
+        zp.replace(bad_dest)
+        print(f"      ⚠ quarentena → {bad_dest}")
+    except Exception as e:
+        print(f"      ⚠ falha mover quarentena: {type(e).__name__}: {e}")
+    marker_bad.write_text(
+        f"bad_after_redownload (validation) at {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        f"reason_before: {why}\nreason_after: {why2}\n"
+    )
+    v_quarantined += 1
+    v_still_bad.append(zp.name)
+
+print(f"\nValidação: {v_ok} válidos, {v_bad} inválidos detectados, "
+      f"{v_recovered} recuperados via re-download, {v_quarantined} em quarentena")
+if v_still_bad:
+    print(f"\nArquivos PERMANENTEMENTE ruins (movidos pra _bad/, não vão pro bronze):")
+    for name in v_still_bad:
+        print(f"  - {name}")
+    print("  → causa provável: fonte PDET hospeda arquivo corrompido nesse path.")
+    print("  → pra retentar mais tarde: rode com force_reconvert=true.")
+
+# Re-glob: arquivos podem ter ido pra quarentena (sumiram de ZIPS_DIR)
+zips = sorted(Path(ZIPS_DIR).glob("*.7z"))
+print(f"\n.7z restantes pra extração: {len(zips)}")
+print("=== FIM PRÉ-VALIDAÇÃO ===\n")
 
 for zp in zips:
     # Marcador `.done` = extraído com sucesso. Marcador `.bad` = quarentena prévia

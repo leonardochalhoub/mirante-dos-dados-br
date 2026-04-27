@@ -521,12 +521,12 @@ export const PARECER_WP_RAIS = {
   vertical: 'rais',
   nivel: 'lato_sensu',
   scoreType: 'numeric',
-  scoreNumeric: 7.0,
+  scoreNumeric: 7.1,
   scoreOriginal: 8.0,
   originalLabel: 'Monografia UFRJ MBA, 2023 — régua lato sensu, avaliação IA',
   originalUrl: 'https://github.com/leonardochalhoub/CodingMBA_UFRJ/blob/main/Monografia_LeonardoChalhoub.pdf',
-  ultimaAtualizacao: `${HOJE}T20:10 BRT`,
-  versao: '0.5 — bronze ingest robusto: detecta Bad7zFile + re-download FTP + quarentena (banca reprovou; sem nota atribuída)',
+  ultimaAtualizacao: `${HOJE}T20:35 BRT`,
+  versao: '0.6 — pré-validação de cada .7z (magic bytes + central directory) antes da extração (banca reprovou; sem nota atribuída)',
   resumoCalibragem:
     'CONTEXTO HISTÓRICO: o autor foi REPROVADO pela banca da UFRJ ' +
     '(MBA Engenharia de Dados, set/2023). A banca não atribuiu nota ' +
@@ -549,6 +549,7 @@ export const PARECER_WP_RAIS = {
     'Spec doc explícito (docs/vertical-rais-fair-lakehouse-spec.md) documenta parecer crítico da monografia + roadmap',
     'Defensive guards em todas camadas downstream (skip on missing upstream) — evita cascade failures',
     'Bronze auto-recovery: detecta .7z corrompido (Bad7zFile), deleta + re-baixa do FTP PDET, quarenta após 1 retry — não trava por single bad file',
+    'Pré-validação por arquivo (py7zr.is_7zfile + getnames): detecta TODOS os .7z corrompidos antes do loop de extração, não só os que falham na ordem do glob',
   ],
   problemasParaNotaPlena: [
     'Pipeline em execução pela primeira vez 2026-04-27 — alguns arquivos PDET estão chegando corrompidos (ex.: BR_2009..2013 a 237KB), auto-recovery acionado',
