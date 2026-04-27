@@ -111,6 +111,10 @@ def download_one(year: int, filename: str, dest_dir: Path) -> tuple[str, str]:
         return label, "cached"
 
     tmp = dest.with_suffix(dest.suffix + ".part")
+    # Volumes Databricks (FUSE) NÃO suportam seek/append-then-write necessário
+    # pro FTP REST resume — produz OSError [Errno 29] Illegal seek. Detectamos
+    # e refazemos do zero se o resume falhar nesse modo.
+    fresh_only = False  # vira True se um resume falhou por OSError neste run
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             ftp = ftplib.FTP(FTP_HOST, timeout=FTP_TIMEOUT)
@@ -123,6 +127,9 @@ def download_one(year: int, filename: str, dest_dir: Path) -> tuple[str, str]:
             except Exception:
                 total = 0
 
+            # Se o filesystem rejeitou resume antes (OSError), forçamos fresh
+            if fresh_only and tmp.exists():
+                tmp.unlink(missing_ok=True)
             offset = tmp.stat().st_size if tmp.exists() else 0
             mode = "ab" if offset > 0 else "wb"
             if offset > 0:
@@ -154,6 +161,18 @@ def download_one(year: int, filename: str, dest_dir: Path) -> tuple[str, str]:
                     # Server refused REST or file moved — start fresh next attempt
                     if offset > 0:
                         f.close()
+                        tmp.unlink(missing_ok=True)
+                    raise
+                except OSError as e:
+                    # Filesystem rejeitou seek/append (típico de Databricks FUSE
+                    # tentando resume em .part). Marca pra próxima tentativa
+                    # ignorar o resume e baixar fresh.
+                    if offset > 0 and ("Illegal seek" in str(e) or e.errno == 29):
+                        print(f"  ⚠ {label} resume falhou em FUSE ({type(e).__name__}: {e}); "
+                              f"refazendo fresh na próxima tentativa")
+                        fresh_only = True
+                        try: f.close()
+                        except Exception: pass
                         tmp.unlink(missing_ok=True)
                     raise
 
