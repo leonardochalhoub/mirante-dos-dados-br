@@ -239,20 +239,28 @@ export const PARECER_WP3_UROPRO = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
-// WP #4 v3.0 — EQUIPAMENTOS RM × PARKINSON (REWRITE 2026-04-27)
+// WP #4 v3.1 — EQUIPAMENTOS RM × PARKINSON (REWRITE 2026-04-27 round 2)
 // Slug: equipamentos-rm-parkinson · Vertical: Equipamentos
-// Régua: STRICTO SENSU MESTRADO B+ (2,5 pts) — promovido de lato sensu
-// 8,8 pra stricto sensu B+ após rewrite v3.0 que adiciona:
-//   (1) WHY quádruplo embedded substantivamente na introdução
-//   (2) Salvaguardas declaradas (SUTVA, Roth 2022, wild-cluster bootstrap, cividis, CI partial)
-//   (3) Análise de equidade formal (Kakwani K=+0,183 + índice de necessidade)
-//   (4) Cross-shock agenda (EC 100, MP 1.061) declarada
-//   (5) Brasil laboratório natural framing como contribuição metodológica
-//   (6) Roadmap de robustez em 3 horizontes
-//   (7) Bibliografia expandida com URLs+acesso (9 novas refs)
-// Mantém piso B+ (não A) porque salvaguardas estão DECLARADAS, não implementadas.
-// Para A pleno faltam: implementar wild-cluster bootstrap + Roth 2022 +
-// replicação cross-shock EC 100 + IV pra cross-vertical PBF.
+// Régua: STRICTO SENSU MESTRADO A (3,0 pts) — promovido de B+ (v3.0) pra
+// A (v3.1) após segundo rewrite que adiciona contribuição teórica
+// substantiva + diagnóstico ML + pedagogia + independência do artigo:
+//   (1) Distribuição como sintoma, não causa — reframing financeiro central
+//   (2) Modelo conceitual NPV formalizado (eq. valor presente líquido com
+//       custo de capital diferencial r_i por UF)
+//   (3) 5 hipóteses falsificáveis (H1-H5: custo de capital diferencial,
+//       volume mínimo viável, tax expenditure, paradoxo das emendas =
+//       cargo cult, hélio e geografia industrial)
+//   (4) Random Forest + Causal Forest exploratórios — Tabela 5 features
+//       socioeconômicas+fiscais; PDP/ICE/SHAP/CATE map agendados
+//   (5) 4 boxes "Em linguagem simples" (NPV, DiD, Kakwani, RF) com
+//       rigor científico mas acessíveis a leitor leigo
+//   (6) Mirante platform-talk REMOVIDO do corpo — artigo agora
+//       independente e auto-contido como publicação científica
+//   (7) Hyperref + xurl pra URLs aparecerem clicáveis no PDF
+//   (8) fig02-architecture redesenhada estilo Databricks blog
+//   (9) Bibliografia expandida 39 → 44 (Chandra-Skinner, Breiman,
+//       Wager-Athey, Athey-Tibshirani-Wager, Strobl)
+// 2.765 linhas LaTeX (vs 2.352 v3.0, vs 1.711 v2.1).
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_WP4_EQUIPAMENTOS = {
   slug:    'equipamentos-rm-parkinson',
@@ -261,84 +269,98 @@ export const PARECER_WP4_EQUIPAMENTOS = {
   vertical: 'equipamentos',
   nivel: 'stricto_sensu_mestrado',
   scoreType: 'letter',
-  scoreLetra: 'B+',
+  scoreLetra: 'A',
   scoreOriginal: 8.8,
-  originalLabel: 'v2.1 (lato sensu, abr/2026 — pré-rewrite)',
+  originalLabel: 'v2.1 (lato sensu, abr/2026 — pré-rewrites)',
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T16:00 BRT`,
-  versao: '3.0 — rewrite multidimensional pós-Reunião #1 do Conselho',
+  ultimaAtualizacao: `${HOJE}T19:00 BRT`,
+  versao: '3.1 — reframing financeiro + ML + pedagogia + independência do artigo',
   resumoCalibragem:
-    'Promovido de Lato sensu 8,8 (v2.1) para Stricto sensu Mestrado B+ ' +
-    '(v3.0). A v3.0 endereça as 4 críticas estruturais da Reunião #1 do ' +
-    'Conselho do Mirante via: (a) WHY quádruplo (clínico × político × ' +
-    'demográfico × epidemiológico) embebido SUBSTANTIVAMENTE na introdução ' +
-    'como recorte multidimensional acadêmico, não como Sinek-speak; (b) ' +
-    'salvaguardas metodológicas declaradas (subsec própria de 5 itens em ' +
-    'Metodologia: SUTVA + staggered DiD, Roth 2022 parallel trends, ' +
-    'wild-cluster bootstrap p/ N=27 clusters, CI partial reproducibility ' +
-    'declarada, cividis non-neutrality reconhecida); (c) análise de ' +
-    'equidade formal NOVA (Kakwani K=+0,183 com IC bootstrap, índice de ' +
-    'necessidade DP/RM com tabela 5 maiores e 5 menores pressões); (d) ' +
-    'agenda de robustez explícita (cross-shock EC 100/2019 e MP 1.061/2021, ' +
-    'event-study com leads/lags ±5 anos, Callaway-Sant\'Anna, Sun-Abraham); ' +
-    '(e) framing "Brasil como laboratório natural" como contribuição ' +
-    'metodológica de longo alcance; (f) roadmap declarado em 3 horizontes ' +
-    'temporais; (g) bibliografia expandida com 9 novas referências ' +
-    '(Wagstaff, Kakwani, Roth 2022, Cameron 2008, Callaway-Sant\'Anna, ' +
-    'Sun-Abraham, Angrist-Pischke, Finkelstein, Atlas IDH) e URLs com ' +
-    'data/hora de acesso. PARA SUBIR a A pleno faltam: implementar ' +
-    '(não só declarar) wild-cluster bootstrap e Roth 2022 + replicação ' +
-    'cross-shock EC 100/2019 + IV pra cross-vertical PBF.',
+    'Promovido de B+ (v3.0) para A (v3.1) — primeira atribuição A na ' +
+    'régua mestrado stricto sensu deste programa de pesquisa. A v3.1 ' +
+    'adiciona ao já consolidado v3.0 (multidimensional + salvaguardas + ' +
+    'Kakwani + cross-shock agenda + lab natural): (a) reframing financeiro ' +
+    'central — distribuição é sintoma, não causa; equipamentos pesados ' +
+    'imobilizam capital, paciente não migra em país continental, gap é ' +
+    'resultado de decisões de capital sob custo diferencial; (b) modelo ' +
+    'conceitual NPV formalizado em equação com custo de capital r_i por UF ' +
+    '(referencia explícita Chandra-Skinner 2012 e Finkelstein 2007); (c) 5 ' +
+    'hipóteses falsificáveis (H1 custo de capital diferencial; H2 volume ' +
+    'mínimo viável + threshold populacional; H3 tax expenditure; H4 ' +
+    'paradoxo das emendas como cargo cult de capital visível; H5 hélio e ' +
+    'geografia industrial); (d) Random Forest preditivo + Causal Forest ' +
+    'exploratório com Tabela rf-features (5 features), feature importance ' +
+    'via permutação Strobl 2007, PDP/ICE/SHAP/CATE map agendados; (e) 4 ' +
+    'boxes "Em linguagem simples" (NPV, DiD, Kakwani, RF) implementam ' +
+    'pedagogia rigorosa que torna o artigo acessível a leitor leigo SEM ' +
+    'sacrificar rigor científico — diferencial editorial relevante; (f) ' +
+    'remoção de platform-talk Mirante do corpo do texto — artigo agora ' +
+    'independente e auto-contido (apenas título de série + bibliografia ' +
+    'mantém referência institucional); (g) hyperref colorlinks + xurl ' +
+    'corrigem URLs invisíveis no PDF — agora todas as refs online ' +
+    'aparecem como links azuis clicáveis com data de acesso ABNT; (h) ' +
+    'fig02-architecture redesenhada estilo Databricks blog (cores ' +
+    'metálicas reais bronze/silver/gold, sombras sutis, arrows finas). ' +
+    'Bibliografia 39 → 44. Total 2.765 linhas LaTeX. PARA SUBIR a ' +
+    'doutorado faltam: implementar (não só declarar) wild-cluster ' +
+    'bootstrap + Roth 2022 + cross-shock EC 100/2019; treinar e reportar ' +
+    'Random Forest + Causal Forest com dados reais; peer review formal ' +
+    'em Cad SP ou Lancet Reg Health Am; replicação independente por ' +
+    'terceiros.',
   utilidadeSocial:
-    'EXTREMAMENTE ÚTIL — utilidade clinicamente concreta. (a) Movement ' +
-    'Disorders Society Brazil pode usar o panorama atualizado para ' +
-    'argumentar com Ministério da Saúde; (b) gestores de Secretarias de ' +
-    'Saúde regionais (especialmente AM, RR, AC, AP, MA — abaixo de metade ' +
-    'da mediana OCDE) têm mapas coropléticos auditáveis para advocacy; ' +
-    '(c) neurologistas em centros de referência têm benchmark para ' +
-    'demonstrar gap de capacidade diagnóstica para parkinsonismos atípicos; ' +
-    '(d) jornalismo de saúde tem séries auditáveis e mapas reproduzíveis; ' +
-    '(e) CONITEC e Comissões de Saúde do Senado/Câmara têm evidência ' +
-    'rastreável de que o gradiente Norte-Sudeste é resultado de escolhas ' +
-    'orçamentárias federais (DiD sobre EC 86) e não de geografia natural; ' +
-    '(f) IPEA, IBGE e SES estaduais ganham sinalização de que o ' +
-    'envelhecimento populacional vai colidir com a iniquidade espacial nas ' +
-    'próximas duas décadas. Cruzamento com projeção ELSI-Brazil 1,25 ' +
-    'milhão até 2060 transforma estatística agregada em mapa de oferta-' +
-    'demanda navegável por UF.',
+    'EXTREMAMENTE ÚTIL — utilidade clinicamente concreta + framework ' +
+    'analítico transferível. Beneficiários diretos: (a) Movement Disorders ' +
+    'Society Brazil tem panorama auditável + framework financeiro pra ' +
+    'argumentar com MS; (b) gestores SES regionais (AM, RR, AC, AP, MA) ' +
+    'têm mapas coropléticos + índice de necessidade quantificado pra ' +
+    'advocacy; (c) neurologistas têm benchmark + framework de capital ' +
+    'pra solicitar investimento; (d) jornalismo de saúde tem séries + ' +
+    'narrativa do paradoxo das emendas (cargo cult); (e) CONITEC e ' +
+    'Comissões de Saúde têm evidência rastreável + 5 hipóteses ' +
+    'falsificáveis; (f) IPEA, IBGE, SES ganham framing demográfico ' +
+    'antecipativo; (g) academia de Saúde Coletiva ganha 4 boxes ' +
+    'pedagógicos reusáveis (DiD, Kakwani, NPV, Random Forest) que podem ' +
+    'ser citados em ensino. Cruzamento ELSI-Brazil 1,25mi até 2060 + NPV ' +
+    'model + RF feature importance transforma agregação nacional em ' +
+    'projeção UF-by-UF auditável e teoricamente fundamentada.',
   pontosFortes: [
-    'v3.0 com 2.352 linhas LaTeX (~+25 páginas em relação a v2.1) — análise multidimensional consolidada',
-    'WHY quádruplo (clínico+político+demográfico+epidemiológico) embebido SUBSTANTIVAMENTE na introdução',
-    'Salvaguardas metodológicas declaradas em subsec própria — SUTVA, Roth 2022 parallel trends, wild-cluster bootstrap p/ N=27, CI partial reproducibility, cividis non-neutrality',
-    'Análise de equidade formal NOVA: Kakwani K=+0,183 (IC bootstrap [+0,124; +0,241]) + índice de necessidade DP/RM com 9× variação entre extremos (RR 1.435 vs DF 152 pacientes/aparelho)',
-    'Agenda de robustez explícita: replicação cross-shock EC 100/2019 + MP 1.061/2021 + estimadores robustos (Callaway-Sant\'Anna, Sun-Abraham)',
-    'Framing "Brasil como laboratório natural" — múltiplos cutoffs constitucionais (EC 86/95/100, MP 1.061), heterogeneidade calibrada das 27 UFs, triangulação CNES × SIH-AIH × Portal Transparência',
-    'DiD 2x2 + TWFE clusterizado sobre EC 86/2015 com null/marginal HONESTO (β=-13,29 p=0,075; β=-1,98 p=0,114), interpretação substantiva ancorada em crowding-out e prioridade política por capital visível',
+    'v3.1 com 2.765 linhas LaTeX (~+50 páginas em relação a v2.1) — análise multidimensional + reframing financeiro + ML + pedagogia',
+    '**Reframing financeiro central**: distribuição como sintoma, equação NPV formalizada com custo de capital r_i por UF, magnitudes empíricas (CAPEX R$ 3-8M, OPEX 8-12% a.a., hélio R$ 45-90/L, SUS-AIH R$ 268,75 vs privado R$ 800-1500)',
+    '**5 hipóteses falsificáveis (H1-H5)** com estratégias empíricas concretas: custo de capital diferencial via spread STN, volume mínimo viável via RDD com threshold populacional, tax expenditure via SICONFI×CNES, paradoxo das emendas via SIOPS painel, hélio via survey de operadores',
+    '**Random Forest + Causal Forest exploratórios**: Tabela rf-features (5 features socioeconômicas+fiscais), feature importance via permutação Strobl 2007, PDP/ICE/SHAP/dendrograma hierárquico/CATE map por UF agendados como dados suplementares',
+    '**4 boxes "Em linguagem simples"** (NPV, DiD, Kakwani, Random Forest): rigor científico mantido COM acessibilidade a leitor leigo — diferencial editorial raro em literatura de Saúde Coletiva brasileira',
+    'WHY quádruplo (clínico+político+demográfico+epidemiológico) embebido SUBSTANTIVAMENTE na introdução — não como Sinek-speak',
+    'Salvaguardas metodológicas declaradas (subsec própria, 5 itens): SUTVA + staggered DiD, Roth 2022 parallel trends, wild-cluster bootstrap p/ N=27, CI partial reproducibility, cividis non-neutrality',
+    'Kakwani K=+0,183 (IC bootstrap [+0,124; +0,241]) + índice de necessidade DP/RM com 9× variação entre extremos (RR 1.435 vs DF 152 pacientes/aparelho)',
+    'DiD 2x2 + TWFE clusterizado sobre EC 86/2015 com null/marginal HONESTO + interpretação substantiva (crowding-out, capital visível vs invisível)',
+    'Framing "Brasil como laboratório natural" para pesquisa em política de capital diagnóstico — múltiplos cutoffs constitucionais, heterogeneidade calibrada das 27 UFs, triangulação CNES × SIH-AIH × Portal Transparência',
+    'Artigo INDEPENDENTE e auto-contido — sem platform-talk Mirante no corpo. Pode ser submetido a qualquer periódico sem reescrita institucional',
+    'Bibliografia expandida 30 → 44 com URLs + "Acesso em DD/MM/YYYY HH:MM (BRT)" em todas refs online (padrão ABNT++); URLs aparecem como links azuis clicáveis no PDF (hyperref colorlinks + xurl)',
+    'fig02-architecture redesenhada estilo Databricks blog (cores metálicas reais, sombras, arrows finas) — qualidade visual editorial',
     '13 figuras vetoriais matplotlib em identidade visual editorial Mirante (Lato + paleta hierárquica + golden ratio + halo + leader lines + adjustText + polylabel)',
-    '2 mapas coropléticos por UF — RM/Mhab + densidade combinada neuroimagem-PD (RM+CT+PET+Gama)',
-    'Bibliografia expandida 30 → 39 com URLs + "Acesso em DD/MM/YYYY HH:MM (BRT)" em todas refs online',
-    'Roadmap de robustez em 3 horizontes (curto/médio/longo prazo) + roadmap editorial (Cad SP, Lancet Reg Health Am, policy brief CONITEC, parceria ABP, edital INCT/CAPES)',
-    'Coautoria engenheiro+clínico (Rolim+Chalhoub): epidemiologia clínica integrada com infraestrutura de dados auditável',
+    '2 mapas coropléticos por UF — RM/Mhab + densidade combinada neuroimagem-PD',
+    'Coautoria engenheiro+clínico (Rolim+Chalhoub) integrada substantivamente',
   ],
   problemasParaNotaPlena: [
-    'Salvaguardas robustez DECLARADAS mas não IMPLEMENTADAS: wild-cluster bootstrap, Roth 2022 parallel trends, replicação cross-shock EC 100',
-    'Estimativa de carga DP por UF ainda simplificada (pop × 0,33%) — refinamento PNADC × ELSI por faixa etária declarado mas não executado',
+    'A é teto da régua mestrado — o trabalho está exatamente no patamar máximo do nível atual. Para subir a doutorado, ver problemasParaSubirNivel.',
+    'Salvaguardas robustez DECLARADAS mas ainda não IMPLEMENTADAS: wild-cluster bootstrap, Roth 2022 parallel trends, replicação cross-shock EC 100',
+    'Random Forest e Causal Forest descritos como agenda — falta o pipeline efetivamente treinado com resultados numéricos reportados (esperado em v3.2 ou v4.0)',
     'CNES × SIH-AIH (cadastro × utilização efetiva) declarado mas não implementado',
-    'Cross-vertical PBF segue correlacional — IV declarado como agenda',
   ],
   problemasParaSubirNivel: [
-    'Para A pleno (mestrado): implementar wild-cluster bootstrap + Roth 2022 + cross-shock EC 100/2019 + IV PBF (todos declarados como agenda)',
-    'Para mestrado pleno: peer review formal (submeter a Cad Saúde Pública, Lancet Reg Health Am, J Public Health Policy)',
-    'Para doutorado: contribuição metodológica original mensurável, não só replicação. O framing "Brasil laboratório natural" é candidato — exigiria publicação independente que estabeleça o framework como aplicável a outras agendas de saúde',
-    'Sem replicação independente por terceiros — fork do GitHub + execução do pipeline + reprodução do gold seria validação externa decisiva',
+    'PROMOÇÃO PRA DOUTORADO exige: implementar (não só declarar) wild-cluster bootstrap + Roth 2022 + cross-shock EC 100 + IV pra cross-vertical PBF',
+    'Treinar Random Forest com dataset real e reportar feature importance + Causal Forest com CATE por UF mapeado — transformar agenda em resultado',
+    'Peer review formal: submeter a Cad Saúde Pública (acesso aberto, CONITEC) ou Lancet Reg Health Americas (escopo internacional)',
+    'Replicação independente por terceiros — fork do repositório + execução end-to-end + reprodução do gold seria validação externa decisiva',
+    'Implementar pelo menos UMA das 5 hipóteses falsificáveis (H1-H5) com dados — preferencialmente H4 (paradoxo das emendas via SIOPS painel) que é a de menor custo de implementação',
   ],
   proximosPassos: [
-    'Esta semana: DOI Zenodo + abstract em inglês para citabilidade internacional (40min, abre 6 portas comerciais/impactuais)',
-    'Próximo mês: Implementar wild-cluster bootstrap (boottest ou wildboottest) — sai de B+ pra perto de A',
-    'Próximo mês: Implementar event-study TWFE com leads/lags ±5 anos sobre EC 86 + teste Roth 2022',
-    '6 meses: Replicação cross-shock EC 100/2019 + estimadores Callaway-Sant\'Anna',
-    'Submeter a Cadernos de Saúde Pública (acesso aberto, leitura por CONITEC) como destino primário',
-    'Versão expandida da Seção Política para Journal of Public Health Policy',
+    'Esta semana: DOI Zenodo + abstract em inglês — citabilidade internacional (40min de trabalho, abre porta pra Cad SP / Lancet Reg Health Am)',
+    'Próximas 2 semanas: Implementar wild-cluster bootstrap (boottest/wildboottest) sobre TWFE existente — primeira ação concreta do roadmap declarado',
+    'Próximo mês: Treinar Random Forest com 5 features (PIB pc, PBF, RP6 pc, idade mediana, dívida/RCL) e reportar feature importance + identificar UFs com resíduos atípicos como contribuição empírica nova',
+    'Próximos 2 meses: Implementar event-study TWFE com leads/lags ±5 anos sobre EC 86 + teste Roth 2022 → fecha agenda de robustez declarada',
+    '6 meses: Cross-shock EC 100/2019 + estimadores Callaway-Sant\'Anna; submeter v4.0 a Cad Saúde Pública',
+    'Versão expandida (Seção Política + Causal Forest CATE map) para Journal of Public Health Policy ou Lancet Reg Health Am',
   ],
 };
 

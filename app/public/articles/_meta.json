@@ -1,5 +1,5 @@
 {
-  "manifest_built_at": "2026-04-27T03:51:09.275Z",
+  "manifest_built_at": "2026-04-27T03:57:52.747Z",
   "articles": {
     "bolsa-familia": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",
@@ -14,12 +14,12 @@
       "tex_last_sha": "dda3e6e"
     },
     "equipamentos-panorama-cnes": {
-      "tex_last_edited": "2026-04-27T00:42:07-03:00",
-      "tex_last_sha": "5f08b64"
+      "tex_last_edited": "2026-04-27T00:52:00-03:00",
+      "tex_last_sha": "4b81246"
     },
     "equipamentos-rm-parkinson": {
-      "tex_last_edited": "2026-04-27T00:07:30-03:00",
-      "tex_last_sha": "06a177c"
+      "tex_last_edited": "2026-04-27T00:52:00-03:00",
+      "tex_last_sha": "4b81246"
     },
     "rais-fair-lakehouse": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",
