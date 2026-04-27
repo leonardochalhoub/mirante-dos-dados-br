@@ -154,7 +154,7 @@ def download_one(year: int, filename: str, dest_dir: Path) -> tuple[str, str]:
                 tmp.replace(dest)
                 return label, "ok"
             # Short or partial — leave .part so next attempt resumes
-        except (ftplib.all_errors, EOFError, OSError) as e:
+        except (*ftplib.all_errors, EOFError, OSError) as e:
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_DELAY_S * attempt)
                 continue
