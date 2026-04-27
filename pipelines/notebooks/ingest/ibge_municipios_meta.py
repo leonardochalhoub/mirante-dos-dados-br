@@ -1,4 +1,9 @@
 # Databricks notebook source
+# MAGIC %pip install shapely --quiet
+# MAGIC %restart_python
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC # ingest · ibge_municipios_meta
 # MAGIC

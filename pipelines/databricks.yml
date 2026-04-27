@@ -126,6 +126,61 @@ resources:
         timezone_id: UTC
         pause_status: PAUSED
 
+    # ─── Muni pipeline: silver+coords+gold+export pra WP#7 v2.0 ─────────────
+    # Assume bronze.pbf_pagamentos já populado (job_pbf_refresh) e
+    # silver.populacao_municipio_ano já populado (job_populacao_municipios_refresh).
+    # Roda silver muni PBF + coords (precisa de meta ingest) + gold + export.
+    job_pbf_municipios_pipeline:
+      name: refresh PBF municipal (silver + coords + gold + export)
+      tags:
+        team: mirante
+        domain: pbf
+        layer: orchestration
+        pattern: medallion
+        cadence: ad-hoc
+        granularity: municipio
+        vertical: pbf_wp7
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: ingest_ibge_municipios_meta
+          notebook_task:
+            notebook_path: ./notebooks/ingest/ibge_municipios_meta.py
+            base_parameters:
+              catalog:    "${var.catalog}"
+              years:      "2013-2024"
+              workers:    "8"
+              ref_volume: "/Volumes/${var.catalog}/bronze/raw/ibge"
+
+        - task_key: silver_coords_municipios
+          depends_on: [{ task_key: ingest_ibge_municipios_meta }]
+          notebook_task:
+            notebook_path: ./notebooks/silver/coords_municipios.py
+            base_parameters:
+              catalog: "${var.catalog}"
+
+        - task_key: silver_pbf_total_municipio_mes
+          notebook_task:
+            notebook_path: ./notebooks/silver/pbf_total_municipio_mes.py
+            base_parameters:
+              catalog: "${var.catalog}"
+
+        - task_key: gold_pbf_municipios_df
+          depends_on:
+            - { task_key: silver_pbf_total_municipio_mes }
+            - { task_key: silver_coords_municipios }
+          notebook_task:
+            notebook_path: ./notebooks/gold/pbf_municipios_df.py
+            base_parameters:
+              catalog: "${var.catalog}"
+
+        - task_key: export_pbf_municipios_df_json
+          depends_on: [{ task_key: gold_pbf_municipios_df }]
+          notebook_task:
+            notebook_path: ./notebooks/export/pbf_municipios_df_json.py
+            base_parameters:
+              catalog:     "${var.catalog}"
+              output_path: "/Volumes/${var.catalog}/gold/exports/gold_pbf_municipios_df.json"
+
     # ─── Shared dimension: ipca_deflators_2021 ──────────────────────────────
     job_ipca_refresh:
       name: refresh ipca_deflators_2021
