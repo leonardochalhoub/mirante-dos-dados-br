@@ -74,7 +74,9 @@ const METRICS = {
 };
 
 const DEFAULT_METRIC = 'pbfPerCapita';
-const DEFAULT_COLOR  = 'Cividis';
+// YlOrRd: amarelo (low) → vermelho escuro (high), naturalmente claro→escuro,
+// daltônico-safe via ColorBrewer, mais vivo que Cividis pra choropleth.
+const DEFAULT_COLOR  = 'YlOrRd';
 
 // Gold filtra anos parciais por contagem de meses (silver pbf_total_uf_mes tem Mes;
 // gold mantém só Anos com 12 meses distintos). Front confia no que o JSON entrega.
