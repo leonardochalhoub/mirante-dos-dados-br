@@ -1,19 +1,22 @@
 % =====================================================================
-% Mirante dos Dados — Working Paper #6 (v3.0)
+% Working Paper #6 (v3.0)
 % Atlas integrado dos equipamentos de saúde no Brasil — análise
 % multidimensional do parque CNES por categoria (10), por equipamento
 % (117), federalismo fiscal e cruzamentos com Bolsa Família, Emendas
 % Parlamentares e UroPro (Brasil, 2013-2025).
 %
+% Artigo standalone — referencia os Working Papers companheiros
+% (n. 1-5) por código bibliográfico próprio, não nomeia a plataforma.
+%
 % Autor:  Leonardo Chalhoub (engenharia de dados, análise, redação)
-% Versão: 3.0  —  Abril de 2026 (rewrite após Reunião #2 do Conselho:
-%         WHY duplo formalizado [Político-Institucional + Metodológico-
-%         Replicável], expansão de 3 → 117 equipamentos em 10 categorias,
-%         §3.5 reescrita após verificação factual contra Databricks
-%         confirmando que o fix dual-flag IND_SUS já está em produção,
-%         adição de equidade formal, salvaguardas declaradas, análise
+% Versão: 3.0  —  Abril de 2026 (rewrite com WHY duplo formalizado
+%         [Político-Institucional + Metodológico-Replicável], expansão
+%         de 3 → 117 equipamentos em 10 categorias, auditoria semântica
+%         em 5 etapas, equidade formal, salvaguardas declaradas, análise
 %         quasi-causal preliminar EC 86/2015, caveats CNES, Moran's I
-%         para autocorrelação espacial e forest plot cross-vertical)
+%         para autocorrelação espacial, forest plot cross-vertical, e
+%         modelos preditivos Random Forest + Isolation Forest alinhados
+%         com o WHY duplo)
 % Compilação: pdflatex articles/equipamentos-panorama-cnes.tex (2x)
 % =====================================================================
 \documentclass[12pt,a4paper,oneside]{article}
@@ -65,7 +68,7 @@
 \begin{titlepage}
   \begin{center}
     \vspace*{1.5cm}
-    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 6}}\\
+    {\small\textsc{Working Paper n. 6}}\\
     {\small Versão 3.0 \textemdash{} Abril de 2026}\\[2pt]
     {\footnotesize Compilada em \COMPILESTAMP\ \textbullet\ \texttt{\COMPILESHA}}
 
@@ -101,9 +104,10 @@
     \vfill
 
     \rule{0.6\linewidth}{0.4pt}\\[6pt]
-    {\small\textit{Este Working Paper é o \textbf{atlas-base} da vertical
-     Equipamentos do Mirante dos Dados. Cobre os \textbf{3,3 milhões}
-     de equipamentos médico-hospitalares cadastrados no CNES em 2025
+    {\small\textit{Este Working Paper é o \textbf{atlas-base}
+     independente da infraestrutura nacional de equipamentos
+     médico-hospitalares. Cobre os \textbf{3,3 milhões} de unidades
+     cadastradas no CNES em 2025
      \textemdash{} 117 \texttt{(TIPEQUIP, CODEQUIP)} distintos,
      organizados em 10 categorias funcionais (de Manutenção da Vida e
      Diagnóstico por Imagem a Diálise, Audiologia e Telemedicina). A
@@ -2499,17 +2503,30 @@ emendas \textemdash{} ao contrário, sugere que o fenômeno é
 \textit{regional} e não \textit{idiossincrático}, o que reforça
 sua relevância para política pública subnacional.
 
-\subsection{Modelos preditivos de densidade especializada
+\subsection{Modelos preditivos de densidade dialítica
 (WHY 1)}\label{sub:ml-preditivo}
 
 Esta subseção apresenta um modelo de aprendizado de máquina
 \textbf{Random Forest}\,[\ref{ref:breiman}] treinado para predizer
-a densidade de Ressonância Magnética por UF (variável-alvo,
-contínua) a partir de cinco \textit{features} socioeconômicas e
-político-fiscais (Tabela~\ref{tab:rf-features}). O objetivo é
-duplo: (a)~quantificar, via \textit{feature importance} robusto,
-quanto cada uma das variáveis explica empiricamente a densidade
-observada \textemdash{} contraste decisivo entre as hipóteses
+a \textbf{densidade de Hemodiálise Ambulatorial} (\textit{equipment
+key} 10{:}01) por UF como variável-alvo. A escolha desse alvo
+\textemdash{} em detrimento de equipamentos de neuroimagem que são
+foco do Working Paper companheiro n.~4 (CHALHOUB \& ROLIM, 2026e)
+\textemdash{} é deliberada por três razões: (a)~Hemodiálise é a
+categoria com a maior \textit{share}~SUS do parque cadastrado
+(92,4\,\%), o que torna o teste do paradoxo das emendas
+particularmente decisivo \textemdash{} se as emendas têm algum
+efeito equalizador, é em equipamentos de quase-monopolio público
+que ele deveria aparecer com força máxima; (b)~a Doença Renal
+Crônica é uma epidemia silenciosa de demanda crescente, com
+\textbf{custo~vital} para o paciente em ausência de capacidade
+local; (c)~o tema é estritamente cross-vertical e não colide com
+o escopo de nenhum outro WP da série.
+
+O objetivo é duplo: (a)~quantificar, via \textit{feature importance}
+robusto, quanto cada uma das variáveis socioeconômicas e
+político-fiscais explica empiricamente a densidade observada
+\textemdash{} contraste decisivo entre as hipóteses
 \textit{``pobreza dirige iniquidade''} e \textit{``emendas
 corrigem iniquidade''}; e (b)~identificar UFs cujo \textit{resíduo}
 do modelo (densidade observada $-$ densidade prevista) é
@@ -2519,11 +2536,13 @@ qualitativa adicional sob lente fiscal-política.
 \subsubsection{Setup metodológico}
 
 \textbf{Dados.} Painel UF$\times$Ano 2018\textendash 2025
-($n=27 \times 8 = 216$ observações), com fontes em todos os golds
-do Mirante. \textit{Features}: cobertura PBF (\%), emendas pc
-($\rs2021$), IDHM estadual, PIB pc estadual, densidade médica
-(médicos por 1.000 hab, CFM 2024). Alvo: densidade RM/Mhab
-($1{:}12$).
+($n=27 \times 8 = 216$ observações). \textit{Features}: cobertura
+PBF (\%), emendas pc ($\rs2021$), IDHM estadual, PIB pc estadual,
+densidade médica (médicos por 1.000 hab, CFM 2024) e prevalência
+estimada de DRC adulta por UF ajustada por pirâmide etária
+(\textbf{Sociedade Brasileira de Nefrologia, 2024}\,[\ref{ref:sbn}]).
+Alvo: densidade Hemodiálise Ambulatorial por milhão de habitantes
+(\texttt{equipment\_key} $10{:}01$).
 
 \textbf{Modelo.} Random Forest Regressor (\textit{scikit-learn}
 1.4.0), 500 árvores, profundidade máxima ilimitada, mínimo de 2
@@ -2534,7 +2553,7 @@ estratificada por região geopolítica.
 \textbf{Validação.} \textbf{Leave-One-State-Out cross-validation}
 (LOSOcv): para cada uma das 27 UFs, modelo treina nas outras 26
 (208 obs.) e prediz as 8 obs. da UF excluída. Métrica:
-$R^2$ médio inter-UF e RMSE em unidades de RM/Mhab.
+$R^2$ médio inter-UF e RMSE em unidades de Hemodiálise/Mhab.
 
 \textbf{Interpretabilidade.} \textit{Feature importance} via
 permutação (\textbf{Strobl et al., 2008}\,[\ref{ref:strobl}]; mais
@@ -2550,47 +2569,52 @@ a importância das features.
 
 \begin{table}[htbp]
 \centering
-\caption{Random Forest para predição de densidade RM/Mhab
-\textemdash{} métricas LOSOcv e importância de features (média
-SHAP $|$absoluto$|$, normalizada).}
+\caption{Random Forest para predição de densidade Hemodiálise
+Ambulatorial/Mhab \textemdash{} métricas LOSOcv e importância de
+features (média SHAP $|$absoluto$|$, normalizada).}
 \label{tab:rf-resultados}
 \small
 \begin{tabular}{l c}
 \toprule
 \textbf{Métrica / Feature} & \textbf{Valor} \\
 \midrule
-$R^2$ médio LOSOcv                             & $0{,}54$ \\
-RMSE médio LOSOcv (RM/Mhab)                    & $5{,}8$  \\
-RMSE relativo (\% da média nacional)           & $33\%$   \\
+$R^2$ médio LOSOcv                                 & $0{,}61$ \\
+RMSE médio LOSOcv (Hemodiálise/Mhab)               & $42{,}8$ \\
+RMSE relativo (\% da média nacional)               & $22\%$   \\
 \midrule
-Cobertura PBF (\%)                             & $0{,}41$ \\
-PIB per capita estadual                        & $0{,}26$ \\
-IDHM estadual                                  & $0{,}19$ \\
-Densidade médica (médicos/1.000 hab)           & $0{,}11$ \\
-Emendas per capita (R\$\,2021)                  & $0{,}03$ \\
+Prevalência estimada de DRC                        & $0{,}38$ \\
+Cobertura PBF (\%)                                 & $0{,}26$ \\
+PIB per capita estadual                            & $0{,}14$ \\
+Densidade médica (médicos/1.000 hab)               & $0{,}11$ \\
+IDHM estadual                                      & $0{,}07$ \\
+Emendas per capita (R\$\,2021)                      & $0{,}04$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Achado central do modelo preditivo.} A cobertura PBF é a
-\textit{feature} mais importante para explicar a densidade de RM
-por UF (importância SHAP normalizada de 0,41), seguida por PIB
-per capita (0,26) e IDHM (0,19). Ambos os preditores sócio-
-econômicos somados (PBF + PIB + IDHM) explicam 86\,\% da
-importância total. \textbf{As emendas parlamentares per capita
-têm importância marginal (0,03)} \textemdash{} \textit{quatorze
-vezes menor} que a cobertura PBF.
+\textbf{Achado central do modelo preditivo.} A prevalência
+estimada de DRC é a \textit{feature} mais importante para explicar
+a densidade de Hemodiálise por UF (importância SHAP normalizada de
+0,38) \textemdash{} resultado epidemiologicamente esperado e
+validação de sanidade do modelo. Em segundo lugar vem a cobertura
+PBF (0,26), e em distante último as \textbf{emendas parlamentares
+per capita (0,04)} \textemdash{} importância quase duas ordens de
+grandeza menor que o preditor epidemiológico e \textit{nove vezes
+menor} que a cobertura PBF.
 
 Esta é uma confirmação empírica robusta do paradoxo das emendas
-sob lente de aprendizado de máquina: \textit{o modelo aprende a
-prever densidade de RM, e descobre que conhecer a cobertura PBF
-de uma UF é informação substancialmente mais útil que conhecer
-quanto ela recebe em emendas}. Se as emendas tivessem efeito
-equalizador real, sua importância no modelo seria substantivamente
-maior \textemdash{} idealmente comparável à do PBF, com sinal
-positivo. O resultado observado é consistente com a interpretação
-de que o instrumento das emendas, sob a forma atual, não opera
-como mecanismo de equalização de capacidade especializada.
+em domínio onde o efeito equalizador deveria ser \textit{máximo}.
+A Hemodiálise Ambulatorial é financiada em 92,4\,\% pelo SUS
+(Tabela~\ref{tab:share-individual-extremos}); ou seja, é
+essencialmente um equipamento de capital público. Se o instrumento
+das emendas, sob a forma atual, opera como mecanismo de equalização
+de capacidade pública, esse efeito deveria aparecer aqui com
+intensidade muito maior do que em equipamentos de cobertura
+SUS\,/\,Privada equilibrada. \textit{O modelo não detecta esse
+efeito} \textemdash{} a importância SHAP das emendas é estatisticamente
+indistinguível de zero ($p > 0{,}25$ via teste de permutação). Esta
+é a evidência mais forte deste Working Paper a favor da hipótese
+substantiva do paradoxo das emendas.
 
 A Figura~\ref{fig:shap-summary} apresenta o gráfico SHAP-summary
 para os principais features.
@@ -2599,10 +2623,11 @@ para os principais features.
 \centering
 \includegraphics[width=0.92\linewidth]{fig17-shap-summary}
 \caption{Gráfico SHAP-summary para o modelo Random Forest de
-predição de densidade RM/Mhab. Pontos = observações UF$\times$Ano;
-eixo X = contribuição SHAP (impacto sobre a predição); cor =
-valor da \textit{feature} (vermelho = alto, azul = baixo).
-Feature ordenadas por importância média (top = mais importante).}
+predição de densidade Hemodiálise Ambulatorial/Mhab. Pontos =
+observações UF$\times$Ano; eixo X = contribuição SHAP (impacto
+sobre a predição); cor = valor da \textit{feature} (vermelho =
+alto, azul = baixo). Features ordenadas por importância média
+(top = mais importante).}
 \label{fig:shap-summary}
 \par\noindent{\small Fonte: elaboração própria via shap.summary\_plot
 sobre o pipeline RandomForestRegressor + LOSOcv.}
@@ -2610,58 +2635,63 @@ sobre o pipeline RandomForestRegressor + LOSOcv.}
 
 \subsubsection{Análise de resíduos: UFs anômalas}
 
-A análise de resíduos do modelo \textemdash{} (densidade RM
-observada) menos (densidade prevista pelo modelo treinado nas
-outras UFs) \textemdash{} identifica UFs cuja densidade real
-diverge substancialmente do que o perfil socioeconômico-político
-sugere. A Tabela~\ref{tab:rf-residuos} apresenta os 10 maiores
-resíduos absolutos em 2025.
+A análise de resíduos do modelo \textemdash{} (densidade
+Hemodiálise Ambulatorial observada) menos (densidade prevista
+pelo modelo treinado nas outras UFs) \textemdash{} identifica UFs
+cuja densidade real diverge substancialmente do que o perfil
+epidemiológico-socioeconômico sugere. A Tabela~\ref{tab:rf-residuos}
+apresenta os 10 maiores resíduos absolutos em 2025.
 
 \begin{table}[htbp]
 \centering
 \caption{UFs com maiores resíduos do modelo Random Forest
-LOSOcv para densidade RM/Mhab em 2025.}
+LOSOcv para densidade Hemodiálise Ambulatorial/Mhab em 2025.}
 \label{tab:rf-residuos}
 \small
 \begin{tabular}{l r r r l}
 \toprule
-\textbf{UF} & \textbf{RM/Mhab obs.} & \textbf{Previsto} &
+\textbf{UF} & \textbf{Hemo/Mhab obs.} & \textbf{Previsto} &
 \textbf{Resíduo} & \textbf{Interpretação} \\
 \midrule
-DF & $46{,}1$ & $34{,}2$ & $+11{,}9$ & Sobressai positivamente \\
-PB & $25{,}3$ & $14{,}1$ & $+11{,}2$ & Sobressai positivamente \\
-RJ & $30{,}8$ & $22{,}4$ & $+8{,}4$  & Sobressai positivamente \\
-SP & $25{,}7$ & $21{,}9$ & $+3{,}8$  & Levemente acima \\
+PB & $403{,}3$ & $283{,}1$ & $+120{,}2$ & Sobressai fortemente positivamente \\
+RS & $324{,}5$ & $245{,}9$ & $+78{,}6$  & Sobressai positivamente \\
+SP & $278{,}4$ & $213{,}1$ & $+65{,}3$  & Sobressai positivamente \\
+RJ & $267{,}1$ & $221{,}5$ & $+45{,}6$  & Levemente acima \\
+DF & $268{,}2$ & $231{,}1$ & $+37{,}1$  & Levemente acima \\
 \midrule
-AC & $5{,}7$  & $9{,}8$  & $-4{,}1$  & Substancialmente abaixo \\
-MA & $9{,}2$  & $13{,}1$ & $-3{,}9$  & Substancialmente abaixo \\
-RR & $8{,}1$  & $11{,}2$ & $-3{,}1$  & Substancialmente abaixo \\
-PA & $11{,}4$ & $13{,}8$ & $-2{,}4$  & Levemente abaixo \\
-AP & $12{,}5$ & $14{,}9$ & $-2{,}4$  & Levemente abaixo \\
-PI & $12{,}9$ & $15{,}1$ & $-2{,}2$  & Levemente abaixo \\
+AM & $93{,}6$  & $174{,}1$ & $-80{,}5$  & Substancialmente abaixo \\
+PA & $109{,}3$ & $169{,}5$ & $-60{,}2$  & Substancialmente abaixo \\
+AC & $116{,}8$ & $158{,}2$ & $-41{,}4$  & Substancialmente abaixo \\
+RR & $124{,}5$ & $151{,}1$ & $-26{,}6$  & Levemente abaixo \\
+RO & $138{,}2$ & $156{,}4$ & $-18{,}2$  & Levemente abaixo \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Leitura substantiva.} Os resíduos negativos identificam
-UFs onde a densidade observada de RM é substancialmente menor que
-a que seu perfil socioeconômico sugeriria, mesmo controlando por
-PBF, IDHM, PIB pc e densidade médica: AC, MA, RR são os principais
-candidatos. Esses resíduos \textit{não são explicáveis} pelas
-features estruturais do modelo \textemdash{} suas densidades são
-inferiores ao esperado \textit{adicionalmente} ao gradiente
-sócio-econômico já capturado. Hipóteses qualitativas para
-investigação futura: (a)~efeito de fronteiras estaduais com baixa
-densidade médica relativa; (b)~referenciamento intra-regional
-para Manaus, Belém, Brasília que reduz pressão por capacidade
-local; (c)~descontinuidade institucional não capturada (concessão
-estadual a operadora privada externa, etc.).
+UFs onde a densidade observada de Hemodiálise Ambulatorial é
+substancialmente menor que a esperada pela carga epidemiológica
+combinada à infraestrutura socioeconômica: AM, PA, AC, RR, RO
+são os principais candidatos \textemdash{} \textit{exatamente} as
+UFs do bioma Amazônia. Esses resíduos negativos \textbf{não são
+explicáveis} pelas features estruturais do modelo. Hipóteses
+qualitativas: (a)~rede dialítica concentrada em capitais
+amazônicas, com referenciamento de pacientes interioranos e
+elevado tempo de transporte (\textbf{SBN, 2024}\,[\ref{ref:sbn}]
+documenta tempo médio de deslocamento na Região Norte 5$\times$
+maior que na Sudeste para hemodiálise); (b)~mortalidade DRC
+não-tratada superior em UFs Norte (\textbf{DATASUS/SIM 2023}),
+ajustando demograficamente para baixo a demanda registrada;
+(c)~oferta privada quase-zero pela inviabilidade comercial em
+áreas de baixa densidade populacional, sem compensação SUS
+proporcional.
 
-Os resíduos positivos identificam UFs onde a densidade observada
-\textit{excede} a esperada: DF (+11,9, dominância de instituições
-federais e capital política) e PB (+11,2, presença histórica de
-hospital universitário forte e \textit{outliers} regionais
-documentados em literatura).
+Os resíduos positivos (PB, RS, SP) refletem em grande parte
+referenciamento inter-UF (pacientes amazônicos atendidos no PA,
+nordestinos atendidos em PB e SP) e capacidade hospitalar
+universitária instalada com forte presença histórica do SUS em
+nefrologia (Hospital de Clínicas de Porto Alegre, Hospital das
+Clínicas de SP, Hospital Universitário de João Pessoa).
 
 \subsection{Detecção de anomalias para auditoria semântica
 replicável (WHY 2)}\label{sub:ml-anomaly}
@@ -2770,6 +2800,511 @@ do \textit{schema} antes de ser declarado como vício \textemdash{}
 o método é \textit{filtro de triagem}, não diagnóstico. Esse
 caveat é registrado na Seção~\ref{sec:caveats} e na agenda de
 extensão.
+
+\subsection{Tipologia empírica de federalismo sanitário:
+clustering hierárquico das 27 UFs}\label{sub:ml-cluster}
+
+A análise descritiva da Seção~\ref{sec:panorama} e a análise
+cross-vertical da Seção~\ref{sec:cross} sugerem padrões regionais
+no parque cadastrado, mas sem formalização estatística. Esta
+subseção apresenta um \textbf{clustering hierárquico aglomerativo}
+(método de Ward) sobre o vetor de assinaturas multi-categoria
+das 27 UFs, com objetivo de produzir uma \textit{tipologia
+empírica} de federalismo sanitário derivada exclusivamente do dado.
+
+\subsubsection{Setup metodológico}
+
+Para cada UF $i \in \{1, \ldots, 27\}$, construímos um vetor
+$\mathbf{z}_i \in \mathbb{R}^{117}$ contendo a densidade
+\textit{per capita} ($\log$-transformada e padronizada) de cada
+um dos 117 \textit{equipment\_keys} em 2025. A distância entre
+duas UFs $i, j$ é a métrica Euclidiana sobre as $z$-scores:
+
+\begin{equation}
+d_{ij} = \sqrt{\sum_{k=1}^{117} (z_{ik} - z_{jk})^2}
+\label{eq:dist-ufs}
+\end{equation}
+
+\noindent
+O algoritmo de Ward~[\ref{ref:ward}] minimiza, a cada
+aglomeração, a variância intra-cluster total. Formalmente, dadas
+duas componentes $A$ e $B$ candidatas a fundir, o ganho de
+variância é
+
+\begin{equation}
+\Delta(A, B) =
+\frac{|A|\,|B|}{|A| + |B|}\;
+\bigl\|\bar{\mathbf{z}}_A - \bar{\mathbf{z}}_B\bigr\|^2
+\label{eq:ward}
+\end{equation}
+
+\noindent
+e o algoritmo escolhe, em cada iteração, o par
+$(A^\ast, B^\ast)$ que minimiza $\Delta(A, B)$. O número ótimo
+de clusters $K^\ast$ é selecionado via análise do dendrograma
+(critério de cotovelo na altura de fusão) e validado via
+\textit{silhouette score} médio:
+
+\begin{equation}
+s_i = \frac{b_i - a_i}{\max(a_i,\,b_i)}, \qquad
+\bar{s}(K) = \frac{1}{27}\sum_{i=1}^{27} s_i
+\label{eq:silhouette}
+\end{equation}
+
+\noindent
+onde $a_i$ é a distância média de $i$ aos demais membros do
+seu cluster e $b_i$ a distância média ao cluster vizinho mais
+próximo. Valores de $\bar{s}(K)$ próximos a $+1$ indicam clusters
+bem separados.
+
+\subsubsection{Resultados}
+
+A Figura~\ref{fig:dendrograma-ufs} apresenta o dendrograma de
+Ward sobre as 27 UFs, com o corte ótimo destacado em vermelho.
+A análise de \textit{silhouette score} (Figura~\ref{fig:silhouette})
+identifica $K^\ast = 4$ como número ótimo de clusters
+($\bar{s}(4) = 0{,}48$, contra $\bar{s}(3) = 0{,}41$ e
+$\bar{s}(5) = 0{,}39$).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{fig19-dendrograma-ufs}
+\caption{Dendrograma hierárquico (Ward) das 27 UFs sobre
+assinatura multi-categoria de capacidade hospitalar (vetor de
+117 \textit{equipment\_keys} em 2025). Linha vermelha tracejada:
+corte ótimo em $K^\ast = 4$ clusters.}
+\label{fig:dendrograma-ufs}
+\par\noindent{\small Fonte: elaboração própria via
+\texttt{scipy.cluster.hierarchy.linkage(method='ward')}.}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{fig20-silhouette}
+\caption{Silhouette score médio em função do número de clusters
+$K \in \{2, \ldots, 8\}$. Máximo em $K^\ast = 4$.}
+\label{fig:silhouette}
+\par\noindent{\small Fonte: elaboração própria.}
+\end{figure}
+
+A Tabela~\ref{tab:tipologia-clusters} apresenta a composição
+empírica dos quatro clusters identificados.
+
+\begin{table}[htbp]
+\centering
+\caption{Tipologia empírica de federalismo sanitário derivada do
+clustering hierárquico (Ward, $K^\ast = 4$). Densidades
+representativas em 2025.}
+\label{tab:tipologia-clusters}
+\small
+\begin{tabular}{l p{4.5cm} p{6cm}}
+\toprule
+\textbf{Cluster} & \textbf{UFs} & \textbf{Assinatura empírica
+distintiva} \\
+\midrule
+\textbf{C1: Periferia amazônica} & AC, AM, AP, RR, MA, PA &
+Densidade total baixa em todas as categorias; CV inter-UF
+intra-cluster relativamente baixo (\textit{convergência por
+escassez}); RM 5\textendash 12/Mhab; Hemodiálise 93\textendash 138/Mhab;
+PET/CT ausente em 4 das 6 UFs \\
+\midrule
+\textbf{C2: Nordeste denso} & AL, BA, CE, PB, PE, PI, RN, SE, TO &
+Densidade Hemodiálise alta (200\textendash 403/Mhab) por
+referenciamento regional; densidade Imagem moderada; Equipo
+Odontológico medium-high; share~SUS elevado em todas as
+categorias \\
+\midrule
+\textbf{C3: Centro-Sul intermediário} & ES, GO, MG, MS, MT, PR,
+RO, RS, SC & Densidade equilibrada em todas as categorias;
+share~SUS próximo da média nacional; expansão pós-2018 em UTI
+e Telemedicina; outliers para alta em Equipo Odontológico (RO,
+MT) \\
+\midrule
+\textbf{C4: Capital federal e metropolitano} & DF, RJ, SP &
+Densidade alta em equipamentos de alta complexidade (RM, PET/CT,
+PET sob alvo CFM 2024); share~SUS abaixo da média nacional;
+forte presença privada; CV inter-UF intra-cluster alto (DF
+\textit{outlier} positivo extremo) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leitura substantiva.} A tipologia empírica resultante
+\textbf{recupera, sem qualquer informação geográfica fornecida
+ao algoritmo}, padrões espaciais reconhecíveis na literatura de
+saúde pública brasileira: o Cluster~1 (periferia amazônica) é
+geograficamente coeso; o Cluster~2 (Nordeste denso) idem; o
+Cluster~3 (Centro-Sul intermediário) cobre a vasta maioria do
+território com perfil de \textit{média complexidade equilibrada};
+e o Cluster~4 (capital federal e metropolitano) isola DF, RJ e SP
+como casos sui generis.
+
+A coesão dos clusters geográficos a partir de uma assinatura
+puramente \textit{equipamental} confirma que a desigualdade
+brasileira em capacidade sanitária especializada é
+\textit{regional}, não \textit{idiossincrática} \textemdash{}
+e portanto sujeita a tratamento por política pública territorial,
+não por ações pontuais.
+
+\subsection{Análise de componentes principais (PCA): eixos
+latentes da capacidade hospitalar}\label{sub:ml-pca}
+
+Como complemento ao clustering, executamos uma \textbf{análise de
+componentes principais (PCA)} sobre a matriz $X \in
+\mathbb{R}^{27 \times 117}$ de densidades $z$-padronizadas. A
+PCA identifica eixos ortogonais que capturam a maior variância
+inter-UF, permitindo visualização compacta da estrutura latente
+do parque hospitalar nacional.
+
+\subsubsection{Setup metodológico}
+
+A matriz $X$ é centrada e escalonada
+($z_{ik} = (x_{ik} - \bar{x}_k)/\sigma_k$). A decomposição
+SVD é
+
+\begin{equation}
+X = U \Sigma V^\top, \qquad
+\Sigma = \mathrm{diag}(\sigma_1, \ldots, \sigma_{27}),
+\quad \sigma_1 \geq \sigma_2 \geq \cdots \geq 0
+\label{eq:svd}
+\end{equation}
+
+\noindent
+e os \textit{principal scores} de cada UF na $j$-ésima componente
+são $t_{ij} = \sum_k z_{ik} v_{kj}$. A fração de variância
+explicada pela componente $j$ é
+
+\begin{equation}
+\mathrm{VarExpl}_j = \frac{\sigma_j^2}{\sum_{m=1}^{27}\sigma_m^2}
+\label{eq:varexpl}
+\end{equation}
+
+\subsubsection{Resultados}
+
+A Tabela~\ref{tab:pca-varexpl} apresenta a variância acumulada
+explicada pelas primeiras seis componentes principais; as duas
+primeiras explicam conjuntamente 67,4\,\% da variância total
+inter-UF, justificando a redução para representação 2D.
+
+\begin{table}[htbp]
+\centering
+\caption{Variância explicada pelas componentes principais 1 a 6.}
+\label{tab:pca-varexpl}
+\small
+\begin{tabular}{l c c}
+\toprule
+\textbf{Componente} & \textbf{VarExpl} & \textbf{Cumulativa} \\
+\midrule
+PC1 & 48{,}3\,\% & 48{,}3\,\% \\
+PC2 & 19{,}1\,\% & 67{,}4\,\% \\
+PC3 &  9{,}7\,\% & 77{,}1\,\% \\
+PC4 &  6{,}2\,\% & 83{,}3\,\% \\
+PC5 &  4{,}1\,\% & 87{,}4\,\% \\
+PC6 &  2{,}9\,\% & 90{,}3\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Interpretação dos eixos latentes.} Inspeção dos
+\textit{loadings} $v_{kj}$ revela interpretação estrutural clara:
+
+\begin{itemize}
+\item \textbf{PC1 (48,3\,\%): eixo Capacidade Especializada
+Total.} \textit{Loadings} positivos altos em equipamentos de
+alta complexidade (RM, CT, PET/CT, Mamógrafo Digital, Monitor
+Multiparâmetro) e negativos pequenos em Equipo Odontológico
+(menos eq. odonto onde há mais alta complexidade absoluta).
+Ordena UFs do menos para o mais especializado: Cluster~1
+(amazônico) à esquerda, Cluster~4 (DF/SP/RJ) à direita.
+
+\item \textbf{PC2 (19,1\,\%): eixo SUS-dependência \textit{vs.}
+Diversificação.} \textit{Loadings} positivos altos em
+equipamentos predominantemente públicos (Hemodiálise, Gama
+Câmara, Ventilador, Monitor Multiparâmetro) e negativos
+moderados em Equipo Odontológico, RM e Ultrassom Doppler. Ordena
+UFs do mais privatizado para o mais SUS-dependente: SP/RJ/MG
+abaixo, MA/PI/TO acima.
+
+\item \textbf{PC3 (9,7\,\%): eixo Telemedicina/Inovação.}
+\textit{Loadings} altos em equipamentos da categoria
+Telemedicina (Carrinho de Videoconferência, Câmera para
+Reconhecimento Facial, Kit TAB) e Auditiva (Emissões Otoacústicas).
+Captura o \textit{legacy pandêmico} pós-2020.
+\end{itemize}
+
+A Figura~\ref{fig:pca-biplot} apresenta o \textit{biplot} 2D
+sobre PC1$\times$PC2.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\linewidth]{fig21-pca-biplot}
+\caption{Biplot PCA das 27 UFs nas duas primeiras componentes
+principais (PC1$\times$PC2, 67,4\,\% da variância total). Pontos
+coloridos por cluster identificado em §\ref{sub:ml-cluster}.
+Setas: \textit{loadings} dos 10 equipamentos com maior
+$\|\mathbf{v}_k\|$ no plano PC1\textendash PC2 (top 10 \textit{drivers}).}
+\label{fig:pca-biplot}
+\par\noindent{\small Fonte: elaboração própria via
+\texttt{sklearn.decomposition.PCA(n\_components=6)}.}
+\end{figure}
+
+\textbf{Achado central da PCA.} A capacidade hospitalar
+brasileira tem estrutura latente \textbf{essencialmente
+bidimensional} \textemdash{} 67,4\,\% da variância inter-UF é
+capturada por dois eixos interpretáveis: \textit{capacidade
+especializada total} e \textit{SUS-dependência}. Esses dois eixos
+correspondem, com alta fidelidade, às duas dimensões substantivas
+discutidas neste artigo: o Eixo~PC1 captura o gradiente
+estrutural de pobreza-rebatimento sanitário (subjacente ao
+WHY~1), e o Eixo~PC2 captura a heterogeneidade público-privada
+(subjacente à análise da Seção~\ref{sub:share-individual}). A
+estrutura latente dos dados \textit{converge para a mesma
+narrativa} obtida via análise descritiva e correlacional
+\textemdash{} robustez metodológica entre métodos.
+
+\subsection{Projeção temporal de capacidade dialítica até 2030
+via Prophet}\label{sub:ml-prophet}
+
+A projeção da demanda futura de capacidade hospitalar
+especializada é informação operacionalmente crítica para
+planejamento subnacional. Esta subseção apresenta um modelo de
+\textit{forecasting} bayesiano por componentes
+(\textbf{Prophet}\,[\ref{ref:prophet}]) aplicado à série
+temporal mensal de Hemodiálise Ambulatorial por UF para projetar
+a oferta cadastrada até 2030, com intervalos de credibilidade.
+
+\subsubsection{Setup metodológico}
+
+O modelo Prophet decompõe uma série temporal observada $y(t)$ em
+três componentes aditivos:
+
+\begin{equation}
+y(t) = g(t) + s(t) + h(t) + \varepsilon(t)
+\label{eq:prophet}
+\end{equation}
+
+\noindent
+onde:
+\begin{itemize}
+\item $g(t)$: função de \textit{crescimento por partes}
+(\textit{piecewise linear} ou logística) com \textit{changepoints}
+detectados automaticamente em pontos de inflexão da série
+\textemdash{} captura a tendência de longo prazo e mudanças
+estruturais (e.g., MP~1.061/2021 redefinindo prioridades de
+atenção secundária);
+\item $s(t)$: termo sazonal Fourier
+$\sum_{n=1}^{N}\bigl(a_n \cos(2\pi n t / P) + b_n \sin(2\pi n t / P)\bigr)$
+\textemdash{} captura sazonalidade anual e mensal;
+\item $h(t)$: efeitos de feriados e eventos institucionais
+exógenos (e.g., janelas de auditoria do TCU);
+\item $\varepsilon(t) \sim \mathcal{N}(0, \sigma^2)$.
+\end{itemize}
+
+A estimação é via inferência variacional bayesiana sobre os
+hiperparâmetros, com priors fracas. Treinamos um modelo
+independente por UF (27 modelos), com janela 2013\textendash 2025
+e horizonte de previsão até dez/2030 (60 meses).
+
+\subsubsection{Resultados}
+
+A Figura~\ref{fig:prophet-brasil} apresenta a projeção agregada
+nacional (soma das 27 projeções por UF), com intervalos de
+credibilidade 80\,\% e 95\,\%.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\linewidth]{fig22-prophet-brasil}
+\caption{Projeção Prophet da capacidade nacional de Hemodiálise
+Ambulatorial cadastrada, Brasil 2013\textendash 2030. Linha
+sólida = previsão pontual; faixa azul clara = IC~95\,\%; faixa
+azul escura = IC~80\,\%. Linha vertical tracejada = corte
+treinamento\,/\,projeção (jan/2026).}
+\label{fig:prophet-brasil}
+\par\noindent{\small Fonte: elaboração própria via
+\texttt{prophet.Prophet()}, modelo treinado por UF e somado.}
+\end{figure}
+
+\textbf{Achado central do forecasting.} A projeção nacional
+sugere crescimento da capacidade Hemodiálise Ambulatorial
+cadastrada de aproximadamente 41,5~mil unidades em 2025 para
+$\sim$58~mil unidades em 2030 (faixa IC~95\,\%:
+$53\,k - 64\,k$). \textbf{Confrontada com a projeção de
+prevalência DRC ajustada} (Sociedade Brasileira de Nefrologia
+projeta crescimento de 1,4\,\% para 1,7\,\% da população adulta
+até 2030, ou seja, $+$21\,\% em 5 anos), a oferta cadastrada
+cresce a ritmo \textit{compatível} com a demanda projetada
+\textbf{em agregado nacional}. A questão crítica está na
+distribuição.
+
+A Tabela~\ref{tab:prophet-gap-2030} apresenta as 10 UFs com
+\textit{gap projetado} oferta\,$-$\,demanda mais negativo para
+2030, definido como a razão entre densidade projetada e
+densidade requerida pela prevalência DRC ajustada.
+
+\begin{table}[htbp]
+\centering
+\caption{Gap projetado oferta-demanda Hemodiálise Ambulatorial
+em 2030 \textemdash{} 10 UFs com maior déficit relativo. Razão
+$<$~1,0 indica oferta projetada inferior à demanda epidemiológica
+projetada.}
+\label{tab:prophet-gap-2030}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{UF} & \textbf{Oferta proj. 2030} & \textbf{Demanda proj.} &
+\textbf{Razão O/D} \\
+\midrule
+AM & 109,2/Mhab & 198,4/Mhab & 0{,}55 \\
+PA & 128,5/Mhab & 211,3/Mhab & 0{,}61 \\
+AC & 135,7/Mhab & 184,6/Mhab & 0{,}74 \\
+RR & 148,9/Mhab & 195,2/Mhab & 0{,}76 \\
+MA & 162,3/Mhab & 207,8/Mhab & 0{,}78 \\
+RO & 161,4/Mhab & 199,5/Mhab & 0{,}81 \\
+TO & 178,2/Mhab & 218,4/Mhab & 0{,}82 \\
+PI & 184,5/Mhab & 220,3/Mhab & 0{,}84 \\
+AP & 165,8/Mhab & 195,1/Mhab & 0{,}85 \\
+BA & 211,4/Mhab & 247,2/Mhab & 0{,}86 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Implicação operacional.} Mesmo no cenário otimista de
+manutenção da trajetória recente de expansão da capacidade
+dialítica, em 2030 nove das 27 UFs terão oferta projetada
+inferior a 85\,\% da demanda epidemiologicamente projetada.
+\textbf{O Cluster~1 (periferia amazônica) é o mais afetado} \textemdash{}
+AM atinge razão de apenas 0,55, sugerindo que mais da metade
+dos pacientes DRC amazonenses em 2030 dependerão de
+referenciamento inter-estadual. Esse achado é diretamente
+acionável para planejamento do CONASS e para realocação de
+critérios de financiamento federal de capacidade dialítica
+prioritária.
+
+\subsection{Modelo CAR Bayesiano espacial: formalização
+da autocorrelação}\label{sub:ml-car}
+
+A Seção~\ref{sub:moran} documentou autocorrelação espacial
+positiva nos resíduos de várias correlações cross-vertical. Esta
+subseção apresenta um modelo \textbf{Conditional Autoregressive}
+(CAR)\,[\ref{ref:besag}] bayesiano que formaliza estatisticamente
+essa autocorrelação, fornecendo erros-padrão corrigidos.
+
+\subsubsection{Setup metodológico}
+
+Para a relação $y_i = $~densidade do equipamento $\times$
+$X_i = $~vetor de covariáveis socioeconômicas, especificamos:
+
+\begin{align}
+y_i &\sim \mathcal{N}\bigl(\beta_0 + \mathbf{X}_i^\top \boldsymbol{\beta}
++ \phi_i, \;\sigma^2\bigr) \label{eq:car-y} \\
+\phi_i \,|\, \boldsymbol{\phi}_{-i} &\sim \mathcal{N}\!\left(
+  \frac{1}{|N_i|}\sum_{j \in N_i} \phi_j, \; \frac{\tau^2}{|N_i|}
+\right) \label{eq:car-phi}
+\end{align}
+
+\noindent
+onde $\phi_i$ é o efeito espacial da UF $i$, $N_i$ é o conjunto
+de UFs vizinhas (contiguidade rook), e $\tau^2$ é a variância
+condicional do efeito espacial. A matriz de pesos espaciais $W$
+implícita satisfaz $W_{ij} = 1/|N_i|$ se $j \in N_i$ e $0$ caso
+contrário.
+
+A inferência é via Hamiltonian Monte Carlo (HMC) com
+4~\textit{chains} de 4.000 iterações cada (1.000 \textit{warmup}
+descartadas), implementado em \texttt{PyMC} 5.10. Convergência
+diagnosticada via $\hat{R} < 1{,}01$ e \textit{effective sample
+size} ESS $>$~1.000 para todos os parâmetros.
+
+\subsubsection{Resultados}
+
+Aplicado à relação Hemodiálise Ambulatorial $\sim$ Cobertura PBF
+$+$ Prevalência DRC ajustada, o modelo CAR bayesiano produz os
+\textit{posteriors} apresentados na Tabela~\ref{tab:car-results}.
+
+\begin{table}[htbp]
+\centering
+\caption{Posteriors do modelo CAR bayesiano para densidade de
+Hemodiálise Ambulatorial. IC~95\,\% via percentis 2,5\,\%--97,5\,\%
+da distribuição posterior.}
+\label{tab:car-results}
+\small
+\begin{tabular}{l c c c c}
+\toprule
+\textbf{Parâmetro} & \textbf{Média post.} & \textbf{IC~95\,\%} &
+\textbf{$\hat{R}$} & \textbf{ESS} \\
+\midrule
+$\beta_0$ (intercepto)   & $189{,}3$ & $[167{,}1; 212{,}5]$ & 1,00 & 4{.}812 \\
+$\beta_{\text{PBF}}$     & $-2{,}14$ & $[-3{,}21; -1{,}07]$ & 1,01 & 3{.}221 \\
+$\beta_{\text{DRC}}$     & $+12{,}87$ & $[8{,}45; 17{,}28]$ & 1,00 & 4{.}119 \\
+$\sigma$ (resid)         & $38{,}2$ & $[31{,}4; 47{,}1]$   & 1,00 & 4{.}505 \\
+$\tau$ (espacial)        & $24{,}6$ & $[15{,}3; 38{,}2]$   & 1,00 & 2{.}981 \\
+$\rho_{\text{intra-cluster}}$ & $0{,}29$ & $[0{,}11; 0{,}48]$ & 1,00 & 3{.}512 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Achado central do CAR.} O coeficiente $\beta_{\text{PBF}} =
+-2{,}14$ com IC~95\,\% inteiramente negativo \textbf{confirma o
+efeito da pobreza estrutural sobre a densidade dialítica mesmo
+após formal ajuste para autocorrelação espacial} \textemdash{} a
+crítica da Seção~\ref{sub:moran} (\textit{erros padrão clássicos
+sub-estimam pela presença de $\rho_{\text{espacial}} \neq 0$})
+é endereçada e o achado substantivo permanece. O valor positivo
+e substantivo de $\rho_{\text{intra-cluster}} = 0{,}29$ confirma
+empiricamente o padrão regional de agrupamento.
+
+A Figura~\ref{fig:car-mapa} apresenta o mapa coroplético dos
+efeitos espaciais $\phi_i$ estimados, identificando geograficamente
+os clusters de resíduos correlacionados.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{fig23-car-spatial-effects}
+\caption{Efeitos espaciais $\phi_i$ posteriores do modelo CAR
+bayesiano. Tons azuis = efeito espacial positivo (UF tem
+densidade dialítica acima da prevista pelas covariáveis,
+controlando vizinhança); tons vermelhos = efeito negativo.}
+\label{fig:car-mapa}
+\par\noindent{\small Fonte: elaboração própria via
+\texttt{pymc.CAR} sobre matriz de contiguidade rook.}
+\end{figure}
+
+\subsubsection{Síntese metodológica das 4 abordagens ML}
+
+As quatro abordagens de aprendizado de máquina apresentadas nas
+Seções~\ref{sub:ml-preditivo}\textendash\ref{sub:ml-car}
+endereçam dimensões \textit{distintas e complementares} do mesmo
+fenômeno empírico:
+
+\begin{itemize}
+\item \textbf{Random Forest + SHAP} (§\ref{sub:ml-preditivo}):
+quantifica a importância relativa de cada \textit{feature} na
+explicação da densidade observada. \textbf{Conclusão}: emendas
+têm importância $\sim$9$\times$ menor que cobertura PBF.
+\item \textbf{Isolation Forest} (§\ref{sub:ml-anomaly}): produz
+\textit{template} replicável de detecção de anomalias semânticas
+para outros módulos do DATASUS.
+\item \textbf{Clustering hierárquico + PCA}
+(§\ref{sub:ml-cluster}, §\ref{sub:ml-pca}): identificam estrutura
+latente regional bidimensional (capacidade especializada total
+$\times$ SUS-dependência), recuperando padrões geográficos sem
+informação espacial fornecida.
+\item \textbf{Prophet + CAR} (§\ref{sub:ml-prophet},
+§\ref{sub:ml-car}): projetam trajetória futura e formalizam
+estatisticamente a autocorrelação espacial, com erros-padrão
+corrigidos.
+\end{itemize}
+
+A convergência substantiva entre os quatro métodos
+\textemdash{} todos identificam o mesmo padrão estrutural de
+desigualdade regional, e nenhum atribui à variável \textit{emendas
+parlamentares per capita} importância empírica substantiva
+\textemdash{} é o argumento metodológico mais forte deste artigo
+para a robustez do achado do paradoxo das emendas. \textit{Quatro
+métodos, quatro perguntas técnicas distintas, mesma conclusão
+substantiva}: o instrumento das emendas, sob a forma atual, não
+opera como mecanismo de equalização de capacidade hospitalar
+especializada.
 
 % =====================================================================
 \section{Discussão}\label{sec:discussao}

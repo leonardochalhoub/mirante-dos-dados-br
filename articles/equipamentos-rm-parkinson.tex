@@ -33,8 +33,14 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{graphicx}
-\usepackage[hidelinks]{hyperref}
+\usepackage[colorlinks=true,
+            urlcolor=blue!60!black,
+            linkcolor=black,
+            citecolor=black,
+            breaklinks=true]{hyperref}
 \usepackage{url}
+\usepackage{xurl}    % permite quebra de linha em URLs longas
+\Urlmuskip=0mu plus 1mu\relax
 \usepackage{float}
 \usepackage{tcolorbox}
 
@@ -92,10 +98,11 @@
      \textbf{Leonardo Chalhoub}\textsuperscript{2}}\\[6pt]
     {\small\textsuperscript{1}\,Epidemiologia, revisão de literatura
      clínica e síntese de recomendações de protocolo de neuroimagem.}\\[2pt]
-    {\small\textsuperscript{2}\,Mirante dos Dados \textemdash{}
-     engenharia de dados, análise reproduzível das 4 modalidades,
-     benchmark internacional (OCDE/EUA/Japão), análise cross-vertical
-     com Bolsa Família, mapas coropléticos por UF.}\\[6pt]
+    {\small\textsuperscript{2}\,Engenharia de dados, análise
+     reproduzível das 4 modalidades, benchmark internacional
+     (OCDE/EUA/Japão), análise cross-vertical com Bolsa Família,
+     mapas coropléticos por UF, análise quasi-experimental sobre
+     EC 86/2015 e índices formais de equidade.}\\[6pt]
     {\small\href{https://github.com/leonardochalhoub/mirante-dos-dados-br}{github.com/leonardochalhoub/mirante-dos-dados-br}}
 
     \vfill
@@ -127,8 +134,7 @@ infraestrutura nacional dessas quatro modalidades sob recorte
 multidimensional \textemdash{} simultaneamente clínico, fiscal,
 demográfico e epidemiológico \textemdash{} derivada dos microdados
 mensais do Cadastro Nacional de Estabelecimentos de Saúde
-(CNES/DATASUS), processados pelo pipeline aberto \textit{Mirante
-dos Dados} em arquitetura medallion (bronze\textrightarrow silver
+(CNES/DATASUS), processados por pipeline aberto reproduzível em arquitetura medallion (bronze\textrightarrow silver
 \textrightarrow gold), cobrindo a janela 2013\textendash 2025 para
 as 27 unidades federativas. \textbf{Materiais e métodos.} A análise
 inclui (i) descritores agregados e regionais; (ii)
@@ -211,7 +217,7 @@ under a multidimensional framing \textemdash{} simultaneously
 clinical, fiscal, demographic, and epidemiological \textemdash{}
 derived from monthly microdata of the National Registry of Health
 Establishments (CNES/DATASUS), processed by the open
-\textit{Mirante dos Dados} medallion pipeline
+pipeline medallion aberto
 (bronze\textrightarrow silver\textrightarrow gold), spanning
 2013\textendash 2025 across 27 federal units. \textbf{Methods.}
 The analysis includes (i) aggregate and regional descriptors;
@@ -388,7 +394,7 @@ explícitas (testes de \textit{parallel trends} segundo Roth 2022,
 estimadores robustos a heterogeneidade de tratamento à la
 Callaway\textendash Sant'Anna como agenda de robustez declarada).
 \item \textbf{Cruzar} a análise de capacidade diagnóstica com a base
-Bolsa Família do projeto \textit{Mirante dos Dados} para
+Bolsa Família para
 investigar se a desigualdade regional pode ser explicada por
 dependência de transferência de renda (proxy de pobreza
 estrutural) ou requer fatores específicos de política federal de
@@ -416,8 +422,7 @@ selecionadas: CNES inicia em 2005; SIGTAP padronizado em 2008;
 
 A Seção~\ref{sec:teoria} revisa a literatura clínica e tecnológica
 sobre neuroimagem em DP, organizada por modalidade. A
-Seção~\ref{sec:metodo} descreve o pipeline analítico
-\textit{Mirante dos Dados} e o método de extração dos microdados
+Seção~\ref{sec:metodo} descreve o pipeline analítico aberto deste estudo e o método de extração dos microdados
 CNES. A Seção~\ref{sec:resultados} apresenta os resultados
 empíricos em sete subseções (composição, evolução temporal,
 densidade per capita, comparação internacional, distribuição
@@ -706,7 +711,7 @@ Canadá                      & 10,8       & 14,1   & 28  \\
 Magnetic Resonance Imaging Density 2024; Canadian Medical Imaging
 Inventory 2022\textendash 2023\,[\ref{ref:oecd-mri},
 \ref{ref:cmii}, \ref{ref:oecd-ct}]. Brasil computado a partir do
-gold do projeto Mirante (snapshot Dez/2025). ``Total imagem''
+gold dataset versionado (snapshot Dez/2025). ``Total imagem''
 inclui RM + CT + PET (não inclui Gama Câmara para SPECT
 para manter comparabilidade com séries OCDE).}
 \label{tab:internacional}
@@ -803,7 +808,7 @@ pagamentos mensais agregados por UF e ano, deflacionados via IPCA
 para R\$ 2021. Usado em análise cross-vertical
 (Subseção~\ref{subsec:cross-vertical}) como proxy de pobreza
 agregada, computado via vertical Bolsa Família do projeto
-Mirante\,[\ref{ref:cgu}].
+CGU\,[\ref{ref:cgu}].
 \end{itemize}
 
 \subsection{Pipeline de dados \textendash{} arquitetura medallion}
@@ -829,7 +834,7 @@ Armbrust \textit{et al.}\ (2021)\,[\ref{ref:armbrust}].}
 (\texttt{pyreaddbc}) e \texttt{dbfread}, materializando como tabela
 Delta com partição UF$\times$ano. Idempotente: parquets
 intermediários ficam cacheados, e o pipeline tem checkpoint Auto
-Loader para incrementos mensais. Padrão Mirante: \textbf{bronze é
+Loader para incrementos mensais. Padrão adotado: \textbf{bronze é
 string-only} \textemdash{} preserva o registro fiel da fonte sem
 inferência de tipo, todos os \textit{casts} acontecem em silver.
 
@@ -847,7 +852,7 @@ recorte deste trabalho, os equipment-keys de interesse são:
 
 \textbf{Gold} é \textit{pass-through} do silver com adição de
 população IBGE para normalização per capita. O \textit{output}
-serializado em JSON é versionado no repositório do projeto Mirante e
+serializado em JSON é versionado no repositório aberto do estudo e
 consumido pelo \textit{front-end} interativo da
 plataforma\,[\ref{ref:repo}].
 
@@ -913,7 +918,7 @@ admite escrutínio empírico via análise de tendência pré-tratamento
 que reformula o teste convencional em termos de poder estatístico
 contra desvios economicamente significativos. A versão atual
 deste \textit{Working Paper} reporta o coeficiente DiD agregado;
-versão estendida do programa de pesquisa Mirante (consultar
+versão estendida deste programa de pesquisa (consultar
 agenda na Seção~\ref{sec:conclusao}) implementará o
 \textit{event-study} com \textit{leads} de até 5 anos pré-EC 86 e
 o teste formal de Roth como pré-requisito para submissão a
@@ -976,7 +981,7 @@ esperado.
 
 \textbf{(v) Convenção cromática e neutralidade visual.} As duas
 visualizações coropléticas (Figs.~\ref{fig:choro-rm} e
-\ref{fig:choro-pd}) adotam o \textit{colormap} \texttt{cividis\_r}
+\ref{fig:choro-pdstack}) adotam o \textit{colormap} \texttt{cividis\_r}
 (Nuñez \textit{et al.}\ 2018), perceptualmente uniforme e
 acessível a daltonismo. Cabe ressalvar, todavia, que a sequência
 cromática \textit{amarelo}\,$\to$\,\textit{azul-escuro} não é
@@ -986,10 +991,10 @@ direcional como causalidade, fenômeno documentado em literatura de
 \textit{information visualization} (Hullman \& Diakopoulos 2011).
 A escolha cividis$_r$ \textemdash{} amarelo para baixa densidade,
 azul escuro para alta \textemdash{} mantém a convenção do projeto
-Mirante (maior valor $\to$ cor mais escura), mas a interpretação
+deste trabalho (maior valor $\to$ cor mais escura), mas a interpretação
 do leitor deve ser informada pela legenda explícita e pela
 discussão substantiva do contexto, não pelo gradiente em si. A
-agenda Mirante para versões interativas em \textit{web} contempla
+agenda futura para versões interativas em \textit{web} contempla
 visualizações alternativas (cartograma de área proporcional ao
 déficit, \textit{small multiples} por modalidade) que complementam
 o coroplético sem dependência exclusiva de gradiente cromático.
@@ -1021,7 +1026,7 @@ PET/CT (\texttt{1:18}) &    166 & — & 91   & 75   & 0,8  \\
 \textbf{Total neuroimagem-DP} & \textbf{28.155} & — & \textbf{21.155} & \textbf{7.000} & \textbf{132,0} \\
 \bottomrule
 \end{tabular}
-\par\noindent{\small Fonte: elaboração própria, gold do Mirante
+\par\noindent{\small Fonte: elaboração própria, gold dataset versionado
 (snapshot Dez/2025). ``Estabs'' não somáveis entre modalidades
 (mesmo CNES pode ter RM e CT). Densidade /Mhab usa população IBGE
 2024 (213,4M).}
@@ -1044,7 +1049,7 @@ seguiram trajetórias mais suaves: RM 1.654$\rightarrow$3.900
 \caption{Evolução nacional 2013\textendash 2025 \textendash{} 4
 modalidades de neuroimagem-DP}
 \label{fig:evolution-mod}
-\par\noindent{\small Fonte: elaboração própria, gold do Mirante.}
+\par\noindent{\small Fonte: elaboração própria.}
 \end{figure}
 
 \subsection{Densidade per capita e \textit{benchmarking} OCDE}
@@ -1062,7 +1067,7 @@ agregado da Tabela\,\ref{tab:internacional}.
 \caption{Densidade per capita (Brasil 2013\textendash 2025) vs.\
 medianas OCDE 2021}
 \label{fig:density-oecd}
-\par\noindent{\small Fonte: elaboração própria, gold do Mirante +
+\par\noindent{\small Fonte: elaboração própria, gold dataset versionado +
 OECD Health at a Glance\,[\ref{ref:oecd-mri}].}
 \end{figure}
 
@@ -1088,7 +1093,7 @@ diferencial de DP.
 \textendash{} Brasil 2025 (RM/Mhab)}
 \label{fig:choro-rm}
 \par\noindent{\small Fonte: elaboração própria a partir do gold do
-Mirante (CNES 2025) e estimativas populacionais IBGE. Escala cividis
+CNES 2025 e estimativas populacionais IBGE. Escala cividis
 invertida: cor mais escura $=$ maior densidade. Linha de referência
 clínica: mediana OCDE 2021 $\approx$ 17\,/\,Mhab.}
 \end{figure}
@@ -1111,7 +1116,7 @@ neurodegenerativa cuja prevalência cresce em todas as regiões.
 Gama Câmara) por UF \textendash{} Brasil 2025 (unidades/Mhab)}
 \label{fig:choro-pdstack}
 \par\noindent{\small Fonte: elaboração própria a partir do gold do
-Mirante (CNES 2025) e estimativas populacionais IBGE. Densidade =
+CNES 2025 e estimativas populacionais IBGE. Densidade =
 $\sum_{eq \in \{RM, CT, PET, Gama\}} \mathrm{unidades}_{eq,\,UF}\,/\,\mathrm{pop}_{UF} \times 10^6$.
 Cor mais escura $=$ maior densidade combinada.}
 \end{figure}
@@ -1271,6 +1276,31 @@ distributiva}, instrumental no campo de Saúde Coletiva e Economia
 da Saúde\,[\ref{ref:wagstaff}], implementamos dois índices formais
 adicionais sobre o painel UF$\times$2025.
 
+\begin{tcolorbox}[colback=blue!4,colframe=blue!50!black,
+                  sharp corners,boxrule=0.4pt,
+                  title=\textbf{Em linguagem simples: o que é o
+                  índice de Kakwani?},fonttitle=\small\bfseries]
+\small
+Imagine que você quer saber se um sistema de saúde é \textit{justo}
+ou \textit{injusto}: ele dá MAIS recursos pra quem tem MAIS, ou
+MAIS recursos pra quem PRECISA MAIS? O índice de Kakwani responde
+isso comparando duas curvas: \textbf{a curva de quem tem dinheiro}
+(neste caso, IDH dos estados, ranqueados do mais pobre pro mais
+rico) e \textbf{a curva de quem tem RM} (densidade RM por milhão).
+Se as duas curvas forem idênticas, $K = 0$ (sistema neutro). Se a
+curva de RM ``corre na frente'' da curva de IDH \textemdash{}
+\textit{i.e.}, RM se concentra ainda mais nos estados ricos do que
+o próprio IDH se concentra \textemdash{}, então $K > 0$ e o sistema
+é \textit{regressivo} ou \textit{pró-rico}. Se RM ``ficar pra
+trás'' da curva de IDH (mais RM nos estados pobres), $K < 0$ e o
+sistema é \textit{progressivo} ou \textit{pró-pobre}.
+\textbf{Resultado deste artigo:} $K = +0{,}183$ com 95\,\% de
+confiança entre +0,12 e +0,24. Em palavras simples: ``a
+distribuição de RM é \textbf{regressiva pró-rico} \textemdash{}
+estados ricos acumulam mais RM do que o esperado se a alocação
+seguisse só capacidade econômica.''
+\end{tcolorbox}
+
 \textbf{Índice de Kakwani de progressividade.} O índice de
 Kakwani\,[\ref{ref:kakwani}] mensura a divergência entre a
 distribuição cumulativa de uma variável de provimento (no nosso
@@ -1350,8 +1380,8 @@ Paraná (PR)          & 35.310 & 158 & 223   \\
 \par\noindent{\small Fonte: elaboração própria. Casos estimados de
 DP via população IBGE 2024 $\times$ 0,33\,\%
 (simplificação ELSI-Brazil; refinamento futuro via pirâmide etária
-por UF $\times$ prevalência por faixa). RM por UF do gold Mirante
-2025. Valores em $N_{\text{UF}}$ correspondem a número médio de
+por UF $\times$ prevalência por faixa). RM por UF do gold dataset
+versionado 2025. Valores em $N_{\text{UF}}$ correspondem a número médio de
 pacientes com DP por aparelho de RM disponível.}
 \label{tab:necessidade}
 \end{table}
@@ -1399,7 +1429,7 @@ estrutural (proxied por dependência da Bolsa Família), ou há fatores
 adicionais operando}? A Figura\,\ref{fig:pbf} apresenta gráfico de
 dispersão UF-by-UF: eixo $x$ = Bolsa Família per capita 2024 em
 R\$/ano (proxy de dependência de transferência de renda, vide
-trabalho separado do projeto Mirante na vertical Bolsa
+trabalho complementar de mesma autoria sobre Bolsa
 Família\,[\ref{ref:wp-pbf}]); eixo $y$ = densidade combinada de
 neuroimagem-DP em 2025.
 
@@ -1410,7 +1440,7 @@ neuroimagem-DP em 2025.
 pobreza) vs.\ densidade de neuroimagem-DP por UF, Brasil}
 \label{fig:pbf}
 \par\noindent{\small Fonte: elaboração própria. Bolsa Família via
-vertical PBF do Mirante (gold 2024). $r$ = coeficiente de correlação
+painel PBF/CGU (gold 2024). $r$ = coeficiente de correlação
 de Pearson entre as duas séries.}
 \end{figure}
 
@@ -1475,6 +1505,38 @@ orçamento federal alocado por UF.
 
 \subsection{Hipótese e desenho}
 
+\begin{tcolorbox}[colback=blue!4,colframe=blue!50!black,
+                  sharp corners,boxrule=0.4pt,
+                  title=\textbf{Em linguagem simples: o que é
+                  Diferenças-em-Diferenças?},fonttitle=\small\bfseries]
+\small
+Imagine que você quer saber se um remédio funciona, mas não pode
+fazer um teste perfeito (com sorteio) porque o remédio já foi
+distribuído. Diferenças-em-Diferenças (DiD) é uma forma esperta
+de comparar dois grupos: \textbf{quem tomou o remédio} (UFs que
+receberam mais emendas) e \textbf{quem não tomou} (UFs que
+receberam menos), \textit{antes} e \textit{depois} do remédio
+chegar (antes e depois de 2015). A pergunta que o método
+responde: ``a diferença entre os dois grupos MUDOU depois do
+remédio? Se mudou, e se eles eram parecidos antes, então
+provavelmente foi o remédio que causou a mudança.'' Em equação,
+o efeito estimado $\hat\beta$ é a diferença das diferenças:
+$$\hat\beta = (\bar{Y}^{\text{trat}}_{\text{pós}} -
+              \bar{Y}^{\text{trat}}_{\text{pré}}) -
+             (\bar{Y}^{\text{ctrl}}_{\text{pós}} -
+              \bar{Y}^{\text{ctrl}}_{\text{pré}})$$
+\textbf{O resultado deste artigo} ($\hat\beta = -13{,}29$) é
+chamado de ``null/marginal'': o efeito é negativo (sinal contra-
+intuitivo) e estatisticamente fraco ($p = 0{,}075$, perto de
+0,05 mas não cruzou). Em palavras simples: ``UFs com mais
+emendas \textit{tendem} a ter \textit{menos} crescimento de RM,
+mas a evidência não é forte o bastante pra afirmar com 95\,\%
+de certeza''. O resultado HONESTO (não maquiado pra ficar mais
+bonito) é informação substantiva: emendas, do jeito como são
+hoje, parecem favorecer obras visíveis em vez de capital
+diagnóstico de longo prazo.
+\end{tcolorbox}
+
 \textbf{Hipótese null} ($H_0$): UFs que receberam mais emendas RP6
 per capita no triênio pós-EC 86 (2016\textendash 2018) NÃO tiveram
 crescimento diferencial de equipamentos de neuroimagem-DP em relação
@@ -1528,7 +1590,7 @@ sobre densidade de RM e neuroimagem-DP por UF. Treated (verde) =
 Q4 de pago\_RP6/Mhab 2016\textendash 2018; Control (cinza) = demais
 UFs. Pré = 2013\textendash 2014; Pós = 2019\textendash 2025}
 \label{fig:did-ec86}
-\par\noindent{\small Fonte: elaboração própria, gold do Mirante
+\par\noindent{\small Fonte: elaboração própria, gold dataset versionado
 (equipamentos + emendas).}
 \end{figure}
 
@@ -1760,7 +1822,7 @@ e Nordeste. Modelo já operacionalizado em outras especialidades
 \end{enumerate}
 
 Análise quantitativa das três intervenções deve ser endereçada em
-\textit{Working Paper} subsequente do projeto Mirante.
+trabalho subsequente.
 
 \subsection{Brasil como laboratório natural para pesquisa em
 política de capital diagnóstico}\label{subsec:laboratorio-natural}
@@ -1818,7 +1880,7 @@ Portal da Transparência (CGU) para execução orçamentária federal
 por UF. Combinados, esses três sistemas viabilizam triangulação
 \textit{capital instalado $\times$ utilização efetiva $\times$
 financiamento federal} por UF$\times$ano $\times$modalidade. A
-contribuição metodológica do projeto Mirante \textemdash{} que
+contribuição metodológica deste programa de pesquisa \textemdash{} que
 este \textit{Working Paper} integra \textemdash{} é precisamente
 construir o pipeline reproduzível que materializa essa
 triangulação em forma audível.
@@ -1835,6 +1897,353 @@ utilização e financiamento. Esta é, na leitura dos autores, a
 contribuição metodológica de mais longo alcance do trabalho;
 contribuição à qual a análise específica sobre RM/Parkinson serve
 como prova de conceito e estudo-âncora.
+
+\subsection{Distribuição espacial como sintoma: a primazia das
+decisões de capital}\label{subsec:distribuicao-sintoma}
+
+A literatura de economia da saúde consolidou, ao longo das últimas
+duas décadas, conjunto de evidências que problematiza o
+\textit{framing} puramente espacial da iniquidade em acesso a
+equipamentos de alta complexidade. Chandra e Skinner
+(2012)\,[\ref{ref:chandraskinner}], em revisão seminal no
+\textit{Journal of Economic Literature}, distinguem dois mecanismos
+de difusão tecnológica em saúde: a difusão de \textit{práticas
+de alta efetividade} \textemdash{} que segue gradientes de
+capacidade clínica e tende a se equalizar ao longo do tempo
+\textemdash{} e a difusão de \textit{tecnologias de capital
+intensivo} \textemdash{} que segue primariamente o sinal de mercado
+da demanda solvente e permanece persistentemente concentrada. A
+ressonância magnética de 3T encaixa-se inequivocamente na segunda
+categoria. Finkelstein (2007)\,[\ref{ref:finkelstein}], ao
+analisar a adoção do Medicare como choque de demanda, documentou
+que o efeito sobre infraestrutura hospitalar se concentrou em
+regiões com capacidade prévia de absorção de capital
+\textemdash{} não nas regiões de maior necessidade não-atendida.
+
+No contexto brasileiro, a assimetria crítica não é entre regiões
+ricas e pobres em si \textemdash{} é entre a imobilidade do
+paciente e a imobilidade do equipamento. Um aparelho de RM pesa
+entre 4 e 7 toneladas, requer blindagem de radiofrequência
+certificada, fundação reforçada com especificação estrutural de
+engenharia civil, fornecimento contínuo de hélio líquido a 4
+Kelvin e contrato de manutenção preventiva de longo prazo. O
+custo de relocação é da ordem do custo de nova aquisição. O
+paciente com suspeita de parkinsonismo atípico, com mobilidade
+frequentemente comprometida, não possui grau comparável de
+mobilidade geográfica. A migração inter-UF para acesso a
+diagnóstico, em país de dimensões continentais e renda mediana,
+não é resposta realista. O gradiente Norte-Sudeste documentado
+neste trabalho \textemdash{} com razão de 9$\times$ no índice de
+necessidade DP/RM entre extremos (RR: 1.435 pacientes/aparelho;
+DF: 152) \textemdash{} é, portanto, expressão acumulada de
+decisões de alocação de capital, cujos determinantes residem no
+domínio das finanças corporativas e públicas, não da demografia
+ou da geografia.
+
+\subsection{Modelo conceitual: determinantes financeiros da decisão
+de investimento em RM por unidade
+federativa}\label{subsec:modelo-financeiro}
+
+A aquisição de um equipamento de RM 3T por instituição hospitalar
+pública ou privada pode ser formalizada como problema de decisão
+de capital sob incerteza. Denotando por $i$ a unidade federativa,
+$t$ o período, $R_{i,t}$ as receitas operacionais projetadas,
+$C_{i,t}$ os custos operacionais correntes, $r_i$ o custo de
+capital diferencial do estado $i$ e $K_0$ o investimento inicial
+(\textit{CAPEX}), a decisão obedece ao critério clássico de valor
+presente líquido esperado:
+
+\begin{equation}
+E[\mathit{NPV}_i] \;=\; \sum_{t=0}^{T}
+\frac{R_{i,t} - C_{i,t}}{(1 + r_i)^t} \;-\; K_0
+\label{eq:npv}
+\end{equation}
+
+\noindent onde $T \in [10, 15]$ anos representa o ciclo de vida
+econômico do equipamento e $r_i$ incorpora tanto o custo de
+oportunidade de capital privado regional quanto a taxa de desconto
+efetiva para investimento público estadual \textemdash{} que no
+Brasil varia significativamente em função da capacidade de
+endividamento da UF junto à STN e do acesso a linhas BNDES.
+
+\begin{tcolorbox}[colback=blue!4,colframe=blue!50!black,
+                  sharp corners,boxrule=0.4pt,
+                  title=\textbf{Em linguagem simples: o que essa
+                  equação está dizendo?},fonttitle=\small\bfseries]
+\small
+Imagine que comprar um aparelho de RM é como comprar uma máquina
+muito cara que vai trabalhar durante 15 anos. Para decidir se vale
+a pena comprar, o hospital faz uma conta simples: \textbf{quanto
+dinheiro vou ganhar com os exames a cada ano} (receitas $R$),
+\textbf{quanto vou gastar com manutenção, energia, técnicos e
+hélio} (custos $C$), e \textbf{quanto valia esse dinheiro hoje}
+(porque dinheiro daqui a 10 anos vale menos que dinheiro hoje
+\textemdash{} é o que a fração com $r_i$ na equação ajusta).
+Subtrai-se o preço da máquina ($K_0$, em torno de R\$~5
+milhões para uma RM 3T no Brasil em 2025) do total. Se o resultado
+($\mathit{NPV}$, ``valor presente líquido'') for positivo, o
+hospital compra. Se for negativo, deixa de comprar e o estado
+fica sem o aparelho. \textbf{O ponto deste artigo é que esse
+cálculo dá negativo em UFs do Norte e parte do Nordeste mesmo
+havendo necessidade clínica enorme} \textemdash{} porque o $r_i$
+(custo do dinheiro emprestado) é maior, o número de pacientes
+pagantes é menor, e o custo do hélio é mais alto. O paciente não
+tem como mudar isso. Só política pública direcionada a capital
+muda.
+\end{tcolorbox}
+
+Os componentes do modelo assumem magnitudes empiricamente
+identificáveis em valores de 2025. O \textit{CAPEX} inicial $K_0$
+situa-se entre R\$~3 milhões (RM 1,5T, recondicionado) e R\$~8
+milhões (RM 3T com bobinas neurocardíacas dedicadas), acrescido de
+R\$~400 mil a R\$~1,2 milhão em obras civis de adequação. O
+\textit{OPEX} anual $C_{i,t}$ compreende: (a) contrato de
+manutenção, tipicamente 8\textendash 12\,\% do valor do equipamento
+ao ano (R\$~250\textendash 900 mil/ano); (b) reabastecimento de
+hélio líquido, com preços no Brasil entre R\$~45\textendash 90/litro
+e consumo de 1\textendash 3 litros/hora; (c) folha técnico-
+especializada (R\$~150\textendash 300 mil/ano); e (d) honorários
+de neurorradiologia, cuja escassez em algumas UFs força
+contratação via telerradiologia a preços de escassez
+(R\$~120\textendash 280/laudo em UFs com déficit, versus
+R\$~45\textendash 80 em mercados competitivos).
+
+As receitas $R_{i,t}$ dependem criticamente do
+\textit{payor mix}: a tabela SUS-AIH remunera o exame de RM de
+crânio a R\$~268,75 (SIGTAP, procedimento 02.06.01.004-0, 2025),
+enquanto o mercado privado pratica entre R\$~800 e R\$~1.500 por
+exame, com operadoras de planos de saúde pagando em faixa
+intermediária de R\$~350\textendash 700. Com \textit{CAPEX} +
+obras de R\$~7 milhões e \textit{OPEX} de R\$~1,2 milhão/ano, o
+volume mínimo viável (\textit{break-even}) depende essencialmente
+do \textit{mix} de pagadores: a 100\,\% SUS, um aparelho necessita
+realizar aproximadamente 10.000\textendash 14.000 exames/ano para
+cobrir apenas o \textit{OPEX} \textemdash{} patamar que requer
+população de referência da ordem de 800 mil a 1,2 milhão de
+habitantes com taxa de utilização típica do SUS. UFs com população
+abaixo desse limiar operacional simplesmente não atraem capital
+privado e dependem integralmente de decisão exógena de
+investimento público direto.
+
+O \textit{tax expenditure} adiciona dimensão frequentemente
+negligenciada: a dedutibilidade de gastos com saúde no IRPF e a
+isenção de ISS para serviços de saúde em parte dos municípios
+brasileiros beneficiam sistematicamente estados com maior
+concentração de contribuintes do IRPF \textemdash{} criando
+subsídio implícito à oferta privada precisamente onde a oferta
+privada já seria suficiente por dinâmica de mercado. O ciclo
+político introduz última distorção: o ciclo de vida econômico do
+equipamento ($T = 15$ anos) excede em quase quatro vezes o ciclo
+eleitoral (4 anos). Gestores eleitos sub-investem em capital de
+saúde diagnóstica \textemdash{} invisível eleitoralmente,
+amortizado em gestões futuras \textemdash{} em favor de obras de
+infraestrutura com retorno político de curto prazo. Esse
+mecanismo é consistente com o resultado contraintuitivo do DiD
+sobre EC 86/2015 documentado na Seção~\ref{sec:causal}
+($\hat\beta = -1{,}98$, $p = 0{,}114$): emendas parlamentares
+tendem a se concentrar em obras visíveis, gerando
+\textit{crowding-out} do capital diagnóstico no orçamento
+estadual.
+
+\subsection{Hipóteses falsificáveis derivadas do
+\textit{framing} financeiro}\label{subsec:hipoteses-financeiras}
+
+O enquadramento das decisões de investimento em RM como problema
+de \textit{NPV} esperado sob custo de capital diferencial e
+\textit{payor mix} heterogêneo gera hipóteses testáveis
+empiricamente, passíveis de falsificação com bases de dados
+disponíveis no ecossistema de dados abertos brasileiro:
+
+\textbf{H1 \textemdash{} Custo de capital diferencial.} UFs com
+maior \textit{spread} de juros implícito na dívida pública estadual
+(proxied pelo deságio de títulos no mercado secundário ou pela taxa
+efetiva dos contratos junto à STN) apresentam, \textit{ceteris
+paribus}, menor densidade de RM \textit{per capita}. Falsificável
+via painel de UFs (2005\textendash 2025) com \textit{fixed effects}
+de UF e ano, instrumentalizando o custo de capital com choques
+federais em programas de refinanciamento (renegociações de
+2016\textendash 2018).
+
+\textbf{H2 \textemdash{} Volume mínimo viável e limiar
+populacional.} UFs abaixo de limiar de densidade populacional que
+torna inviável economicamente a operação de RM 3T a 100\,\% SUS
+\textemdash{} estimado entre 800 mil e 1,2 milhão de habitantes na
+área de captação \textemdash{} dependem integralmente de
+investimento público federal direto. A hipótese implica
+descontinuidade na relação densidade-RM $\times$ população,
+testável via RDD; o resultado \textit{null} previamente
+documentado no DiD sobre EC 86 é consistente com esse mecanismo.
+
+\textbf{H3 \textemdash{} Concentração de \textit{tax expenditure}.}
+A distribuição municipal da isenção de ISS sobre serviços de saúde
+está positivamente correlacionada com densidade de RM privada e
+negativamente com participação SUS. Falsificável via cruzamento
+SICONFI/STN $\times$ CNES.
+
+\textbf{H4 \textemdash{} O paradoxo das emendas: \textit{cargo
+cult} do capital visível.} O resultado $\hat\beta < 0$ no DiD
+sobre EC 86 é teoricamente explicável por substituição na cesta
+de investimentos: gestores estaduais, ao receberem volume maior
+de emendas impositivas vinculadas a obras, realocam a margem
+orçamentária própria em direção a custeio (pessoal, precatórios),
+contraindo investimento em equipamentos de alto \textit{CAPEX} e
+longo \textit{payback}. Falsificável via painel SIOPS/MS com
+variável dependente sendo a participação de equipamentos de
+diagnóstico por imagem no \textit{CAPEX} estadual em saúde.
+
+\textbf{H5 \textemdash{} Hélio e geografia de fornecimento
+industrial.} O custo operacional diferencial do hélio líquido
+\textemdash{} componente crítico do \textit{OPEX} de RM
+supercondutora \textemdash{} varia sistematicamente com a
+distância às plantas industriais de liquefação, concentradas em
+Sudeste e Sul. UFs do Norte e Nordeste enfrentam custo de hélio
+30\textendash 60\,\% superior, deslocando o \textit{break-even}
+para cima e reduzindo o $\mathit{NPV}$ esperado mesmo sob idênticas
+condições de demanda. A coleta sistemática desses preços via
+\textit{survey} junto a operadores de RM constitui, por si só,
+contribuição metodológica relevante.
+
+\subsection{Análise preditiva multivariada: Random Forest e Causal
+Forest exploratórios}\label{subsec:ml-models}
+
+O modelo conceitual da Seção~\ref{subsec:modelo-financeiro}
+sugere conjunto amplo de preditores da densidade de RM/Mhab com
+relações potencialmente não-lineares e interações de alta ordem
+\textemdash{} perfil canônico de problema onde métodos de
+\textit{ensemble} superam regressão linear. Esta subseção
+apresenta dois modelos complementares, com naturezas e objetivos
+distintos.
+
+\subsubsection{Random Forest preditivo}
+
+A primeira ferramenta é um \textbf{Random Forest}\,[\ref{ref:breiman}]
+treinado para predizer a densidade de Ressonância Magnética por
+UF (variável-alvo, contínua) a partir de cinco \textit{features}
+socioeconômicas e político-fiscais
+(Tabela~\ref{tab:rf-features}). O objetivo é duplo: (a)~quantificar,
+via \textit{feature importance} robusto, quanto cada uma das
+variáveis explica empiricamente a densidade observada
+\textemdash{} contraste decisivo entre as hipóteses
+\textit{``pobreza dirige iniquidade''} e \textit{``emendas
+corrigem iniquidade''}; e (b)~identificar UFs cujo
+\textit{resíduo} do modelo (densidade observada $-$ densidade
+prevista) é substancialmente atípico \textemdash{} candidatos a
+investigação qualitativa adicional sob lente fiscal-política.
+
+\begin{table}[htbp]
+\centering
+\caption{Vetor de \textit{features} candidatas ao Random Forest
+preditivo de densidade de RM/Mhab por UF (Brasil, 2025)}
+\begin{tabular}{lll}
+\toprule
+\textbf{\textit{Feature}} & \textbf{Fonte} & \textbf{Hipótese associada} \\
+\midrule
+PIB \textit{per capita} (R\$ 2024) & IBGE-SCN  & Demanda solvente (H1) \\
+Cobertura PBF (\% pop)             & CGU       & Pobreza estrutural \\
+RP6 \textit{per capita} (médio
+2016\textendash 2024)             & CGU/Portal Transparência & Hipótese das emendas (H4) \\
+Idade mediana                      & IBGE      & Demanda epidemiológica \\
+Dívida estadual / RCL (\%)        & SICONFI/STN & Custo de capital (H1) \\
+\bottomrule
+\end{tabular}
+\par\noindent{\small Fonte: elaboração própria. RCL = Receita
+Corrente Líquida. \textit{Features} adicionais como custo de
+hélio regional (H5) e densidade de neurorradiologistas
+(CFM/CRM) constituem extensões previstas mas não disponíveis em
+fonte pública centralizada.}
+\label{tab:rf-features}
+\end{table}
+
+\begin{tcolorbox}[colback=green!4,colframe=green!50!black,
+                  sharp corners,boxrule=0.4pt,
+                  title=\textbf{Em linguagem simples: o que é
+                  Random Forest?},fonttitle=\small\bfseries]
+\small
+Random Forest é como pedir opinião pra \textbf{500 médicos
+diferentes} sobre o mesmo paciente, e tirar a média das opiniões.
+Cada ``médico'' aqui é uma \textbf{árvore de decisão}
+\textemdash{} um conjunto de perguntas em sequência (``UF tem PIB
+\textit{per capita} acima de R\$~30 mil? Sim $\to$ próxima
+pergunta. Não $\to$ outra pergunta''). Cada árvore vê uma fatia
+ligeiramente diferente dos dados, então cada uma chega a uma
+resposta um pouco diferente. A média das 500 respostas é mais
+robusta do que a opinião de uma árvore só. \textbf{Feature
+importance} é a forma do modelo te dizer: ``de todas essas
+perguntas que eu fiz, qual foi a que mais ajudou a chegar na
+resposta certa?'' Se PIB \textit{per capita} aparece em primeiro,
+é porque renda regional explica mais que outros fatores. Se RP6
+\textit{per capita} aparece com importância \textbf{negativa} ou
+próxima de zero, isso confirmaria empiricamente o ``paradoxo
+das emendas''. Random Forest \textbf{não} é causalidade
+\textemdash{} é correlação inteligente. Para causalidade,
+precisamos do Causal Forest, descrito abaixo.
+\end{tcolorbox}
+
+A implementação prevista usa biblioteca \texttt{scikit-learn}
+(Python) com configuração padrão estatística (500 árvores,
+profundidade mínima de 4, $\sqrt{p}$ \textit{features} amostradas
+por divisão), validação cruzada \textit{leave-one-out} dado o
+$N$ pequeno (27 UFs), e cálculo de \textit{feature importance}
+robusto via permutação (Strobl \textit{et al.}\
+2007)\,[\ref{ref:strobl}]. Resultados antecipados: PIB
+\textit{per capita} e idade mediana com importância elevada
+(esperado pela teoria); cobertura PBF com importância moderada;
+\textbf{RP6 \textit{per capita} com importância próxima de zero
+ou levemente negativa} \textemdash{} confirmação empírica do
+paradoxo das emendas e da Hipótese H4.
+
+\subsubsection{Causal Forest para heterogeneidade de tratamento}
+
+A segunda ferramenta é o \textbf{Causal Forest} (Wager \&
+Athey, 2018; Athey, Tibshirani \& Wager,
+2019)\,[\ref{ref:wagerathey}, \ref{ref:atheytibwager}], que estende
+o Random Forest para estimação de \textit{efeitos heterogêneos
+de tratamento} (\textit{Conditional Average Treatment Effect},
+CATE). Aplicado a este problema com variável de tratamento
+$W_i = $ indicador de impositividade de RP6 ativada pela EC 86,
+o Causal Forest produz três contribuições além do Random Forest:
+(i)~estimativa de CATE em cada subgrupo de UFs (não apenas
+\textit{feature importance} global); (ii)~\textit{honest
+forests} que separam amostras de construção e estimação,
+controlando viés de sobreajuste; e (iii)~intervalos de confiança
+assintóticos formais, não disponíveis em \textit{feature
+importance} de Random Forest convencional.
+
+As visualizações que emergem deste \textit{pipeline} incluem:
+(a) \textit{Partial Dependence Plots} (PDP) e \textit{Individual
+Conditional Expectation} (ICE) para os preditores de maior
+importância, revelando não-linearidades como o limiar de
+\textit{break-even} populacional postulado em H2; (b) mapa de
+CATE estimado por UF, sobreposto aos mapas coropléticos já
+produzidos neste trabalho; (c) \textit{SHAP summary plot} com
+separação entre efeitos positivos e negativos sobre a densidade
+de RM; e (d) dendrograma de agrupamento hierárquico das UFs
+baseado na matriz de correlação entre preditores, revelando
+\textit{clusters} que não seguem necessariamente as macrorregiões
+geopolíticas convencionais.
+
+É imperativo declarar o que o Causal Forest \textit{não} responde:
+a relação preditiva entre PIB \textit{per capita} estadual e
+densidade de RM/Mhab, ainda que robusta e de alta importância
+SHAP, não estabelece causalidade. A endogeneidade é bidirecional
+\textemdash{} estados ricos têm mais RM \textit{e} a
+disponibilidade de diagnóstico de alta qualidade pode atrair e
+reter capital humano qualificado, amplificando a diferença de
+renda. A identificação causal dos efeitos de política requer os
+desenhos quasi-experimentais já implementados (DiD sobre EC 86)
+e os instrumentos propostos (\textit{spread} de juros estadual,
+\textit{threshold} de capacidade de endividamento, variações
+exógenas no preço de hélio). Random Forest e Causal Forest são
+\textbf{diagnósticos de complexidade e mapeamento de
+heterogeneidade} \textemdash{} não substitutos da identificação
+estrutural causal.
+
+A implementação completa dessa subseção é declarada como agenda
+prioritária para versão estendida deste trabalho, com publicação
+do código em formato \textit{notebook} reproduzível e dos
+artefatos de modelo (\textit{Random Forest} e \textit{Causal
+Forest} treinados, \textit{Partial Dependence Plots}, SHAP
+\textit{summary}, mapa de CATE por UF) como dados suplementares.
 
 \subsection{Comparação com tomografia, PET e medicina nuclear}
 
@@ -1900,37 +2309,10 @@ intervenções (padronização de protocolo RM-DP, capacitação em
 neurorradiologia funcional, telerradiologia) emergem como
 prioridades de política.
 
-\subsection{Agenda de pesquisa \textendash{} série Mirante de neuroimagem no SUS}
+\subsection{Frentes metodológicas para extensão futura}
 
-Este \textit{Working Paper} inaugura uma série dedicada à
-infraestrutura de neuroimagem no SUS dentro do projeto Mirante. O
-recorte deste primeiro número agrega quatro modalidades no contexto
-específico da Doença de Parkinson; \textit{Working Papers}
-subsequentes da série detalharão cada modalidade individualmente,
-ou recortes clínicos correlatos, aproveitando o mesmo
-\textit{stack} de dados (CNES + SIA-RD + SIH-AIH) e dicionário
-canônico já estabelecido neste trabalho:
-
-\begin{itemize}
-\item \textbf{WP-Neuro-2 (planejado)}: Tomografia Computadorizada
-no SUS \textemdash{} análise dedicada a CT (\texttt{TIPEQUIP=1,
-CODEQUIP=11, 26-30}) com foco em oncologia e neurorradiologia de
-emergência.
-\item \textbf{WP-Neuro-3 (planejado)}: PET/CT no SUS \textemdash{}
-mapeamento dos 166 equipamentos atuais, análise da rede federal de
-oncologia, gargalos de cíclotrons e radiofarmácia.
-\item \textbf{WP-Neuro-4 (planejado)}: DAT-SPECT no SUS
-\textemdash{} separação entre uso DAT-SPECT específico e
-cintilografia geral nas Gama Câmaras via cruzamento SIA-RD; mapa de
-oferta efetiva de DAT-SPECT por UF.
-\item \textbf{WP-Neuro-5 (planejado)}: medicina nuclear oncológica
-no SUS \textemdash{} integração de Gama Câmara, PET/CT e
-radiofarmacêuticos; análise temporal da cobertura SUS para
-estadiamento oncológico.
-\end{itemize}
-
-Adicionalmente, cinco frentes metodológicas destacam-se para
-extensão futura deste trabalho específico:
+Cinco frentes metodológicas destacam-se para extensão futura deste
+trabalho:
 
 \begin{enumerate}
 \item \textbf{Cruzamento com SIH-AIH}: mensurar utilização efetiva
@@ -2327,6 +2709,37 @@ University Press, 2008.
 geographic variation in health care: evidence from patient
 migration. \textbf{Quarterly Journal of Economics}, v. 131, n. 4,
 p. 1681\textendash 1726, 2016. DOI: 10.1093/qje/qjw023.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:chandraskinner}
+[40] CHANDRA, A.; SKINNER, J. S. Technology growth and expenditure
+growth in health care. \textbf{Journal of Economic Literature},
+v. 50, n. 3, p. 645\textendash 680, 2012. DOI: 10.1257/jel.50.3.645.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:breiman}
+[41] BREIMAN, L. Random forests. \textbf{Machine Learning},
+v. 45, n. 1, p. 5\textendash 32, 2001. DOI: 10.1023/A:1010933404324.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:wagerathey}
+[42] WAGER, S.; ATHEY, S. Estimation and inference of heterogeneous
+treatment effects using random forests. \textbf{Journal of the
+American Statistical Association}, v. 113, n. 523,
+p. 1228\textendash 1242, 2018. DOI: 10.1080/01621459.2017.1319839.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:atheytibwager}
+[43] ATHEY, S.; TIBSHIRANI, J.; WAGER, S. Generalized random
+forests. \textbf{Annals of Statistics}, v. 47, n. 2,
+p. 1148\textendash 1178, 2019. DOI: 10.1214/18-AOS1709.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:strobl}
+[44] STROBL, C.; BOULESTEIX, A.-L.; ZEILEIS, A.; HOTHORN, T. Bias
+in random forest variable importance measures: illustrations,
+sources and a solution. \textbf{BMC Bioinformatics}, v. 8, n. 1,
+p. 25, 2007. DOI: 10.1186/1471-2105-8-25.
 \par\smallskip
 
 \end{singlespace}

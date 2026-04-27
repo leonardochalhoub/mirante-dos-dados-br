@@ -147,40 +147,83 @@ def fig_timeline():
 # Fig 2 — Pipeline architecture (mantém visual existente, retoque tipográfico)
 # ═══════════════════════════════════════════════════════════════════════════
 def fig_architecture():
+    """Arquitetura medallion estilo Databricks blog — boxes coloridas
+    (bronze/silver/gold com cores reais de metal), arrows sólidas
+    finas, sem outline, hierarquia tipográfica clara, sombra sutil.
+    """
     fig, ax = plt.subplots(figsize=(GOLDEN_FIGSIZE[0], 3.6))
     fig.subplots_adjust(top=0.78, bottom=0.18, left=0.04, right=0.96)
     ax.set_xlim(0, 10); ax.set_ylim(0, 4); ax.axis("off")
+
+    # Cores estilo Databricks blog: boxes preenchidas com cor sólida,
+    # texto branco em bronze/silver/gold, cinza editorial nas extremas
+    # (Fonte/Consumo) que são "input" e "output" do sistema.
     boxes = [
-        (0.4, "Fonte\nFTP DATASUS\nCNES (.dbc)",            "#F5F5F5",
-         PALETTE_MIRANTE["neutro_soft"]),
-        (2.3, "Bronze\nDBC→DBF→Parquet\n+ Auto Loader",      "#CD7F32",
-         PALETTE_MIRANTE["neutro"]),
-        (4.5, "Silver\nUF×Ano×(TIPEQUIP,CODEQUIP)\nDict canonical (133)",
-         "#A0A0A0", PALETTE_MIRANTE["neutro"]),
-        (6.7, "Gold\nUF×Ano×eq_key\n+ pop IBGE",             "#DAA520",
-         PALETTE_MIRANTE["neutro"]),
-        (8.7, "Consumo\nJSON / PDF\nReprodutível",           "#F5F5F5",
-         PALETTE_MIRANTE["neutro_soft"]),
+        # (x, label, sub1, sub2, fillcolor, textcolor)
+        (0.3, "Fonte",   "FTP DATASUS",  "CNES (.dbc)",
+         "#E8E8E8", PALETTE_MIRANTE["neutro"]),
+        (2.2, "Bronze",  "DBC→DBF→Parquet", "+ Auto Loader",
+         "#B87333", "white"),  # bronze metálico
+        (4.4, "Silver",  "UF×Ano×(TIPEQUIP,CODEQUIP)", "Dict canonical (133)",
+         "#9E9E9E", "white"),  # silver metálico
+        (6.6, "Gold",    "UF×Ano×eq_key", "+ pop IBGE",
+         "#D4A847", "white"),  # gold metálico
+        (8.5, "Consumo", "JSON / PDF", "Reprodutível",
+         "#E8E8E8", PALETTE_MIRANTE["neutro"]),
     ]
-    for i, (x, txt, fc, ec) in enumerate(boxes):
-        rect = mpl.patches.FancyBboxPatch((x, 1.3), 1.4, 1.7,
-            boxstyle="round,pad=0.05", facecolor=fc,
-            edgecolor=ec, linewidth=1.2)
+    BOX_W, BOX_H = 1.5, 1.7
+    BOX_Y = 1.3
+
+    for i, (x, label, sub1, sub2, fc, tc) in enumerate(boxes):
+        # Box principal — sem outline, cor sólida (estilo Databricks)
+        rect = mpl.patches.FancyBboxPatch(
+            (x, BOX_Y), BOX_W, BOX_H,
+            boxstyle="round,pad=0.02,rounding_size=0.10",
+            facecolor=fc, edgecolor="none", linewidth=0,
+            zorder=2,
+        )
         ax.add_patch(rect)
-        for j, line in enumerate(txt.split("\n")):
-            wt = "bold" if j == 0 else "normal"
-            sz = 10 if j == 0 else 7.5
-            ax.text(x + 0.7, 2.6 - j*0.32, line,
-                    ha="center", va="center", fontsize=sz, fontweight=wt,
-                    color=PALETTE_MIRANTE["neutro"])
+        # Sombra sutil (offset rectangle por trás)
+        shadow = mpl.patches.FancyBboxPatch(
+            (x + 0.04, BOX_Y - 0.04), BOX_W, BOX_H,
+            boxstyle="round,pad=0.02,rounding_size=0.10",
+            facecolor="#00000010", edgecolor="none", zorder=1,
+        )
+        ax.add_patch(shadow)
+        # Label principal (bold, grande)
+        ax.text(x + BOX_W/2, BOX_Y + BOX_H - 0.40, label,
+                ha="center", va="center",
+                fontsize=12, fontweight="bold", color=tc, zorder=3)
+        # Sub-label 1 (regular, pequeno)
+        ax.text(x + BOX_W/2, BOX_Y + 0.95, sub1,
+                ha="center", va="center",
+                fontsize=8, color=tc, zorder=3, alpha=0.95)
+        # Sub-label 2
+        ax.text(x + BOX_W/2, BOX_Y + 0.55, sub2,
+                ha="center", va="center",
+                fontsize=8, color=tc, zorder=3, alpha=0.95)
+
+        # Arrow para próxima box (linha fina + cabeça pequena, estilo flat)
         if i < len(boxes) - 1:
-            ax.annotate("", xy=(boxes[i+1][0], 2.15), xytext=(x+1.4, 2.15),
-                arrowprops=dict(arrowstyle="->",
-                                color=PALETTE_MIRANTE["neutro"], lw=1.2))
-    ax.text(5, 0.75,
+            x_next = boxes[i+1][0]
+            ax.annotate(
+                "", xy=(x_next - 0.05, BOX_Y + BOX_H/2),
+                xytext=(x + BOX_W + 0.05, BOX_Y + BOX_H/2),
+                arrowprops=dict(
+                    arrowstyle="-|>",
+                    color=PALETTE_MIRANTE["neutro_soft"],
+                    lw=1.4, mutation_scale=14,
+                    shrinkA=0, shrinkB=0,
+                ),
+                zorder=4,
+            )
+
+    # Filter caption embaixo (estilo Databricks: nota fina cinza)
+    ax.text(5, 0.55,
         "Filtro p/ recorte neuroimagem-PD: equipment_key = {1:12 RM, 1:11 CT, 1:18 PET/CT, 1:01 Gama}",
-        ha="center", va="center", fontsize=7.8, style="italic",
+        ha="center", va="center", fontsize=8, style="italic",
         color=PALETTE_MIRANTE["neutro_soft"])
+
     editorial_title(ax,
         title="Arquitetura medallion bronze→silver→gold do recorte CNES neuroimagem",
         subtitle="Pipeline reprodutível 2005–2025 sobre microdados do Cadastro Nacional de Estabelecimentos de Saúde",
