@@ -296,7 +296,11 @@ if use_batch:
         spark.readStream
             .format("cloudFiles")
             .option("cloudFiles.format", "parquet")
-            .option("cloudFiles.inferColumnTypes", "true")
+            # Bronze é STRING-ONLY (padrão da plataforma). Para Parquet o flag
+            # é cosmético (Spark lê o schema do footer), mas mantemos `false`
+            # como sinal de intenção. O parquet já vem string-only via
+            # astype("string").fillna("") no convert acima.
+            .option("cloudFiles.inferColumnTypes", "false")
             .option("cloudFiles.schemaLocation", SCHEMA_LOC)
             .option("cloudFiles.includeExistingFiles", "false")  # já carregados via batch
             .load(PARQUET_DIR)
@@ -325,7 +329,9 @@ else:
         spark.readStream
             .format("cloudFiles")
             .option("cloudFiles.format", "parquet")
-            .option("cloudFiles.inferColumnTypes", "true")
+            # Bronze é STRING-ONLY — vide nota acima (modo BATCH). Cosmético
+            # para Parquet, mas consistente com PBF/UroPro/CNES-batch.
+            .option("cloudFiles.inferColumnTypes", "false")
             .option("cloudFiles.schemaLocation", SCHEMA_LOC)
             .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
             .load(PARQUET_DIR)

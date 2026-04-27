@@ -44,6 +44,7 @@ print(f"zips_dir={ZIPS_DIR}  txt_extracted={TXT_EXTRACTED}  target={BRONZE_TABLE
 
 import re
 import ftplib
+import shutil
 import time
 from pathlib import Path
 import py7zr
@@ -105,11 +106,20 @@ def _ftp_redownload(local_path: Path) -> bool:
         return False
 
 
-def _try_extract(zp: Path) -> tuple[bool, str]:
-    """Retorna (ok, error_kind). error_kind ∈ {'', 'bad_archive', 'other'}."""
+def _try_extract(zp: Path, year: int) -> tuple[bool, str]:
+    """Retorna (ok, error_kind). error_kind ∈ {'', 'bad_archive', 'other'}.
+
+    Extrai pra <TXT_EXTRACTED>/ano=<year>/ (Hive-style partition).
+    - Garante que `ano` é coluna disponível downstream via partition discovery
+    - Evita colisão entre .7z de anos diferentes que produzem .txt de mesmo nome
+      (comum no PDET 2019+: RAIS_VINC_PUB_BR.7z em /2009/, /2010/, etc, todos
+      contendo um RAIS_VINC_PUB_BR.txt que se sobrescreveriam num dir flat).
+    """
+    target = Path(TXT_EXTRACTED) / f"ano={year}"
+    target.mkdir(parents=True, exist_ok=True)
     try:
         with py7zr.SevenZipFile(zp, mode='r') as z:
-            z.extractall(path=TXT_EXTRACTED)
+            z.extractall(path=target)
         return True, ""
     except Exception as e:
         kind = type(e).__name__
@@ -172,6 +182,36 @@ try:
 except Exception as e:
     print(f"  (vazio ou erro: {e})")
 print(f"=== FIM DIAGNÓSTICO ===\n")
+
+# ─── Migração: detecta .txt FLAT de extrações pré ano=YYYY/ ─────────────────
+# Versões antigas extraíam tudo plano em TXT_EXTRACTED. Se Step 2 ler esses
+# .txt flat, ele NÃO vai ter coluna `ano` (vinha do partition path agora) e
+# falha em partitionBy("ano"). Detecta e força force_reconvert=true.
+flat_txts_legacy = [f for f in Path(TXT_EXTRACTED).glob("*.txt") if f.is_file()]
+flat_txts_legacy += [f for f in Path(TXT_EXTRACTED).glob("*.TXT") if f.is_file()]
+if flat_txts_legacy:
+    if FORCE_RECONVERT:
+        print(f"⚠ Limpando {len(flat_txts_legacy)} .txt FLAT (resíduo pré-migração ano=YYYY/)…")
+        for f in flat_txts_legacy:
+            try: f.unlink()
+            except Exception as e: print(f"  ⚠ falha ao deletar {f.name}: {e}")
+        # Remove também markers .done/.bad antigos pra forçar re-extração e re-validação
+        for marker in list(Path(TXT_EXTRACTED).glob("_*.done")) + list(Path(TXT_EXTRACTED).glob("_*.bad")):
+            try: marker.unlink()
+            except Exception: pass
+    else:
+        print(f"⚠ DETECTADO {len(flat_txts_legacy)} .txt FLAT em {TXT_EXTRACTED}")
+        print(f"  Esses arquivos vêm de uma run anterior (pré-migração ano=YYYY/).")
+        print(f"  Step 2 vai falhar lendo eles porque NÃO tem coluna `ano`.")
+        print(f"  ")
+        print(f"  → SOLUÇÃO: rode UMA VEZ com force_reconvert=true pra:")
+        print(f"      1. Limpar .txt flat + markers antigos")
+        print(f"      2. Re-extrair tudo em <TXT_EXTRACTED>/ano=YYYY/")
+        print(f"      3. Recriar bronze table do zero")
+        print(f"  Primeiros 5 .txt flat detectados:")
+        for f in flat_txts_legacy[:5]:
+            print(f"    {f.name}  ({f.stat().st_size:,} bytes)")
+        dbutils.notebook.exit("MIGRATION REQUIRED: legacy flat .txt files; run with force_reconvert=true")
 
 zips = sorted(Path(ZIPS_DIR).glob("*.7z"))
 print(f".7z encontrados pra extração: {len(zips)}")
@@ -275,8 +315,17 @@ for zp in zips:
         print(f"  ⊘ {zp.name} já em quarentena (.bad marker); use force_reconvert=true pra retentar")
         quarantined += 1; continue
 
-    print(f"  extraindo {zp.name} ({zp.stat().st_size:,} bytes)...")
-    ok, err = _try_extract(zp)
+    year = _parse_year_from_local(zp.name)
+    if year is None:
+        print(f"  ⚠ {zp.name}: ano não parseável do nome local; pulando")
+        marker_bad.write_text(
+            f"year_not_parseable at {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            "esperado: <stem>_<YYYY>.7z; ingest deve adicionar sufixo de ano\n"
+        )
+        quarantined += 1; continue
+
+    print(f"  extraindo {zp.name} ({zp.stat().st_size:,} bytes) → ano={year}/...")
+    ok, err = _try_extract(zp, year)
     if ok:
         marker_ok.write_text("ok"); extracted += 1
         print(f"    ✓ ok")
@@ -301,7 +350,7 @@ for zp in zips:
 
     redownloaded += 1
     print(f"    re-tentando extração após re-download…")
-    ok, err = _try_extract(zp)
+    ok, err = _try_extract(zp, year)
     if ok:
         marker_ok.write_text("ok"); extracted += 1
         print(f"    ✓ ok (após re-download)")
@@ -317,27 +366,33 @@ for zp in zips:
     marker_bad.write_text(f"bad_after_redownload at {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
     quarantined += 1
 
-# Lista TODAS extensões pós-extração — alguns .7z contém .csv, .TXT, .dat, etc.
-all_after = sorted(Path(TXT_EXTRACTED).iterdir())
-by_ext = {}
-for f in all_after:
-    if f.is_file():
-        by_ext.setdefault(f.suffix.lower(), 0)
-        by_ext[f.suffix.lower()] += 1
+# Lista contagem por ano= partição (Hive-style)
+year_dirs = sorted([d for d in Path(TXT_EXTRACTED).iterdir() if d.is_dir() and d.name.startswith("ano=")])
 print(f"\nApós extração ({extracted} novos, {skipped} skipped, "
       f"{redownloaded} re-baixados, {quarantined} em quarentena):")
-for ext, n in sorted(by_ext.items(), key=lambda kv: -kv[1]):
-    print(f"  {ext or '(no ext)':15s}: {n} arquivos")
+total_files = 0
+for d in year_dirs:
+    inner = list(d.rglob("*"))
+    n_files = sum(1 for f in inner if f.is_file())
+    total_files += n_files
+    by_ext = {}
+    for f in inner:
+        if f.is_file():
+            by_ext.setdefault(f.suffix.lower(), 0)
+            by_ext[f.suffix.lower()] += 1
+    ext_summary = ", ".join(f"{e or '(no ext)'}:{n}" for e, n in sorted(by_ext.items(), key=lambda kv: -kv[1]))
+    print(f"  {d.name:15s}  {n_files} arquivos  [{ext_summary}]")
+print(f"  TOTAL: {total_files} arquivos em {len(year_dirs)} partições ano=YYYY/")
 
-txts = sorted(Path(TXT_EXTRACTED).glob("*.txt"))
+# Glob recursivo pelas partições — picks up .txt + .TXT + .csv etc dentro de ano=YYYY/
+txts = sorted(Path(TXT_EXTRACTED).glob("ano=*/*.txt")) + sorted(Path(TXT_EXTRACTED).glob("ano=*/*.TXT"))
 if not txts:
-    # Tenta extensões alternativas comuns em datasets PDET históricos
-    for alt_ext in ('*.TXT', '*.csv', '*.CSV', '*.dat', '*.DAT'):
-        alts = sorted(Path(TXT_EXTRACTED).glob(alt_ext))
+    for alt_ext in ('*.csv', '*.CSV', '*.dat', '*.DAT'):
+        alts = sorted(Path(TXT_EXTRACTED).glob(f"ano=*/{alt_ext}"))
         if alts:
-            print(f"  ⚠ encontrei {len(alts)} {alt_ext} (não .txt) — ajuste a glob no notebook")
+            print(f"  ⚠ encontrei {len(alts)} arquivos {alt_ext} dentro de ano=YYYY/ — ajuste a glob no Step 2")
             break
-    print("⚠ Nenhum .txt processável. Verifique diagnóstico acima.")
+    print("⚠ Nenhum .txt processável em ano=YYYY/. Verifique diagnóstico acima.")
     dbutils.notebook.exit("SKIPPED: no .txt files after extraction")
 
 # COMMAND ----------
@@ -363,33 +418,55 @@ if FORCE_RECONVERT and table_exists:
     try: dbutils.fs.rm(CHECKPOINT_LOC, True); dbutils.fs.rm(SCHEMA_LOC, True)
     except Exception: pass
 
+# Helper: deriva `ano` (int) do path Hive-partition `<TXT_EXTRACTED>/ano=YYYY/<arquivo>`
+# usado tanto em batch quanto em Auto Loader (regex em _metadata.file_path)
+def _add_ano_from_path(df):
+    return (
+        df.withColumn("_source_file", F.col("_metadata.file_path"))
+          .withColumn("ano",
+              F.regexp_extract(F.col("_metadata.file_path"), r"/ano=(\d{4})(?:/|$)", 1).cast("int")
+          )
+          .withColumn("_ingest_ts", F.current_timestamp())
+    )
+
+# Path de leitura: glob explícito pelas partições ano=YYYY/ pra evitar
+# pegar arquivos órfãos no root de TXT_EXTRACTED (markers .done/.bad ou
+# resíduos de runs antigas que sobreviveram à migração).
+READ_PATH = f"{TXT_EXTRACTED}/ano=*/"
+
 if use_batch:
     print(f"▸ MODO BATCH — table_exists={table_exists} rows={existing_rows:,}")
-    df = (
+    print(f"  lendo: {READ_PATH}")
+    df = _add_ano_from_path(
         spark.read
             .option("header", "true")
             .option("sep", ";")
             .option("encoding", "latin1")
             .option("inferSchema", "false")  # tudo string no bronze; tipagem no silver
-            .csv(TXT_EXTRACTED)
-            .withColumn("_source_file", F.col("_metadata.file_path"))
-            .withColumn("_ingest_ts",   F.current_timestamp())
+            .csv(READ_PATH)
     )
+    # Sanity: se algum arquivo cair fora de ano=YYYY/ por algum motivo,
+    # `ano` vira null e partitionBy("ano") explode no commit. Falha cedo.
+    n_null_ano = df.filter(F.col("ano").isNull()).limit(1).count()
+    if n_null_ano > 0:
+        bad_sample = df.filter(F.col("ano").isNull()).select("_source_file").limit(3).collect()
+        raise RuntimeError(
+            f"Há registros sem `ano` derivado do path. Esperado /ano=YYYY/ no _source_file. "
+            f"Exemplos: {[r['_source_file'] for r in bad_sample]}"
+        )
     (df.write.format("delta").mode("overwrite")
         .option("overwriteSchema","true")
         .partitionBy("ano")
         .saveAsTable(BRONZE_TABLE))
     # priming Auto Loader checkpoint
     print("  primando checkpoint Auto Loader…")
-    init = (
+    init = _add_ano_from_path(
         spark.readStream.format("cloudFiles")
             .option("cloudFiles.format","csv")
             .option("cloudFiles.schemaLocation", SCHEMA_LOC)
             .option("cloudFiles.includeExistingFiles","false")
             .option("header","true").option("sep",";").option("encoding","latin1")
-            .load(TXT_EXTRACTED)
-            .withColumn("_source_file", F.col("_metadata.file_path"))
-            .withColumn("_ingest_ts",   F.current_timestamp())
+            .load(READ_PATH)
     )
     (init.writeStream.format("delta")
         .option("checkpointLocation", CHECKPOINT_LOC)
@@ -399,15 +476,14 @@ if use_batch:
         .toTable(BRONZE_TABLE).awaitTermination())
 else:
     print(f"▸ MODO AUTO LOADER — table_exists=True rows={existing_rows:,}")
-    stream = (
+    print(f"  lendo: {READ_PATH}")
+    stream = _add_ano_from_path(
         spark.readStream.format("cloudFiles")
             .option("cloudFiles.format","csv")
             .option("cloudFiles.schemaLocation", SCHEMA_LOC)
             .option("cloudFiles.schemaEvolutionMode","addNewColumns")
             .option("header","true").option("sep",";").option("encoding","latin1")
-            .load(TXT_EXTRACTED)
-            .withColumn("_source_file", F.col("_metadata.file_path"))
-            .withColumn("_ingest_ts",   F.current_timestamp())
+            .load(READ_PATH)
     )
     (stream.writeStream.format("delta")
         .option("checkpointLocation", CHECKPOINT_LOC)

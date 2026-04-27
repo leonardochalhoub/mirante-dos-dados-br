@@ -7,9 +7,22 @@
 # MAGIC 1. **Extract**: para cada `emendas_parlamentares__{ts}.zip` novo, descomprime
 # MAGIC    APENAS `EmendasParlamentares.csv` (principal) — ignora os auxiliares
 # MAGIC    (`_Convenios.csv`, `_PorFavorecido.csv`).
-# MAGIC 2. **Auto Loader CSV → Delta append**, com headers normalizados pra ASCII snake_case.
+# MAGIC 2. **Auto Loader CSV → Delta append**, com headers normalizados pra ASCII snake_case
+# MAGIC    e **TODAS as colunas como string** (padrão Mirante: bronze STRING-ONLY).
 # MAGIC    Ano vem da coluna `ano_da_emenda` (não do filename, já que CGU publica um único
 # MAGIC    ZIP consolidado cobrindo todos os anos).
+# MAGIC
+# MAGIC ## ⚠ Reprocessamento após esse fix (2026-04-27)
+# MAGIC `cloudFiles.inferColumnTypes` virou `false`. CSV não tem footer com tipos —
+# MAGIC com `false` Spark lê tudo como string. A Delta atual tem colunas tipadas
+# MAGIC (ano_da_emenda como int, valores monetários como double), incompatível
+# MAGIC com append de string. Antes de rerodar:
+# MAGIC ```
+# MAGIC dbutils.fs.rm("/Volumes/mirante_prd/bronze/raw/_autoloader/emendas_pagamentos", True)
+# MAGIC spark.sql("DROP TABLE IF EXISTS mirante_prd.bronze.emendas_pagamentos")
+# MAGIC ```
+# MAGIC Silver `emendas_uf_ano:61-86` já casteia explícito (cast("int") pra Ano,
+# MAGIC `br_num()` pra valores monetários BR-format) — não precisa mudar.
 
 # COMMAND ----------
 
@@ -112,7 +125,13 @@ raw_stream = (
     spark.readStream
         .format("cloudFiles")
         .option("cloudFiles.format", "csv")
-        .option("cloudFiles.inferColumnTypes", "true")
+        # Bronze é STRING-ONLY (padrão da plataforma): silver downstream
+        # casteia tipos via cast explícito. Para CSV o flag tem IMPACTO REAL
+        # (CSV não tem footer de tipos como Parquet — Spark inferiria heuristic
+        # do conteúdo). Com `false`, todas as colunas chegam como string,
+        # o que é o comportamento canônico de bronze. Idêntico a
+        # bronze/pbf_pagamentos.py.
+        .option("cloudFiles.inferColumnTypes", "false")
         .option("cloudFiles.schemaLocation", SCHEMA_LOC)
         .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
         .option("header",    "true")

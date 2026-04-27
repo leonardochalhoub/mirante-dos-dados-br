@@ -569,12 +569,12 @@ export const PARECER_WP_RAIS = {
   vertical: 'rais',
   nivel: 'lato_sensu',
   scoreType: 'numeric',
-  scoreNumeric: 7.1,
+  scoreNumeric: 7.3,
   scoreOriginal: 8.0,
   originalLabel: 'Monografia UFRJ MBA, 2023 — régua lato sensu, avaliação IA',
   originalUrl: 'https://github.com/leonardochalhoub/CodingMBA_UFRJ/blob/main/Monografia_LeonardoChalhoub.pdf',
-  ultimaAtualizacao: `${HOJE}T20:35 BRT`,
-  versao: '0.6 — pré-validação de cada .7z (magic bytes + central directory) antes da extração (banca reprovou; sem nota atribuída)',
+  ultimaAtualizacao: `${HOJE}T21:10 BRT`,
+  versao: '0.7 — extração Hive-partitioned <TXT_EXTRACTED>/ano=YYYY/ corrige colisão silenciosa entre .7z de anos diferentes (banca reprovou; sem nota atribuída)',
   resumoCalibragem:
     'CONTEXTO HISTÓRICO: o autor foi REPROVADO pela banca da UFRJ ' +
     '(MBA Engenharia de Dados, set/2023). A banca não atribuiu nota ' +
