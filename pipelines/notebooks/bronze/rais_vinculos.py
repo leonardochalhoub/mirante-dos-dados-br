@@ -158,6 +158,39 @@ def _try_extract(zp: Path, year: int) -> tuple[bool, str]:
         return False, "other"
 
 
+def _list_archive_names(zp: Path) -> list[str]:
+    """Lê apenas o central directory pra obter nomes dos arquivos contidos.
+    Falha silenciosamente em arquivos com magic bytes inválidos (retorna [])."""
+    try:
+        with py7zr.SevenZipFile(zp, mode='r') as z:
+            return list(z.getnames() or [])
+    except Exception:
+        return []
+
+
+def _cleanup_partial_extraction(target_dir: Path, expected_names: list[str]) -> int:
+    """Remove arquivos em `target_dir` que correspondem a nomes que UMA extração
+    incompleta da .7z pode ter deixado parcialmente escritos. Retorna quantos
+    arquivos foram removidos.
+
+    Importante quando LZMAError ocorre no meio da extração: py7zr abre + escreve
+    arquivo .txt destino + começa a descomprimir blocos LZMA, e quando bate num
+    bloco corrompido aborta — mas o .txt parcial fica em disco. Spark lê depois
+    como CSV e produz linhas truncadas.
+    """
+    n = 0
+    for name in expected_names:
+        # py7zr extrai preservando a estrutura interna; nomes podem conter subdirs
+        f = target_dir / name
+        try:
+            if f.is_file():
+                f.unlink()
+                n += 1
+        except Exception:
+            pass
+    return n
+
+
 def _validate_7z(zp: Path) -> tuple[bool, str]:
     """Valida assinatura + central directory SEM descomprimir.
 
@@ -351,6 +384,12 @@ for zp in zips:
         )
         quarantined += 1; continue
 
+    # Antes de extrair: captura lista de nomes contidos no .7z. Se a extração
+    # falhar com bad_archive, usamos essa lista pra remover .txt parciais que
+    # py7zr escreveu antes de bater num bloco corrompido (típico em LZMAError).
+    expected_names = _list_archive_names(zp)
+    target_dir = Path(TXT_EXTRACTED) / f"ano={year}"
+
     print(f"  extraindo {zp.name} ({zp.stat().st_size:,} bytes) → ano={year}/...")
     ok, err = _try_extract(zp, year)
     if ok:
@@ -358,9 +397,21 @@ for zp in zips:
         print(f"    ✓ ok")
         continue
 
-    # Bad7zFile → deleta, re-baixa, tenta uma vez. Outros erros: não tenta re-download.
+    # Bad7zFile / LZMAError / CrcError → deleta, re-baixa, tenta uma vez.
+    # Outros erros (OSError, MemoryError etc): não tenta re-download, mas LIMPA
+    # parciais pra não deixar .txt truncado no Volume.
     if err != "bad_archive":
+        if expected_names and target_dir.exists():
+            n_cleaned = _cleanup_partial_extraction(target_dir, expected_names)
+            if n_cleaned:
+                print(f"    ⊘ removidos {n_cleaned} .txt parciais (erro não-recuperável)")
         continue
+
+    # Limpa .txt parciais que py7zr deixou em disco antes de abortar
+    if expected_names and target_dir.exists():
+        n_cleaned = _cleanup_partial_extraction(target_dir, expected_names)
+        if n_cleaned:
+            print(f"    ⊘ removidos {n_cleaned} .txt parciais da extração que falhou")
 
     print(f"    → arquivo corrompido; deletando e re-baixando do FTP {FTP_HOST}…")
     try:
@@ -376,6 +427,11 @@ for zp in zips:
         continue
 
     redownloaded += 1
+    # Após re-download: re-captura nomes (pode mudar se source FTP mudou) +
+    # garante que dir destino está limpo dos parciais antes de re-extrair
+    expected_names_post = _list_archive_names(zp)
+    if expected_names_post and target_dir.exists():
+        _cleanup_partial_extraction(target_dir, expected_names_post)
     print(f"    re-tentando extração após re-download…")
     ok, err = _try_extract(zp, year)
     if ok:
@@ -384,6 +440,11 @@ for zp in zips:
         continue
 
     # Ainda ruim depois do re-download → quarentena (fonte do PDET deve estar mesmo corrompida)
+    # Limpa qualquer .txt parcial gerado pela última tentativa antes de quarantinar
+    if expected_names_post and target_dir.exists():
+        n_cleaned = _cleanup_partial_extraction(target_dir, expected_names_post)
+        if n_cleaned:
+            print(f"    ⊘ removidos {n_cleaned} .txt parciais antes da quarentena")
     bad_dest = QUARANTINE_DIR / zp.name
     try:
         zp.replace(bad_dest)
