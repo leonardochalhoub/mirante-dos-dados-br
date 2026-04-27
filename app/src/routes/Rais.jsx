@@ -15,6 +15,7 @@ import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
 import ArticleTimestamp from '../components/ArticleTimestamp';
+import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
 import { PARECER_RAIS } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
@@ -110,8 +111,11 @@ export default function Rais() {
 
   // Working Paper #3 download URLs
   const base = import.meta.env.BASE_URL || '/';
-  const pdfUrl     = `${base}articles/rais-fair-lakehouse.pdf`.replace(/\/{2,}/g, '/');
-  const texUrl     = `${base}articles/rais-fair-lakehouse.tex`.replace(/\/{2,}/g, '/');
+  const slug = 'rais-fair-lakehouse';
+  const meta = useArticleMeta(slug);
+  const sha  = meta?.tex_last_sha;
+  const pdfUrl = articleUrl(base, slug, 'pdf', sha);
+  const texUrl = articleUrl(base, slug, 'tex', sha);
   const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
 

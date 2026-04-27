@@ -26,6 +26,7 @@ import TechBadges                    from '../components/TechBadges';
 import ScoreCard                     from '../components/ScoreCard';
 import AtaConselho                   from '../components/AtaConselho';
 import ArticleTimestamp              from '../components/ArticleTimestamp';
+import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
 import { PARECER_EQUIPAMENTOS }      from '../data/pareceres';
 import { ATA_WP4_REUNIAO_1 }         from '../data/atas-conselho';
 import { useTheme }                  from '../hooks/useTheme';
@@ -660,9 +661,14 @@ function WhyQuadruplo() {
 
 // WP #4 — Equipamentos × Parkinson (Rolim + Chalhoub)
 function DocCardWP4() {
-  const base = import.meta.env.BASE_URL || '/';
-  const pdfUrl     = `${base}articles/equipamentos-rm-parkinson.pdf`.replace(/\/{2,}/g, '/');
-  const texUrl     = `${base}articles/equipamentos-rm-parkinson.tex`.replace(/\/{2,}/g, '/');
+  const base       = import.meta.env.BASE_URL || '/';
+  const slug       = 'equipamentos-rm-parkinson';
+  const meta       = useArticleMeta(slug);
+  const sha        = meta?.tex_last_sha;
+  const pdfUrl     = articleUrl(base, slug, 'pdf', sha);
+  const texUrl     = articleUrl(base, slug, 'tex', sha);
+  // Overleaf snip_uri precisa de URL pública absoluta — também leva o sha
+  // como query param pra forçar Overleaf a refazer o fetch.
   const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
   return (
@@ -724,9 +730,12 @@ function DocCardWP4() {
 
 // WP #6 — Panorama integrado cross-vertical (neuroimaging trio + PBF/Emendas/UroPro)
 function DocCardWP6() {
-  const base = import.meta.env.BASE_URL || '/';
-  const pdfUrl     = `${base}articles/equipamentos-panorama-cnes.pdf`.replace(/\/{2,}/g, '/');
-  const texUrl     = `${base}articles/equipamentos-panorama-cnes.tex`.replace(/\/{2,}/g, '/');
+  const base       = import.meta.env.BASE_URL || '/';
+  const slug       = 'equipamentos-panorama-cnes';
+  const meta       = useArticleMeta(slug);
+  const sha        = meta?.tex_last_sha;
+  const pdfUrl     = articleUrl(base, slug, 'pdf', sha);
+  const texUrl     = articleUrl(base, slug, 'tex', sha);
   const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
   return (

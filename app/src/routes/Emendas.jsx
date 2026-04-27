@@ -16,6 +16,7 @@ import TechBadges      from '../components/TechBadges';
 import EmendasArticle  from '../components/EmendasArticle';
 import ScoreCard       from '../components/ScoreCard';
 import ArticleTimestamp from '../components/ArticleTimestamp';
+import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
 import { PARECER_EMENDAS } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
@@ -247,8 +248,11 @@ export default function Emendas() {
 function DocSection() {
   // Caminhos dos artefatos. BASE_URL respeita o subpath do GH Pages.
   const base = import.meta.env.BASE_URL || '/';
-  const pdfUrl     = `${base}articles/emendas-parlamentares.pdf`.replace(/\/{2,}/g, '/');
-  const texUrl     = `${base}articles/emendas-parlamentares.tex`.replace(/\/{2,}/g, '/');
+  const slug = 'emendas-parlamentares';
+  const meta = useArticleMeta(slug);
+  const sha  = meta?.tex_last_sha;
+  const pdfUrl = articleUrl(base, slug, 'pdf', sha);
+  const texUrl = articleUrl(base, slug, 'tex', sha);
   const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
 

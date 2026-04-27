@@ -29,6 +29,7 @@ import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
 import ArticleTimestamp from '../components/ArticleTimestamp';
+import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
 import { PARECER_UROPRO } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
@@ -474,9 +475,12 @@ function DocSection() {
 
 // WP #3 — cross-vertical (UroPro × PBF × Emendas)
 function DocCardWP3() {
-  const base       = import.meta.env.BASE_URL || '/';
-  const pdfUrl     = `${base}articles/uropro-serie-2008-2025.pdf`.replace(/\/{2,}/g, '/');
-  const texUrl     = `${base}articles/uropro-serie-2008-2025.tex`.replace(/\/{2,}/g, '/');
+  const base = import.meta.env.BASE_URL || '/';
+  const slug = 'uropro-serie-2008-2025';
+  const meta = useArticleMeta(slug);
+  const sha  = meta?.tex_last_sha;
+  const pdfUrl = articleUrl(base, slug, 'pdf', sha);
+  const texUrl = articleUrl(base, slug, 'tex', sha);
   const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
   return (
@@ -528,9 +532,12 @@ function DocCardWP3() {
 
 // WP #5 — vertical-only (17 anos UroPro)
 function DocCardWP5() {
-  const base       = import.meta.env.BASE_URL || '/';
-  const pdfUrl     = `${base}articles/uropro-saude-publica-2008-2025.pdf`.replace(/\/{2,}/g, '/');
-  const texUrl     = `${base}articles/uropro-saude-publica-2008-2025.tex`.replace(/\/{2,}/g, '/');
+  const base = import.meta.env.BASE_URL || '/';
+  const slug = 'uropro-saude-publica-2008-2025';
+  const meta = useArticleMeta(slug);
+  const sha  = meta?.tex_last_sha;
+  const pdfUrl = articleUrl(base, slug, 'pdf', sha);
+  const texUrl = articleUrl(base, slug, 'tex', sha);
   const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
   return (

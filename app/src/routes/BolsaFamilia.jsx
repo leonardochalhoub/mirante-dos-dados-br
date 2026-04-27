@@ -18,6 +18,7 @@ import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
 import ArticleTimestamp from '../components/ArticleTimestamp';
+import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
 import { PARECER_PBF } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
@@ -192,8 +193,11 @@ export default function BolsaFamilia() {
 
   // Caminhos do artigo Working Paper #2 (Bolsa Família)
   const base = import.meta.env.BASE_URL || '/';
-  const pdfUrl     = `${base}articles/bolsa-familia.pdf`.replace(/\/{2,}/g, '/');
-  const texUrl     = `${base}articles/bolsa-familia.tex`.replace(/\/{2,}/g, '/');
+  const slug = 'bolsa-familia';
+  const meta = useArticleMeta(slug);
+  const sha  = meta?.tex_last_sha;
+  const pdfUrl = articleUrl(base, slug, 'pdf', sha);
+  const texUrl = articleUrl(base, slug, 'tex', sha);
   const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
 

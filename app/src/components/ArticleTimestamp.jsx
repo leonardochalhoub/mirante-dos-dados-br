@@ -4,8 +4,7 @@
 //
 // Uso: <ArticleTimestamp slug="equipamentos-rm-parkinson" />
 
-import { useEffect, useState } from 'react';
-import { loadArticlesMeta } from '../lib/data';
+import { useArticleMeta } from '../hooks/useArticleMeta';
 
 const FMT = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit', month: '2-digit', year: 'numeric',
@@ -14,15 +13,11 @@ const FMT = new Intl.DateTimeFormat('pt-BR', {
 });
 
 export default function ArticleTimestamp({ slug }) {
-  const [meta, setMeta] = useState(null);
+  const meta = useArticleMeta(slug);
 
-  useEffect(() => {
-    loadArticlesMeta().then(setMeta).catch(() => setMeta(null));
-  }, []);
+  if (!meta?.tex_last_edited) return null;
 
-  if (!meta || !meta.articles?.[slug]?.tex_last_edited) return null;
-
-  const { tex_last_edited, tex_last_sha } = meta.articles[slug];
+  const { tex_last_edited, tex_last_sha } = meta;
   const dt   = new Date(tex_last_edited);
   const fmt  = FMT.format(dt) + ' BRT';
 
