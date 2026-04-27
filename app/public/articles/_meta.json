@@ -1,5 +1,5 @@
 {
-  "manifest_built_at": "2026-04-27T03:06:39.347Z",
+  "manifest_built_at": "2026-04-27T03:19:09.157Z",
   "articles": {
     "bolsa-familia": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",
@@ -18,8 +18,8 @@
       "tex_last_sha": "dda3e6e"
     },
     "equipamentos-rm-parkinson": {
-      "tex_last_edited": "2026-04-26T22:54:25-03:00",
-      "tex_last_sha": "dda3e6e"
+      "tex_last_edited": "2026-04-27T00:07:30-03:00",
+      "tex_last_sha": "06a177c"
     },
     "rais-fair-lakehouse": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",

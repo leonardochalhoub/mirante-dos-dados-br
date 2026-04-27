@@ -30,7 +30,7 @@ import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
 import ArticleTimestamp from '../components/ArticleTimestamp';
 import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
-import { PARECER_UROPRO } from '../data/pareceres';
+import { PARECER_WP3_UROPRO, PARECER_WP5_UROPRO } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
 import { COLORSCALES } from '../lib/scales';
@@ -216,8 +216,6 @@ export default function UroPro() {
           </div>
         }
       />
-
-      <ScoreCard parecer={PARECER_UROPRO} />
 
       <DocSection />
 
@@ -526,6 +524,8 @@ function DocCardWP3() {
         <b>Palavras-chave:</b> SUS; equidade em saúde; Bolsa Família; emendas
         parlamentares; federalismo brasileiro; análise <i>cross-vertical</i>.
       </p>
+
+      <ScoreCard parecer={PARECER_WP3_UROPRO} />
     </div>
   );
 }
@@ -584,6 +584,8 @@ function DocCardWP5() {
         permanência hospitalar; pandemia COVID-19; represa cirúrgica;
         engenharia de dados.
       </p>
+
+      <ScoreCard parecer={PARECER_WP5_UROPRO} />
     </div>
   );
 }

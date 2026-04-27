@@ -19,7 +19,7 @@ import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
 import ArticleTimestamp from '../components/ArticleTimestamp';
 import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
-import { PARECER_PBF } from '../data/pareceres';
+import { PARECER_WP2_BOLSA_FAMILIA } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
 import { COLORSCALES } from '../lib/scales';
@@ -218,8 +218,6 @@ export default function BolsaFamilia() {
         }
       />
 
-      <ScoreCard parecer={PARECER_PBF} />
-
       <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
         <div className="doc-block">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
@@ -261,6 +259,8 @@ export default function BolsaFamilia() {
               ↗ Abrir no Overleaf
             </a>
           </div>
+
+          <ScoreCard parecer={PARECER_WP2_BOLSA_FAMILIA} />
         </div>
       </section>
 

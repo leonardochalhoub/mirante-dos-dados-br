@@ -17,7 +17,7 @@ import EmendasArticle  from '../components/EmendasArticle';
 import ScoreCard       from '../components/ScoreCard';
 import ArticleTimestamp from '../components/ArticleTimestamp';
 import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
-import { PARECER_EMENDAS } from '../data/pareceres';
+import { PARECER_WP1_EMENDAS } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
 import { COLORSCALES } from '../lib/scales';
@@ -139,8 +139,6 @@ export default function Emendas() {
       />
 
       {/* ─── DOCUMENTAÇÃO ─────────────────────────────────────────────── */}
-      <ScoreCard parecer={PARECER_EMENDAS} />
-
       <DocSection />
 
       {/* ─── DADOS ───────────────────────────────────────────────────── */}
@@ -315,6 +313,8 @@ function DocSection() {
           </a>
         </div>
       </div>
+
+      <ScoreCard parecer={PARECER_WP1_EMENDAS} />
 
       {/* (artigo React inline removido: o canônico agora é o PDF compilado
            via LaTeX, aberto em nova aba pelo botão acima) */}

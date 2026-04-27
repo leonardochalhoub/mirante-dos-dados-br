@@ -16,7 +16,7 @@ import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
 import ArticleTimestamp from '../components/ArticleTimestamp';
 import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
-import { PARECER_RAIS } from '../data/pareceres';
+import { PARECER_WP_RAIS } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
 import { COLORSCALES } from '../lib/scales';
@@ -136,8 +136,6 @@ export default function Rais() {
         }
       />
 
-      <ScoreCard parecer={PARECER_RAIS} />
-
       <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
         <div className="doc-block">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
@@ -174,6 +172,8 @@ export default function Rais() {
               ↗ Abrir no Overleaf
             </a>
           </div>
+
+          <ScoreCard parecer={PARECER_WP_RAIS} />
         </div>
       </section>
 
