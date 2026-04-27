@@ -289,6 +289,78 @@ if not zips:
     print(f"     databricks fs cp ./RAIS_VINC_PUB_BR_2021.7z dbfs:{ZIPS_DIR}/")
     dbutils.notebook.exit("SKIPPED: no .7z files to extract")
 
+# ─── Reconciliação de markers — preserva extrações já feitas ────────────────
+# Quando markers .done foram limpos (force_reconvert=true em run anterior, ou
+# sumiço inesperado), os .txt em ano=YYYY/ ainda estão lá — preferimos NÃO
+# re-extrair (custoso) se o conteúdo parece OK.
+#
+# Critérios pra reconciliar (gerar .done sem extrair):
+#   1. Não há marker .done nem .bad pra esse .7z
+#   2. central directory do .7z lista N entradas (getnames)
+#   3. TODAS as N entradas existem em ano=YYYY/
+#   4. ratio total_txt_size / .7z_size ≥ 2.0 (LZMA típico comprime 5-15× em texto;
+#      ratio 2 é piso conservador que pega arquivos parciais mas tolera variação)
+#
+# Se TODAS as 4 baterem → marker .done com texto "reconciled" + skip da extração.
+# Senão, .7z entra normalmente na pré-validação + extração.
+print("=== RECONCILIAÇÃO DE MARKERS ===")
+reconciled = 0; reconcile_skipped_partial = 0; reconcile_skipped_no_dir = 0
+for zp in zips:
+    marker_ok  = Path(TXT_EXTRACTED) / f"_{zp.stem}.done"
+    marker_bad = Path(TXT_EXTRACTED) / f"_{zp.stem}.bad"
+    if marker_ok.exists() or marker_bad.exists():
+        continue
+    year = _parse_year_from_local(zp.name)
+    if year is None:
+        continue
+    target_dir = Path(TXT_EXTRACTED) / f"ano={year}"
+    if not target_dir.exists():
+        reconcile_skipped_no_dir += 1
+        continue
+
+    expected = _list_archive_names(zp)
+    if not expected:
+        continue
+
+    all_present = True
+    total_txt_size = 0
+    missing_or_empty: list[str] = []
+    for name in expected:
+        f = target_dir / name
+        if not f.exists():
+            all_present = False
+            missing_or_empty.append(f"{name}(missing)")
+            break
+        sz = f.stat().st_size
+        if sz == 0:
+            all_present = False
+            missing_or_empty.append(f"{name}(empty)")
+            break
+        total_txt_size += sz
+
+    if not all_present:
+        reconcile_skipped_partial += 1
+        continue
+
+    zp_size = zp.stat().st_size
+    ratio = (total_txt_size / zp_size) if zp_size > 0 else 0
+    if ratio >= 2.0:
+        marker_ok.write_text(f"reconciled at {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+                             f"txt_total={total_txt_size} 7z={zp_size} ratio={ratio:.2f}\n")
+        reconciled += 1
+    else:
+        # Arquivos existem mas ratio suspeito (provável extração parcial) →
+        # deixa SEM marker pra que pré-validação + extração lidem com isso
+        reconcile_skipped_partial += 1
+        if reconcile_skipped_partial <= 5:
+            print(f"  ratio baixo ({ratio:.2f}) {zp.name}: txt={total_txt_size:,}B / 7z={zp_size:,}B "
+                  f"→ vai re-extrair")
+
+print(f"\n  ✓ reconciliados {reconciled} arquivos (markers .done re-criados)")
+print(f"  ⊘ pulados {reconcile_skipped_partial} (ratio baixo/parcial → re-extrair)")
+print(f"  ⊘ pulados {reconcile_skipped_no_dir} (ano= dir não existe → re-extrair)")
+print("=== FIM RECONCILIAÇÃO ===\n")
+
 # ─── Pré-validação: cada .7z é checado antes do loop de extração ────────────
 # Pega TODOS os arquivos corrompidos de uma vez (não só os que o glob alcança
 # antes do loop falhar). Re-baixa do FTP PDET cada um que falhar a validação;
@@ -472,6 +544,69 @@ for d in year_dirs:
     ext_summary = ", ".join(f"{e or '(no ext)'}:{n}" for e, n in sorted(by_ext.items(), key=lambda kv: -kv[1]))
     print(f"  {d.name:15s}  {n_files} arquivos  [{ext_summary}]")
 print(f"  TOTAL: {total_files} arquivos em {len(year_dirs)} partições ano=YYYY/")
+
+# ─── Quality check pós-extração: ratio txt_total / 7z por arquivo .done ────
+print("\n=== QUALITY CHECK ===")
+print("Verificando se cada .7z extraído (.done marker) produziu .txt com tamanho consistente…")
+quality_issues: list[str] = []
+quality_ok = 0
+quality_skipped = 0
+for done_marker in sorted(Path(TXT_EXTRACTED).glob("_*.done")):
+    stem_with_underscore = done_marker.stem  # _RAIS_VINC_PUB_BR_2009 (no leading _ removed by stem)
+    # `.stem` of "_FOO.done" returns "_FOO" — keep the underscore prefix consistent
+    if not stem_with_underscore.startswith("_"):
+        continue
+    file_stem = stem_with_underscore[1:]  # strip leading _
+    zp = Path(ZIPS_DIR) / f"{file_stem}.7z"
+    if not zp.exists():
+        # .7z pode ter ido pra _bad/ ou foi deletado — marker .done sem .7z é orphan
+        quality_skipped += 1
+        continue
+    year = _parse_year_from_local(zp.name)
+    if year is None:
+        quality_skipped += 1
+        continue
+    target_dir = Path(TXT_EXTRACTED) / f"ano={year}"
+    if not target_dir.exists():
+        quality_issues.append(f"  ✗ {zp.name}: marker .done existe mas ano={year}/ não")
+        continue
+
+    expected = _list_archive_names(zp)
+    if not expected:
+        quality_skipped += 1
+        continue
+
+    txt_total = 0
+    missing = []
+    for name in expected:
+        f = target_dir / name
+        if not f.exists():
+            missing.append(name)
+        else:
+            txt_total += f.stat().st_size
+
+    zp_size = zp.stat().st_size
+    ratio = (txt_total / zp_size) if zp_size > 0 else 0
+
+    if missing:
+        quality_issues.append(f"  ✗ {zp.name}: {len(missing)} .txt esperados estão MISSING: {missing[:3]}")
+    elif ratio < 1.5:
+        quality_issues.append(f"  ⚠ {zp.name}: ratio txt/7z={ratio:.2f} (suspeito; "
+                              f"txt_total={txt_total/1_048_576:.1f}MB / 7z={zp_size/1_048_576:.1f}MB)")
+    else:
+        quality_ok += 1
+
+print(f"  ✓ {quality_ok} arquivos com tamanhos consistentes")
+print(f"  ⊘ {quality_skipped} pulados (sem .7z source ou metadata)")
+if quality_issues:
+    print(f"  ⚠ {len(quality_issues)} arquivos com issues:")
+    for issue in quality_issues[:30]:
+        print(issue)
+    if len(quality_issues) > 30:
+        print(f"  ... +{len(quality_issues) - 30}")
+else:
+    print(f"  ✓ nenhum issue detectado")
+print("=== FIM QUALITY CHECK ===\n")
 
 # Glob recursivo pelas partições — picks up .txt + .TXT + .csv etc dentro de ano=YYYY/
 txts = sorted(Path(TXT_EXTRACTED).glob("ano=*/*.txt")) + sorted(Path(TXT_EXTRACTED).glob("ano=*/*.TXT"))
