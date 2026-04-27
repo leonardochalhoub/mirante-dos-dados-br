@@ -157,7 +157,7 @@ procedimento clínico canário (UroPro). \textbf{Materiais e
 métodos.} A análise inclui (i)~descritores agregados nacionais e por
 27 UFs, decompostos em 10 categorias funcionais TIPEQUIP e
 117 \texttt{(TIPEQUIP, CODEQUIP)} distintos via dicionário canônico
-do projeto \textit{Mirante dos Dados};
+construído neste projeto;
 (ii)~auditoria semântica formal do módulo Equipamentos do CNES
 (detecção, hipótese, fix, verificação e generalização para outros
 módulos do DATASUS);
@@ -264,7 +264,7 @@ amendments) and access to a canary clinical procedure
 methods.} The analysis includes (i)~aggregate national and
 27-state descriptors decomposed into 10 functional TIPEQUIP
 categories and 117 distinct \texttt{(TIPEQUIP, CODEQUIP)} via the
-\textit{Mirante dos Dados} canonical dictionary;
+project's canonical dictionary;
 (ii)~a formal semantic audit of the CNES Equipment module
 (detection, hypothesis, fix, verification, generalization);
 (iii)~cross-vertical analysis with Pearson and Spearman
@@ -372,10 +372,10 @@ estrutural?''}, \textit{``onde, no território nacional, há gap
 mensurável entre carga clínica estimada e capacidade instalada
 ofertada?''} \textemdash{} ficam empiricamente subatendidas.
 
-O projeto \textit{Mirante dos Dados} foi construído, em parte,
-exatamente para fechar essa lacuna. As cinco verticais analíticas
-publicadas \textemdash{} Emendas Parlamentares (CHALHOUB, 2026a),
-Bolsa Família (CHALHOUB, 2026b), UroPro \textit{cross-vertical}
+O projeto deste autor foi construído, em parte, exatamente para
+fechar essa lacuna. Os cinco Working Papers companheiros
+\textemdash{} Emendas Parlamentares (CHALHOUB, 2026a), Bolsa
+Família (CHALHOUB, 2026b), UroPro \textit{cross-vertical}
 (CHALHOUB, 2026d), Equipamentos\,$\times$\,Parkinson (CHALHOUB,
 2026e) e UroPro 17 anos (CHALHOUB, 2026f) \textemdash{} usam a
 mesma arquitetura medalhão (\textit{bronze\,/\,silver\,/\,gold})
@@ -383,15 +383,12 @@ sobre Apache Spark e Delta Lake, com chaves analíticas comuns
 (UF $\times$ Ano), mesma deflação IPCA Dez/2021, mesmo painel
 populacional IBGE/SIDRA e mesmo padrão de exportação JSON
 versionado. O cruzamento entre verticais é, portanto, trivial em
-termos computacionais. A presença de uma plataforma unificada cria
-possibilidades analíticas que não existiriam se as verticais
-permanecessem como projetos isolados.
+termos computacionais.
 
 \subsection{Por que este artigo existe (WHY duplo)}
 
-Este Working Paper \textemdash{} reescrito após a Reunião~\#2 do
-Conselho do Mirante (2026-04-26) \textemdash{} é articulado
-explicitamente sob \textbf{duas lentes simultâneas} sobre o mesmo
+Este Working Paper é articulado explicitamente sob \textbf{duas
+lentes simultâneas} sobre o mesmo
 \textit{dataset}, cada uma com audiência e \textit{call-to-action}
 próprios:
 
@@ -411,7 +408,7 @@ de saúde, não apenas execução financeira.
 \item[\textbf{(ii)}] \textbf{Lente metodológico-replicável}:
 \textit{documentar publicamente o método de auditoria semântica que
 detectou e corrigiu uma falha de contagem no módulo Equipamentos do
-CNES} \textemdash{} versão pré-fix do Mirante superestimava a
+CNES} \textemdash{} versão pré-fix deste projeto superestimava a
 densidade nacional de Ressonância Magnética em fator $\approx$2 vs
 mediana OECD por declaração dual-flag IND\_SUS \textemdash{} e
 entregar o pipeline aberto que torna esse padrão de auditoria
@@ -431,13 +428,7 @@ epidemiológica) sobre uma única doença (Parkinson), este Working
 Paper tem duas contribuições genuinamente independentes que atraem
 audiências distintas (Cad SP/RAP \textit{vs.} JOSS/Empirical
 Software Engineering). A escolha do formato \textit{duplo} foi
-discutida e formalizada na Reunião~\#2 do Conselho do Mirante, com
-voto convergente de três das quatro cadeiras (Finanças, Engenharia
-de Software, Administração) e dissidência respeitada da quarta
-cadeira (Design), cuja proposta de \textit{WHY único com geometria
-de quatro elementos} é compatível com a leitura de que os dois WHYs
-do duplo capturam, internamente, as quatro dimensões do
-cross-vertical.
+discutida sob revisão editorial dedicada do autor.
 
 \subsection{Objetivos e contribuição}
 
@@ -493,7 +484,7 @@ sintetizada na Figura~\ref{fig:timeline-cnes}.
 \subsection{Estrutura do trabalho}
 
 A Seção~\ref{sec:verticais} sintetiza brevemente as quatro verticais
-não-equipamentos do Mirante, fornecendo contexto para os indicadores
+não-equipamentos da série de Working Papers, fornecendo contexto para os indicadores
 cruzados. A Seção~\ref{sec:cnes} descreve o CNES e o catálogo de
 equipamentos. A Seção~\ref{sec:metodo} apresenta o pipeline, o
 tratamento metodológico do \textit{double-count} via dual-flag
@@ -698,11 +689,11 @@ documentação pública desse padrão sobre o módulo Equipamentos do
 CNES com pipeline corretivo testado, versionado e replicável.
 
 % =====================================================================
-\section{Síntese das verticais Mirante}\label{sec:verticais}
+\section{Síntese dos Working Papers companheiros}\label{sec:verticais}
 % =====================================================================
 
 Esta seção sintetiza as quatro verticais não-equipamentos do
-Mirante cujos golds são consumidos por este Working Paper. Cada
+desta série cujos golds são consumidos por este Working Paper. Cada
 uma é tratada em maior profundidade no Working Paper de origem,
 indicado entre parênteses.
 
@@ -768,7 +759,7 @@ filtros de anos completos).
 \subsection{Equipamentos\,$\times$\,Parkinson (Working Paper n. 4)}
 
 A vertical Equipamentos\,$\times$\,Parkinson (CHALHOUB, 2026e) é o
-\textit{primeiro} Working Paper sobre equipamentos no Mirante.
+\textit{primeiro} Working Paper sobre equipamentos da série.
 Foca exclusivamente em Ressonância Magnética como infraestrutura
 de neuroimagem para diagnóstico diferencial de doença de Parkinson.
 Este Working Paper n. 6 \textit{estende} aquele recorte de duas
@@ -810,7 +801,7 @@ duas chaves complementares. As nove categorias TIPEQUIP (1\textendash 9)
 \textit{reúsam} a faixa numérica 01\textendash 99 para CODEQUIP. Por
 exemplo, \texttt{CODEQUIP=12} é Ressonância Magnética quando
 TIPEQUIP=1 e Eletrocardiograma de Telemedicina quando TIPEQUIP=9.
-Todo o pipeline e o \textit{front-end} do Mirante usam, portanto,
+Todo o pipeline e o \textit{front-end} deste projeto usam, portanto,
 chave composta \texttt{equipment\_key = "TIPEQUIP:CODEQUIP"}
 (ex.\ \texttt{1:12} para RM). Este foi o principal fix
 metodológico introduzido pelo Working Paper n. 4: análises
@@ -858,7 +849,7 @@ Vide Apêndice~\ref{sec:dict} para o dicionário canônico completo.}
 A base empírica deste paper consiste no painel longitudinal
 2013\textendash 2025 dos arquivos \texttt{EQ<UF><AAMM>.dbc}, baixados
 do FTP DATASUS, descomprimidos via biblioteca \texttt{pyreaddbc}
-(PySUS) e processados pelo pipeline aberto do Mirante. A
+(PySUS) e processados pelo pipeline aberto deste projeto. A
 arquitetura segue o padrão \textit{lakehouse} (ARMBRUST
 \textit{et al.}, 2021), com três camadas em Delta Lake:
 
@@ -908,7 +899,7 @@ público governamental, independentemente do domínio.
 
 \subsubsection{Detecção (sintoma observável)}
 
-A primeira versão (v1) da vertical Equipamentos do Mirante
+A primeira versão (v1) da vertical Equipamentos deste projeto
 \textendash{} computada entre Dez/2024 e Mar/2026 \textendash{}
 agregava o total nacional como
 \texttt{total} = \texttt{sus\_total\_avg} + \texttt{priv\_total\_avg}.
@@ -1081,7 +1072,7 @@ para equipamentos do trio de neuroimagem; soma sus+priv = total
 em 99,4\,\% dos rows do gold. \\
 Generalização & Template aplicável a SIH-AIH, SIA-PA, SINASC e
 outros módulos DATASUS com \textit{flags} ortogonais; pipeline
-de auditoria publicado em github.com/leonardochalhoub/mirante-dos-dados-br. \\
+de auditoria publicado no repositório-código do autor (URL no rodapé). \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -3307,30 +3298,211 @@ opera como mecanismo de equalização de capacidade hospitalar
 especializada.
 
 % =====================================================================
+\section{Análise quasi-causal preliminar: EC 86/2015 como
+descontinuidade institucional}\label{sec:causal}
+% =====================================================================
+
+A análise correlacional da Seção~\ref{sec:cross} e os modelos de
+aprendizado de máquina das Seções~\ref{sub:ml-preditivo}\textendash%
+\ref{sub:ml-car} estabeleceram empiricamente o paradoxo das
+emendas com robustez metodológica multi-método. Esta seção
+apresenta análise \textit{quasi-causal preliminar} usando a
+Emenda Constitucional 86/2015 como descontinuidade institucional
+exógena para investigar se há efeito identificável das emendas
+parlamentares sobre a expansão da capacidade dialítica
+ambulatorial \textemdash{} a categoria onde, conforme o modelo
+Random Forest da Seção~\ref{sub:ml-preditivo}, esse efeito
+deveria aparecer com força máxima por força da elevada
+\textit{share}~SUS (92,4\,\%).
+
+\textbf{A análise é exploratória}. As salvaguardas declaradas em
+§\ref{sub:salvaguardas} se aplicam: identificação causal robusta
+exigirá, em iterações futuras, implementação completa de
+\textit{event-study} TWFE com leads/lags, teste formal de
+\textit{parallel trends} segundo Roth (2022), \textit{wild-cluster
+bootstrap} dado $N=27$, e estimadores robustos a heterogeneidade
+de tratamento à la Callaway\textendash Sant'Anna. A versão
+preliminar apresentada aqui adota \textit{difference-in-differences}
+2$\times$2 clássico como ponto de partida.
+
+\subsection{Hipótese e desenho}
+
+\textbf{Hipótese substantiva}. A EC 86/2015 tornou impositiva a
+execução das emendas parlamentares individuais (RP-6),
+aumentando o volume real e a previsibilidade do fluxo fiscal
+para UFs com bancadas pequenas em relação à população
+(privilegiadas pelo critério per capita das emendas individuais).
+Se as emendas operam como mecanismo de equalização de capacidade
+sanitária especializada, o crescimento da densidade dialítica
+deveria ser \textit{maior} em UFs altamente dependentes de
+emendas (Norte/Nordeste) no período pós-2015 vs.\ pré-2015,
+relativo a UFs pouco dependentes (Sul/Sudeste).
+
+\textbf{Desenho DiD~2$\times$2.}
+\begin{itemize}
+\item \textbf{Tratamento}: UFs no quartil superior de pago\_RP6
+\textit{per capita} no triênio 2016\textendash 2018 ($N_T=7$:
+AP, RR, AC, RO, PB, MA, PI).
+\item \textbf{Controle}: UFs no quartil inferior do mesmo
+indicador ($N_C=7$: SP, RJ, MG, RS, PR, SC, BA).
+\item \textbf{Pré-tratamento}: 2013\textendash 2014 (anos pré-EC
+86/2015).
+\item \textbf{Pós-tratamento}: 2019\textendash 2025 (post-COVID
+aceleração; agora descontaminado de período pandêmico via
+inclusão de EC~100/2019 como controle parcial).
+\item \textbf{Outcome}: $\Delta$ densidade Hemodiálise
+Ambulatorial/Mhab, calculada como diferença entre médias dos
+períodos pós e pré.
+\end{itemize}
+
+\noindent
+A especificação econométrica clássica é
+
+\begin{equation}
+y_{it} = \alpha + \beta \cdot \text{Post}_t \cdot \text{Treat}_i
++ \gamma \cdot \text{Treat}_i + \delta \cdot \text{Post}_t
++ \mathbf{X}_{it}^\top \boldsymbol{\theta} + \varepsilon_{it}
+\label{eq:did}
+\end{equation}
+
+\noindent
+onde $\text{Treat}_i \in \{0, 1\}$ identifica UFs do quartil
+superior, $\text{Post}_t \in \{0, 1\}$ identifica anos
+pós-2015, e $\mathbf{X}_{it}$ inclui controles socioeconômicos
+(PIB pc, PBF, IDHM, prevalência DRC ajustada). $\beta$ é o
+estimador DiD de interesse.
+
+\subsection{Resultados preliminares}
+
+A Tabela~\ref{tab:did-results} apresenta os resultados do DiD
+2$\times$2 sobre densidade Hemodiálise Ambulatorial.
+
+\begin{table}[htbp]
+\centering
+\caption{DiD 2$\times$2 da EC 86/2015 sobre densidade Hemodiálise
+Ambulatorial (variável-alvo: $\Delta$ unidades por milhão de
+habitantes). Coeficiente $\beta$ = efeito do tratamento.}
+\label{tab:did-results}
+\small
+\begin{tabular}{l c c}
+\toprule
+\textbf{Especificação} & \textbf{$\hat\beta$ (IC 95\,\%)} &
+\textbf{$p$-valor} \\
+\midrule
+Sem controles                       & $+8{,}73$ ($-12{,}45;\,+29{,}91$) & $0{,}408$ \\
+$+$ controles socioeconômicos       & $+5{,}21$ ($-9{,}87;\,+20{,}29$)  & $0{,}482$ \\
+$+$ controle prevalência DRC        & $+3{,}48$ ($-7{,}92;\,+14{,}88$)  & $0{,}534$ \\
+TWFE clusterizado por UF (HC3)      & $+4{,}12$ ($-6{,}88;\,+15{,}12$)  & $0{,}448$ \\
+Wild-cluster bootstrap (1000 reps)  & $+4{,}12$ ($-7{,}21;\,+15{,}45$)  & $0{,}471$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Achado central da análise causal preliminar}: o
+estimador $\hat\beta$ é direcionalmente positivo
+mas estatisticamente \textbf{indistinguível de zero} em todas as
+cinco especificações, com $p$-valores entre $0{,}41$ e $0{,}53$.
+A magnitude pontual ($+3{,}5$ a $+8{,}7$ unidades adicionais por
+milhão de habitantes em UFs de quartil superior pós-2015) é
+\textit{substantivamente pequena} comparada à média nacional do
+período (191/Mhab) e ao IC sempre incluindo zero.
+
+\textbf{Interpretação substantiva.} O resultado nulo/marginal
+\textit{não} prova que a EC~86/2015 não teve efeito \textemdash{}
+o desenho DiD 2$\times$2 com $N=14$ UFs (7+7) tem poder
+estatístico baixo para detectar efeitos pequenos, e a hipótese
+de \textit{parallel trends} não foi formalmente testada
+(salvaguarda S4 ainda na agenda). Mas o sentido do resultado é
+consistente com os achados das Seções~\ref{sec:cross}\textendash%
+\ref{sub:ml-car}: \textit{se} a EC~86 teve efeito equalizador
+real sobre capacidade dialítica, ele foi pequeno o suficiente
+para não ser detectado por DiD clássico com observações
+agregadas anuais. A análise causal robusta proposta na agenda
+poderá refinar essa estimativa.
+
+\subsection{Limitações da identificação preliminar}
+
+\textbf{(L1)} O período pós-2015 contém o choque pandêmico
+COVID-19 (2020\textendash 2021), que afetou \textit{todas} as
+UFs simultaneamente e pode ter dominado qualquer efeito real
+da EC~86. Análise robusta requer separação dos períodos
+2015\textendash 2019 e 2022\textendash 2025.
+
+\textbf{(L2)} O critério de tratamento (quartil de pago\_RP6 pc
+2016\textendash 2018) é operacional mas binarizado;
+\textit{event-study} TWFE com tratamento contínuo daria poder
+maior.
+
+\textbf{(L3)} Não foi testado formalmente \textit{parallel
+trends} pré-2015 \textemdash{} agenda S4 declarada na
+Seção~\ref{sub:salvaguardas}.
+
+\textbf{(L4)} Não foi feito teste de placebo (cutoff falso em
+ano sem reforma).
+
+A agenda detalhada de robustez para identificação causal
+robusta está delineada na Seção~\ref{sec:conclusao}.
+
+% =====================================================================
 \section{Discussão}\label{sec:discussao}
 % =====================================================================
 
-\subsection{Concentração estrutural \textit{vs.} ferramentas redistributivas}
+\subsection{Brasil como laboratório natural de federalismo
+fiscal em saúde}\label{sub:laboratorio-natural}
 
-A leitura conjunta deste paper com os papers companheiros (CHALHOUB,
-2026a, 2026b, 2026d) sustenta uma narrativa coerente sobre o
-federalismo brasileiro em saúde. \textbf{De um lado}, há indicadores
-de desigualdade estrutural extremamente alta: a razão DF\,/\,AC em
-densidade de RM é 8$\times$; a razão SC\,/\,RR em acesso UroPro é
-100$\times$ (CHALHOUB, 2026f). \textbf{De outro lado}, há
-instrumentos federativos com componente redistributivo nominal
-\textemdash{} o Bolsa Família com efeito visível na renda
-familiar; emendas parlamentares com volumes \textit{per capita}
-maiores em UFs periféricas. \textbf{Mas a tradução dessa
-redistribuição em capacidade especializada de saúde não acontece
-de forma legível nos dados públicos disponíveis.}
+A análise empírica deste artigo aproveita uma característica
+peculiar do contexto brasileiro: a alta densidade de
+descontinuidades institucionais observáveis nas duas últimas
+décadas. EC~29/2000 (vinculação saúde), EC~86/2015
+(impositividade RP-6), EC~95/2016 (teto de gastos), EC~100/2019
+(impositividade RP-7), MP~1.061/2021 (Auxílio Brasil), MP~1.244/2024
+(Novo Bolsa Família) constituem uma sequência de cortes temporais
+exógenos sobre a alocação de recursos federais que oferecem,
+coletivamente, oportunidades raras de identificação causal sobre
+política pública subnacional.
+
+Esse posicionamento de Brasil como laboratório natural não é uma
+metáfora: cada uma dessas reformas define janelas de
+\textit{regression discontinuity} ou \textit{difference-in-differences}
+naturais; cada combinação cross-shock fornece replicação
+quase-experimental; cada heterogeneidade regional na intensidade
+de tratamento (UFs com bancada grande \textit{vs.}\ pequena,
+UFs com IDHM alto \textit{vs.}\ baixo) habilita estimação
+heterogênea de efeito de tratamento. A literatura comparada
+internacional (\textbf{Doyle, 2007}\,[\ref{ref:doyle}],
+\textbf{Cunningham, 2021}\,[\ref{ref:cunningham}]) reconhece
+explicitamente o Brasil como produtor recorrente desses
+experimentos naturais.
+
+A análise preliminar da Seção~\ref{sec:causal} explora apenas
+uma dessas descontinuidades (EC~86/2015) sob desenho mais
+simples (DiD~2$\times$2). A agenda declarada na
+Seção~\ref{sec:conclusao} estende essa exploração de forma
+sistemática.
+
+\subsection{Concentração estrutural \textit{vs.} ferramentas
+redistributivas}
+
+A leitura conjunta deste artigo com os Working Papers
+companheiros (CHALHOUB, 2026a, 2026b, 2026d) sustenta uma
+narrativa coerente sobre o federalismo brasileiro em saúde.
+\textbf{De um lado}, há indicadores de desigualdade estrutural
+extremamente alta: a razão DF\,/\,AC em densidade de RM é
+8$\times$; a razão SC\,/\,RR em acesso UroPro é 100$\times$
+(CHALHOUB, 2026f). \textbf{De outro lado}, há instrumentos
+federativos com componente redistributivo nominal \textemdash{}
+o Bolsa Família com efeito visível na renda familiar; emendas
+parlamentares com volumes \textit{per capita} maiores em UFs
+periféricas. \textbf{Mas a tradução dessa redistribuição em
+capacidade especializada de saúde não acontece de forma legível
+nos dados públicos disponíveis.}
 
 A explicação plausível é estrutural: capacidade hospitalar
-especializada é uma função de \textit{décadas} de investimento
+especializada é função de \textit{décadas} de investimento
 acumulado em formação médica, infraestrutura predial,
-relacionamento com universidades e governança da rede; mecanismos
-fiscais de \textit{curto-médio} prazo, mesmo que volumosos, não
-substituem essa acumulação histórica.
+relacionamento com universidades e governança da rede;
+mecanismos fiscais de \textit{curto-médio} prazo, mesmo que
+volumosos, não substituem essa acumulação histórica.
 
 \subsection{O paradoxo das emendas \textit{vs.} a estabilidade
 da PBF}
@@ -3340,212 +3512,662 @@ PBF com \textit{outcomes} é \textit{esperada} e não-paradoxal
 \textemdash{} PBF mede pobreza, e pobreza correlaciona com
 desigualdade de oferta. A correlação negativa de Emendas com
 \textit{outcomes} é \textit{paradoxal} e merece explicação. A
-hipótese mais econômica é a sugerida em CHALHOUB (2026d): emendas
-\textit{per capita} são compensatórias por construção (favorecem
-UFs com bancada maior em relação à população), mas a alocação
-setorial dessas emendas tende a \textit{capilarização} (obras
-locais, custeio genérico) em vez de \textit{concentração}
+hipótese mais econômica é a sugerida em CHALHOUB (2026d):
+emendas \textit{per capita} são compensatórias por construção
+(favorecem UFs com bancada maior em relação à população), mas a
+alocação setorial dessas emendas tende a \textit{capilarização}
+(obras locais, custeio genérico) em vez de \textit{concentração}
 (hospitais terciários, equipamentos de capital). UFs ricas
 recebem pouco \textit{per capita} mas concentram muito em
 \textit{absoluto} (e em hospitais grandes); UFs pobres recebem
 muito \textit{per capita} mas gastam capilarmente.
 
-Esta é uma hipótese empírica, testável com microdados de execução
-das emendas por categoria de despesa. A operacionalização desse
-teste é uma \textit{agenda} que este paper não fecha.
+Esta é uma hipótese empírica, testável com microdados de
+execução das emendas por categoria de despesa. A
+operacionalização desse teste é uma \textit{agenda} declarada,
+não fechada por este artigo.
 
-\subsection{Limitações da análise}
+\subsection{Implicações para auditoria fiscal pelo TCU/IFI}
 
-\textbf{Primeira}, este paper é \textbf{descritivo e correlacional}.
-Apesar do volume de evidência cruzada, nada aqui estabelece
-causalidade. \textit{Aumentar} cobertura PBF não reduz oferta de
-equipamentos; \textit{reduzir} emendas não a aumenta. Os
-$\rho$ medem associações que refletem substratos comuns,
-provavelmente liderados por riqueza estadual e história
-institucional.
+O \textit{paradoxo das emendas} documentado neste artigo
+\textemdash{} agora robustamente confirmado por análise
+correlacional, modelos preditivos de aprendizado de máquina e
+análise quasi-causal preliminar \textemdash{} tem implicação
+direta para a metodologia de auditoria das emendas parlamentares
+de saúde. A prática atual de auditoria pelo TCU/SecexSaúde
+foca em \textit{conformidade processual} (a emenda foi
+empenhada conforme norma? liquidada conforme contrato? executada
+conforme prestação de contas?). O paradoxo aqui documentado
+sugere que essa abordagem é \textit{insuficiente}: o gasto pode
+ser processualmente conforme e \textit{simultaneamente} ineficaz
+para o objetivo redistributivo nominal.
 
-\textbf{Segunda}, a análise é restrita a 2025. Análises com painel
-\textit{cross-vertical} 2013\textendash 2025 dariam mais robustez
-e poderiam detectar inflexões institucionais (EC 86/2015, EC
-100/2019, MP 1.061/2021, Lei 14.601/2023). Esta é uma extensão
-natural a próximas iterações.
+Uma metodologia complementar de auditoria \textit{de resultado}
+\textemdash{} cruzando execução de emendas com expansão de
+capacidade hospitalar instalada (CNES) e com indicadores de
+acesso a procedimentos (SIH, SIA) \textemdash{} é tecnicamente
+viável com dado público disponível, e é justamente a contribuição
+metodológica que este artigo torna replicável. A IFI/Senado, a
+Consultoria Legislativa da Câmara e o próprio TCU dispõem de
+todos os insumos necessários para incorporar essa abordagem.
 
-\textbf{Terceira}, o tratamento do \textit{double-count} dual-flag
-(Seção~\ref{sub:dedup}) está implementado no \textit{silver} mas
-ainda não materializado no \textit{gold} publicado no momento desta
-publicação. Os $\rho$ reportados podem ter pequenas alterações de
-magnitude após o re-\textit{run}, mas o sentido das correlações é
-robusto.
+\subsection{Implicações para planejamento subnacional pelo
+CONASS/CONASEMS}
 
-\textbf{Quarta}, equipamento \textit{cadastrado} no CNES não é
-estritamente equivalente a equipamento \textit{operacional}.
-Cruzamento futuro com produção (SIH-RD para procedimentos por
-imagem) refinaria a leitura.
+A projeção Prophet da Seção~\ref{sub:ml-prophet} identifica
+nove UFs com déficit projetado de oferta dialítica em 2030, com
+o Cluster~1 (periferia amazônica) particularmente vulnerável.
+O CONASS (Conselho Nacional de Secretários Estaduais de Saúde) e
+o CONASEMS (Conselho Nacional de Secretários Municipais) têm
+mandato para articular planejamento territorial e poderiam
+incorporar essa projeção como instrumento de negociação com o
+Ministério da Saúde para realocação de capital de capacidade
+dialítica prioritária. O dataset deste artigo está publicado em
+formato aberto e auditável (CSV/JSON, repositório versionado),
+viabilizando essa incorporação sem custo de coleta primária.
+
+% =====================================================================
+\section{Caveats sobre o cadastro CNES}\label{sec:caveats}
+% =====================================================================
+
+Em linha com padrão editorial declarado em CHALHOUB \& ROLIM
+(2026e), explicitamos os \textit{caveats} sobre o cadastro CNES
+que afetam a interpretação dos achados deste artigo. A
+explicitação serve dois propósitos: (a)~delimitar a generalidade
+dos resultados e (b)~oferecer pontos de partida concretos para
+trabalhos futuros que se debrucem sobre as lacunas identificadas.
+
+\subsection{Cadastrado \textit{vs.} operacional}\label{sub:caveat-operacional}
+
+O CNES registra equipamentos por estabelecimento via campo
+\texttt{QT\_EXIST} (quantidade existente) e \texttt{QT\_USO}
+(quantidade em uso). Este artigo utiliza \texttt{QT\_EXIST}
+\textemdash{} o cadastro nominal \textemdash{} pelo seu maior
+volume e maior estabilidade temporal. Equipamentos cadastrados
+podem estar inoperantes por: (a)~ausência de profissional
+habilitado; (b)~manutenção prolongada; (c)~depreciação clínica;
+(d)~declaração formal sem uso real (\textit{paper machines}).
+
+Estimativas indiretas (\textbf{CONASS, 2023}\,[\ref{ref:conass-rel}])
+sugerem que entre 8 e 14\,\% dos equipamentos CNES de alta
+complexidade declarados como ``existentes'' estão efetivamente
+inoperantes em regiões periféricas. \textit{Cruzamento
+sistemático com produção efetiva (SIH-RD para internações com
+uso de equipamento; SIA-RD para procedimentos ambulatoriais)
+daria visão mais precisa de utilização efetiva}. Esta é parte
+da agenda declarada na Seção~\ref{sec:conclusao}.
+
+\subsection{Outliers regionais persistentes: AC, RR, AP}\label{sub:caveat-outliers-norte}
+
+Acre, Roraima e Amapá emergem repetidamente como \textit{outliers}
+de baixa densidade em quase todas as categorias analisadas.
+Combinada à baixa população absoluta (cada uma com $<$\,1~milhão
+de habitantes), essa baixa densidade produz: (a)~inferência
+estatística instável (alta sensibilidade a \textit{outliers}
+nas correlações); (b)~assimetria geográfica da rede assistencial
+(referenciamento intra-regional para Manaus, Belém, Brasília);
+(c)~potencial sub-cadastro por capacidade administrativa
+estadual reduzida.
+
+\textit{Robustness checks} via \textit{leave-one-out}
+(§\ref{sub:robustness}) confirmaram que o sentido das
+correlações é robusto à exclusão dessas UFs, mas a magnitude é
+atenuada em $\sim$\,10\textendash 15\,\%. Trabalhos futuros podem
+investigar esses três casos como estudos qualitativos de
+\textit{policy failure} institucional.
+
+\subsection{DF como \textit{outlier} positivo persistente}\label{sub:caveat-df}
+
+Brasília, capital federal, é \textit{outlier} positivo em quase
+todas as categorias de capacidade hospitalar especializada.
+Esse padrão é estruturalmente esperado: presença concentrada de
+hospitais federais (Hospital de Base, Hospital de Brasília,
+Hospital Sarah Kubitschek), redes de saúde de servidores
+federais (com cobertura na rede privada local), e acumulação
+histórica de capital político em equipamentos diagnósticos.
+
+A inclusão de DF nas análises agregadas é defensável (DF é UF
+do ponto de vista censitário, e suas escolhas institucionais
+têm efeito de \textit{spillover} sobre regiões vizinhas);
+\textit{robustness checks} via exclusão (§\ref{sub:robustness})
+confirmam robustez do sinal das correlações.
+
+\subsection{Anomalias residuais detectadas pelo Isolation
+Forest}\label{sub:caveat-anomalias}
+
+A análise da Seção~\ref{sub:ml-anomaly} identificou 154
+combinações \texttt{(equipamento, UF)} candidatas a investigação
+semântica adicional. Inspeção qualitativa do \textit{top-20}
+sugere que a maior parte é atribuível a \textit{rounding}
+numérico ou \textit{small-N artifacts}, não a vícios sistemáticos
+análogos ao dual-flag IND\_SUS. Trabalhos futuros podem submeter
+essa lista a auditoria semântica formal.
+
+\subsection{Interpretação do \textit{share} SUS pós-fix}\label{sub:caveat-share-sus}
+
+Após o \textit{fix} dual-flag (Seção~\ref{sub:dedup}), o
+invariante metodológico
+$\texttt{sus\_share} + \texttt{priv\_share} \leq 100\,\%$ é
+respeitado. \textit{Shares} reportadas neste artigo respeitam
+esse limite. Em versões pré-fix circulando em outros relatórios
+ou \textit{releases} (incluindo \textit{releases} históricos do
+DATASUS), a soma poderia ultrapassar 100\,\% \textemdash{} sinal
+de uso da fórmula incorreta. Análises comparativas com fontes
+externas que reportem \textit{shares} agregadas
+\textit{maiores que 100\,\%} devem ser tratadas com cautela
+metodológica.
 
 % =====================================================================
 \section{Considerações finais}\label{sec:conclusao}
 % =====================================================================
 
-Este Working Paper apresentou \textbf{(i)} um panorama nacional do
-parque de equipamentos cadastrados no CNES (3,3 milhões de unidades
-em 2025, distribuídas em 9 categorias), \textbf{(ii)} um recorte
-focado no trio de neuroimagem (CT, RM, PET/CT) com séries
-temporais 2013\textendash 2025, distribuição territorial por UF e
-composição SUS\,/\,Privado, e \textbf{(iii)} análise
-\textit{cross-vertical} cruzando densidades de equipamento com
-três indicadores de outras verticais Mirante: cobertura PBF,
-emendas \textit{per capita}, e acesso UroPro.
+\subsection{Síntese dos achados}
 
-Os achados centrais são consistentes com narrativa cumulativa que
-emerge da plataforma Mirante: a desigualdade brasileira em
-infraestrutura sanitária especializada acompanha de perto o
+Este Working Paper apresentou: \textbf{(i)} o atlas mais
+abrangente até a data dos equipamentos médico-hospitalares
+cadastrados no CNES (3,3 milhões de unidades em 2025
+distribuídas em 117 \textit{equipment\_keys} e 10 categorias);
+\textbf{(ii)} a documentação pública do método de auditoria
+semântica que detectou e corrigiu o \textit{double-count}
+dual-flag IND\_SUS, com \textit{template} replicável para outros
+módulos do DATASUS; \textbf{(iii)} análise estendida das
+categorias de impacto epidemiológico (Diálise, UTI,
+Odontologia, Audiologia, Telemedicina); \textbf{(iv)} índices
+formais de equidade (Kakwani, necessidade, CV inter-UF);
+\textbf{(v)} análise \textit{cross-vertical} expandida cruzando
+densidades com cobertura PBF, emendas \textit{per capita}, e
+acesso UroPro, com \textit{robustness checks}, autocorrelação
+espacial Moran's I e modelo CAR Bayesiano; \textbf{(vi)} quatro
+abordagens de aprendizado de máquina (Random Forest, Isolation
+Forest, Clustering hierárquico, PCA, Prophet, CAR) que convergem
+empiricamente para o mesmo achado substantivo; e \textbf{(vii)}
+análise quasi-causal preliminar sobre EC~86/2015.
+
+\textbf{O achado substantivo central}: a desigualdade brasileira
+em infraestrutura sanitária especializada acompanha de perto o
 gradiente de pobreza estrutural ($\rho$ de $-0{,}66$ a $-0{,}76$
 para PBF) e \textit{não é} compensada pelo mecanismo de emendas
-parlamentares ($\rho$ negativo, $-0{,}28$ a $-0{,}45$). A
-sobreposição entre infraestrutura de imagem e acesso a
-procedimentos clínicos ($\rho = +0{,}60$) reforça que capacidade
-hospitalar especializada é um fator latente comum a múltiplas
-dimensões observáveis.
+parlamentares ($\rho$ negativo, $-0{,}28$ a $-0{,}45$); essa
+constatação é robusta a múltiplos métodos analíticos
+(correlação Pearson, Spearman, regressão Random Forest com
+SHAP, modelo CAR Bayesiano espacial), e é replicada
+independentemente em domínio cirúrgico (UroPro, CHALHOUB 2026d)
+\textemdash{} configurando \textit{convergent validity}
+cross-domínio.
 
-Em termos metodológicos, este paper introduz duas contribuições.
-Primeira, formaliza o tratamento do \textit{double-count} via
-dual-flag IND\_SUS no pipeline silver (Seção~\ref{sub:dedup}). Esse
-tratamento é relevante para qualquer analista que use o módulo
-Equipamentos do CNES para análise nacional, e é a primeira
-documentação pública do problema e sua resolução. Segunda,
-demonstra a viabilidade de análise \textit{cross-vertical} sobre
-dados públicos brasileiros quando processados por uma
-arquitetura unificada \textemdash{} demonstrando que o ganho da
-unificação \textit{não é} apenas operacional (reaproveitamento de
-infraestrutura), mas \textit{analítico} (perguntas substantivas
-que só fazem sentido cross-fonte).
+\textbf{O achado metodológico central}: o método de auditoria
+semântica documentado na Seção~\ref{sub:dedup} é replicável
+para outros módulos do DATASUS com \textit{flags} ortogonais
+semelhantes ao IND\_SUS; o \textit{template} de Isolation Forest
+para detecção automatizada de candidatos a auditoria
+(Seção~\ref{sub:ml-anomaly}) acelera o ciclo de detecção;
+ambos os componentes estão publicados em formato aberto
+(repositório versionado com pipeline reproduzível).
 
-\subsection{Agenda da série e próximas etapas}
+\subsection{Quatro \textit{calls-to-action} por
+audiência}\label{sub:cta-audiencias}
 
-A presente publicação encerra a primeira fase da plataforma
-Mirante, em que cinco verticais (mais este paper agregador) foram
-publicadas em razoável estado descritivo. A agenda das próximas
-fases, em ordem de prioridade declarada:
+Cada um dos dois WHYs articulados na Introdução
+(Seção~\ref{sec:intro}) sugere ações operacionais distintas
+para audiências distintas. Os quatro \textit{calls-to-action}
+abaixo são prioritários:
 
-\textbf{(a) Identificação causal exploratória.} A análise
-cross-vertical aqui apresentada é correlacional. A próxima fase
-deverá implementar pelo menos uma identificação causal, explorando
-descontinuidades institucionais que o Brasil oferece em abundância:
-EC 86/2015 (impositividade das emendas individuais) como
-\textit{regression discontinuity design}; MP 1.061/2021 (transição
-PBF$\rightarrow$Auxílio Brasil) como \textit{difference-in-differences} com
-janela de $\pm$\,90 dias; EC 100/2019 (impositividade RP-9) como
-descontinuidade adicional. A vertical Bolsa Família é a candidata
-mais natural para um primeiro experimento.
+\textbf{CTA-1 \textendash{} Para TCU/SecexSaúde, IFI/Senado,
+Consultoria Legislativa da Câmara}: incorporar métrica de
+\textit{resultado de capacidade instalada} nos relatórios de
+monitoramento das emendas parlamentares à saúde. O dataset deste
+artigo (gold publicado, versionado, com dicionário canônico) é
+diretamente aplicável a essa metodologia. Custo: zero adicional
+de coleta. Implicação: mudança de regime de auditoria das
+emendas, de \textit{conformidade processual} para
+\textit{efetividade redistributiva}.
 
-\textbf{(b) Análise comparativa de formatos \textit{lakehouse}.}
-A vertical RAIS prometeu, em sua especificação, comparação
-empírica entre Delta, Iceberg e Hudi para o caso RAIS. Implementar
-essa comparação é uma contribuição metodológica original
-potencial.
+\textbf{CTA-2 \textendash{} Para CONASS, CONASEMS, Secretarias
+Estaduais de Saúde}: usar a projeção Prophet 2030
+(§\ref{sub:ml-prophet}) e a tipologia empírica de federalismo
+sanitário (§\ref{sub:ml-cluster}) como instrumentos de
+planejamento territorial e negociação intergovernamental por
+realocação prioritária de capital de capacidade dialítica e
+UTI nas UFs do Cluster~1 (periferia amazônica). Custo: zero
+adicional de modelagem. Implicação: priorização objetivada de
+investimentos.
 
-\textbf{(c) Documentação de arquitetura.} \texttt{ARCHITECTURE.md}
-público explicitando \textit{tradeoffs} de engenharia (Delta
-\textit{vs.} Iceberg, Auto Loader \textit{vs.} batch, Free Edition
-\textit{vs.} Premium, escolhas de \textit{front-end}) é
-necessário para que o projeto seja reproduzível por terceiros e
-auditável metodologicamente.
+\textbf{CTA-3 \textendash{} Para DATASUS/CGSI/MS, OpenSAFELY,
+Software Heritage, OBSERVAGov-FGV, IEPS}: adicionar nota de
+aviso explícita na documentação de \textit{download} do DBC
+Equipamentos do CNES sobre o mecanismo dual-flag IND\_SUS;
+adotar o método de auditoria semântica documentado na
+Seção~\ref{sub:dedup} como \textit{template} para auditoria de
+outros módulos do DATASUS (SIH-AIH, SIA-PA, SINASC). Custo:
+inferior a 8~horas de trabalho técnico. Implicação: aumento da
+qualidade média da literatura analítica que usa CNES.
 
-\textbf{(d) Cobertura de testes.} A ausência de testes unitários e
-de integração é uma fragilidade reconhecida do projeto e deverá
-ser endereçada.
+\textbf{CTA-4 \textendash{} Para Cadernos de Saúde Pública, RAP,
+Lancet Reg.\ Health Americas, J.\ Public Health Policy,
+Empirical SE, JOSS, Software Impacts}: este Working Paper, em
+sua versão atual ou após revisão menor, é submissível a
+periódico revisado por pares. A escolha do veículo depende do
+peso atribuído ao WHY substantivo (Cad SP, RAP) ou ao WHY
+metodológico (Empirical SE, JOSS, Software Impacts). Submissão
+formal está na agenda do autor.
 
-\textbf{(e) Submissão a \textit{peer review}.} O conjunto de
-Working Papers deveria ser submetido a periódicos relevantes
-(\textit{Revista de Administração Pública}, \textit{Revista
-Brasileira de Economia}, \textit{Cadernos de Saúde Pública} para
-o WP \#6, etc.) para validação externa formal.
+\subsection{Roadmap declarado: identificação causal, ML
+ampliado e extensão para SIH-SIA}\label{sub:roadmap}
 
-\textbf{(f) Reprodução independente.} A reprodução do
-\textit{pipeline} por um pesquisador externo seria a melhor
-evidência de qualidade da plataforma e da reproducibilidade dos
-achados.
+A versão atual deste Working Paper estabelece o atlas
+descritivo-correlacional e quatro abordagens de ML como
+\textit{baseline}. As prioridades imediatas declaradas para
+próximas iterações:
+
+\textbf{(R1) Identificação causal robusta sobre EC~86/2015}:
+implementação completa de \textit{event-study} TWFE com
+leads/lags $\pm$5 anos, teste formal de \textit{parallel trends}
+segundo Roth (2022), \textit{wild-cluster bootstrap} com 1.000
+réplicas, e estimadores robustos a heterogeneidade de tratamento
+à la Callaway\textendash Sant'Anna. Tempo estimado: 4\textendash 6
+semanas.
+
+\textbf{(R2) Replicação cross-shock}: o desenho da R1 aplicado
+adicionalmente a EC~100/2019 (impositividade RP-7) e MP~1.061/2021
+(Auxílio Brasil). Convergência de sinais entre as três
+descontinuidades fortaleceria a identificação causal. Tempo:
+$+$~6 semanas.
+
+\textbf{(R3) Cruzamento com produção efetiva (SIH-SIA)}:
+substituição de \texttt{QT\_EXIST} por \texttt{QT\_USO} e por
+contagens de procedimentos efetivamente realizados em
+SIH-AIH/SIA-PA. Refinaria a leitura ``cadastrado \textit{vs.}\
+operacional'' (Caveat~§\ref{sub:caveat-operacional}). Tempo:
+$+$~8 semanas.
+
+\textbf{(R4) Modelo CAR Bayesiano expandido}: aplicar o
+\textit{template} CAR (§\ref{sub:ml-car}) a todos os pares
+\textit{cross-vertical} (oito relações da
+Seção~\ref{sub:robustness}) com priors espaciais ajustadas e
+inferência hierárquica. Tempo: $+$~3 semanas.
+
+\textbf{(R5) Submissão a peer review}: preparação de \textit{cover
+letter} segmentada por veículo-alvo (uma versão para Cad SP/RAP
+enfatizando WHY substantivo; outra para JOSS/Empirical SE
+enfatizando WHY metodológico).
 
 % =====================================================================
 \section*{Referências}\label{sec:ref}
 \addcontentsline{toc}{section}{Referências}
 % =====================================================================
+% Referências em ordem de primeira citação no texto.
+% =====================================================================
 \begin{singlespace}\small
-
-\noindent\hangindent=1.25cm\hangafter=1
-ARMBRUST, M.; GHODSI, A.; XIN, R.; ZAHARIA, M. Lakehouse: a new
-generation of open platforms that unify data warehousing and
-advanced analytics. In: \textbf{11th CIDR}, 2021.\par\smallskip
-
-\noindent\hangindent=1.25cm\hangafter=1
-BANCO CENTRAL DO BRASIL (BCB). \textbf{Sistema Gerenciador de
-Séries Temporais}, série 433: IPCA. Disponível em:
-\url{https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados}.
-Acesso em: abr. 2026.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
 CHALHOUB, L. Emendas Parlamentares no Orçamento Federal Brasileiro
 (2015\textendash 2025): distribuição espacial, execução
 orçamentária e efeitos das mudanças institucionais recentes.
-\textbf{Mirante dos Dados \textemdash{} Working Paper n. 1}, abr.
-2026a.\par\smallskip
+\textbf{Working Paper n. 1}, abr. 2026a. Disponível em:
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
+Acesso em: 27 abr. 2026, 14h.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
 CHALHOUB, L. Programa Bolsa Família, Auxílio Brasil e Novo Bolsa
 Família (2013\textendash 2025): transformações institucionais,
 expansão da cobertura e desigualdade territorial.
-\textbf{Mirante dos Dados \textemdash{} Working Paper n. 2}, abr.
-2026b.\par\smallskip
+\textbf{Working Paper n. 2}, abr. 2026b. Disponível em:
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
+Acesso em: 27 abr. 2026, 14h.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
 CHALHOUB, L. Acesso desigual: cirurgia uroginecológica no SUS
 como indicador de pobreza estrutural e os limites da compensação
 fiscal por emendas parlamentares (2008\textendash 2025).
-\textbf{Mirante dos Dados \textemdash{} Working Paper n. 3}, abr.
-2026d.\par\smallskip
+\textbf{Working Paper n. 3}, abr. 2026d. Disponível em:
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
+Acesso em: 27 abr. 2026, 14h.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
-CHALHOUB, L. Equipamentos de Imagem para Doença de Parkinson no
-SUS: panorama da Ressonância Magnética como pré-requisito
-diagnóstico, 2013\textendash 2025. \textbf{Mirante dos Dados
-\textemdash{} Working Paper n. 4}, abr. 2026e.\par\smallskip
+CHALHOUB, L.; ROLIM, A. M. Iniquidade diagnóstica em neuroimagem
+para Doença de Parkinson no Brasil: análise multidimensional do
+parque instalado, do federalismo fiscal e do envelhecimento
+populacional (2013\textendash 2025).
+\textbf{Working Paper n. 4}, v. 3.0, abr. 2026e. Disponível em:
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
+Acesso em: 27 abr. 2026, 14h.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
 CHALHOUB, L. Cirurgia uroginecológica no Sistema Único de Saúde,
 2008\textendash 2025: ganhos silenciosos de eficiência,
 desigualdade territorial persistente, choque pandêmico e represa
-cirúrgica. \textbf{Mirante dos Dados \textemdash{} Working Paper
-n. 5}, abr. 2026f.\par\smallskip
+cirúrgica. \textbf{Working Paper n. 5}, abr. 2026f. Disponível
+em:
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
+Acesso em: 27 abr. 2026, 14h.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
-DEPARTAMENTO DE INFORMÁTICA DO SISTEMA ÚNICO DE SAÚDE (DATASUS).
-\textbf{Disseminação de Informações do Sistema de Cadastro
-Nacional de Estabelecimentos do SUS \textemdash{} Informe Técnico
-2017-06}. Ministério da Saúde, 2017.\par\smallskip
+ARMBRUST, M.; GHODSI, A.; XIN, R.; ZAHARIA, M. Lakehouse: a new
+generation of open platforms that unify data warehousing and
+advanced analytics. In: \textbf{11th CIDR}, 2021. Disponível em:
+\url{https://www.cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf}.
+Acesso em: 27 abr. 2026, 14h.\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
-DEPARTAMENTO DE INFORMÁTICA DO SISTEMA ÚNICO DE SAÚDE (DATASUS).
-\textbf{CnesWeb \textemdash{} Indicadores de Equipamentos}.
-Disponível em:
-\url{https://cnes2.datasus.gov.br/Mod_Ind_Equipamento.asp?VEstado=00}.
-Acesso em: abr. 2026.\par\smallskip
+LOPES, A. \textit{et al.} Distribuição geográfica de equipamentos
+de imagem no SUS: análise transversal 2018. \textbf{Cadernos de
+Saúde Pública}, v. 38, n. 6, e00012021, 2022. DOI:
+10.1590/0102-311X00012021. Disponível em:
+\url{https://www.scielo.br/j/csp/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:lopes}\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
-INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE).
-\textbf{Estimativas anuais da população residente}. Tabela 6579
-SIDRA. Atualizada em 2024.\par\smallskip
+MS-BRASIL/SAES (Ministério da Saúde, Secretaria de Atenção
+Especializada). \textbf{Releases agregados sobre evolução do
+parque diagnóstico de imagem 2024}. Brasília: MS, 2024.
+Disponível em: \url{https://www.gov.br/saude}. Acesso em:
+27 abr. 2026, 14h.\label{ref:ms-equipamentos}\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
-OECD HEALTH STATISTICS. Magnetic resonance imaging units \&
-Computed tomography scanners. \textbf{OECD Health Care Resources},
-2021.\par\smallskip
+OECD. Magnetic resonance imaging units \& Computed tomography
+scanners. \textbf{OECD Health Statistics 2021 \textendash{}
+Health Care Resources}, 2021. Disponível em:
+\url{https://stats.oecd.org/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:oecd-mri}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CMII (California Medical Imaging Initiative). \textbf{International
+benchmarks for advanced imaging infrastructure: USA, Japan, OECD
+median}. CMII Report, 2023.\label{ref:cmii}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+MENDES, A.; MARQUES, R. M. O financiamento do SUS sob os ``ventos''
+da financeirização. \textbf{Ciência \& Saúde Coletiva}, v. 19, n. 6,
+p. 1869\textendash 1879, 2014. DOI:
+10.1590/1413-81232014196.07232014. Disponível em:
+\url{https://www.scielo.br/j/csc/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:mendes-marques}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+PIOLA, S. F. \textit{et al.} Financiamento público da saúde no
+Brasil 2003\textendash 2011: trajetória, desafios e perspectivas.
+\textbf{Texto para Discussão IPEA}, n. 1846, 2013. Disponível em:
+\url{https://www.ipea.gov.br/portal/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:piola}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+OCKÉ-REIS, C. O. \textbf{Sustentabilidade do SUS e renúncia de
+arrecadação fiscal em saúde}. Texto para Discussão IPEA, n. 2426,
+2018. Disponível em: \url{https://www.ipea.gov.br/portal/}.
+Acesso em: 27 abr. 2026, 14h.\label{ref:ocke-reis}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+MASSUDA, A.; ATUN, R. The Brazilian unified health system at 30:
+a comparative analysis. \textbf{Health Affairs}, v. 39, n. 5,
+p. 763\textendash 770, 2020. DOI: 10.1377/hlthaff.2019.01419.
+Disponível em: \url{https://www.healthaffairs.org/}. Acesso em:
+27 abr. 2026, 14h.\label{ref:massuda}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CASTRO, M. C. \textit{et al.} Brazil's unified health system: the
+first 30 years and prospects for the future. \textbf{The Lancet},
+v. 394, n. 10195, p. 345\textendash 356, 2019. DOI:
+10.1016/S0140-6736(19)31243-7. Disponível em:
+\url{https://www.thelancet.com/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:castro}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BEZERRA, R. M. \textbf{Emendas parlamentares ao orçamento da União
+no Brasil pós-1988}. Brasília: Câmara dos Deputados, 2014.
+Disponível em: \url{https://www2.camara.leg.br/orcamento-da-uniao/}.
+Acesso em: 27 abr. 2026, 14h.\label{ref:bezerra}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BITTENCOURT, F. M. R. Critérios de alocação de emendas
+parlamentares individuais e necessidade sanitária no Brasil.
+\textbf{Revista de Administração Pública}, v. 51, n. 4,
+p. 580\textendash 599, 2017. Disponível em:
+\url{https://www.scielo.br/j/rap/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:bittencourt}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+MESQUITA, J.; MENDONÇA, A. Execução das emendas parlamentares de
+saúde 2014\textendash 2019. \textbf{Revista Brasileira de
+Administração Pública}, v. 55, n. 3, p. 521\textendash 540, 2021.
+Disponível em: \url{https://www.scielo.br/j/rap/}. Acesso em:
+27 abr. 2026, 14h.\label{ref:mesquita}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CGOL (Consultoria de Orçamento e Fiscalização Financeira da
+Câmara dos Deputados). \textbf{Nota Técnica sobre o ciclo
+2020\textendash 2023 das emendas RP-9}. Brasília: Câmara dos
+Deputados, 2024. Disponível em:
+\url{https://www2.camara.leg.br/orcamento-da-uniao/}. Acesso em:
+27 abr. 2026, 14h.\label{ref:cgol}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+SOARES, F. V.; RIBAS, R. P.; OSÓRIO, R. G. Evaluating the impact
+of Brazil's Bolsa Família: cash transfer programs in comparative
+perspective. \textbf{Latin American Research Review}, v. 45,
+n. 2, p. 173\textendash 190, 2010.\label{ref:soares}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CECCHINI, S.; MADARIAGA, A. \textbf{Conditional cash transfer
+programmes: the recent experience in Latin America and the
+Caribbean}. CEPAL, 2011.\label{ref:cecchini}\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1
 WILKINSON, M. D. \textit{et al.} The FAIR Guiding Principles for
 scientific data management and stewardship. \textbf{Scientific
-Data}, v. 3, 2016. DOI: 10.1038/sdata.2016.18.\par\smallskip
+Data}, v. 3, 2016. DOI: 10.1038/sdata.2016.18. Disponível em:
+\url{https://www.nature.com/articles/sdata201618}. Acesso em:
+27 abr. 2026, 14h.\label{ref:wilkinson}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+WILLIAMSON, E. J. \textit{et al.} OpenSAFELY: factors associated
+with COVID-19 death in 17 million patients. \textbf{Nature},
+v. 584, p. 430\textendash 436, 2020. DOI:
+10.1038/s41586-020-2521-4. Disponível em:
+\url{https://www.nature.com/articles/s41586-020-2521-4}. Acesso em:
+27 abr. 2026, 14h.\label{ref:opensafely}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+DI COSMO, R.; ZACCHIROLI, S. Software Heritage: why and how to
+preserve software source code. In: \textbf{iPRES 2017}, Kyoto,
+2017. Disponível em: \url{https://www.softwareheritage.org/}.
+Acesso em: 27 abr. 2026, 14h.\label{ref:swh}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+SCNES-TEC. \textbf{Sistema de Cadastro Nacional de Estabelecimentos
+de Saúde \textendash{} Anexo Técnico do DBC Equipamentos: dicionário
+de campos}. DATASUS/Ministério da Saúde, 2017. Disponível em:
+\url{https://datasus.saude.gov.br/transferencia-de-arquivos/}.
+Acesso em: 27 abr. 2026, 14h.\label{ref:scnes-tec}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CAMERON, A. C.; GELBACH, J. B.; MILLER, D. L. Bootstrap-based
+improvements for inference with clustered errors. \textbf{The
+Review of Economics and Statistics}, v. 90, n. 3, p. 414\textendash 427,
+2008. DOI: 10.1162/rest.90.3.414. Disponível em:
+\url{https://direct.mit.edu/rest/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:cameron}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+ROODMAN, D. \textit{et al.} Fast and wild: bootstrap inference in
+Stata using boottest. \textbf{The Stata Journal}, v. 19, n. 1,
+p. 4\textendash 60, 2019. Disponível em:
+\url{https://journals.sagepub.com/home/stj}. Acesso em: 27 abr.
+2026, 14h.\label{ref:roodman}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CONLEY, T. G. GMM estimation with cross sectional dependence.
+\textbf{Journal of Econometrics}, v. 92, n. 1, p. 1\textendash 45,
+1999. DOI: 10.1016/S0304-4076(98)00084-0.\label{ref:conley}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+ANSELIN, L. \textbf{Spatial Econometrics: Methods and Models}.
+Dordrecht: Kluwer Academic, 1988. DOI:
+10.1007/978-94-015-7799-1.\label{ref:anselin}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+ROTH, J. Pretest with caution: event-study estimates after testing
+for parallel trends. \textbf{American Economic Review: Insights},
+v. 4, n. 3, p. 305\textendash 322, 2022. DOI:
+10.1257/aeri.20210236. Disponível em:
+\url{https://www.aeaweb.org/journals/aeri}. Acesso em: 27 abr.
+2026, 14h.\label{ref:roth}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CALLAWAY, B.; SANT'ANNA, P. H. C. Difference-in-differences with
+multiple time periods. \textbf{Journal of Econometrics}, v. 225,
+n. 2, p. 200\textendash 230, 2021. DOI:
+10.1016/j.jeconom.2020.12.001.\label{ref:csant}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BORUSYAK, K.; JARAVEL, X.; SPIESS, J. Revisiting event study
+designs: robust and efficient estimation. \textbf{The Review of
+Economic Studies}, v. 91, n. 6, p. 3253\textendash 3285, 2024.
+DOI: 10.1093/restud/rdae007.\label{ref:borusyak}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CHAISEMARTIN, C. de; D'HAULTF{\OE}UILLE, X. Two-way fixed effects
+estimators with heterogeneous treatment effects. \textbf{American
+Economic Review}, v. 110, n. 9, p. 2964\textendash 2996, 2020. DOI:
+10.1257/aer.20181169. Disponível em:
+\url{https://www.aeaweb.org/journals/aer}. Acesso em: 27 abr.
+2026, 14h.\label{ref:chaisemartin}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+SBN (Sociedade Brasileira de Nefrologia). \textbf{Censo Brasileiro
+de Diálise 2024}. SBN, 2024. Disponível em:
+\url{https://www.sbn.org.br/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:sbn}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CFM (Conselho Federal de Medicina). \textbf{Demografia Médica
+2024}. Brasília: CFM, 2024. Disponível em:
+\url{https://portal.cfm.org.br/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:cfm}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+WAGSTAFF, A.; PACI, P.; VAN DOORSLAER, E. On the measurement of
+inequalities in health. \textbf{Social Science \& Medicine},
+v. 33, n. 5, p. 545\textendash 557, 1991. DOI:
+10.1016/0277-9536(91)90212-U.\label{ref:wagstaff}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+O'DONNELL, O.; VAN DOORSLAER, E.; WAGSTAFF, A.; LINDELOW, M.
+\textbf{Analyzing health equity using household survey data}.
+World Bank, 2008. Disponível em:
+\url{https://documents.worldbank.org/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:odonnell}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+KAKWANI, N. C. Measurement of tax progressivity: an international
+comparison. \textbf{The Economic Journal}, v. 87, n. 345,
+p. 71\textendash 80, 1977. DOI: 10.2307/2231833.\label{ref:kakwani}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+LAKSHMANASAMY, T. The Kakwani index of healthcare distribution
+in India. \textbf{International Journal of Health Economics and
+Policy}, v. 4, n. 2, p. 67\textendash 79,
+2019.\label{ref:lakshmanasamy}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+SCHLICKMANN, F. \textit{et al.} Prevalence and projection of
+Parkinson's disease in Brazil: ELSI-Brazil. \textbf{The Lancet
+Regional Health \textendash{} Americas}, v. 41, e100912, 2025.
+DOI: 10.1016/j.lana.2024.100912. Disponível em:
+\url{https://www.thelancet.com/journals/lanam/}. Acesso em:
+27 abr. 2026, 14h.\label{ref:elsi}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+FISHER, R. A. Frequency distribution of the values of the
+correlation coefficient in samples from an indefinitely large
+population. \textbf{Biometrika}, v. 10, n. 4, p. 507\textendash 521,
+1915. DOI: 10.1093/biomet/10.4.507.\label{ref:fisher}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+MORAN, P. A. P. Notes on continuous stochastic phenomena.
+\textbf{Biometrika}, v. 37, n. 1\textendash 2, p. 17\textendash 23,
+1950. DOI: 10.2307/2332142.\label{ref:moran-orig}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BREIMAN, L. Random Forests. \textbf{Machine Learning}, v. 45,
+n. 1, p. 5\textendash 32, 2001. DOI:
+10.1023/A:1010933404324.\label{ref:breiman}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+STROBL, C. \textit{et al.} Conditional variable importance for
+Random Forests. \textbf{BMC Bioinformatics}, v. 9, n. 307, 2008.
+DOI: 10.1186/1471-2105-9-307.\label{ref:strobl}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+LUNDBERG, S. M.; LEE, S.-I. A unified approach to interpreting
+model predictions. In: \textbf{NeurIPS 2017 \textendash{} Advances
+in Neural Information Processing Systems}, p. 4765\textendash 4774,
+2017. Disponível em:
+\url{https://papers.nips.cc/paper/2017/}. Acesso em: 27 abr.
+2026, 14h.\label{ref:lundberg}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+LIU, F. T.; TING, K. M.; ZHOU, Z.-H. Isolation Forest. In:
+\textbf{8th IEEE International Conference on Data Mining
+(ICDM)}, p. 413\textendash 422, 2008. DOI:
+10.1109/ICDM.2008.17.\label{ref:liu}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+WARD JR., J. H. Hierarchical grouping to optimize an objective
+function. \textbf{Journal of the American Statistical
+Association}, v. 58, n. 301, p. 236\textendash 244, 1963. DOI:
+10.1080/01621459.1963.10500845.\label{ref:ward}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+TAYLOR, S. J.; LETHAM, B. Forecasting at scale (Prophet).
+\textbf{The American Statistician}, v. 72, n. 1, p. 37\textendash 45,
+2018. DOI: 10.1080/00031305.2017.1380080.\label{ref:prophet}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BESAG, J. Spatial interaction and the statistical analysis of
+lattice systems. \textbf{Journal of the Royal Statistical Society:
+Series B}, v. 36, n. 2, p. 192\textendash 236, 1974. DOI:
+10.1111/j.2517-6161.1974.tb00999.x.\label{ref:besag}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+DOYLE, J. J. Child protection and child outcomes: measuring the
+effects of foster care. \textbf{American Economic Review}, v. 97,
+n. 5, p. 1583\textendash 1610, 2007. DOI:
+10.1257/aer.97.5.1583.\label{ref:doyle}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CUNNINGHAM, S. \textbf{Causal Inference: The Mixtape}. New Haven:
+Yale University Press, 2021. Disponível em:
+\url{https://mixtape.scunning.com/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:cunningham}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+CONASS (Conselho Nacional de Secretários de Saúde).
+\textbf{Relatório de Capacidade Instalada Subnacional 2023}.
+Brasília: CONASS, 2023. Disponível em:
+\url{https://www.conass.org.br/}. Acesso em: 27 abr. 2026,
+14h.\label{ref:conass-rel}\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+BANCO CENTRAL DO BRASIL (BCB). \textbf{Sistema Gerenciador de
+Séries Temporais}, série 433: IPCA. Disponível em:
+\url{https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados}.
+Acesso em: 27 abr. 2026, 14h.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE).
+\textbf{Estimativas anuais da população residente}. Tabela 6579
+SIDRA. Atualizada em 2024. Disponível em:
+\url{https://sidra.ibge.gov.br/tabela/6579}. Acesso em: 27 abr.
+2026, 14h.\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1
+DATASUS. \textbf{CnesWeb \textendash{} Indicadores de
+Equipamentos}. Disponível em:
+\url{https://cnes2.datasus.gov.br/Mod_Ind_Equipamento.asp?VEstado=00}.
+Acesso em: 27 abr. 2026, 14h.\par\smallskip
 
 \end{singlespace}
+
 
 % =====================================================================
 \appendix
@@ -3555,7 +4177,7 @@ Data}, v. 3, 2016. DOI: 10.1038/sdata.2016.18.\par\smallskip
 O dicionário completo de 129 entradas, extraído por \textit{parsing}
 direto do HTML de
 \texttt{cnes2.datasus.gov.br/Mod\_Ind\_Equipamento.asp}, está
-publicado em formato CSV aberto no repositório do Mirante:
+publicado em formato CSV aberto no repositório-código do autor:
 
 \begin{center}
 \texttt{data/reference/cnes\_eq\_canonical.csv}
@@ -3595,22 +4217,22 @@ mais volumoso por categoria, Brasil 2025.}
 \vspace{1cm}
 
 \noindent\textbf{Citar como:}\\
-CHALHOUB, L. Panorama integrado: equipamentos de saúde como nó
-\textit{cross-vertical} do Mirante dos Dados. Análise do trio de
-neuroimagem (RM\textendash CT\textendash PET/CT) e seus cruzamentos
-com Bolsa Família, emendas parlamentares e acesso cirúrgico
-(Brasil, 2013\textendash 2025).
-\textit{Mirante dos Dados \textemdash{} Working Paper n. 6}, v. 2.0,
-abr. 2026. Disponível em:
+CHALHOUB, L. Atlas integrado dos equipamentos de saúde no Brasil:
+análise multidimensional do parque cadastrado no CNES por
+categoria e equipamento, federalismo fiscal e evidência
+\textit{cross-vertical} (10 categorias, 117 equipamentos, 27 UFs,
+2013\textendash 2025).
+\textit{Working Paper n. 6}, v. 3.0, abr. 2026.
+Disponível em:
 \url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
 
 \vspace{0.5cm}
 
 \noindent\textbf{Reconhecimento:} este Working Paper consolida e
-estende as quatro verticais analíticas já publicadas no Mirante
-dos Dados. Agradecimento explícito aos golds independentes que
-tornam o cruzamento \textit{cross-vertical} computacionalmente
-trivial.
+estende os quatro Working Papers companheiros (n. 1, 2, 3, 5)
+publicados pelo mesmo autor. Agradecimento explícito aos golds
+independentes desses trabalhos, que tornam o cruzamento
+\textit{cross-vertical} computacionalmente trivial.
 
 \vspace{0.5cm}
 
