@@ -12,6 +12,7 @@ import PageHeader      from '../components/PageHeader';
 import Panel           from '../components/Panel';
 import KpiCard         from '../components/KpiCard';
 import BrazilMap       from '../components/BrazilMap';
+import BrazilMuniMap   from '../components/BrazilMuniMap';
 import StateRanking    from '../components/StateRanking';
 import EvolutionBar    from '../components/charts/EvolutionBar';
 import DownloadActions from '../components/DownloadActions';
@@ -496,7 +497,7 @@ function MapColorscaleSelect({ value, onChange }) {
 
 // ─── Dashboard MUNICIPAL (WP#7) — mesmos componentes do estadual ─────────
 function MunicipalDashboard({
-  muniRows, muniKpis, muniRanking, muniFiltered, muniEvolution,
+  muniRows, muniKpis, muniRanking, muniFiltered, muniMapData, muniEvolution,
   muniYears, muniMaxYear, muniMinYear,
   year, setYear, metricKey, setMetricKey, metric,
   colorscale, setColorscale, theme,
@@ -575,7 +576,7 @@ function MunicipalDashboard({
                 </select>
               </div>
               <div className="metaBlock">
-                <b>Granularidade:</b> 5.570 municípios × Ano (gold <code>gold_pbf_municipios_df.json</code>, agregado pra UF no mapa).<br />
+                <b>Granularidade:</b> 5.570 municípios × Ano (gold <code>gold_pbf_municipios_df.json</code>, mapa renderiza os 5.570 polígonos IBGE).<br />
                 <b>Identificação:</b> TWFE com <b>k=5.571 clusters</b> (vs k=27 do WP#2).<br />
                 <b>Robustez:</b> Conley HAC com distâncias geodésicas reais (haversine entre centroides IBGE/Localidades + kelvins).
               </div>
@@ -596,11 +597,12 @@ function MunicipalDashboard({
             <StateRanking rows={muniRanking} format={metric.fmtRich}
                           accentColor={theme === 'dark' ? '#fb923c' : '#b45309'} />
           </Panel>
-          <Panel label="Distribuição geográfica (agregado dos 5.570 munis em 27 UFs)"
-                 exportId="pbf-mapa-uf-muni"
+          <Panel label="Distribuição geográfica (5.570 municípios)"
+                 sub="malha IBGE · borda preta = UF"
+                 exportId="pbf-mapa-municipal"
                  right={<MapColorscaleSelect value={colorscale} onChange={setColorscale} />}>
-            <BrazilMap data={muniFiltered} colorscale={colorscale} theme={theme}
-                       hoverFmt={metric.fmtRich} unit={metric.short} />
+            <BrazilMuniMap data={muniMapData} colorscale={colorscale} theme={theme}
+                           hoverFmt={metric.fmtRich} unit={metric.short} />
           </Panel>
         </div>
       </div>
@@ -1274,6 +1276,49 @@ export default function BolsaFamilia() {
     [muniFiltered],
   );
 
+  // Mapa MUNICIPAL — 5.570 polígonos. Constrói {cod_municipio, value, municipio, uf}
+  // pra cada muni a partir do gold WP#7. Para AGG a regra segue muniFiltered:
+  //   ratio metrics  → sum(num) / sum(denom) ao longo dos anos por muni;
+  //   total metrics  → soma dos anos por muni.
+  // Unidades casam com a tab estadual: bilhões de R$ pras métricas de valor,
+  // R$/hab e R$/família pras ratio.
+  const muniMapData = useMemo(() => {
+    if (!muniRows || muniRows.length === 0) return [];
+    const byMuni = new Map();
+    const targetYears = year === 'AGG' ? muniYears : [Number(year)];
+    for (const r of muniRows) {
+      if (!targetYears.includes(r.Ano)) continue;
+      const cur = byMuni.get(r.cod_municipio) || {
+        cod_municipio: String(r.cod_municipio),
+        municipio: r.municipio,
+        uf: r.uf,
+        valor: 0, pop: 0, benef: 0,
+      };
+      cur.valor += (r.valor_2021 || 0);     // R$ mi
+      cur.pop   += (r.populacao || 0);       // soma por ano (pra AGG vira pop·anos)
+      cur.benef += (r.n_benef || 0);
+      byMuni.set(r.cod_municipio, cur);
+    }
+    return Array.from(byMuni.values()).map((d) => {
+      let value = 0;
+      if (metricKey === 'pbfPerCapita') {
+        value = d.pop > 0 ? (d.valor * 1e6) / d.pop : 0;          // R$/hab
+      } else if (metricKey === 'pbfPerBenef') {
+        value = d.benef > 0 ? (d.valor * 1e6) / d.benef : 0;      // R$/família
+      } else if (metricKey === 'valor_2021' || metricKey === 'valor_nominal') {
+        value = d.valor / 1000;                                   // mi → bi (UI)
+      } else if (metricKey === 'n_benef') {
+        value = d.benef;
+      }
+      return {
+        cod_municipio: d.cod_municipio,
+        municipio: d.municipio,
+        uf: d.uf,
+        value,
+      };
+    });
+  }, [muniRows, year, metricKey, muniYears]);
+
   // KPIs municipais — cobertura de Brasil pro ano selecionado
   const muniKpis = useMemo(() => {
     if (!muniRows || muniRows.length === 0) {
@@ -1318,6 +1363,25 @@ export default function BolsaFamilia() {
       ? 'fallback (alocação UF→muni)'
       : 'pipeline Databricks';
   }, [muniRows]);
+
+  // IDH-M ponderado por população por UF — pra replicar o mapa bivariado
+  // (fig08 do paper) usando BrazilMap consistente com o resto da plataforma
+  const muniIDHByUF = useMemo(() => {
+    if (!muniRows || muniRows.length === 0) return [];
+    const targetYear = year === 'AGG' ? muniMaxYear : Number(year);
+    const yearRows = muniRows.filter((r) => r.Ano === targetYear);
+    const byUf = new Map();
+    for (const r of yearRows) {
+      const cur = byUf.get(r.uf) || { uf: r.uf, idhmSum: 0, popSum: 0 };
+      cur.idhmSum += (r.idhm_2010 || 0) * (r.populacao || 0);
+      cur.popSum  += (r.populacao || 0);
+      byUf.set(r.uf, cur);
+    }
+    return Array.from(byUf.values()).map((d) => ({
+      uf: d.uf,
+      value: d.popSum > 0 ? d.idhmSum / d.popSum : 0,
+    }));
+  }, [muniRows, year, muniMaxYear]);
 
   // Caminhos do artigo Working Paper #2 (Bolsa Família).
   // IMPORTANTE: useArticleMeta é hook — precisa ficar ANTES dos early returns
@@ -1424,7 +1488,8 @@ export default function BolsaFamilia() {
       ) : (
         <MunicipalDashboard
           muniRows={muniRows} muniKpis={muniKpis} muniRanking={muniRanking}
-          muniFiltered={muniFiltered} muniEvolution={muniEvolution}
+          muniFiltered={muniFiltered} muniMapData={muniMapData}
+          muniEvolution={muniEvolution}
           muniYears={muniYears} muniMaxYear={muniMaxYear} muniMinYear={muniMinYear}
           year={year} setYear={setYear}
           metricKey={metricKey} setMetricKey={setMetricKey} metric={metric}
