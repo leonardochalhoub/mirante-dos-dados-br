@@ -119,8 +119,11 @@ ano_pop_real = (
           F.col("municipio_nome"),
           F.explode(F.col("serie_dict")).alias("ano_str", "pop_str"),
       )
-      .withColumn("Ano",       F.col("ano_str").cast("int"))
-      .withColumn("populacao", F.col("pop_str").cast("long"))
+      # try_cast: SIDRA usa '...' como sentinel pra "sem dado / suprimido por
+      # sigilo". Cast direto raise NumberFormatException no Photon. try_cast
+      # devolve NULL nesses casos e o filtro abaixo descarta.
+      .withColumn("Ano",       F.expr("try_cast(ano_str AS int)"))
+      .withColumn("populacao", F.expr("try_cast(pop_str AS bigint)"))
       .where(F.col("populacao").isNotNull() & (F.col("populacao") > 0))
       .withColumn("populacao_estimada", F.lit(False))
       .select("Ano", "cod_municipio", "municipio_nome", "populacao",

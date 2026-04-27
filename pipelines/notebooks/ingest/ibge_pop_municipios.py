@@ -100,6 +100,28 @@ ok = 0; cached = 0; errors: list[str] = []; skipped_gap: list[int] = []
 # ingest; silver vai interpolar entre Censo 2022 e Estimativa 2024.
 GAP_YEARS = {2023}
 
+# Cleanup pre-loop: invalida cache em 2 casos:
+#   1. Arquivos no formato LEGADO (raw SIDRA `[{...}]`) sem envelope —
+#      ficam de runs anteriores e quebram o silver que assume envelope.
+#   2. Arquivos de GAP_YEARS (e.g. 2023 com `[]` de tentativa antiga) —
+#      o loop não os reescreve, então removemos pra não poluir bronze.
+removed_legacy = []
+for f in dest_dir.glob("pop_municipios_*.json"):
+    try:
+        head = f.read_text(encoding="utf-8")[:50].lstrip()
+        is_envelope = head.startswith('{"_year"')
+        try:
+            yr = int(f.stem.split("_")[-1])
+        except ValueError:
+            yr = None
+        if (not is_envelope) or (yr in GAP_YEARS):
+            f.unlink()
+            removed_legacy.append(f.name)
+    except Exception as e:
+        print(f"  ⚠ cleanup {f.name}: {e}")
+if removed_legacy:
+    print(f"  ✂ removidos {len(removed_legacy)} arquivo(s) sem envelope/gap: {removed_legacy[:5]}{'...' if len(removed_legacy)>5 else ''}")
+
 for y in years_list:
     if y in GAP_YEARS:
         skipped_gap.append(y)
