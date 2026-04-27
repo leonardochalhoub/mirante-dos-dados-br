@@ -200,6 +200,20 @@ verticals = {
         "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "rais_vinculos"), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "rais_vinculos"), 0),
     },
+    # Reuso do bronze.pbf_pagamentos com nova agregação Município × Ano (WP#7).
+    # Não tem raw próprio — é uma re-agregação da mesma fonte CGU. O "intermediate"
+    # aqui é a IBGE/SIDRA pop municipal (5.571 munis × 11 anos) que viabiliza o gold
+    # municipal; o "delta_bronze" reporta o gold.pbf_municipios_df (~72k linhas).
+    "pbf-municipios": {
+        "raw_compressed_files": 0,
+        "raw_compressed_bytes": 0,
+        "raw_compressed_label": "(reuso bronze.pbf_pagamentos)",
+        "intermediate_files":   next((t["rows"] for t in silver if t["table"] == "populacao_municipio_ano"), 0),
+        "intermediate_bytes":   next((t["bytes"] for t in silver if t["table"] == "populacao_municipio_ano"), 0),
+        "intermediate_label":   "silver pop muni",
+        "delta_bronze_bytes":   next((t["bytes"] for t in gold if t["table"] == "pbf_municipios_df"), 0),
+        "delta_bronze_rows":    next((t["rows"]  for t in gold if t["table"] == "pbf_municipios_df"), 0),
+    },
 }
 
 stats = {

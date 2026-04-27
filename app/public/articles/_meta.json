@@ -1,6 +1,10 @@
 {
-  "manifest_built_at": "2026-04-27T13:14:12.578Z",
+  "manifest_built_at": "2026-04-27T20:49:56.646Z",
   "articles": {
+    "bolsa-familia-municipios": {
+      "tex_last_edited": null,
+      "tex_last_sha": null
+    },
     "bolsa-familia": {
       "tex_last_edited": "2026-04-27T09:57:34-03:00",
       "tex_last_sha": "ef5af64"

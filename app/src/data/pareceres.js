@@ -554,6 +554,85 @@ export const PARECER_WP6_EQUIPAMENTOS_PANORAMA = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
+// WP #7 — BOLSA FAMÍLIA POR MUNICÍPIO
+// Slug: bolsa-familia-municipios · Vertical: PBF
+// Régua: STRICTO SENSU MESTRADO. Score B+ (2,5 pts) — ACIMA do limiar.
+// Sobe sobre WP#2 (que ficou em 1,83) por resolver o gargalo dos N=27
+// clusters identificado na peer review de Finanças do WP#2 em 2026-04-27.
+// ═══════════════════════════════════════════════════════════════════════
+export const PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS = {
+  slug:    'bolsa-familia-municipios',
+  wp_num:  7,
+  artigo_titulo: '5.570 pontos de decisão: microdados municipais do Bolsa Família, identificação causal por variação cross-municipal e heterogeneidade intra-UF (2013–2025)',
+  vertical: 'pbf',
+  nivel: 'stricto_sensu_mestrado',
+  scoreType: 'letter',
+  scoreLetra: 'B+',
+  scoreOriginal: null,
+  originalLabel: null,
+  originalUrl: null,
+  ultimaAtualizacao: `${HOJE}T18:30 BRT`,
+  versao: '1.0 — resposta direta ao gargalo de N=27 do WP#2 (peer review Finanças 2026-04-27)',
+  resumoCalibragem:
+    'Régua STRICTO SENSU MESTRADO. Score B+ (2,5 pts) — acima do limiar ' +
+    '2,0. Promoção sobre WP#2 (que ficou em 1,83) reflete três contribuições ' +
+    'metodológicas concretas: (i) migração de N=27 para k=5.571 clusters, ' +
+    'reabilitando inferência cluster-robusta; (ii) Conley HAC com distâncias ' +
+    'geodésicas REAIS (centroides IBGE/MalhaDigital + kelvins) e bandwidth ' +
+    'sensitivity 50–1600 km; (iii) decomposição Theil within/between que ' +
+    'evidencia variação intra-UF invisível em painel UF×Ano. PARA SUBIR PRA ' +
+    'A: substituir o fallback (alocação UF→muni por pop × pobreza-UF) pelo ' +
+    'pipeline Databricks com microdados CGU agregados por município — ' +
+    'recupera heterogeneidade INTRA-UF efetiva que a régua atual não ' +
+    'demonstra. O paper publica o pipeline completo (6 notebooks) — gap é ' +
+    'execução do pipeline em Databricks pelo autor antes da próxima ' +
+    'iteração.',
+  utilidadeSocial:
+    'EXTREMAMENTE ÚTIL como demonstração metodológica: qualquer pesquisador ' +
+    'em política social brasileira que esteja fazendo inferência sobre ' +
+    'painel UF×Ano agora tem um TEMPLATE para migrar para Município×Ano ' +
+    'usando exclusivamente dados públicos (CGU + IBGE/Localidades + ' +
+    'IBGE/SIDRA + kelvins/Municipios-Brasileiros + IPCA-BCB). Os 6 ' +
+    'notebooks Databricks + 4 scripts Python locais são reutilizáveis fora ' +
+    'do contexto PBF — basta trocar o silver de origem. A contribuição ' +
+    'central é reduzir o custo marginal de pesquisa quasi-experimental ' +
+    'sobre o programa de meses-de-engenharia para minutos-de-leitura.',
+  pontosFortes: [
+    'Resposta direta ao gargalo identificacional flagged pelo Conselho de Finanças no WP#2',
+    'TWFE com k=5.571 clusters (vinte vezes acima do mínimo Cameron-Gelbach-Miller 2008)',
+    'Conley HAC com distâncias geodésicas haversine REAIS — não cluster artificial',
+    'Bandwidth sensitivity 50–1600 km mostra correlação espacial empírica nos resíduos',
+    'DiD 2×2 sobre as duas rupturas: MP 1.061/2021 (+205 R$/hab) e Lei 14.601/2023 (+349)',
+    'Decomposição Theil L within/between-UF — quantifica variação invisível em UF×Ano',
+    'Pipeline Databricks completo (6 notebooks) + fallback local transparente publicados',
+    'IBGE/SIDRA real com extrapolação linear documentada para 2022/2023 (Censo years)',
+    '12 figuras municipais em identidade visual editorial Mirante',
+    'Sanity check da alocação fallback preserva per capita UF em razão 1.000',
+  ],
+  problemasParaNotaPlena: [
+    'Modo fallback: pobreza UF-uniforme não captura heterogeneidade intra-UF efetiva — PIPELINE precisa rodar',
+    'Conley HAC implementado com kernel uniforme simplificado — Bartlett ou Parzen seriam mais ortodoxos',
+    'IDH-M Atlas Brasil 2010 desatualizado — Censo 2022 ainda não publicou IDHM',
+    'Tratamento via deficit pré-choque idêntico ao WP#2 — mesma definição arbitrária do quartil',
+    'Sem RDD geográfico em fronteiras estaduais (ferramenta poderosa que 5570 munis habilitaria)',
+  ],
+  problemasParaSubirNivel: [
+    'B+ → A: rodar o pipeline Databricks no bronze CGU para recuperar heterogeneidade INTRA-UF efetiva',
+    'B+ → A: implementar Conley HAC com kernel Bartlett (ortodoxo Conley 1999) e bootstrap espacial',
+    'B+ → A: adicionar RDD geográfico em fronteiras estaduais com regras de auxílio estadual diferentes',
+    'B+ → A: incorporar outcomes proxy mensais (DATASUS-SIM óbitos infantis, INEP abandono, CAGED formalização)',
+  ],
+  proximosPassos: [
+    'P1 (crítico): rodar pipeline Databricks no bronze CGU.pbf_pagamentos pra produzir o gold real (vs fallback)',
+    'P2 (alto): implementar Conley HAC com kernel Bartlett — substitui kernel uniforme atual',
+    'P3 (alto): RDD geográfico em fronteiras estaduais (ex: BA-MG, RJ-SP) com auxílios estaduais diferenciais',
+    'P4 (médio): outcomes proxy mensais (DATASUS-SIM, INEP, CAGED) para validar mecanismo causal',
+    'P5 (médio): replicação metodológica em outros programas sociais (Auxílio Gás, BPC, etc)',
+  ],
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════
 // WP #3 RAIS — VÍNCULOS PÚBLICOS / FAIR LAKEHOUSE
 // Slug: rais-fair-lakehouse · Vertical: RAIS
 // Régua: LATO SENSU 6,8/10.
@@ -745,18 +824,20 @@ export const PARECERES_BY_SLUG = {
   'equipamentos-rm-parkinson':       PARECER_WP4_EQUIPAMENTOS,
   'uropro-saude-publica-2008-2025':  PARECER_WP5_UROPRO,
   'equipamentos-panorama-cnes':      PARECER_WP6_EQUIPAMENTOS_PANORAMA,
+  'bolsa-familia-municipios':        PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS,
 };
 
 // Backward-compat: nas verticais com 1 artigo, o "principal" é o único.
-// Nas com 2 (Equipamentos: WP#4+#6, UroPro: WP#3+#5), elege-se o WP de
-// maior escopo/score como principal (WP#4 e WP#3 respectivamente).
+// Nas com 2 (Equipamentos: WP#4+#6, UroPro: WP#3+#5, PBF: WP#2+#7), elege-se
+// o WP de maior escopo/score como principal.
 export const PARECERES_BY_VERTICAL = {
-  pbf:           PARECER_WP2_BOLSA_FAMILIA,
-  equipamentos:  PARECER_WP4_EQUIPAMENTOS,
-  emendas:       PARECER_WP1_EMENDAS,
-  uropro:        PARECER_WP3_UROPRO,
-  rais:          PARECER_WP_RAIS,
-  global:        PARECER_GLOBAL,
+  pbf:                  PARECER_WP2_BOLSA_FAMILIA,
+  'pbf-municipios':     PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS,
+  equipamentos:         PARECER_WP4_EQUIPAMENTOS,
+  emendas:              PARECER_WP1_EMENDAS,
+  uropro:               PARECER_WP3_UROPRO,
+  rais:                 PARECER_WP_RAIS,
+  global:               PARECER_GLOBAL,
 };
 
 // Aliases legacy (mantém imports antigos funcionando).

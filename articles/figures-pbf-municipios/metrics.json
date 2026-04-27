@@ -1,12 +1,12 @@
 {
   "source_tag": "fallback",
-  "n_munis": 106,
+  "n_munis": 5571,
   "latest": 2025,
-  "theil_within": 0.007740741076162322,
-  "theil_between": 0.13559133275570587,
-  "share_within_pct": 5.400564485826381,
-  "conley_beta_pov_to_pc": 38.28603675302943,
-  "conley_se_ols": 1.2943162150581657,
-  "conley_se_max": 3.9399797839946875,
-  "gini_pbf_municipal": 0.2948573958852052
+  "theil_within": 1.3877787807814457e-16,
+  "theil_between": 0.14619131601895044,
+  "share_within_pct": 9.492894780436547e-14,
+  "conley_beta_pov_to_pc": 24.42112489103287,
+  "conley_se_ols": 0.05607252621236449,
+  "conley_se_max": 0.8455412127114454,
+  "gini_pbf_municipal": 0.2886062320730738
 }
