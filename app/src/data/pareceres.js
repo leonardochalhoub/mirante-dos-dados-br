@@ -147,7 +147,7 @@ export const PARECER_EQUIPAMENTOS = {
   originalLabel: null,
   originalUrl: null,
   ultimaAtualizacao: `${HOJE}T11:30 BRT`,
-  versao: '2.1 — coautoria mantida + 2 mapas coropléticos + figs degeneradas removidas',
+  versao: '3.0 — rewrite multidimensional + WHY quádruplo + Kakwani/necessidade + cross-shock agenda + Brasil laboratório natural',
   resumoCalibragem:
     'Calibragem em LATO SENSU (TCC de especialização forte). Score 8,8 ' +
     '(vs 8,7 da v2.0): coautoria Rolim+Chalhoub mantida — o manuscrito ' +

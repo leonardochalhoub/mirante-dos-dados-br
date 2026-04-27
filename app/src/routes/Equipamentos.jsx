@@ -678,10 +678,12 @@ function DocCardWP4() {
         <ArticleTimestamp slug="equipamentos-rm-parkinson" />
       </div>
       <p style={{ marginTop: 6, fontSize: 13.5 }}>
-        <b>"Análise estatística da prevalência da Doença de Parkinson no
-        Brasil: desafios, tecnologias de neuroimagem e perspectivas de
-        políticas públicas"</b> — coautoria com <b>Alexandre Maciel
-        Rolim</b> (manuscrito original epidemiológico, abr/2026).
+        <b>"Iniquidade diagnóstica em neuroimagem para Doença de
+        Parkinson no Brasil: análise multidimensional do parque
+        instalado, do federalismo fiscal e do envelhecimento
+        populacional (2013–2025)"</b> — coautoria com <b>Alexandre
+        Maciel Rolim</b> (epidemiologia, revisão clínica e
+        recomendações de protocolo, abr/2026).
       </p>
 
       <WhyQuadruplo />

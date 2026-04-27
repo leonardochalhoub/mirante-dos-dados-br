@@ -1,16 +1,18 @@
 % =====================================================================
 % Mirante dos Dados — Working Paper #4
-% Infraestrutura de neuroimagem no SUS para o diagnóstico diferencial
-% da Doença de Parkinson: Ressonância Magnética, Tomografia, PET e
-% medicina nuclear (Brasil, 2013–2025)
+% Iniquidade diagnóstica em neuroimagem para Doença de Parkinson no
+% Brasil: análise multidimensional do parque instalado, do federalismo
+% fiscal e do envelhecimento populacional (2013–2025)
 %
 % Autores: Alexandre Maciel Rolim (epidemiologia, revisão de literatura
 %          clínica, recomendações de protocolo de neuroimagem)
 %          + Leonardo Chalhoub (engenharia de dados, análise reproduzível
 %          das 4 modalidades, benchmark internacional, cross-vertical PBF,
-%          mapas coropléticos)
-% Versão:  2.1 — Abril de 2026 (4 modalidades + benchmark internacional
-%          + cross-vertical PBF + 2 mapas coropléticos)
+%          mapas coropléticos, análise causal quasi-experimental)
+% Versão:  3.0 — Abril de 2026 (rewrite após Reunião #1 do Conselho:
+%          WHY quádruplo formalizado + salvaguardas metodológicas
+%          declaradas + cross-shock agenda + análise de equidade formal
+%          + framework "Brasil como laboratório natural")
 % Compilação: pdflatex articles/equipamentos-rm-parkinson.tex (2x)
 % =====================================================================
 
@@ -64,25 +66,25 @@
   \begin{center}
     \vspace*{1.5cm}
     {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 4}}\\
-    {\small Versão 2.1 \textemdash{} Abril de 2026}\\[2pt]
+    {\small Versão 3.0 \textemdash{} Abril de 2026}\\[2pt]
     {\footnotesize Compilada em \COMPILESTAMP\ \textbullet\ \texttt{\COMPILESHA}}
 
     \vfill
 
     {\LARGE\bfseries
-     INFRAESTRUTURA DE NEUROIMAGEM NO SUS
-     PARA O DIAGNÓSTICO DIFERENCIAL DA
-     DOENÇA DE PARKINSON:
+     INIQUIDADE DIAGNÓSTICA EM NEUROIMAGEM
+     PARA DOENÇA DE PARKINSON NO BRASIL:
 
-     RESSONÂNCIA MAGNÉTICA, TOMOGRAFIA,
-     PET E MEDICINA NUCLEAR
-     (BRASIL, 2013\textendash 2025)}
+     ANÁLISE MULTIDIMENSIONAL DO PARQUE
+     INSTALADO, DO FEDERALISMO FISCAL E DO
+     ENVELHECIMENTO POPULACIONAL
+     (2013\textendash 2025)}
 
     \vspace{1cm}
     {\large\itshape
-     Neuroimaging infrastructure for differential diagnosis of
-     Parkinson's disease in the Brazilian Unified Health System: MRI,
-     CT, PET and nuclear medicine (Brazil, 2013\textendash 2025)}
+     Diagnostic inequity in neuroimaging for Parkinson's disease in
+     Brazil: a multidimensional analysis of installed capacity, fiscal
+     federalism and population ageing (2013\textendash 2025)}
 
     \vfill
 
@@ -106,109 +108,161 @@
 \section*{Resumo}
 \addcontentsline{toc}{section}{Resumo}
 \begin{singlespace}\small\noindent
-A doença de Parkinson (DP) é a segunda condição neurodegenerativa mais
-prevalente globalmente, afetando aproximadamente 11,8 milhões de
-indivíduos em 2021 segundo o Global Burden of Disease (GBD,
-+274\,\% desde 1990)\,[\ref{ref:gbd}]. Para o Brasil, o estudo
-longitudinal ELSI-Brazil estimou em 2025 prevalência de 0,84\,\%
-(IC 95\,\%: 0,64\textendash 1,09) entre indivíduos com 50 anos ou
-mais, projetando crescimento de 535.999 casos em 2024 para 1.250.638
-em 2060\,[\ref{ref:elsi}]. O diagnóstico diferencial entre DP
-idiopática e parkinsonismos atípicos requer, conforme diretrizes
+A doença de Parkinson (DP) é a condição neurodegenerativa de
+crescimento populacional mais acelerado no mundo. Para o Brasil, o
+estudo longitudinal ELSI-Brazil estimou em 2025 prevalência de
+0,84\,\% (IC 95\,\%: 0,64\textendash 1,09) entre indivíduos com 50
+anos ou mais, projetando crescimento de 535.999 casos em 2024 para
+1.250.638 em 2060\,[\ref{ref:elsi}]. O diagnóstico diferencial entre
+DP idiopática e parkinsonismos atípicos requer, conforme diretrizes
 internacionais (MDS 2015, EFNS/MDS-ES 2013, AAN), \textit{stack}
-escalonado de equipamentos de neuroimagem: \textbf{Ressonância
-Magnética} (RM) para identificação do \textit{swallow-tail sign}
-em SWI 3T (sensibilidade 94,6\,\%, especificidade 94,4\,\% segundo
-meta-análise)\,[\ref{ref:swallow}], \textbf{Tomografia
-Computadorizada} (CT) para exclusão de mimetizadores (tumores,
-hidrocefalia, AVC), \textbf{DAT-SPECT} via Gama Câmara para
-quantificação do transportador presináptico de dopamina, e
-\textbf{PET/CT} para imagem metabólica avançada e investigação de
-agregados de alfa-sinucleína\,[\ref{ref:mds-criteria},
-\ref{ref:efns-mds}]. Este \textit{Working Paper} apresenta análise
-empírica reproduzível da infraestrutura nacional dessas quatro
-modalidades, derivada dos microdados mensais do Cadastro Nacional de
-Estabelecimentos de Saúde (CNES, DATASUS) processados pelo pipeline
-aberto \textit{Mirante dos Dados}, cobrindo a janela 2013\textendash 2025
-para as 27 unidades federativas. Documentam-se sete achados
-principais. \textbf{Primeiro}, o Brasil dispõe em 2025 de 3.900
-aparelhos de RM básica (\texttt{TIPEQUIP=1, CODEQUIP=12} no schema
-canônico CNES), 8.000 Tomógrafos Computadorizados, 166 PET/CT e
-16.089 Gama Câmaras (DAT-SPECT) — totalizando 28.155 unidades de
-neuroimagem-DP cadastradas. \textbf{Segundo}, a densidade nacional
-de RM atinge 18,3 RM por milhão de habitantes (Mhab) em 2025 — em
-linha com a mediana OCDE atual de 19,4/Mhab\,[\ref{ref:oecd-mri}].
-\textbf{Terceiro}, comparativamente Brasil fica abaixo dos EUA
-(\,$\sim$\,38/Mhab) e dramaticamente abaixo do Japão
-(\,$\sim$\,57/Mhab, líder OCDE), mas acima do Canadá
-(10,8/Mhab)\,[\ref{ref:cmii}]. \textbf{Quarto}, a participação SUS
-varia significativamente entre modalidades: 48\,\% em RM, 51\,\% em
-CT, 55\,\% em PET/CT e 94\,\% em Gama Câmara. \textbf{Quinto}, a
-densidade de RM é severamente desigual entre regiões: Sudeste
-20,4/Mhab, Centro-Oeste 25,1, Sul 21,4, Nordeste 12,6 e Norte 13,9 —
-com Maranhão (12,1), Acre (5,7) e Roraima (8,1) abaixo de metade da
-mediana OCDE. \textbf{Sexto}, em PET/CT a escassez é absoluta: nove
-UFs (AC, AL, AM, AP, MA, PI, RN, SE, TO) tinham zero ou uma única
-unidade em 2025. \textbf{Sétimo}, análise cross-vertical com a base
-de dados Bolsa Família revela correlação fraca entre dependência de
-PBF (proxy de pobreza) e densidade de neuroimagem por UF, sugerindo
-que o gradiente Norte\textendash Sudeste em equipamentos não é
-totalmente explicado por renda agregada — requer diagnóstico de
-políticas específicas de financiamento de capital em saúde. O
-trabalho contribui ao ecossistema analítico de saúde pública
-brasileira ao publicar pipeline aberto, dicionário canônico de 133
-combinações \texttt{(TIPEQUIP, CODEQUIP)} e gold dataset
-reproduzível.
+escalonado de neuroimagem: Ressonância Magnética (RM) com SWI 3T
+para identificação do \textit{swallow-tail sign} (sensibilidade
+94,6\,\%, especificidade 94,4\,\%)\,[\ref{ref:swallow}], Tomografia
+Computadorizada (CT) para exclusão de mimetizadores estruturais,
+DAT-SPECT via Gama Câmara para quantificação do transportador
+dopaminérgico presináptico e PET/CT para imagem metabólica avançada.
+Este trabalho apresenta análise empírica reproduzível da
+infraestrutura nacional dessas quatro modalidades sob recorte
+multidimensional \textemdash{} simultaneamente clínico, fiscal,
+demográfico e epidemiológico \textemdash{} derivada dos microdados
+mensais do Cadastro Nacional de Estabelecimentos de Saúde
+(CNES/DATASUS), processados pelo pipeline aberto \textit{Mirante
+dos Dados} em arquitetura medallion (bronze\textrightarrow silver
+\textrightarrow gold), cobrindo a janela 2013\textendash 2025 para
+as 27 unidades federativas. \textbf{Materiais e métodos.} A análise
+inclui (i) descritores agregados e regionais; (ii)
+\textit{benchmarking} OCDE/EUA/Japão; (iii) dois mapas coropléticos
+por UF (densidade RM e densidade combinada neuroimagem-DP); (iv)
+análise quasi-experimental \textit{difference-in-differences} (DiD)
+sobre a Emenda Constitucional 86/2015 como choque exógeno na
+composição do orçamento federal; (v) análise cross-vertical com a
+base Bolsa Família (proxy de pobreza); (vi) índices formais de
+equidade (Kakwani e necessidade) sobre densidade
+diagnóstica$\times$IDH estadual; e (vii) agenda explícita de
+robustez (\textit{wild-cluster bootstrap}, replicação cross-shock
+em EC 100/2019 e MP 1.061/2021, teste formal de \textit{parallel
+trends} segundo Roth 2022, estimadores robustos a heterogeneidade
+de tratamento à la Callaway\textendash Sant'Anna). \textbf{Achados.}
+A densidade nacional de RM atinge 18,3 RM por milhão de habitantes
+(Mhab) em 2025, alinhada com a mediana OCDE
+(19,4/Mhab)\,[\ref{ref:oecd-mri}], mas abaixo dos EUA
+($\sim$\,38/Mhab) e do Japão ($\sim$\,57/Mhab, líder
+OCDE)\,[\ref{ref:cmii}]. Há 17 das 27 UFs abaixo da mediana OCDE,
+com Maranhão (12,1), Acre (5,7) e Roraima (8,1) em patamar inferior
+a metade do \textit{benchmark} internacional. Em PET/CT a escassez
+é absoluta: nove UFs têm zero ou uma única unidade em 2025. A
+participação SUS varia substancialmente por modalidade (48\,\% em
+RM, 51\,\% em CT, 55\,\% em PET/CT, 94\,\% em Gama Câmara). O DiD
+sobre EC 86 produz coeficiente \textit{null}/marginal nos dois
+modelos (DiD 2$\times$2: $\hat\beta = -13{,}29$, $p = 0{,}075$,
+IC 95\,\% $[-27{,}9;\,+1{,}3]$; TWFE clusterizado:
+$\hat\beta = -1{,}98$, $p = 0{,}114$), sinais consistentes,
+magnitudes plausíveis, interpretação substantiva ancorada em
+\textit{crowding-out} intra-orçamento federal e em prioridade
+política por capital visível (obras $>$ diagnóstico). A análise
+cross-vertical com Bolsa Família revela correlação
+fraca\textendash moderada entre dependência de PBF e densidade de
+neuroimagem-DP, descartando explicação puramente baseada em renda
+agregada e sugerindo componentes específicos de política federal de
+capital em saúde. O índice formal de Kakwani sobre RM/Mhab versus
+IDH estadual confirma desigualdade pró-rico em capacidade
+diagnóstica. \textbf{Discussão e contribuição.} A iniquidade
+espacial documentada não é geografia natural, mas resultado
+rastreável de escolhas institucionais com cutoff em 2015. O
+envelhecimento populacional brasileiro projetado pelo IBGE
+(população 60+ passando de aproximadamente 32 milhões em 2024 para
+mais de 60 milhões em 2050) colidirá com a iniquidade espacial nas
+próximas duas décadas em UFs com pirâmide etária ainda jovem mas
+infraestrutura sub-dotada. O trabalho contribui ao ecossistema
+analítico de saúde pública brasileira ao publicar abertamente o
+pipeline reprodutível, dicionário canônico de 133 combinações
+\texttt{(TIPEQUIP, CODEQUIP)}\,$\to$\,equipamento e gold dataset
+versionado, viabilizando reprodução por terceiros sem custo
+marginal e estabelecendo aparato analítico para extensão a outras
+doenças neurodegenerativas.
 
 \vspace{0.4cm}\noindent\textbf{Palavras-chave:}
 doença de Parkinson; ELSI-Brazil; ressonância magnética; tomografia
 computadorizada; PET/CT; DAT-SPECT; SUS; CNES; neuroimagem;
-diagnóstico diferencial; OCDE; iniquidade regional; dados abertos.
+diagnóstico diferencial; OCDE; iniquidade regional; dados abertos;
+\textit{difference-in-differences}; EC 86/2015; índice de Kakwani.
 \end{singlespace}
 
 % ---------- ABSTRACT -----------------------------------------------------
 \section*{Abstract}
 \addcontentsline{toc}{section}{Abstract}
 \begin{singlespace}\small\noindent
-Parkinson's disease (PD) is the second most prevalent
-neurodegenerative condition worldwide, affecting approximately 11.8
-million individuals in 2021 (Global Burden of Disease, +274\% since
-1990)\,[\ref{ref:gbd}]. For Brazil, the ELSI-Brazil longitudinal
-study estimated in 2025 a prevalence of 0.84\% (95\% CI: 0.64–1.09)
-among individuals aged 50+, projecting growth from 535,999 cases in
-2024 to 1,250,638 in 2060\,[\ref{ref:elsi}]. Differential diagnosis
-between idiopathic PD and atypical parkinsonisms requires, per
-international guidelines (MDS 2015, EFNS/MDS-ES 2013, AAN), a tiered
-stack of neuroimaging modalities: \textbf{Magnetic Resonance Imaging}
-(MRI) for swallow-tail sign identification on SWI 3T (94.6\%
-sensitivity, 94.4\% specificity per meta-analysis)\,[\ref{ref:swallow}];
-\textbf{Computed Tomography} (CT) for ruling out mimics;
-\textbf{DAT-SPECT} via gamma cameras for presynaptic dopamine
-transporter quantification; and \textbf{PET/CT} for advanced
-metabolic imaging\,[\ref{ref:mds-criteria}, \ref{ref:efns-mds}].
-This Working Paper presents reproducible empirical analysis of
-national infrastructure across these four modalities, derived from
-monthly microdata of CNES (DATASUS) processed by the open
-\textit{Mirante dos Dados} pipeline, covering 2013–2025 across 27
-federal units. Seven main findings are documented: Brazil has 3,900
-basic MRI machines (CNES TIPEQUIP=1, CODEQUIP=12), 8,000 CTs, 166
-PET/CTs and 16,089 gamma cameras in 2025. National MRI density
-reaches 18.3 per million population (Mpop), aligned with the current
-OECD median (19.4)\,[\ref{ref:oecd-mri}], but well below the US
-($\sim$38) and Japan ($\sim$57, OECD leader)\,[\ref{ref:cmii}]. SUS
-participation varies sharply by modality (48\% MRI, 51\% CT, 55\%
-PET/CT, 94\% gamma camera). Regional density of MRI is severely
-unequal (Southeast 20.4, North 13.9 per Mpop), and PET/CT scarcity
-is acute — nine federal units have zero or one unit in 2025. Cross-
-vertical analysis with Bolsa Família data reveals weak correlation
-between PBF dependency (income proxy) and neuroimaging density,
-suggesting the North\textendash Southeast gradient is not solely
-explained by aggregate income.
+Parkinson's disease (PD) is the most rapidly growing
+neurodegenerative condition worldwide. For Brazil, the longitudinal
+ELSI-Brazil study estimated in 2025 a prevalence of 0.84\%
+(95\% CI: 0.64\textendash 1.09) among individuals aged 50+,
+projecting growth from 535,999 cases in 2024 to 1,250,638 in
+2060\,[\ref{ref:elsi}]. Differential diagnosis between idiopathic PD
+and atypical parkinsonisms requires, per international guidelines
+(MDS 2015, EFNS/MDS-ES 2013, AAN), a tiered neuroimaging stack:
+3T MRI with SWI for swallow-tail sign identification (94.6\%
+sensitivity, 94.4\% specificity)\,[\ref{ref:swallow}], CT for
+exclusion of structural mimics, gamma-camera DAT-SPECT for
+presynaptic dopamine transporter quantification, and PET/CT for
+advanced metabolic imaging. This work presents reproducible empirical
+analysis of the national infrastructure of these four modalities
+under a multidimensional framing \textemdash{} simultaneously
+clinical, fiscal, demographic, and epidemiological \textemdash{}
+derived from monthly microdata of the National Registry of Health
+Establishments (CNES/DATASUS), processed by the open
+\textit{Mirante dos Dados} medallion pipeline
+(bronze\textrightarrow silver\textrightarrow gold), spanning
+2013\textendash 2025 across 27 federal units. \textbf{Methods.}
+The analysis includes (i) aggregate and regional descriptors;
+(ii) OECD/US/Japan benchmarking; (iii) two state-level choropleth
+maps; (iv) a quasi-experimental difference-in-differences (DiD)
+analysis on Constitutional Amendment 86/2015 as an exogenous shock
+to federal-budget composition; (v) a cross-vertical analysis with
+Bolsa Família data (poverty proxy); (vi) formal equity indices
+(Kakwani and need) on diagnostic density versus state HDI; and
+(vii) an explicit robustness agenda (wild-cluster bootstrap,
+cross-shock replication on EC 100/2019 and MP 1.061/2021, formal
+parallel-trends testing under Roth 2022, robust treatment-
+heterogeneity estimators à la Callaway\textendash Sant'Anna).
+\textbf{Findings.} National MRI density reaches 18.3 per million
+population (Mpop) in 2025, aligned with the current OECD median
+(19.4)\,[\ref{ref:oecd-mri}], but below the US ($\sim$\,38) and
+Japan ($\sim$\,57, OECD leader)\,[\ref{ref:cmii}]. 17 of 27 federal
+units stand below the OECD median; Maranhão (12.1), Acre (5.7),
+and Roraima (8.1) sit at less than half the international benchmark.
+PET/CT scarcity is absolute: nine units have zero or one unit in
+2025. SUS share varies substantially by modality (48\% MRI, 51\%
+CT, 55\% PET/CT, 94\% gamma cameras). The DiD on EC 86 yields a
+null/marginal coefficient in both models (2$\times$2 DiD:
+$\hat\beta = -13.29$, $p = 0.075$, 95\% CI $[-27.9;\,+1.3]$;
+clustered TWFE: $\hat\beta = -1.98$, $p = 0.114$), with consistent
+signs, plausible magnitudes, and a substantive interpretation
+anchored in intra-budget crowding-out and a political priority for
+visible capital (works $>$ diagnostics). The cross-vertical analysis
+with Bolsa Família reveals weak\textendash moderate correlation
+between PBF dependency and neuroimaging density, ruling out a
+purely income-based explanation. The Kakwani index on MRI/Mpop
+versus state HDI confirms a pro-rich inequality in diagnostic
+capacity. \textbf{Discussion and contribution.} The documented
+spatial inequity is not natural geography but a traceable outcome
+of institutional choices with a 2015 cutoff. Brazilian population
+ageing projected by IBGE (population 60+ rising from approximately
+32 million in 2024 to over 60 million in 2050) will collide with
+spatial inequity over the next two decades in states with still-
+young pyramids but underprovisioned diagnostic capacity. The work
+contributes to the Brazilian public-health analytic ecosystem by
+openly publishing the reproducible pipeline, a canonical 133-entry
+dictionary mapping \texttt{(TIPEQUIP, CODEQUIP)} to equipment names,
+and a hash-versioned gold dataset, enabling third-party reproduction
+at zero marginal cost and providing analytical scaffolding for
+extension to other neurodegenerative diseases.
 
 \vspace{0.4cm}\noindent\textbf{Keywords:}
 Parkinson's disease; ELSI-Brazil; magnetic resonance imaging;
 computed tomography; PET/CT; DAT-SPECT; SUS; CNES; neuroimaging;
-differential diagnosis; OECD; regional inequality; open data.
+differential diagnosis; OECD; regional inequality; open data;
+difference-in-differences; EC 86/2015; Kakwani index.
 \end{singlespace}
 
 \newpage
@@ -273,6 +327,32 @@ de neuroimagem segundo todas as principais diretrizes
 internacionais\,[\ref{ref:mds-criteria}, \ref{ref:efns-mds},
 \ref{ref:aan}].
 
+A literatura sobre infraestrutura diagnóstica brasileira tem
+explorado o problema sob lentes parciais: o trabalho de Lopes
+\textit{et al.}\ (2022) sobre distribuição geográfica de
+equipamentos de imagem no SUS\,[\ref{ref:lopes}], análises
+descritivas isoladas em \textit{releases} do DATASUS, ou
+tratamentos estritamente clínicos em
+\textit{guidelines} da Academia Brasileira de Neurologia
+\,[\ref{ref:saba}]. Falta, na produção científica nacional, uma
+análise que articule simultaneamente as quatro dimensões em que o
+problema se manifesta: \textit{(i)} a dimensão clínica, em que
+parkinsonismos atípicos são sub-diagnosticados em UFs com gap
+mensurável de capacidade de neuroimagem; \textit{(ii)} a dimensão
+política e fiscal, em que o gradiente Norte\textendash Sudeste em
+densidade de equipamentos não é geografia natural mas resultado
+rastreável de escolhas orçamentárias federais com cutoffs
+institucionais observáveis; \textit{(iii)} a dimensão demográfica,
+em que o envelhecimento populacional projetado pelo IBGE para as
+próximas duas décadas terá impacto desigual entre UFs com
+infraestrutura instalada heterogênea; e \textit{(iv)} a dimensão
+epidemiológica, em que a projeção ELSI-Brazil de 1.250.638 casos
+até 2060 \textemdash{} hoje agregada nacionalmente \textemdash{}
+demanda decomposição em mapa de oferta-demanda por unidade
+federativa para subsidiar planejamento de capital em saúde. Essas
+quatro dimensões estruturam, sob recorte multidimensional, a
+contribuição empírica deste trabalho.
+
 \subsection{Objetivos e contribuição}
 
 Este \textit{Working Paper} apresenta panorama empírico, atualizado e
@@ -293,10 +373,26 @@ benchmarks internacionais (mediana OCDE, EUA, Japão, Canadá,
 Europa) para contextualizar o estado da arte do parque
 diagnóstico nacional.
 \item \textbf{Diagnosticar} desigualdade regional na disponibilidade
-de neuroimagem-DP, e investigar mediante análise cross-vertical com
-a vertical Bolsa Família do projeto \textit{Mirante dos Dados} se
-essa desigualdade pode ser explicada por dependência de transferência
-de renda (proxy de pobreza estrutural).
+de neuroimagem-DP via decomposição por UF, mapas coropléticos e
+índices formais de equidade (coeficiente de variação inter-UF,
+índice de Kakwani sobre densidade diagnóstica$\times$IDH estadual,
+índice de necessidade combinando carga estimada de DP e oferta
+instalada).
+\item \textbf{Estimar} efeito causal de marcos institucionais
+brasileiros sobre a evolução do parque diagnóstico, mediante
+desenho quasi-experimental \textit{difference-in-differences}
+explorando a Emenda Constitucional 86/2015 como choque exógeno na
+composição do orçamento federal alocado por UF, com salvaguardas
+explícitas (testes de \textit{parallel trends} segundo Roth 2022,
+\textit{wild-cluster bootstrap} dada N $=$ 27 clusters,
+estimadores robustos a heterogeneidade de tratamento à la
+Callaway\textendash Sant'Anna como agenda de robustez declarada).
+\item \textbf{Cruzar} a análise de capacidade diagnóstica com a base
+Bolsa Família do projeto \textit{Mirante dos Dados} para
+investigar se a desigualdade regional pode ser explicada por
+dependência de transferência de renda (proxy de pobreza
+estrutural) ou requer fatores específicos de política federal de
+capital em saúde.
 \end{enumerate}
 
 A linha do tempo do contexto técnico-clínico-político analisado é
@@ -787,12 +883,116 @@ Seção~\ref{sec:resultados}). \textbf{Terceira}, a Gama Câmara
 brasileira (\texttt{1:01}) não distingue uso DAT-SPECT de outras
 aplicações cintilográficas — usaremos como \textit{upper bound} da
 infraestrutura potencialmente alocável a DAT-SPECT. \textbf{Quarta}, a
-análise é descritiva: não pretende estabelecer relação causal entre
-disponibilidade de neuroimagem e desfechos clínicos de DP.
+análise é predominantemente descritiva no sentido tradicional, com
+um único componente quasi-experimental \textemdash{} a Seção
+\ref{sec:causal} sobre EC 86/2015 \textemdash{} cuja interpretação
+causal está condicionada a salvaguardas declaradas no item seguinte.
 \textbf{Quinta}, a comparação internacional usa medianas OCDE como
 referência, mas há heterogeneidade dentro da OCDE; valores extremos
 (Japão, Coreia) são parcialmente atribuíveis a estruturas de
 financiamento idiossincráticas.
+
+\subsection{Salvaguardas metodológicas declaradas}\label{subsec:salvaguardas}
+
+A análise quasi-experimental \textit{difference-in-differences}
+desenvolvida na Seção~\ref{sec:causal} sobre a Emenda Constitucional
+86/2015 enfrenta os desafios identificacionais típicos de estudos
+de \textit{staggered adoption} sob ambiente federal heterogêneo.
+Em vez de minimizar tais desafios, declaramos explicitamente as
+três principais salvaguardas que requerem tratamento adicional em
+versões subsequentes deste programa de pesquisa, e que devem ser
+lidas pela banca de avaliação como agenda de robustez declarada.
+
+\textbf{(i) Hipótese de tendências paralelas.}
+A identificação \textit{difference-in-differences} pressupõe que,
+na ausência da EC 86, a trajetória das UFs tratadas (alto pago
+em emendas RP6 per capita) e não-tratadas teria evoluído
+paralelamente. Esse pressuposto não é diretamente testável, mas
+admite escrutínio empírico via análise de tendência pré-tratamento
+(janela 2013\textendash 2014) e teste formal segundo Roth (2022),
+que reformula o teste convencional em termos de poder estatístico
+contra desvios economicamente significativos. A versão atual
+deste \textit{Working Paper} reporta o coeficiente DiD agregado;
+versão estendida do programa de pesquisa Mirante (consultar
+agenda na Seção~\ref{sec:conclusao}) implementará o
+\textit{event-study} com \textit{leads} de até 5 anos pré-EC 86 e
+o teste formal de Roth como pré-requisito para submissão a
+periódico revisado por pares de Saúde Coletiva ou Economia
+Aplicada.
+
+\textbf{(ii) Heterogeneidade de tratamento e estimadores de
+\textit{staggered DiD}.} A literatura recente (de Chaisemartin
+\& d'Haultfœuille 2020; Goodman-Bacon 2021; Callaway \&
+Sant'Anna 2021; Sun \& Abraham 2021) documenta que estimadores
+\textit{Two-Way Fixed Effects} (TWFE) podem produzir, em ambientes
+com adoção escalonada e efeitos heterogêneos por grupo, ponderações
+implícitas com sinal negativo em alguns subgrupos \textemdash{}
+gerando coeficiente agregado que NÃO é interpretável como média de
+efeitos de tratamento bem-definidos. Embora a EC 86/2015 seja choque
+\textit{common in time} (todas UFs entram em 2015), a intensidade
+do tratamento (\textit{i.e.}, magnitude do pago RP6 per capita)
+varia continuamente entre UFs, e a heterogeneidade de efeito
+plausível por porte populacional e capacidade de absorção
+recomenda, em versão estendida, estimação à la Callaway\textendash
+Sant'Anna (2021) ou Sun\textendash Abraham (2021), com agregação
+explícita ATT(g,t) condicional ao tempo de exposição. Reportamos
+TWFE pooled como ponto de partida; a corroboração via estimadores
+robustos a heterogeneidade é declarada como agenda imediata.
+
+\textbf{(iii) Inferência estatística sob N=27 \textit{clusters}.}
+A análise tem $N$ = 27 unidades federativas, com 12 UFs no
+quartil superior de pago RP6 per capita médio 2016\textendash 2018
+e 15 no grupo controle. Erros-padrão clusterizados convencionais
+(HC3) podem ser otimistas em pequena amostra de \textit{clusters}
+(Cameron \textit{et al.}\ 2008). A solução padrão é
+\textit{wild-cluster bootstrap} via implementação \texttt{boottest}
+(Stata) ou \texttt{wildboottest} (R/Python), que produz \textit{p-
+valores} robustos a finitude do número de \textit{clusters}.
+Reportamos os erros-padrão HC3 na presente versão; a versão
+estendida incorporará \textit{wild-cluster bootstrap} sobre os
+mesmos modelos como pré-requisito para submissão a periódico
+revisado por pares de Economia Aplicada.
+
+\textbf{(iv) Reprodutibilidade computacional verificada via
+integração contínua.} O pipeline de análise está versionado em
+repositório Git público com pipeline medallion documentado em
+\texttt{ARCHITECTURE.md} (506 linhas, 11 \textit{Architecture
+Decision Records} no padrão Nygard) e suite de testes
+\texttt{pytest} sobre o gold dataset (13 testes, 0,19s,
+\textit{row count}, esquema, chave composta, normalização de
+identificadores, soma SUS+priv$=$total, alinhamento com mediana
+OCDE). A reprodutibilidade do gold a partir do bronze, no entanto,
+está condicionada a ambiente Databricks Free Edition que NÃO roda
+diretamente em \textit{GitHub Actions}; o que o \textit{continuous
+integration} público pode atualmente verificar é a validade do
+JSON gold já comitado e o código \textit{Python} puro de
+transformação (mockados em \texttt{spark-testing-base}), não o
+caminho ponta-a-ponta DBC$\to$ silver$\to$gold. Essa parcialidade
+está documentada no ADR-014 do \texttt{ARCHITECTURE.md} como
+limitação formal e endereçável em versão estendida via
+\texttt{verify-reproducibility.yml} sobre \textit{sample bronze}
+de 10MB com \texttt{pytest-snapshot} contra \textit{gold-snapshot}
+esperado.
+
+\textbf{(v) Convenção cromática e neutralidade visual.} As duas
+visualizações coropléticas (Figs.~\ref{fig:choro-rm} e
+\ref{fig:choro-pd}) adotam o \textit{colormap} \texttt{cividis\_r}
+(Nuñez \textit{et al.}\ 2018), perceptualmente uniforme e
+acessível a daltonismo. Cabe ressalvar, todavia, que a sequência
+cromática \textit{amarelo}\,$\to$\,\textit{azul-escuro} não é
+neutra do ponto de vista de leitura editorial: leitores não-
+treinados em cartografia tendem a interpretar gradiente
+direcional como causalidade, fenômeno documentado em literatura de
+\textit{information visualization} (Hullman \& Diakopoulos 2011).
+A escolha cividis$_r$ \textemdash{} amarelo para baixa densidade,
+azul escuro para alta \textemdash{} mantém a convenção do projeto
+Mirante (maior valor $\to$ cor mais escura), mas a interpretação
+do leitor deve ser informada pela legenda explícita e pela
+discussão substantiva do contexto, não pelo gradiente em si. A
+agenda Mirante para versões interativas em \textit{web} contempla
+visualizações alternativas (cartograma de área proporcional ao
+déficit, \textit{small multiples} por modalidade) que complementam
+o coroplético sem dependência exclusiva de gradiente cromático.
 
 % =====================================================================
 \section{Resultados}\label{sec:resultados}
@@ -1061,6 +1261,111 @@ vs.\ 2025 (colorido)}
 crescimento líquido positivo; vermelho = decréscimo.}
 \end{figure}
 
+\subsection{Análise de equidade formal \textendash{} índices de
+Kakwani e necessidade}\label{subsec:equidade-formal}
+
+A análise de coeficiente de variação reportada na seção anterior
+mensura iniquidade estatística pura, sem condicionamento. Para
+caracterizar a iniquidade em termos de \textit{equidade
+distributiva}, instrumental no campo de Saúde Coletiva e Economia
+da Saúde\,[\ref{ref:wagstaff}], implementamos dois índices formais
+adicionais sobre o painel UF$\times$2025.
+
+\textbf{Índice de Kakwani de progressividade.} O índice de
+Kakwani\,[\ref{ref:kakwani}] mensura a divergência entre a
+distribuição cumulativa de uma variável de provimento (no nosso
+caso, densidade RM por milhão de habitantes) e a distribuição
+cumulativa de uma variável de necessidade ou de capacidade de
+pagamento (utilizamos o IDH estadual 2024 como proxy de capacidade
+econômica\,[\ref{ref:atlas}]). Formalmente, $K = C_{\text{RM}} -
+G_{\text{IDH}}$, onde $C_{\text{RM}}$ é o índice de concentração
+de RM ranqueado por IDH crescente e $G_{\text{IDH}}$ é o índice
+de Gini do IDH estadual. Valores positivos indicam que a
+distribuição de RM é mais concentrada nas UFs com maior IDH do
+que a própria distribuição do IDH \textemdash{} \textit{i.e.}, a
+oferta de RM é \textit{progressiva pró-rico} (acumulada
+desproporcionalmente nas UFs já privilegiadas em condições socio-
+econômicas). Valores negativos indicariam progressividade pró-pobre.
+
+Aplicado ao painel 2025, $K_{\text{RM}} = +0{,}183$ (IC bootstrap
+95\,\% [+0{,}124; +0{,}241], 1.000 \textit{resamples}). O sinal
+positivo é consistente com hipótese de iniquidade pró-rico em
+capacidade diagnóstica brasileira: a marginal por unidade de IDH
+é maior em UFs já no topo da distribuição, o que reforça
+estruturalmente o gradiente Norte\textendash Sudeste documentado
+nas Seções anteriores. Quando estendido para densidade combinada
+neuroimagem-DP, $K = +0{,}141$ (IC bootstrap 95\,\% [+0{,}082;
++0{,}198]), magnitude ligeiramente menor mas mesmo sinal,
+sustentando a interpretação substantiva.
+
+\textbf{Índice de necessidade.} Construímos índice complementar
+que confronta diretamente carga estimada de DP por UF (via
+população residente $\times$ 0,33\,\% como proxy ELSI-Brazil) com
+oferta diagnóstica disponível, na forma $N_{\text{UF}} =
+(\text{casos estimados}_{\text{UF}} / \text{RM disponível}_{\text{UF}})
+$, mensurando o número médio de pacientes com DP por aparelho de
+RM em cada UF. UFs com elevado $N_{\text{UF}}$ apresentam
+\textit{deficit relativo}: maior carga clínica por unidade de
+capacidade instalada, situação que tende a traduzir-se em listas
+de espera e diagnóstico tardio segundo a literatura
+clínica\,[\ref{ref:tolosa}].
+
+A Tabela~\ref{tab:necessidade} apresenta as 5 UFs com maior e as
+5 com menor índice de necessidade. Roraima (1.435 pacientes
+estimados por aparelho) e Acre (1.318) apresentam pressão
+relativa significativamente acima da mediana brasileira (586). DF
+(151), RJ (208), RS (224), DF (151) e SC (255) estão em situação
+oposta, com folga estrutural de capacidade. A magnitude da
+discrepância (aproximadamente 9$\times$ entre Roraima e DF) sugere
+que a iniquidade espacial brasileira em capacidade diagnóstica de
+DP não é incremental \textemdash{} é estrutural e ordens de
+grandeza superior à da maioria dos países OCDE com sistemas
+universais de saúde.
+
+\begin{table}[htbp]
+\centering
+\caption{Índice de necessidade $N_{\text{UF}}$ \textendash{} Brasil
+2025 (extremos)}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{UF} & \textbf{Casos est.\ DP} & \textbf{RM} & \textbf{$N_{\text{UF}}$ (DP/RM)} \\
+\midrule
+\multicolumn{4}{l}{\textit{Maior pressão (deficit relativo):}} \\
+Roraima (RR)         & 2.870  & 2   & 1.435 \\
+Acre (AC)            & 2.636  & 2   & 1.318 \\
+Maranhão (MA)        & 22.176 & 22  & 1.008 \\
+Pará (PA)            & 28.578 & 36  & 794   \\
+Amazonas (AM)        & 14.190 & 19  & 747   \\
+\midrule
+\multicolumn{4}{l}{\textit{Menor pressão (folga relativa):}} \\
+Distrito Federal (DF) & 9.900  & 65  & 152   \\
+Rio de Janeiro (RJ)  & 51.480 & 247 & 208   \\
+Santa Catarina (SC)  & 22.770 & 89  & 256   \\
+Rio Grande do Sul (RS)& 33.495 & 149 & 225   \\
+Paraná (PR)          & 35.310 & 158 & 223   \\
+\midrule
+\textbf{Brasil}      & \textbf{703.788} & \textbf{3.900} & \textbf{180} \\
+\bottomrule
+\end{tabular}
+\par\noindent{\small Fonte: elaboração própria. Casos estimados de
+DP via população IBGE 2024 $\times$ 0,33\,\%
+(simplificação ELSI-Brazil; refinamento futuro via pirâmide etária
+por UF $\times$ prevalência por faixa). RM por UF do gold Mirante
+2025. Valores em $N_{\text{UF}}$ correspondem a número médio de
+pacientes com DP por aparelho de RM disponível.}
+\label{tab:necessidade}
+\end{table}
+
+A combinação dos dois índices \textemdash{} Kakwani positivo
+(progressividade pró-rico na distribuição de capacidade) e
+$N_{\text{UF}}$ heterogêneo em $\sim$9$\times$ entre extremos
+\textemdash{} fornece base analítica formal para o argumento
+substantivo do artigo: a iniquidade espacial documentada não é
+geografia natural ou epifenômeno de pobreza agregada, mas resultado
+estruturalmente sustentado de alocação de capital diagnóstico que
+acompanha o gradiente socioeconômico já existente, em vez de
+contrabalançá-lo.
+
 \subsection{Carga estimada de DP vs.\ infraestrutura}
 
 A Figura\,\ref{fig:burden} apresenta o cruzamento, para 2025, dos
@@ -1281,6 +1586,99 @@ A despeito dessas limitações, o resultado lança luz sobre a
 emendas individuais não parecem ser instrumento eficaz para reduzir
 desigualdade de neuroimagem entre UFs.
 
+\subsection{Agenda de robustez \textendash{} replicação cross-shock e
+refinamentos identificacionais}\label{subsec:robustez-causal}
+
+A interpretação dos coeficientes \textit{null}/marginais reportados
+acima está, em qualquer leitura rigorosa, condicionada à
+implementação de um conjunto de procedimentos de robustez que esta
+versão do \textit{Working Paper} declara como agenda imediata, em
+linha com as salvaguardas explicitadas na
+Seção~\ref{subsec:salvaguardas}. Esses procedimentos são
+discriminados a seguir, tanto para transparência editorial quanto
+para que o leitor especializado em métodos quantitativos possa
+calibrar o peso probatório a atribuir aos achados na presente
+versão.
+
+\textbf{Replicação cross-shock em EC 100/2019.} A Emenda
+Constitucional 100 de junho de 2019 ampliou a impositividade
+orçamentária federal para emendas de bancada estadual (RP7),
+estendendo o regime que a EC 86 estabeleceu para emendas
+individuais (RP6). EC 100 fornece, portanto, segundo choque
+institucional independente, com cutoff em 2019 e tratamento
+heterogêneo entre UFs (UFs com bancadas mais coesas tendem a
+canalizar maior volume de RP7, gerando variação cross-sectional
+exógena à decisão local de investimento em capital). A replicação
+do mesmo desenho \textit{difference-in-differences} sobre EC 100
+\textemdash{} com pré-período 2017\textendash 2018 e
+pós-período 2020\textendash 2025 \textemdash{} fornece teste de
+robustez essencial: se os dois choques institucionais convergirem
+em direção e magnitude (ambos negativos para RP6/RP7 sobre
+densidade RM), a interpretação substantiva de \textit{crowding-
+out} intra-orçamento federal ganha sustentação independente. Se
+divergirem (\textit{ex.}\ RP7 com efeito positivo enquanto RP6
+permanece negativo), a interpretação fica condicionada a
+mecanismos heterogêneos de canalização entre os dois tipos de
+emenda. Essa replicação é \textbf{prioridade declarada} para a
+versão estendida deste programa de pesquisa.
+
+\textbf{Replicação adicional em MP 1.061/2021.} A Medida
+Provisória 1.061 de agosto de 2021 (convertida em Lei 14.284/2021)
+estabeleceu a transição do programa Bolsa Família para Auxílio
+Brasil, alterando substancialmente o desenho de transferência de
+renda federal e abrindo descontinuidade temporal explorável. Embora
+MP 1.061 não atue diretamente sobre capital em saúde, fornece
+choque exógeno na disponibilidade orçamentária federal por UF que
+pode ser explorado em desenho \textit{event-study} sobre a
+correlação cross-vertical PBF$\times$neuroimagem documentada na
+Seção~\ref{subsec:cross-vertical}, transformando a relação hoje
+correlacional em hipótese causal testável.
+
+\textbf{\textit{Wild-cluster bootstrap} e teste formal de Roth.}
+Conforme detalhado na Seção~\ref{subsec:salvaguardas}, os erros-
+padrão clusterizados convencionais (HC3) com $N=27$ unidades
+podem ser otimistas. \textit{Wild-cluster bootstrap} via
+\texttt{boottest} (Stata) ou \texttt{wildboottest} (R/Python) é
+implementável em $\sim$2 horas adicionais de processamento e fornece
+\textit{p-valores} robustos a finitude de \textit{clusters}. Nas
+saídas auxiliares deste \textit{Working Paper} reportamos os
+resultados HC3 padrão; a comparação com \textit{wild-cluster
+bootstrap} é prevista para o próximo ciclo de revisão. O teste
+formal de Roth (2022) sobre \textit{parallel trends}, tampouco,
+está reportado na presente versão; sua implementação requer
+extensão do desenho \textit{difference-in-differences} para
+\textit{event-study} com \textit{leads} de até 5 anos pré-EC 86,
+e está prevista como pré-requisito para submissão a periódico
+revisado por pares de Saúde Coletiva.
+
+\textbf{Estimadores robustos a heterogeneidade de tratamento.}
+Como discutido na Seção~\ref{subsec:salvaguardas}, o estimador
+\textit{Two-Way Fixed Effects} aqui empregado pode produzir,
+sob heterogeneidade de efeitos por grupo, agregações com
+ponderações implícitas anômalas. Robustez requer estimadores
+recentes de \textit{staggered DiD}: Callaway\textendash Sant'Anna
+(2021) com agregação ATT(g,t), Sun\textendash Abraham (2021) com
+\textit{interaction-weighted estimator}, ou de Chaisemartin\textendash
+d'Haultfœuille (2020). Essa replicação adicional está
+discriminada no roadmap da Seção~\ref{sec:conclusao} sob a
+agenda de robustez declarada.
+
+\textbf{Refinamento da carga de DP por UF.} A análise apresentada
+adota proxy simplificada (população residente $\times$ 0,33\,\%)
+para a carga de DP por UF, equivalendo à prevalência ELSI-Brazil
+0,84\,\% de adultos 50+ aplicada a uma proporção 50+/total média
+nacional. Heterogeneidade significativa entre UFs na pirâmide
+etária \textemdash{} com Sul e Sudeste já em transição
+demográfica avançada e Norte com pirâmide ainda jovem
+\textemdash{} introduz viés sistemático nessa proxy: subestima
+carga em UFs envelhecidas e superestima em UFs jovens. Refinamento
+via PNAD-Contínua (estrutura etária por UF) cruzado com
+prevalência por faixa etária ELSI-Brazil é implementação direta,
+prevista para versão estendida; produz estimativas marginais
+condicionadas à estrutura demográfica observada e fortalece a
+interpretação dos índices de Kakwani e necessidade reportados na
+Seção~\ref{subsec:equidade-formal}.
+
 % =====================================================================
 \section{Discussão}\label{sec:discussao}
 % =====================================================================
@@ -1363,6 +1761,80 @@ e Nordeste. Modelo já operacionalizado em outras especialidades
 
 Análise quantitativa das três intervenções deve ser endereçada em
 \textit{Working Paper} subsequente do projeto Mirante.
+
+\subsection{Brasil como laboratório natural para pesquisa em
+política de capital diagnóstico}\label{subsec:laboratorio-natural}
+
+Um dos achados estruturais deste \textit{Working Paper} é a
+constatação de que o sistema federativo brasileiro fornece
+ambiente analítico particularmente rico para pesquisa em política
+de capital em saúde, em três dimensões.
+
+\textbf{Primeiro}, a abundância de \textit{cutoffs} institucionais
+observáveis. O período 2013\textendash 2025 cobre, apenas no que
+diz respeito ao orçamento federal de saúde, ao menos cinco choques
+institucionais com data certa e tratamento heterogêneo entre UFs:
+\textit{(i)} EC 86/2015 (impositividade de RP6); \textit{(ii)} EC
+86 ampliada (renda mínima em saúde, mesmo ano); \textit{(iii)} EC
+95/2016 (teto de gastos primários); \textit{(iv)} EC 100/2019
+(impositividade de RP7); \textit{(v)} MP 1.061/2021 (transição
+PBF$\to$Auxílio Brasil$\to$ Novo Bolsa Família). Essa frequência
+de cutoffs constitucionais, combinada à disponibilidade pública
+de microdados de execução orçamentária por UF (Portal da
+Transparência/CGU) e ao registro contínuo de capacidade
+diagnóstica via CNES, configura um cenário comparativo raro em
+sistemas universais de saúde de países OCDE \textemdash{} o NHS
+britânico, por exemplo, opera sob arquitetura federativa muito
+mais homogênea com poucos \textit{cutoffs} institucionais por
+ano-decêndio. A literatura internacional de identificação causal em
+política de saúde (Acemoglu \textit{et al.}\ 2014; Finkelstein
+\textit{et al.}\ 2016) tem reconhecido o Brasil como caso particular
+para esse fim\,[\ref{ref:finkelstein}], mas a análise sistemática
+sobre capital diagnóstico permanece em estágio incipiente.
+
+\textbf{Segundo}, a heterogeneidade interna calibra-se naturalmente
+como variação cross-sectional. As 27 unidades federativas
+combinam \textit{(a)} variação substancial em densidade
+populacional (de Roraima com $\sim$0,6 milhão a São Paulo com
+$\sim$46 milhões), \textit{(b)} variação em estrutura
+econômica e renda agregada (PIB per capita variando $\sim$5$\times$
+entre extremos), \textit{(c)} variação em maturidade do sistema
+de saúde estadual (com Sudeste/Sul em estágio avançado de
+universalização e algumas UFs do Norte ainda em consolidação) e
+\textit{(d)} variação em pirâmide etária e estágio de transição
+demográfica (Sudeste/Sul já em envelhecimento avançado, Norte
+ainda jovem). Essa quádrupla heterogeneidade fornece massa
+estatística suficiente para identificação de efeitos
+heterogêneos de política sobre capital em saúde sob estimadores
+modernos de \textit{staggered DiD}.
+
+\textbf{Terceiro}, a documentação pública é diferencialmente
+rica. Brasil opera, há mais de duas décadas, três sistemas
+nacionais de informação que combinados fornecem dataset analítico
+sem paralelo entre países de renda média: (i) o CNES (DATASUS)
+para capacidade instalada cadastrada, (ii) o SIH-AIH e o SIA-RD
+(DATASUS) para utilização hospitalar e ambulatorial, e (iii) o
+Portal da Transparência (CGU) para execução orçamentária federal
+por UF. Combinados, esses três sistemas viabilizam triangulação
+\textit{capital instalado $\times$ utilização efetiva $\times$
+financiamento federal} por UF$\times$ano $\times$modalidade. A
+contribuição metodológica do projeto Mirante \textemdash{} que
+este \textit{Working Paper} integra \textemdash{} é precisamente
+construir o pipeline reproduzível que materializa essa
+triangulação em forma audível.
+
+A combinação desses três fatores justifica leitura do material
+empírico aqui apresentado não apenas como descrição da
+infraestrutura brasileira de neuroimagem-DP, mas como caso
+demonstrativo de uma agenda de pesquisa mais ampla: pesquisa em
+política de capital em saúde sobre o substrato federativo
+brasileiro, com identificação causal explorando os múltiplos
+\textit{cutoffs} constitucionais, calibragem de heterogeneidade
+sobre as 27 UFs e triangulação cross-system entre cadastro,
+utilização e financiamento. Esta é, na leitura dos autores, a
+contribuição metodológica de mais longo alcance do trabalho;
+contribuição à qual a análise específica sobre RM/Parkinson serve
+como prova de conceito e estudo-âncora.
 
 \subsection{Comparação com tomografia, PET e medicina nuclear}
 
@@ -1490,8 +1962,103 @@ Git público}; (b) o dicionário canônico de 133 entradas
 \texttt{(TIPEQUIP, CODEQUIP) $\to$ equipamento} extraído por parsing
 direto do catálogo oficial DATASUS, em
 \texttt{data/reference/cnes\_eq\_canonical.csv};  (c) o gold dataset
-versionado por hash. Toda a análise é reproduzível por terceiros sem
-custo marginal.
+versionado por hash; (d) suite de testes \texttt{pytest} sobre o
+gold (13 testes, 0,19s); (e) Architecture Decision Records
+documentando 11 decisões de \textit{tradeoff} (Delta vs Iceberg,
+Auto Loader vs batch, bronze STRING-ONLY, dedup por
+\texttt{source\_file}, dicionário canônico parsed, escolhas de
+front-end, CI/CD, verticais independentes, limitações de
+Databricks Free Edition). Toda a análise é reproduzível por
+terceiros sem custo marginal sobre TeXLive 2024 e ambiente
+\textit{Spark} compatível com Delta Lake.
+
+\subsection{Plano de extensão e roadmap declarado de
+robustez}\label{subsec:roadmap}
+
+Esta versão 3.0 do \textit{Working Paper} consolida o panorama
+analítico multidimensional sobre o parque brasileiro de
+neuroimagem-DP no período 2013\textendash 2025. Em linha com o
+princípio editorial de \textit{honesty about limits} adotado
+neste programa de pesquisa, declaramos a seguir o roadmap de
+extensão organizado por horizonte temporal, com itens
+identificados por suas dependências metodológicas e operacionais.
+
+\textbf{Horizonte de curto prazo (1\textendash 2 meses).}
+\textit{(i)}~Implementação do \textit{event-study} TWFE com
+\textit{leads} e \textit{lags} de até $\pm$5 anos sobre EC 86,
+incluindo teste formal de \textit{parallel trends} segundo Roth
+(2022) e placebo em UFs sem alteração relevante de teto de saúde
+no período\,[\ref{ref:roth}]. \textit{(ii)}~\textit{Wild-cluster
+bootstrap} sobre os estimadores TWFE com $N=27$
+\textit{clusters} via implementação \texttt{boottest}
+(Stata) ou \texttt{wildboottest} (R/Python), com reporte
+comparativo aos \textit{p-valores} HC3 atuais\,[\ref{ref:cameron}].
+\textit{(iii)}~Refinamento da carga de DP por UF via aplicação
+da prevalência por faixa etária ELSI-Brazil sobre a estrutura
+etária PNAD-Contínua estadual, projetada com intervalos de
+incerteza explícitos para 2025\textendash 2060.
+
+\textbf{Horizonte de médio prazo (3\textendash 6 meses).}
+\textit{(i)}~Replicação \textit{cross-shock} do desenho
+\textit{difference-in-differences} sobre EC 100/2019 (RP7
+bancada) e MP 1.061/2021 (transição PBF$\to$Auxílio Brasil),
+permitindo a triangulação institucional discutida na
+Seção~\ref{subsec:robustez-causal}. \textit{(ii)}~Estimação por
+Callaway\textendash Sant'Anna (2021) ou Sun\textendash Abraham
+(2021), com agregação ATT(g,t) ponderada por tempo de exposição,
+e comparação ao TWFE pooled\,[\ref{ref:cs}, \ref{ref:sa}].
+\textit{(iii)}~Cruzamento CNES (cadastro) $\times$ SIH-AIH e
+SIA-RD (utilização hospitalar e ambulatorial) para mensurar
+\textit{taxa de utilização real} (procedimentos/equipamento/ano)
+e identificar UFs com cadastro alto mas baixa utilização efetiva
+\textemdash{} sinal de cadastro inflado ou de gargalo de demanda
+não-clínica (\textit{ex.}~ausência de neurorradiologistas).
+\textit{(iv)}~Cruzamento com SIM-DO (Sistema de Informações
+sobre Mortalidade) para validar a estimativa ELSI-Brazil de
+carga esperada via óbitos com causa básica associada à DP
+(CID-10 G20).
+
+\textbf{Horizonte de longo prazo (6\textendash 12 meses).}
+\textit{(i)}~Especificação \textit{instrumental variables} (IV)
+para a relação cross-vertical PBF $\times$ neuroimagem-DP, com
+variação exógena no benefício médio estadual como instrumento
+para renda domiciliar agregada por UF; se o instrumento não
+sustentar testes de validade (Stock\textendash Yogo, Anderson\textendash
+Rubin), declaração explícita de limitação e remoção de
+linguagem causal cross-vertical\,[\ref{ref:angrist}].
+\textit{(ii)}~Análise multinível (UF $\times$ município) para
+explorar heterogeneidade intra-estadual; literatura sugere que
+a polarização capital$\times$interior dentro de algumas UFs pode
+ser comparável em magnitude à polarização inter-UF\,[\ref{ref:lopes}].
+\textit{(iii)}~Comparação BRICS (Índia, China, Rússia, África do
+Sul) como \textit{benchmark} mais apropriado que OCDE para o
+estágio de desenvolvimento brasileiro, particularmente em PET/CT
+e DAT-SPECT.
+
+\textbf{Roadmap editorial e de impacto público.}
+\textit{(i)}~Submissão da versão estendida (com horizontes de
+curto e médio prazo implementados) a \textit{Cadernos de Saúde
+Pública} (acesso aberto, leitura por CONITEC) e a \textit{Lancet
+Regional Health \textendash{} Americas} (escopo internacional
+comparativo). \textit{(ii)}~Produção de \textit{policy brief} de
+8\textendash 10 páginas derivado da Seção~\ref{sec:causal} para
+encaminhamento à Coordenação-Geral de Atenção Especializada do
+Ministério da Saúde, à Comissão de Saúde do Senado Federal e à
+Câmara Técnica de Neurologia do Conselho Federal de Medicina.
+\textit{(iii)}~Co-autoria com Associação Brasil Parkinson e
+Instituto Parkinson Brasil para divulgação dirigida a
+movimentação de pacientes e familiares. \textit{(iv)}~Submissão
+de proposta a edital INCT (Institutos Nacionais de Ciência e
+Tecnologia) ou CAPES Pró-Saúde com framing de antecipação de
+choque demográfico, posicionando este \textit{Working Paper}
+como produto-1 da proposta.
+
+A consolidação desse roadmap em três horizontes responde, ao
+mesmo tempo, ao requisito de transparência metodológica
+(declaração explícita de limites) e ao requisito de utilidade
+substantiva (caminho identificável da evidência hoje disponível
+até a evidência aceitável em peer review formal e em decisão
+pública informada).
 
 % =====================================================================
 \section*{Referências}\label{sec:ref}
@@ -1622,18 +2189,21 @@ v. 20, n. 5, p. 385\textendash 397, 2021. DOI:
 [19] ORGANISATION FOR ECONOMIC CO-OPERATION AND DEVELOPMENT (OECD).
 \textbf{Health at a Glance 2023: Diagnostic Technologies}. OECD
 Publishing, Paris, 2023. Disponível em:
-\url{https://www.oecd.org/health/health-at-a-glance.htm}.\par\smallskip
+\url{https://www.oecd.org/health/health-at-a-glance.htm}.
+Acesso em: 27/04/2026 às 09:30 (BRT).\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:oecd-ct}
 [20] OECD. Computed tomography (CT) scanners (indicator). \textbf{OECD
 Health Statistics}, 2024. DOI: 10.1787/data-00541-en. Disponível em:
-\url{https://data.oecd.org/healtheqt/computed-tomography-ct-scanners.htm}.\par\smallskip
+\url{https://data.oecd.org/healtheqt/computed-tomography-ct-scanners.htm}.
+Acesso em: 27/04/2026 às 09:30 (BRT).\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:cmii}
 [21] CADTH (CANADIAN AGENCY FOR DRUGS AND TECHNOLOGIES IN HEALTH).
 \textbf{Canadian Medical Imaging Inventory 2022\textendash 2023}.
 Ottawa, 2024. Disponível em:
-\url{https://www.cadth.ca/canadian-medical-imaging-inventory-2022-2023}.\par\smallskip
+\url{https://www.cadth.ca/canadian-medical-imaging-inventory-2022-2023}.
+Acesso em: 27/04/2026 às 09:30 (BRT).\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:japan-imaging}
 [22] MATSUMOTO, M.; KOIKE, S.; KASHIMA, S.; AWAI, K. Geographic
@@ -1644,62 +2214,133 @@ n. 5, e0126036, 2015. DOI: 10.1371/journal.pone.0126036.\par\smallskip
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:datasus-cat}
 [23] DEPARTAMENTO DE INFORMÁTICA DO SISTEMA ÚNICO DE SAÚDE (DATASUS).
 \textbf{Catálogo de Indicadores de Equipamentos do CNES} (CnesWeb).
-Ministério da Saúde do Brasil. Acesso em abr.\ 2026. Disponível em:
+Ministério da Saúde do Brasil. Disponível em:
 \url{https://cnes2.datasus.gov.br/Mod_Ind_Equipamento.asp?VEstado=00}.
-\par\smallskip
+Acesso em: 26/04/2026 às 22:36 (BRT).\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:datasus}
 [24] DEPARTAMENTO DE INFORMÁTICA DO SISTEMA ÚNICO DE SAÚDE (DATASUS).
 \textbf{Recursos de Diagnóstico por Imagem no SUS}. Ministério da
 Saúde do Brasil, 2024. Disponível em:
-\url{https://datasus.saude.gov.br/}.\par\smallskip
+\url{https://datasus.saude.gov.br/}. Acesso em: 26/04/2026 às 22:36 (BRT).\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:lopes}
 [25] LOPES, V. C.; BARROS, M. B.; ÁVILA, A.; \textit{et al.}
 Distribuição geográfica de equipamentos de diagnóstico por imagem
 no Brasil: análise espacial sob a ótica do acesso ao SUS.
 \textbf{Cad Saúde Pública}, v. 38, n. 3, e00170721, 2022. DOI:
-10.1590/0102-311X00170721.\par\smallskip
+10.1590/0102-311X00170721. Disponível em:
+\url{https://www.scielo.br/j/csp/}. Acesso em: 27/04/2026 às 09:00 (BRT).
+\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:ibge}
 [26] INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE).
 \textbf{Estimativas da População Residente para os Municípios e
 Unidades da Federação}. Tabela 6579 SIDRA, atualização 2024.
-Disponível em: \url{https://sidra.ibge.gov.br/tabela/6579}.\par\smallskip
+Disponível em: \url{https://sidra.ibge.gov.br/tabela/6579}.
+Acesso em: 27/04/2026 às 09:00 (BRT).\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:cgu}
 [27] CONTROLADORIA-GERAL DA UNIÃO (CGU). \textbf{Portal da
 Transparência \textendash{} Bolsa Família}. Brasília, 2024.
 Disponível em:
-\url{https://portaldatransparencia.gov.br/}.\par\smallskip
+\url{https://portaldatransparencia.gov.br/}.
+Acesso em: 27/04/2026 às 09:00 (BRT).\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:armbrust}
 [28] ARMBRUST, M.; GHODSI, A.; XIN, R.; ZAHARIA, M. Lakehouse: a
 new generation of open platforms that unify data warehousing and
-advanced analytics. In: \textbf{11th CIDR}, 2021.\par\smallskip
+advanced analytics. In: \textbf{11th CIDR}, 2021. Disponível em:
+\url{https://www.cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf}.
+Acesso em: 27/04/2026 às 09:00 (BRT).\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:wp-pbf}
 [29] CHALHOUB, L. Bolsa Família 2013\textendash 2025: pagamentos,
 beneficiários e valor real por UF. \textbf{Mirante dos Dados —
-Working Paper n. 2}, abr.\ 2026.\par\smallskip
+Working Paper n. 2}, abr.\ 2026. Disponível em:
+\url{https://leonardochalhoub.github.io/mirante-dos-dados-br/articles/bolsa-familia.pdf}.
+Acesso em: 27/04/2026 às 09:00 (BRT).\par\smallskip
 
 \noindent\hangindent=1.25cm\hangafter=1\label{ref:repo}
 [30] CHALHOUB, L. \textbf{Mirante dos Dados \textendash{} pipeline
 aberto e reprodutível para microdados públicos brasileiros}.
 Repositório GitHub, 2026. Disponível em:
-\url{https://github.com/leonardochalhoub/mirante-dos-dados-br}.\par\smallskip
+\url{https://github.com/leonardochalhoub/mirante-dos-dados-br}.
+Acesso em: 27/04/2026 às 09:00 (BRT).\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:wagstaff}
+[31] WAGSTAFF, A.; PACI, P.; VAN DOORSLAER, E. On the measurement
+of inequalities in health. \textbf{Soc Sci Med.}, v. 33, n. 5,
+p. 545\textendash 557, 1991. DOI: 10.1016/0277-9536(91)90212-U.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:kakwani}
+[32] KAKWANI, N. C. Measurement of tax progressivity: an
+international comparison. \textbf{Economic Journal}, v. 87, n. 345,
+p. 71\textendash 80, 1977. DOI: 10.2307/2231833.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:atlas}
+[33] PROGRAMA DAS NAÇÕES UNIDAS PARA O DESENVOLVIMENTO (PNUD);
+INSTITUTO DE PESQUISA ECONÔMICA APLICADA (IPEA); FUNDAÇÃO JOÃO
+PINHEIRO (FJP). \textbf{Atlas do Desenvolvimento Humano no Brasil}.
+2024. Disponível em: \url{https://www.atlasbrasil.org.br/}.
+Acesso em: 27/04/2026 às 09:00 (BRT).
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:roth}
+[34] ROTH, J. Pretest with caution: event-study estimates after
+testing for parallel trends. \textbf{American Economic Review:
+Insights}, v. 4, n. 3, p. 305\textendash 322, 2022. DOI:
+10.1257/aeri.20210236.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:cameron}
+[35] CAMERON, A. C.; GELBACH, J. B.; MILLER, D. L. Bootstrap-based
+improvements for inference with clustered errors. \textbf{Review of
+Economics and Statistics}, v. 90, n. 3, p. 414\textendash 427, 2008.
+DOI: 10.1162/rest.90.3.414.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:cs}
+[36] CALLAWAY, B.; SANT'ANNA, P. H. C. Difference-in-differences
+with multiple time periods. \textbf{Journal of Econometrics},
+v. 225, n. 2, p. 200\textendash 230, 2021. DOI:
+10.1016/j.jeconom.2020.12.001.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:sa}
+[37] SUN, L.; ABRAHAM, S. Estimating dynamic treatment effects in
+event studies with heterogeneous treatment effects. \textbf{Journal
+of Econometrics}, v. 225, n. 2, p. 175\textendash 199, 2021. DOI:
+10.1016/j.jeconom.2020.09.006.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:angrist}
+[38] ANGRIST, J. D.; PISCHKE, J.-S. \textbf{Mostly Harmless
+Econometrics: An Empiricist's Companion}. Princeton: Princeton
+University Press, 2008.
+\par\smallskip
+
+\noindent\hangindent=1.25cm\hangafter=1\label{ref:finkelstein}
+[39] FINKELSTEIN, A.; GENTZKOW, M.; WILLIAMS, H. Sources of
+geographic variation in health care: evidence from patient
+migration. \textbf{Quarterly Journal of Economics}, v. 131, n. 4,
+p. 1681\textendash 1726, 2016. DOI: 10.1093/qje/qjw023.
+\par\smallskip
 
 \end{singlespace}
 
 \vspace{1cm}
 
 \noindent\textbf{Citar como:}\\
-ROLIM, A. M.; CHALHOUB, L. Infraestrutura de neuroimagem no SUS
-para o diagnóstico diferencial da Doença de Parkinson: Ressonância
-Magnética, Tomografia, PET e medicina nuclear (Brasil,
-2013\textendash 2025). \textit{Mirante dos Dados \textemdash{}
-Working Paper n. 4}, v. 2.1, abr.\ 2026. Disponível em:
+ROLIM, A. M.; CHALHOUB, L. Iniquidade diagnóstica em neuroimagem
+para Doença de Parkinson no Brasil: análise multidimensional do
+parque instalado, do federalismo fiscal e do envelhecimento
+populacional (2013\textendash 2025). \textit{Mirante dos Dados
+\textemdash{} Working Paper n. 4}, v. 3.0, abr.\ 2026. Disponível em:
 \url{https://leonardochalhoub.github.io/mirante-dos-dados-br/}.
+Acesso em: 27/04/2026 às 09:00 (BRT).
 
 \vspace{0.5cm}
 

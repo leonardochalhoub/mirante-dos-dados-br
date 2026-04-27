@@ -18,10 +18,11 @@
 export const ATA_WP4_REUNIAO_1 = {
   meta: {
     reuniao: 1,
-    artigo: 'WP#4 v2.1 — Neuroimagem × Parkinson',
+    artigo: 'WP#4 v3.0 — Iniquidade diagnóstica em neuroimagem para Parkinson no Brasil',
     artigo_titulo_completo:
-      'Análise estatística da prevalência da Doença de Parkinson no Brasil — ' +
-      'desafios, tecnologias de neuroimagem e perspectivas de políticas públicas',
+      'Iniquidade diagnóstica em neuroimagem para Doença de Parkinson no Brasil: ' +
+      'análise multidimensional do parque instalado, do federalismo fiscal e do ' +
+      'envelhecimento populacional (2013–2025)',
     commit: '822d7a8',
     data: '2026-04-26',
     coautoria: 'Alexandre Maciel Rolim (clínico-epidemiológico) + Leonardo Chalhoub (engenharia de dados)',

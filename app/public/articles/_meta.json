@@ -1,37 +1,37 @@
 {
-  "manifest_built_at": "2026-04-27T01:53:56.602Z",
+  "manifest_built_at": "2026-04-27T03:06:39.347Z",
   "articles": {
     "bolsa-familia": {
-      "tex_last_edited": "2026-04-26T22:36:33-03:00",
-      "tex_last_sha": "e24c78f"
+      "tex_last_edited": "2026-04-26T22:54:25-03:00",
+      "tex_last_sha": "dda3e6e"
     },
     "compile-stamp": {
-      "tex_last_edited": null,
-      "tex_last_sha": null
+      "tex_last_edited": "2026-04-26T22:54:25-03:00",
+      "tex_last_sha": "dda3e6e"
     },
     "emendas-parlamentares": {
-      "tex_last_edited": "2026-04-26T22:36:33-03:00",
-      "tex_last_sha": "e24c78f"
+      "tex_last_edited": "2026-04-26T22:54:25-03:00",
+      "tex_last_sha": "dda3e6e"
     },
     "equipamentos-panorama-cnes": {
-      "tex_last_edited": "2026-04-26T22:36:33-03:00",
-      "tex_last_sha": "e24c78f"
+      "tex_last_edited": "2026-04-26T22:54:25-03:00",
+      "tex_last_sha": "dda3e6e"
     },
     "equipamentos-rm-parkinson": {
-      "tex_last_edited": "2026-04-26T22:36:33-03:00",
-      "tex_last_sha": "e24c78f"
+      "tex_last_edited": "2026-04-26T22:54:25-03:00",
+      "tex_last_sha": "dda3e6e"
     },
     "rais-fair-lakehouse": {
-      "tex_last_edited": "2026-04-26T22:36:33-03:00",
-      "tex_last_sha": "e24c78f"
+      "tex_last_edited": "2026-04-26T22:54:25-03:00",
+      "tex_last_sha": "dda3e6e"
     },
     "uropro-saude-publica-2008-2025": {
-      "tex_last_edited": "2026-04-26T22:36:33-03:00",
-      "tex_last_sha": "e24c78f"
+      "tex_last_edited": "2026-04-26T22:54:25-03:00",
+      "tex_last_sha": "dda3e6e"
     },
     "uropro-serie-2008-2025": {
-      "tex_last_edited": "2026-04-26T22:36:33-03:00",
-      "tex_last_sha": "e24c78f"
+      "tex_last_edited": "2026-04-26T22:54:25-03:00",
+      "tex_last_sha": "dda3e6e"
     }
   }
 }
