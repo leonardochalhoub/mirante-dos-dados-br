@@ -114,7 +114,29 @@ def _try_extract(zp: Path, year: int) -> tuple[bool, str]:
     - Evita colisão entre .7z de anos diferentes que produzem .txt de mesmo nome
       (comum no PDET 2019+: RAIS_VINC_PUB_BR.7z em /2009/, /2010/, etc, todos
       contendo um RAIS_VINC_PUB_BR.txt que se sobrescreveriam num dir flat).
+
+    Classifica como `bad_archive` (dispara auto-recovery via re-download FTP):
+    - Bad7zFile / Bad7zfileError: assinatura inválida
+    - LZMAError: dados internos LZMA corrompidos (magic ok mas blocos quebrados)
+    - CrcError: checksum interno do .7z não bate
+    - UnsupportedCompressionMethodError: método de compressão suportado mas dado inválido
+    - Mensagens com "corrupt", "not a 7z file", "checksum"
     """
+    BAD_ARCHIVE_TYPES = (
+        "Bad7zFile", "Bad7zfileError",
+        "LZMAError",
+        "CrcError",
+        "UnsupportedCompressionMethodError",
+        "DecompressionError",
+        "InternalError",
+    )
+    BAD_ARCHIVE_PHRASES = (
+        "not a 7z file",
+        "corrupt input",
+        "corrupt data",
+        "checksum",
+        "crc mismatch",
+    )
     target = Path(TXT_EXTRACTED) / f"ano={year}"
     target.mkdir(parents=True, exist_ok=True)
     try:
@@ -123,11 +145,16 @@ def _try_extract(zp: Path, year: int) -> tuple[bool, str]:
         return True, ""
     except Exception as e:
         kind = type(e).__name__
-        # py7zr.Bad7zFile é o canônico; outras libs podem retornar Bad7zfileError
-        if kind in ("Bad7zFile", "Bad7zfileError") or "not a 7z file" in str(e).lower():
-            print(f"    ✗ {kind}: {str(e)[:160]}")
+        msg  = str(e)
+        msg_low = msg.lower()
+        is_bad = (
+            kind in BAD_ARCHIVE_TYPES
+            or any(phrase in msg_low for phrase in BAD_ARCHIVE_PHRASES)
+        )
+        if is_bad:
+            print(f"    ✗ {kind}: {msg[:160]}  → classificado como bad_archive")
             return False, "bad_archive"
-        print(f"    ✗ {kind}: {str(e)[:200]}")
+        print(f"    ✗ {kind}: {msg[:200]}")
         return False, "other"
 
 
