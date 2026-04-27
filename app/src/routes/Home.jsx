@@ -243,17 +243,41 @@ function BigDataStrip({ stats }) {
       <div className="bigdata-pipelines">
         {orderedVerticals.map((k) => {
           const v = verticals[k];
+          const hasIntermediate =
+            (v.intermediate_bytes ?? 0) > 0 || (v.intermediate_files ?? 0) > 0;
+          const bronzePending =
+            (v.delta_bronze_bytes ?? 0) === 0 && (v.delta_bronze_rows ?? 0) === 0;
           return (
             <div key={k} className="bigdata-pipeline">
               <div className="bigdata-pipeline-head">
                 <span className="kicker">{verticalLabel[k] || k}</span>
               </div>
               <div className="bigdata-pipeline-row">
-                <Step label={v.raw_compressed_label} files={v.raw_compressed_files} bytes={v.raw_compressed_bytes} />
-                <Arrow />
-                <Step label={v.intermediate_label}    files={v.intermediate_files}   bytes={v.intermediate_bytes} />
-                <Arrow />
-                <Step label="Delta bronze"            bytes={v.delta_bronze_bytes}   rows={v.delta_bronze_rows} highlight />
+                <Step
+                  label={v.raw_compressed_label}
+                  files={v.raw_compressed_files}
+                  bytes={v.raw_compressed_bytes}
+                />
+                {hasIntermediate ? (
+                  <>
+                    <Arrow />
+                    <Step
+                      label={v.intermediate_label}
+                      files={v.intermediate_files}
+                      bytes={v.intermediate_bytes}
+                    />
+                    <Arrow />
+                  </>
+                ) : (
+                  <Arrow caption={`${v.intermediate_label} em memória`} sub="leitura direta" wide />
+                )}
+                <Step
+                  label="Delta bronze"
+                  bytes={v.delta_bronze_bytes}
+                  rows={v.delta_bronze_rows}
+                  pending={bronzePending}
+                  highlight
+                />
               </div>
             </div>
           );
@@ -263,7 +287,16 @@ function BigDataStrip({ stats }) {
   );
 }
 
-function Step({ label, files, bytes, rows, highlight }) {
+function Step({ label, files, bytes, rows, highlight, pending }) {
+  if (pending) {
+    return (
+      <div className={`bigdata-step is-pending${highlight ? ' is-highlight' : ''}`}>
+        <div className="bigdata-step-label">{label}</div>
+        <div className="bigdata-step-value bigdata-step-pending">pendente</div>
+        <div className="bigdata-step-sub">aguardando ingestão</div>
+      </div>
+    );
+  }
   return (
     <div className={`bigdata-step${highlight ? ' is-highlight' : ''}`}>
       <div className="bigdata-step-label">{label}</div>
@@ -276,6 +309,13 @@ function Step({ label, files, bytes, rows, highlight }) {
   );
 }
 
-function Arrow() {
-  return <span className="bigdata-arrow">→</span>;
+function Arrow({ caption, sub, wide }) {
+  if (!caption) return <span className="bigdata-arrow">→</span>;
+  return (
+    <span className={`bigdata-arrow bigdata-arrow-direct${wide ? ' is-wide' : ''}`}>
+      <span className="bigdata-arrow-caption">{caption}</span>
+      <span className="bigdata-arrow-glyph">→</span>
+      {sub && <span className="bigdata-arrow-sub">{sub}</span>}
+    </span>
+  );
 }

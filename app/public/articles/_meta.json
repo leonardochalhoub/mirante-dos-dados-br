@@ -1,9 +1,9 @@
 {
-  "manifest_built_at": "2026-04-27T12:53:08.151Z",
+  "manifest_built_at": "2026-04-27T12:59:07.993Z",
   "articles": {
     "bolsa-familia": {
-      "tex_last_edited": "2026-04-27T09:52:01-03:00",
-      "tex_last_sha": "44bebea"
+      "tex_last_edited": "2026-04-27T09:57:34-03:00",
+      "tex_last_sha": "ef5af64"
     },
     "compile-stamp": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",
