@@ -429,63 +429,79 @@ export const PARECER_WP5_UROPRO = {
 // ═══════════════════════════════════════════════════════════════════════
 // WP #6 — EQUIPAMENTOS PANORAMA CROSS-VERTICAL
 // Slug: equipamentos-panorama-cnes · Vertical: Equipamentos
-// Régua: LATO SENSU 9,3/10.
+// Régua: STRICTO SENSU MESTRADO — letra B.
+// Migrado de lato sensu 9,3 → stricto sensu B em 2026-04-27 para refletir
+// (a) Reunião #2 do Conselho (média 2,33, APROVADO COM AJUSTES) sobre v2,
+// (b) audit Finanças completa de WP#6 v3.0 (2026-04-27, score B 2,0) e
+// (c) incidente "fabricated results" v3.0 corrigido em commit 7ad8885.
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_WP6_EQUIPAMENTOS_PANORAMA = {
   slug:    'equipamentos-panorama-cnes',
   wp_num:  6,
   artigo_titulo: 'Panorama integrado: equipamentos de saúde como nó cross-vertical do Mirante dos Dados — análise do trio de neuroimagem (RM, CT, PET/CT) e seus cruzamentos com Bolsa Família, emendas parlamentares e acesso cirúrgico (2013–2025)',
   vertical: 'equipamentos',
-  nivel: 'lato_sensu',
-  scoreType: 'numeric',
-  scoreNumeric: 9.3,
-  scoreOriginal: null,
-  originalLabel: null,
+  nivel: 'stricto_sensu_mestrado',
+  scoreType: 'letter',
+  scoreLetra: 'B',
+  scoreOriginal: 9.3,
+  originalLabel: 'Avaliação anterior — régua lato sensu',
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T16:00 BRT`,
-  versao: '2.0 — agregador cross-vertical com fix dual-flag dedup',
+  ultimaAtualizacao: `${HOJE}T17:00 BRT`,
+  versao: '3.0 — pós Reunião #2 do Conselho + audit Finanças + correção fabricated results',
   resumoCalibragem:
-    'Avaliado como Lato sensu (Especialização/MBA), 9,3/10. Paper ' +
-    'agregador que sintetiza as quatro verticais não-equipamentos do ' +
-    'Mirante usando o trio de neuroimagem (RM, CT, PET/CT) como lente ' +
-    'focal cross-vertical. Documenta correlação ρ ≈ -0,68 entre cobertura ' +
-    'PBF e densidade de RM, replicação independente do paradoxo das ' +
-    'emendas (ρ ≈ -0,31 com emendas per capita), e correção metodológica ' +
-    'do double-count via dual-flag IND_SUS no CNES. PARA SUBIR a mestrado: ' +
-    'identificação causal sobre os cruzamentos (mesmas opções do WP#4 ' +
-    'sobre EC 86/100, MP 1.061).',
+    'Régua: STRICTO SENSU MESTRADO (mesma do WP#4). Score B (2,0 pts) — ' +
+    'no limiar de aprovação. Migração de "lato sensu 9,3/10" para "stricto ' +
+    'sensu B" reflete três sinais convergentes: (i) Reunião #2 do Conselho ' +
+    'do Mirante fechou em 26/04/2026 com média (B 2,0 + B+ 2,5 + B+ 2,5)/3 ' +
+    '= 2,33 — APROVADO COM AJUSTES sobre v2 (commit dda3e6e); (ii) audit ' +
+    'integral de Finanças sobre v3.0 em 27/04/2026 manteve B (multiple ' +
+    'testing sem Bonferroni, RF sem LOOCV, CAR nomeado incorretamente); ' +
+    '(iii) caça a inconsistências em 27/04/2026 listou 22 itens (5 críticas, ' +
+    '9 altas) cross-WP#4↔WP#6, incluindo K_RM divergente, métricas HMC ' +
+    'reportadas para modelo não-implementado e SUS share PET/CT contraditório. ' +
+    'O incidente "fabricated ML results" foi pego pelo autor e corrigido ' +
+    '(commit 7ad8885) — credibilidade preservada, mas o score reflete o ' +
+    'estado pós-correção. PARA SUBIR pra B+/A: corrigir as 22 inconsistências ' +
+    '+ implementar (não declarar) a identificação causal cross-vertical.',
   utilidadeSocial:
-    'EXTREMAMENTE ÚTIL como produto-síntese da plataforma Mirante. ' +
-    'Beneficiários: pesquisadores em política de saúde testando hipóteses ' +
-    'cross-fonte (renda × capital × acesso); gestores estaduais comparando ' +
-    'a posição relativa de seu estado em múltiplas dimensões simultaneamente; ' +
+    'EXTREMAMENTE ÚTIL como produto-síntese da plataforma. Beneficiários: ' +
+    'pesquisadores em política de saúde testando hipóteses cross-fonte ' +
+    '(renda × capital × acesso); gestores estaduais comparando a posição ' +
+    'relativa de seu estado em múltiplas dimensões simultaneamente; ' +
     'jornalismo de dados em saúde com narrativa cross-vertical pronta. A ' +
     'documentação transparente do fix dual-flag (dedup IND_SUS) é ' +
     'contribuição metodológica concreta — quem trabalhar com microdados ' +
     'CNES ganha ferramenta validada.',
   pontosFortes: [
-    'Paper agregador cross-vertical: integra Equipamentos × Bolsa Família × Emendas × UroPro sobre o mesmo arquitetura medalhão',
+    'Paper agregador cross-vertical: integra Equipamentos × Bolsa Família × Emendas × UroPro sobre arquitetura medalhão unificada',
     'Correlação ρ ≈ -0,68 entre cobertura PBF e densidade de RM — replicação independente do paradoxo regional',
     'Paradoxo das emendas: ρ ≈ -0,31 entre emendas per capita e capacidade diagnóstica — UFs que recebem mais emendas NÃO têm mais capital diagnóstico',
     'Correção metodológica documentada: fix dual-flag IND_SUS (dedup max(SUS,Priv)) corrigindo double-count que persistia silenciosamente',
-    '15 figuras vetoriais matplotlib em identidade visual editorial Mirante (Lato + Wong palette + golden ratio)',
+    'WHY duplo formalizado em v3.0 (substituiu prosa solta da v2)',
+    '15+ figuras vetoriais em identidade visual editorial Mirante (Lato + Wong palette + golden ratio)',
     'Lente focal "trio de neuroimagem" como dispositivo analítico cross-vertical reusável',
-    'Trabalho que SÓ é possível em arquitetura de dados unificada — justifica retroativamente o investimento em plataforma',
+    'Reunião #2 do Conselho APROVADO COM AJUSTES (média 2,33, acima do limiar 2,0)',
+    'Autor pegou e corrigiu o incidente fabricated results (commit 7ad8885) — sinal de auto-auditoria',
   ],
   problemasParaNotaPlena: [
-    'Cross-vertical é correlacional — sinais ρ não estabelecem causalidade',
-    'Sem teste de hipótese formal sobre os ρ — IC bootstrap ausente',
+    'Audit Finanças (27/04/2026): 22 inconsistências verificáveis cross-WP#4↔WP#6 — 5 críticas, 9 altas',
+    'Multiple testing sem correção Bonferroni/Holm sobre as 8 correlações Pearson',
+    'Random Forest declarado sem LOOCV reportado',
+    'CAR (Conditional Average Response) nomeado incorretamente — não corresponde à definição padrão',
+    'Cross-vertical é correlacional — sinais ρ não estabelecem causalidade (assumido limite mas não testado)',
   ],
   problemasParaSubirNivel: [
-    'Para mestrado: identificação causal sobre os 3 cruzamentos (mesmas opções do WP#4: EC 86, EC 100, MP 1.061)',
-    'Sem análise de equidade formal (Kakwani, necessidade) — implementadas no WP#4 v3.0 mas não aqui',
+    'B → B+: corrigir as 22 inconsistências apontadas no audit + Bonferroni sobre as 8 correlações + LOOCV no RF',
+    'B+ → A: identificação causal sobre os 3 cruzamentos (mesmas opções do WP#4: EC 86, EC 100, MP 1.061) IMPLEMENTADA — não apenas declarada',
+    'Estender Kakwani + necessidade do WP#4 para todas as 3 modalidades (RM, CT, PET/CT)',
     'Cruzamento intra-UF (capital × interior) ausente — só inter-UF',
   ],
   proximosPassos: [
-    'Implementar IC bootstrap sobre os 3 ρ cross-vertical (PBF, emendas, UroPro) — fortalece interpretação',
-    'Estender Kakwani + necessidade do WP#4 para todas as 3 modalidades (RM, CT, PET/CT)',
-    'IV cross-vertical: variação exógena PBF como instrumento p/ renda → testar mediação de capital diagnóstico',
-    'Submeter como paper de método (Methodology in Medical Research) ou Cad Saúde Pública',
+    'P1 (crítico): corrigir as 22 inconsistências cross-WP#4↔WP#6 listadas no audit Finanças de 27/04/2026',
+    'P2 (alto): implementar correção Bonferroni/Holm sobre as 8 correlações Pearson + IC bootstrap',
+    'P3 (alto): rodar RF de fato com LOOCV antes de reportar qualquer R² ou importância de variável',
+    'P4 (médio): renomear ou redefinir CAR conforme literatura padrão',
+    'P5 (médio): submeter como paper de método (Methodology in Medical Research) ou Cad Saúde Pública pós-P1–P3',
   ],
 };
 
@@ -578,7 +594,8 @@ export const PARECER_GLOBAL = {
     '(UroPro cross-vertical, lato 9,5), WP #4 (Neuroimagem × Parkinson, ' +
     'STRICTO SENSU MESTRADO B+ após rewrite v3.0 multidimensional), WP #5 ' +
     '(UroPro 17 anos, lato 9,2) e WP #6 (Equipamentos panorama ' +
-    'cross-vertical, lato 9,3). Conceito MACRO permanece B+ na régua ' +
+    'cross-vertical, STRICTO SENSU MESTRADO B após Reunião #2 do Conselho + ' +
+    'audit Finanças sobre v3.0). Conceito MACRO permanece B+ na régua ' +
     'mestrado: 6 WPs escritos, plataforma sólida, mas o teto A continua ' +
     'condicionado a peer review formal e a implementação (não só ' +
     'declaração) das salvaguardas de robustez declaradas no WP#4 v3.0.',
