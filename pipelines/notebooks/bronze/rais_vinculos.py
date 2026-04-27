@@ -43,11 +43,82 @@ print(f"zips_dir={ZIPS_DIR}  txt_extracted={TXT_EXTRACTED}  target={BRONZE_TABLE
 # COMMAND ----------
 
 import re
+import ftplib
+import time
 from pathlib import Path
 import py7zr
 
-extracted = 0; skipped = 0
+extracted = 0; skipped = 0; redownloaded = 0; quarantined = 0
 Path(TXT_EXTRACTED).mkdir(parents=True, exist_ok=True)
+
+# Quarentena: arquivos que continuam corrompidos mesmo após re-download
+# vão pra cá pra não bloquear próximas runs e pra investigação manual depois.
+QUARANTINE_DIR = Path(ZIPS_DIR) / "_bad"
+QUARANTINE_DIR.mkdir(exist_ok=True)
+
+# FTP de origem — deve bater com pipelines/notebooks/ingest/mte_rais.py
+FTP_HOST   = "ftp.mtps.gov.br"
+FTP_DIR    = "/pdet/microdados/RAIS"
+FTP_TIMEOUT = 600
+
+
+def _parse_year_from_local(name: str) -> int | None:
+    """Local filenames são `<orig_stem>_<YYYY>.7z` (sufixo adicionado pelo ingest)."""
+    m = re.search(r"_(\d{4})\.7z$", name, flags=re.I)
+    return int(m.group(1)) if m else None
+
+
+def _ftp_redownload(local_path: Path) -> bool:
+    """Re-baixa um .7z específico do FTP PDET, sobrescrevendo o local.
+    Retorna True se sucesso (size >= 1KB e bate com remote.size se conhecido)."""
+    year = _parse_year_from_local(local_path.name)
+    if year is None:
+        print(f"      ⚠ não consegui extrair ano de {local_path.name}; pulando re-download")
+        return False
+    orig = re.sub(r"_(\d{4})\.7z$", ".7z", local_path.name, flags=re.I)
+    tmp  = local_path.with_suffix(".7z.part")
+    tmp.unlink(missing_ok=True)
+    try:
+        ftp = ftplib.FTP(FTP_HOST, timeout=FTP_TIMEOUT)
+        ftp.login()
+        ftp.cwd(f"{FTP_DIR}/{year}/")
+        ftp.voidcmd("TYPE I")
+        try:
+            remote_size = ftp.size(orig) or 0
+        except Exception:
+            remote_size = 0
+        with tmp.open("wb") as f:
+            ftp.retrbinary(f"RETR {orig}", f.write)
+        try: ftp.quit()
+        except Exception: pass
+        got = tmp.stat().st_size
+        if got < 1024 or (remote_size and got < remote_size):
+            print(f"      ⚠ re-download incompleto ({got:,} / {remote_size:,} bytes)")
+            tmp.unlink(missing_ok=True)
+            return False
+        tmp.replace(local_path)
+        print(f"      ↻ re-baixado: {got:,} bytes (remote {remote_size:,})")
+        return True
+    except Exception as e:
+        tmp.unlink(missing_ok=True)
+        print(f"      ⚠ re-download falhou: {type(e).__name__}: {str(e)[:160]}")
+        return False
+
+
+def _try_extract(zp: Path) -> tuple[bool, str]:
+    """Retorna (ok, error_kind). error_kind ∈ {'', 'bad_archive', 'other'}."""
+    try:
+        with py7zr.SevenZipFile(zp, mode='r') as z:
+            z.extractall(path=TXT_EXTRACTED)
+        return True, ""
+    except Exception as e:
+        kind = type(e).__name__
+        # py7zr.Bad7zFile é o canônico; outras libs podem retornar Bad7zfileError
+        if kind in ("Bad7zFile", "Bad7zfileError") or "not a 7z file" in str(e).lower():
+            print(f"    ✗ {kind}: {str(e)[:160]}")
+            return False, "bad_archive"
+        print(f"    ✗ {kind}: {str(e)[:200]}")
+        return False, "other"
 
 # DIAGNÓSTICO: o que está no volume antes da extração
 print(f"\n=== DIAGNÓSTICO DOS VOLUMES ===")
@@ -94,19 +165,57 @@ if not zips:
     dbutils.notebook.exit("SKIPPED: no .7z files to extract")
 
 for zp in zips:
-    # Marcador por arquivo: <stem>.done — se existe, pulamos
-    marker = Path(TXT_EXTRACTED) / f"_{zp.stem}.done"
-    if marker.exists() and not FORCE_RECONVERT:
+    # Marcador `.done` = extraído com sucesso. Marcador `.bad` = quarentena prévia
+    # (não tenta de novo até force_reconvert=true, pra não loopar em fonte ruim).
+    marker_ok  = Path(TXT_EXTRACTED) / f"_{zp.stem}.done"
+    marker_bad = Path(TXT_EXTRACTED) / f"_{zp.stem}.bad"
+    if marker_ok.exists() and not FORCE_RECONVERT:
         skipped += 1; continue
+    if marker_bad.exists() and not FORCE_RECONVERT:
+        print(f"  ⊘ {zp.name} já em quarentena (.bad marker); use force_reconvert=true pra retentar")
+        quarantined += 1; continue
+
     print(f"  extraindo {zp.name} ({zp.stat().st_size:,} bytes)...")
-    try:
-        with py7zr.SevenZipFile(zp, mode='r') as z:
-            z.extractall(path=TXT_EXTRACTED)
-        marker.write_text("ok")
-        extracted += 1
+    ok, err = _try_extract(zp)
+    if ok:
+        marker_ok.write_text("ok"); extracted += 1
         print(f"    ✓ ok")
+        continue
+
+    # Bad7zFile → deleta, re-baixa, tenta uma vez. Outros erros: não tenta re-download.
+    if err != "bad_archive":
+        continue
+
+    print(f"    → arquivo corrompido; deletando e re-baixando do FTP {FTP_HOST}…")
+    try:
+        zp.unlink()
     except Exception as e:
-        print(f"    ✗ {type(e).__name__}: {str(e)[:200]}")
+        print(f"      ⚠ falha ao deletar: {type(e).__name__}: {e}")
+        continue
+
+    if not _ftp_redownload(zp):
+        # Não conseguimos re-baixar — registra como bad e segue
+        marker_bad.write_text(f"redownload_failed at {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+        quarantined += 1
+        continue
+
+    redownloaded += 1
+    print(f"    re-tentando extração após re-download…")
+    ok, err = _try_extract(zp)
+    if ok:
+        marker_ok.write_text("ok"); extracted += 1
+        print(f"    ✓ ok (após re-download)")
+        continue
+
+    # Ainda ruim depois do re-download → quarentena (fonte do PDET deve estar mesmo corrompida)
+    bad_dest = QUARANTINE_DIR / zp.name
+    try:
+        zp.replace(bad_dest)
+        print(f"    ⚠ quarentena → {bad_dest}")
+    except Exception as e:
+        print(f"      ⚠ falha ao mover pra quarentena: {type(e).__name__}: {e}")
+    marker_bad.write_text(f"bad_after_redownload at {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+    quarantined += 1
 
 # Lista TODAS extensões pós-extração — alguns .7z contém .csv, .TXT, .dat, etc.
 all_after = sorted(Path(TXT_EXTRACTED).iterdir())
@@ -115,7 +224,8 @@ for f in all_after:
     if f.is_file():
         by_ext.setdefault(f.suffix.lower(), 0)
         by_ext[f.suffix.lower()] += 1
-print(f"\nApós extração ({extracted} novos, {skipped} skipped):")
+print(f"\nApós extração ({extracted} novos, {skipped} skipped, "
+      f"{redownloaded} re-baixados, {quarantined} em quarentena):")
 for ext, n in sorted(by_ext.items(), key=lambda kv: -kv[1]):
     print(f"  {ext or '(no ext)':15s}: {n} arquivos")
 
