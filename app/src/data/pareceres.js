@@ -521,12 +521,12 @@ export const PARECER_WP_RAIS = {
   vertical: 'rais',
   nivel: 'lato_sensu',
   scoreType: 'numeric',
-  scoreNumeric: 6.8,
+  scoreNumeric: 7.0,
   scoreOriginal: 8.0,
   originalLabel: 'Monografia UFRJ MBA, 2023 — régua lato sensu, avaliação IA',
   originalUrl: 'https://github.com/leonardochalhoub/CodingMBA_UFRJ/blob/main/Monografia_LeonardoChalhoub.pdf',
-  ultimaAtualizacao: `${HOJE}T18:45 BRT`,
-  versao: '0.4 — pipeline scaffold + contexto histórico (banca reprovou; sem nota atribuída)',
+  ultimaAtualizacao: `${HOJE}T20:10 BRT`,
+  versao: '0.5 — bronze ingest robusto: detecta Bad7zFile + re-download FTP + quarentena (banca reprovou; sem nota atribuída)',
   resumoCalibragem:
     'CONTEXTO HISTÓRICO: o autor foi REPROVADO pela banca da UFRJ ' +
     '(MBA Engenharia de Dados, set/2023). A banca não atribuiu nota ' +
@@ -548,9 +548,10 @@ export const PARECER_WP_RAIS = {
     'Bronze STRING-ONLY (regra de plataforma — nenhuma inferência de tipo em bronze, casts apenas em silver+)',
     'Spec doc explícito (docs/vertical-rais-fair-lakehouse-spec.md) documenta parecer crítico da monografia + roadmap',
     'Defensive guards em todas camadas downstream (skip on missing upstream) — evita cascade failures',
+    'Bronze auto-recovery: detecta .7z corrompido (Bad7zFile), deleta + re-baixa do FTP PDET, quarenta após 1 retry — não trava por single bad file',
   ],
   problemasParaNotaPlena: [
-    'Pipeline NUNCA RODOU — sem dados, qualquer "extensão" é apenas promessa em prosa',
+    'Pipeline em execução pela primeira vez 2026-04-27 — alguns arquivos PDET estão chegando corrompidos (ex.: BR_2009..2013 a 237KB), auto-recovery acionado',
     'Ingest PDET acabou de ser corrigido (FTP, não HTTPS) mas ainda não testado em produção',
     'Artigo (.tex) é literalmente um esqueleto: 6 das 6 seções marcadas "[A ser escrito]"',
   ],
