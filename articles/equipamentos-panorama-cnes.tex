@@ -13,7 +13,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[brazilian]{babel}
-\usepackage{lmodern}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[section]{placeins}    % auto-FloatBarrier no início de cada \section
 \usepackage{amsmath}
 \usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 \usepackage{setspace}
@@ -43,6 +45,7 @@
                      position=above,justification=centering,font=small}
 \captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
                       position=below,justification=centering,font=small}
+\captionsetup{skip=6pt}    % respiro fig/tab → caption (padrão Lancet/Cad SP)
 
 \newcommand{\rs}{R\$\,}
 
@@ -600,7 +603,7 @@ parque cadastrado por categoria TIPEQUIP em 2025.
 interesse clínico, onde estão CT, RM, Ultrassom \textemdash{} é
 apenas a quarta, com 200 mil unidades (6\,\%).
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig01-by-category}
 \caption{Distribuição do parque nacional cadastrado por categoria
@@ -625,7 +628,7 @@ e alta replicabilidade} (insumos clínicos, mobiliário hospitalar,
 infraestrutura predial) e \textbf{não} pelos equipamentos de
 diagnóstico por imagem que costumam dominar o imaginário público.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.82\linewidth]{fig02-top25}
 \caption{Top 25 equipamentos individuais por unidades cadastradas,
@@ -650,7 +653,7 @@ Magnética} (12) em décimo (3,9 mil) e \textbf{PET/CT} (18) é o
 equipamento mais raro da categoria, com apenas 166 unidades \emph{em
 todo o Brasil} \emph{em 2025}.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.82\linewidth]{fig03-imagem-breakdown}
 \caption{Composição interna da categoria TIPEQUIP=1 (Diagnóstico
@@ -674,7 +677,7 @@ fora da Atenção Básica. Diagnóstico por Imagem é equilibrado
 (46\,\% SUS), em linha com o histórico de parcerias público-privadas
 em radiologia diagnóstica.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig04-sus-share-by-category}
 \caption{Composição SUS \textit{vs.} Privado das unidades
@@ -729,7 +732,7 @@ modalidades, em escala logarítmica para acomodar a diferença de
 ordem de grandeza entre PET/CT e os outros dois. Três padrões
 emergem.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig05-neuro-trio-evolution}
 \caption{Evolução nacional do trio de neuroimagem, Brasil
@@ -780,7 +783,7 @@ dessa mediana, o que coloca o Brasil agregado em
 \,$\sim$\,38/Mhab, posicionado à \textit{direita} (acima) da
 distribuição OECD.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{fig06-neuro-ct-uf}
 \caption{Densidade de Tomografia Computadorizada (\textit{equipment\_key}
@@ -815,7 +818,7 @@ inferior é mais severa: Acre opera com 5,7 RM/Mhab, abaixo da
 mediana OECD de 17/Mhab e abaixo de qualquer outra UF brasileira.
 A razão DF\,/\,AC chega a 8$\times$.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{fig07-neuro-rm-uf}
 \caption{Densidade de Ressonância Magnética (\textit{equipment\_key}
@@ -846,7 +849,7 @@ cadastrados \textemdash{} um grupo populacional total acima de
 20 milhões de pessoas sem acesso a essa tecnologia em seu próprio
 estado.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{fig08-pet-uf}
 \caption{Número absoluto de PET/CT cadastrados por UF, Brasil 2025.
@@ -872,7 +875,7 @@ As Figuras~\ref{fig:choro-ct} e~\ref{fig:choro-rm} apresentam os
 \textit{choropleths} nacionais de CT e RM por UF, respectivamente,
 permitindo leitura geográfica imediata da distribuição.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.72\linewidth]{fig09-choropleth-ct}
 \caption{\textit{Choropleth} \textendash{} densidade de Tomografia
@@ -883,7 +886,7 @@ Cividis (perceptualmente uniforme); valores em CT por milhão de
 habitantes.}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.72\linewidth]{fig10-choropleth-rm}
 \caption{\textit{Choropleth} \textendash{} densidade de Ressonância
@@ -910,7 +913,7 @@ densidades de RM e CT por UF a cada ano, no período 2013\textendash 2025.
 Maior CV indica maior dispersão entre UFs (mais desigualdade);
 CV menor indica convergência.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig11-cv-evolution-neuro}
 \caption{Coeficiente de variação (CV) da densidade de
@@ -940,7 +943,7 @@ concentração de PET/CT em centros oncológicos especializados, com
 proporção maior de oferta privada e parcerias com fundações
 filantrópicas.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig12-sus-share-neuro}
 \caption{Composição SUS \textit{vs.} Privado para o trio de
@@ -966,7 +969,7 @@ por milhão de habitantes contra cobertura PBF (\%~da população em
 PBF) por UF em 2025. A correlação de Pearson é
 $\rho \approx -0{,}68$ \textemdash{} forte e negativa.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig13-scatter-rm-pbf}
 \caption{Densidade de Ressonância Magnética \textit{vs.}\ cobertura
@@ -995,7 +998,7 @@ contra densidade de RM, Brasil 2025. A correlação observada é
 $\rho \approx -0{,}31$ \textemdash{} negativa, embora menos
 intensa que a relação com PBF.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig14-scatter-rm-emendas}
 \caption{Densidade de Ressonância Magnética \textit{vs.}\ emendas
@@ -1031,7 +1034,7 @@ uroginecológica via vaginal (AIH por 100\,mil habitantes) por UF
 em 2025. A correlação é $\rho \approx +0{,}60$ \textemdash{}
 forte e positiva.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig15-scatter-imagem-uropro}
 \caption{Densidade agregada de equipamentos de imagem

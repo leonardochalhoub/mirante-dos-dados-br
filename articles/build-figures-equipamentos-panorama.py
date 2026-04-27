@@ -20,6 +20,13 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+
+# SciencePlots: estilo Nature/Lancet aplicado ANTES dos rcParams customizados.
+try:
+    import scienceplots  # noqa: F401
+    plt.style.use(["science", "no-latex"])
+except ImportError:
+    pass
 import numpy as np
 from matplotlib.patches import Polygon as MplPolygon
 

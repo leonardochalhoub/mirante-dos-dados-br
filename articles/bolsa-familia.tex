@@ -11,7 +11,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[brazilian]{babel}
-\usepackage{lmodern}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[section]{placeins}    % auto-FloatBarrier no início de cada \section
 \usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 \usepackage{setspace}
 \usepackage{indentfirst}
@@ -40,6 +42,7 @@
                      position=above,justification=centering,font=small}
 \captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
                       position=below,justification=centering,font=small}
+\captionsetup{skip=6pt}    % respiro fig/tab → caption (padrão Lancet/Cad SP)
 
 \newcommand{\rs}{R\$\,}
 
@@ -267,9 +270,9 @@ restritas; (iv) integração com o Cadastro Único modernizado.
 
 A Figura \ref{fig:timeline} sintetiza os marcos discutidos.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig01-timeline-pbf}
+\includegraphics[width=0.92\linewidth]{fig01-timeline-pbf}
 \caption{Linha do tempo institucional do Bolsa Família, Auxílio Brasil e Novo Bolsa Família (2003\textendash 2025)}
 \label{fig:timeline}
 \par\noindent{\small Fonte: elaboração própria com base em Lei 10.836/2004, MP 1.061/2021, Lei 14.284/2021, Lei 14.601/2023.}
@@ -372,9 +375,9 @@ o segundo salto entre 2022 e 2023 (Novo Bolsa Família).
 A Figura \ref{fig:evolution} apresenta visualmente os mesmos dados
 em eixo duplo, destacando os dois saltos.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig02-evolution-dual}
+\includegraphics[width=0.92\linewidth]{fig02-evolution-dual}
 \caption{Evolução do valor pago anual (R\$ bi, 2021) e do número de beneficiários (milhões), 2013\textendash 2025}
 \label{fig:evolution}
 \par\noindent{\small Fonte: elaboração própria, microdados CGU.}
@@ -388,9 +391,9 @@ pago por beneficiário em valores reais. O patamar histórico de
 a partir de 2023, em virtude da elevação do piso do benefício e da
 restruturação dos adicionais por composição familiar.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig03-per-benef}
+\includegraphics[width=0.92\linewidth]{fig03-per-benef}
 \caption{Valor anual pago por beneficiário (R\$ 2021), 2013\textendash 2025}
 \label{fig:per-benef}
 \par\noindent{\small Fonte: elaboração própria. Áreas sombreadas indicam os três regimes institucionais.}
@@ -401,9 +404,9 @@ per beneficiário. As variações de magnitude superior a 30\,\% em
 2022 (+36\,\%) e 2023 (+102\,\%) confirmam que se trata de
 transformação institucional, não de simples atualização monetária.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig12-yoy-growth}
+\includegraphics[width=0.92\linewidth]{fig12-yoy-growth}
 \caption{Variação ano-a-ano (\%) do valor pago por beneficiário, 2014\textendash 2025}
 \label{fig:yoy}
 \par\noindent{\small Fonte: elaboração própria.}
@@ -420,7 +423,7 @@ penetração (\%\,da população beneficiária). O padrão é nítido: o
 intermediário; o \textbf{Sul} apresenta os menores indicadores em
 todas as métricas (R\$\,283/hab, 5{,}3\,\% de penetração).
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\linewidth]{fig04-regional}
 \caption{Bolsa Família por região: per capita, valor absoluto e penetração (2025)}
@@ -459,7 +462,7 @@ contudo, o ranking per capita (próxima subseção) inverte a ordem.
 \label{tab:topabs-pbf}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{fig05-top10-abs}
 \caption{Top-10 UFs em valor pago acumulado no PBF/AB/NBF (R\$ bi, 2021), 2013\textendash 2025}
@@ -506,7 +509,7 @@ muito mais moderado do que o observado para emendas parlamentares
 \label{tab:percapita-pbf}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{fig06-choropleth-percapita}
 \caption{Mapa coroplético — Bolsa Família per capita por UF (R\$/hab, 2021), 2025}
@@ -514,7 +517,7 @@ muito mais moderado do que o observado para emendas parlamentares
 \par\noindent{\small Fonte: elaboração própria, GeoJSON IBGE + microdados CGU.}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{fig07-choropleth-absoluto}
 \caption{Mapa coroplético — Bolsa Família valor pago por UF (\rs bi, 2021), 2025}
@@ -522,7 +525,7 @@ muito mais moderado do que o observado para emendas parlamentares
 \par\noindent{\small Fonte: elaboração própria. SP, MG, BA dominam em valores absolutos; o Nordeste domina em per capita.}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{fig08-heatmap}
 \caption{Heatmap UF $\times$ Ano — Bolsa Família per capita (R\$/hab, 2021), 2018\textendash 2025}
@@ -530,7 +533,7 @@ muito mais moderado do que o observado para emendas parlamentares
 \par\noindent{\small Fonte: elaboração própria. UFs ordenadas em ordem decrescente do per capita 2025.}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\linewidth]{fig09-per-capita-ranking}
 \caption{Ranking horizontal: Bolsa Família per capita por UF, 2025}
@@ -545,9 +548,9 @@ A Figura \ref{fig:pen} apresenta a relação entre penetração
 positiva é evidente: UFs com maior parcela da população atendida pelo
 programa também recebem mais por habitante.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig10-penetracao}
+\includegraphics[width=0.92\linewidth]{fig10-penetracao}
 \caption{Penetração ($\%$ da população beneficiária) vs per capita 2025 por UF}
 \label{fig:pen}
 \par\noindent{\small Fonte: elaboração própria.}
@@ -560,9 +563,9 @@ A Figura \ref{fig:cv} sobrepõe o CV per capita do PBF e o do
 programa de emendas parlamentares federais (Working Paper n.\,1).
 A diferença é sistemática e qualitativamente relevante.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig11-cv-comparison}
+\includegraphics[width=0.92\linewidth]{fig11-cv-comparison}
 \caption{Coeficiente de variação per capita por UF — Bolsa Família vs Emendas Parlamentares, 2013\textendash 2025}
 \label{fig:cv}
 \par\noindent{\small Fonte: elaboração própria, microdados CGU + IBGE.}

@@ -19,7 +19,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[brazilian]{babel}
-\usepackage{lmodern}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[section]{placeins}    % auto-FloatBarrier no início de cada \section
 \usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 \usepackage{setspace}
 \usepackage{indentfirst}
@@ -49,6 +51,7 @@
                      position=above,justification=centering,font=small}
 \captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
                       position=below,justification=centering,font=small}
+\captionsetup{skip=6pt}    % respiro fig/tab → caption (padrão Lancet/Cad SP)
 
 \newcommand{\rs}{R\$\,}
 
@@ -296,9 +299,9 @@ de renda (proxy de pobreza estrutural).
 A linha do tempo do contexto técnico-clínico-político analisado é
 sintetizada na Figura\,\ref{fig:timeline}.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig01-timeline-pd}
+\includegraphics[width=0.92\linewidth]{fig01-timeline-pd}
 \caption{Linha do tempo — desenvolvimento de neuroimagem para DP e
 expansão da infraestrutura no Brasil}
 \label{fig:timeline}
@@ -714,7 +717,7 @@ na Figura\,\ref{fig:architecture}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\linewidth]{fig02-architecture}
+\includegraphics[width=0.92\linewidth]{fig02-architecture}
 \caption{Pipeline medallion (bronze\,/\,silver\,/\,gold) usado para
 materializar o painel CNES de equipamentos para diagnóstico
 diferencial de DP}
@@ -832,9 +835,9 @@ seguiram trajetórias mais suaves: RM 1.654$\rightarrow$3.900
 (+135\,\%), CT 3.581$\rightarrow$8.000 (+123\,\%), PET/CT
 0$\rightarrow$166 (zero a setor incipiente).
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig03-evolution-modalities}
+\includegraphics[width=0.92\linewidth]{fig03-evolution-modalities}
 \caption{Evolução nacional 2013\textendash 2025 \textendash{} 4
 modalidades de neuroimagem-DP}
 \label{fig:evolution-mod}
@@ -850,9 +853,9 @@ brasileira de RM cruzou a mediana OCDE em 2024 (17,2/Mhab) e
 manteve-se acima em 2025 (18,3/Mhab) — alinhada com o resultado
 agregado da Tabela\,\ref{tab:internacional}.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig04-density-oecd}
+\includegraphics[width=0.92\linewidth]{fig04-density-oecd}
 \caption{Densidade per capita (Brasil 2013\textendash 2025) vs.\
 medianas OCDE 2021}
 \label{fig:density-oecd}
@@ -875,7 +878,7 @@ gradiente é incompatível com qualquer pretensão de equidade no
 acesso à modalidade considerada padrão-ouro para diagnóstico
 diferencial de DP.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{fig05-choropleth-rm}
 \caption{Densidade de Ressonância Magnética por UF
@@ -898,7 +901,7 @@ densidade nacional combinada \textemdash{} configurando um déficit
 estrutural de capacidade diagnóstica para uma condição
 neurodegenerativa cuja prevalência cresce em todas as regiões.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{fig06-choropleth-pd-stack}
 \caption{Densidade combinada de neuroimagem-DP (RM + CT + PET/CT +
@@ -929,7 +932,7 @@ A Figura\,\ref{fig:sus-share} apresenta a composição SUS vs.\ Privado
 por modalidade, talvez o achado mais politicamente relevante deste
 trabalho.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\linewidth]{fig07-sus-share-modality}
 \caption{Composição SUS vs.\ Privado por modalidade \textendash{}
@@ -968,7 +971,7 @@ intermediário inclui Mato Grosso, Tocantins, Rio Grande do Sul,
 Santa Catarina, Paraná, Mato Grosso do Sul e São Paulo (todos
 19,4\textendash 24,1/Mhab).
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{fig08-top-uf-rm}
 \caption{Brasil 2025 \textendash{} Ressonância Magnética
@@ -997,7 +1000,7 @@ do efeito DF, NÃO porque é a região de maior renda. Sudeste fica
 em terceiro entre as cinco regiões — sua liderança em valor absoluto
 (1.814 RMs) é diluída pela população mais elevada.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{fig09-region-rm}
 \caption{Densidade regional de RM por milhão de habitantes
@@ -1019,9 +1022,9 @@ sugere que a expansão acelerada da rede de RM (de 8,2 para
 UFs anteriormente subdotadas, reduzindo o gradiente entre líderes e
 retardatários.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig10-cv-time}
+\includegraphics[width=0.92\linewidth]{fig10-cv-time}
 \caption{Coeficiente de variação inter-UF ao longo do tempo (CV per
 capita) \textendash{} 4 modalidades de neuroimagem-DP}
 \label{fig:cv}
@@ -1045,7 +1048,7 @@ Nordeste e Norte (CE, RN, AM, RR, AC) tiveram crescimento
 relativo abaixo de 7,3/Mhab no período, sustentando o gradiente
 residual.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{fig11-growth-rm}
 \caption{Crescimento de RM/Mhab por UF \textendash{} 2013 (cinza)
@@ -1063,9 +1066,9 @@ simplificação baseada em ELSI-Brazil ajustada à proporção 50+) com
 a densidade combinada de neuroimagem-DP por milhão de habitantes
 (\texttt{RM + CT + PET/CT + Gama Câmara}).
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig12-pd-burden-vs-neuroimaging}
+\includegraphics[width=0.92\linewidth]{fig12-pd-burden-vs-neuroimaging}
 \caption{Casos estimados de DP por UF vs.\ densidade combinada de
 neuroimagem-DP \textendash{} Brasil 2025}
 \label{fig:burden}
@@ -1092,9 +1095,9 @@ trabalho separado do projeto Mirante na vertical Bolsa
 Família\,[\ref{ref:wp-pbf}]); eixo $y$ = densidade combinada de
 neuroimagem-DP em 2025.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig13-pbf-correlation}
+\includegraphics[width=0.92\linewidth]{fig13-pbf-correlation}
 \caption{Cross-vertical \textendash{} dependência de PBF (proxy de
 pobreza) vs.\ densidade de neuroimagem-DP por UF, Brasil}
 \label{fig:pbf}
@@ -1209,7 +1212,7 @@ $-1{,}98$ RM/Mhab (IC 95\,\%: $-4{,}44$ a $+0{,}48$; $p = 0{,}114$,
 clusterizado por UF). Não-significativo a 5\,\%, mas sinal
 consistente com Modelo 1: \textbf{leve efeito negativo} ou nulo.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\linewidth]{fig14-did-ec86}
 \caption{Diferenças-em-Diferenças 2$\times$2 — efeito da EC 86/2015

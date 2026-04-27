@@ -1,0 +1,23 @@
+# Provenance des figures geradas neste diretório
+# Gerado automaticamente — não edite à mão. Atualizar via re-rodar o build script.
+
+generated_at:    2026-04-27T01:34:38Z
+generated_at_utc: 2026-04-27T01:34:38Z
+script:          articles/build-figures-pbf.py
+script_commit:   accf08f
+gold_source:     data/gold/gold_pbf_estados_df.json
+gold_sha256:     a5b92203986f46b366413926cef8f15c16d5fcd31fa4582f358125c0d8d8dcf4
+
+# Figuras versionadas neste diretório:
+#   - fig01-timeline-pbf.pdf
+#   - fig02-evolution-dual.pdf
+#   - fig03-per-benef.pdf
+#   - fig04-regional.pdf
+#   - fig05-top10-abs.pdf
+#   - fig06-choropleth-percapita.pdf
+#   - fig07-choropleth-absoluto.pdf
+#   - fig08-heatmap.pdf
+#   - fig09-per-capita-ranking.pdf
+#   - fig10-penetracao.pdf
+#   - fig11-cv-comparison.pdf
+#   - fig12-yoy-growth.pdf

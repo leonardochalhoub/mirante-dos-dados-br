@@ -11,7 +11,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[brazilian]{babel}
-\usepackage{lmodern}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[section]{placeins}    % auto-FloatBarrier no início de cada \section
 \usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 \usepackage{setspace}
 \usepackage{indentfirst}
@@ -41,6 +43,7 @@
                      position=above,justification=centering,font=small}
 \captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
                       position=below,justification=centering,font=small}
+\captionsetup{skip=6pt}    % respiro fig/tab → caption (padrão Lancet/Cad SP)
 
 \newcommand{\rs}{R\$\,}
 
@@ -256,9 +259,9 @@ parcial} (2015\textendash 2019) e o \textbf{impositivo expandido}
 (2019\textendash atual). A Figura \ref{fig:timeline} sintetiza esses
 marcos.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig01-timeline}
+\includegraphics[width=0.92\linewidth]{fig01-timeline}
 \caption{Linha do tempo institucional das emendas parlamentares federais (1988\textendash 2026)}
 \label{fig:timeline}
 \par\noindent{\small Fonte: elaboração própria.}
@@ -316,7 +319,7 @@ A Figura \ref{fig:arquitetura} apresenta o esquema completo.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\linewidth]{fig02-architecture}
+\includegraphics[width=0.92\linewidth]{fig02-architecture}
 \caption{Arquitetura medallion adotada no pipeline de dados}
 \label{fig:arquitetura}
 \par\noindent{\small Fonte: elaboração própria, baseada em Armbrust et al.\ (2021).}
@@ -377,9 +380,9 @@ A Tabela \ref{tab:evolucao} apresenta a série temporal completa.
 A Figura \ref{fig:evolucao} apresenta visualmente os dados da
 Tabela \ref{tab:evolucao}.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig03-evolution}
+\includegraphics[width=0.92\linewidth]{fig03-evolution}
 \caption{Evolução do empenhado e pago em emendas parlamentares federais (R\$ bi, 2021), 2015\textendash 2025}
 \label{fig:evolucao}
 \par\noindent{\small Fonte: elaboração própria, microdados CGU.}
@@ -389,9 +392,9 @@ A Figura \ref{fig:exec} mostra a evolução da taxa de execução em
 formato de série temporal: o salto de menos de 1\,\% (2015) para
 74\,\% (2025) é evidente.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig04-exec-rate}
+\includegraphics[width=0.92\linewidth]{fig04-exec-rate}
 \caption{Taxa de execução das emendas (pago/empenhado), 2015\textendash 2025}
 \label{fig:exec}
 \par\noindent{\small Fonte: elaboração própria.}
@@ -429,9 +432,9 @@ predominante de que o RP9 seria fenômeno apenas do triênio
 \label{tab:composicao}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig05-composition}
+\includegraphics[width=0.92\linewidth]{fig05-composition}
 \caption{Composição percentual do valor pago por modalidade RP, 2015\textendash 2025}
 \label{fig:composicao}
 \par\noindent{\small Fonte: elaboração própria.}
@@ -465,7 +468,7 @@ A Tabela \ref{tab:topabs} e a Figura \ref{fig:topabs} apresentam as
 \label{tab:topabs}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{fig06-top10-abs}
 \caption{Top-10 UFs em valor pago acumulado (R\$ bi, 2021), 2015\textendash 2025}
@@ -479,7 +482,7 @@ maiores unidades federativas e contrasta com a representação per
 capita das figuras subsequentes, na qual a hierarquia se inverte
 radicalmente.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{fig13-choropleth-absolute}
 \caption{Mapa coroplético — valor pago acumulado em emendas por UF (R\$ bi, 2021), 2015\textendash 2025}
@@ -496,7 +499,7 @@ de aproximadamente 30:1. As Figuras \ref{fig:choropleth},
 \ref{fig:choro-cmp} e \ref{fig:heatmap} apresentam visualizações
 geográficas complementares dessa desigualdade.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{fig07-choropleth}
 \caption{Mapa coroplético do Brasil — per capita por UF (R\$/hab, 2021), 2025}
@@ -504,7 +507,7 @@ geográficas complementares dessa desigualdade.
 \par\noindent{\small Fonte: elaboração própria, GeoJSON IBGE + microdados CGU.}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\linewidth]{fig08-choropleth-compare}
 \caption{Comparação cartogramada — per capita por UF, 2018 vs 2025}
@@ -512,7 +515,7 @@ geográficas complementares dessa desigualdade.
 \par\noindent{\small Fonte: elaboração própria. Escala de cores compartilhada.}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{fig09-heatmap}
 \caption{Heatmap UF $\times$ Ano — per capita (R\$/hab, 2021), 2018\textendash 2025}
@@ -549,7 +552,7 @@ geográficas complementares dessa desigualdade.
 \label{tab:percapita}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\linewidth]{fig10-per-capita-ranking}
 \caption{Ranking horizontal: per capita por UF, 2025}
@@ -595,9 +598,9 @@ A Figura \ref{fig:cv} sobrepõe as duas séries para comparação direta.
 \label{tab:cv}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig11-cv}
+\includegraphics[width=0.92\linewidth]{fig11-cv}
 \caption{Coeficiente de variação anual da distribuição per capita por UF — Emendas vs Bolsa Família, 2016\textendash 2025}
 \label{fig:cv}
 \par\noindent{\small Fonte: elaboração própria, microdados CGU + IBGE para emendas; microdados CGU/Portal da Transparência para Bolsa Família, consolidados na vertical companheira do projeto Mirante dos Dados.}
@@ -613,9 +616,9 @@ diferença de magnitude reflete a sobreposição entre desenho político
 (emendas) e critério socioeconômico (Bolsa Família, focalizado pela
 linha de pobreza).
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig12-bubble}
+\includegraphics[width=0.92\linewidth]{fig12-bubble}
 \caption{Diagrama de bolhas: população (log) $\times$ per capita 2025 $\times$ valor absoluto acumulado}
 \label{fig:bubble}
 \par\noindent{\small Fonte: elaboração própria.}

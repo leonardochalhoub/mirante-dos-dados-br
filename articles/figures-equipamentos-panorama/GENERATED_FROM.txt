@@ -1,0 +1,26 @@
+# Provenance des figures geradas neste diretório
+# Gerado automaticamente — não edite à mão. Atualizar via re-rodar o build script.
+
+generated_at:    2026-04-27T01:34:38Z
+generated_at_utc: 2026-04-27T01:34:38Z
+script:          articles/build-figures-equipamentos-panorama.py
+script_commit:   accf08f
+gold_source:     data/gold/gold_equipamentos_estados_ano.json
+gold_sha256:     08f46f995c6cef8358f74dc58e759baef0c0e83846d983041fb0bf5250a2a1b0
+
+# Figuras versionadas neste diretório:
+#   - fig01-by-category.pdf
+#   - fig02-top25.pdf
+#   - fig03-imagem-breakdown.pdf
+#   - fig04-sus-share-by-category.pdf
+#   - fig05-neuro-trio-evolution.pdf
+#   - fig06-neuro-ct-uf.pdf
+#   - fig07-neuro-rm-uf.pdf
+#   - fig08-pet-uf.pdf
+#   - fig09-choropleth-ct.pdf
+#   - fig10-choropleth-rm.pdf
+#   - fig11-cv-evolution-neuro.pdf
+#   - fig12-sus-share-neuro.pdf
+#   - fig13-scatter-rm-pbf.pdf
+#   - fig14-scatter-rm-emendas.pdf
+#   - fig15-scatter-imagem-uropro.pdf

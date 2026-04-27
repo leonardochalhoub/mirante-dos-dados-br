@@ -1,0 +1,25 @@
+# Provenance des figures geradas neste diretório
+# Gerado automaticamente — não edite à mão. Atualizar via re-rodar o build script.
+
+generated_at:    2026-04-27T01:34:38Z
+generated_at_utc: 2026-04-27T01:34:38Z
+script:          articles/build-figures-equipamentos-rm.py
+script_commit:   accf08f
+gold_source:     data/gold/gold_equipamentos_estados_ano.json
+gold_sha256:     08f46f995c6cef8358f74dc58e759baef0c0e83846d983041fb0bf5250a2a1b0
+
+# Figuras versionadas neste diretório:
+#   - fig01-timeline-pd.pdf
+#   - fig02-architecture.pdf
+#   - fig03-evolution-modalities.pdf
+#   - fig04-density-oecd.pdf
+#   - fig05-choropleth-rm.pdf
+#   - fig06-choropleth-pd-stack.pdf
+#   - fig07-sus-share-modality.pdf
+#   - fig08-top-uf-rm.pdf
+#   - fig09-region-rm.pdf
+#   - fig10-cv-time.pdf
+#   - fig11-growth-rm.pdf
+#   - fig12-pd-burden-vs-neuroimaging.pdf
+#   - fig13-pbf-correlation.pdf
+#   - fig14-did-ec86.pdf

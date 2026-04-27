@@ -1,0 +1,19 @@
+# Provenance des figures geradas neste diretório
+# Gerado automaticamente — não edite à mão. Atualizar via re-rodar o build script.
+
+generated_at:    2026-04-27T01:34:38Z
+generated_at_utc: 2026-04-27T01:34:38Z
+script:          articles/build-figures-uropro-saude-publica.py
+script_commit:   accf08f
+gold_source:     data/gold/gold_uropro_estados_ano.json
+gold_sha256:     3308848074cc4c0bdb5bb59f6538a3195152ade655e2b59d5e150c2e602e9d5a
+
+# Figuras versionadas neste diretório:
+#   - fig01-volume-by-via.pdf
+#   - fig02-permanencia.pdf
+#   - fig03-mortalidade.pdf
+#   - fig04-acesso-uf-2025.pdf
+#   - fig05-choropleth-acesso.pdf
+#   - fig06-choropleth-permanencia.pdf
+#   - fig07-scatter-uropro-pbf.pdf
+#   - fig08-pre-pos-pandemia.pdf

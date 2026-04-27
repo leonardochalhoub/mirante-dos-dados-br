@@ -19,7 +19,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[brazilian]{babel}
-\usepackage{lmodern}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[section]{placeins}    % auto-FloatBarrier no início de cada \section
 \usepackage{amsmath}
 \usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 \usepackage{setspace}
@@ -49,6 +51,7 @@
                      position=above,justification=centering,font=small}
 \captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
                       position=below,justification=centering,font=small}
+\captionsetup{skip=6pt}    % respiro fig/tab → caption (padrão Lancet/Cad SP)
 
 \newcommand{\rs}{R\$\,}
 
@@ -558,7 +561,7 @@ A Figura~\ref{fig:evolucao-vol} ilustra o padrão. O salto de
 disponível de que a represa cirúrgica acumulada durante a pandemia
 está em fase final de escoamento.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig01-volume-by-via}
 \caption{Evolução nacional do número de cirurgias uroginecológicas
@@ -651,7 +654,7 @@ A relevância desse efeito persiste no pós-pandemia (1{,}52 em
 2022, 1{,}43 em 2025): a pandemia parece ter atuado como um
 catalisador irreversível de eficiência.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig02-permanencia}
 \caption{Permanência hospitalar média ponderada por AIH, Brasil
@@ -675,7 +678,7 @@ e padronização), enquanto estados com menor volume mantêm permanências
 mais longas. O padrão é compatível com curva de aprendizado
 hospitalar característica da literatura cirúrgica.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.72\linewidth]{fig06-choropleth-permanencia}
 \caption{\textit{Choropleth} \textendash{} permanência hospitalar
@@ -824,7 +827,7 @@ Para essas UFs, a hipótese mais econômica é que o tratamento
 cirúrgico é deslocado para grandes centros de referência fora
 do estado, via Tratamento Fora do Domicílio (TFD) do SUS.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{fig04-acesso-uf-2025}
 \caption{Acesso à cirurgia uroginecológica vaginal por UF, Brasil
@@ -846,7 +849,7 @@ A geografia da desigualdade em cirurgia uroginecológica é, portanto,
 \textbf{visualmente coincidente com a geografia clássica da
 desigualdade socioeconômica brasileira}.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.72\linewidth]{fig05-choropleth-acesso}
 \caption{\textit{Choropleth} \textendash{} densidade de cirurgia
@@ -873,7 +876,7 @@ A Figura~\ref{fig:pobreza-uropro} apresenta o \textit{scatter plot}
 correspondente. O coeficiente de correlação de Pearson é
 $\rho \approx -0{,}68$ \textemdash{} \textbf{forte e negativo}.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig07-scatter-uropro-pbf}
 \caption{Cruzamento \textit{cross-vertical}: cobertura do Bolsa
@@ -1004,7 +1007,7 @@ populacional. Hipóteses qualitativas: (a)~degradação do parque
 hospitalar dedicado; (b)~migração de pacientes para particular;
 (c)~reorganização da rede que deixou IU sem prioridade.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{fig08-pre-pos-pandemia}
 \caption{Tipologia da recuperação pós-pandemia por UF, via vaginal.
@@ -1039,7 +1042,7 @@ camada \textit{gold} é literalmente zero. Isso é compatível com
 o que a literatura clínica reporta sobre o procedimento: trata-se
 de cirurgia de baixo risco quando bem indicada e bem conduzida.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{fig03-mortalidade}
 \caption{Mortalidade intra-hospitalar associada à cirurgia

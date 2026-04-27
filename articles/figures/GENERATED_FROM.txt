@@ -1,0 +1,24 @@
+# Provenance des figures geradas neste diretório
+# Gerado automaticamente — não edite à mão. Atualizar via re-rodar o build script.
+
+generated_at:    2026-04-27T01:34:38Z
+generated_at_utc: 2026-04-27T01:34:38Z
+script:          articles/build-figures.py
+script_commit:   accf08f
+gold_source:     data/gold/gold_emendas_estados_df.json
+gold_sha256:     dca7f3f390c0ff63fc5fa5fad0ffa74131ae60446120e4bfe7a2cbe8d1f1b3ae
+
+# Figuras versionadas neste diretório:
+#   - fig01-timeline.pdf
+#   - fig02-architecture.pdf
+#   - fig03-evolution.pdf
+#   - fig04-exec-rate.pdf
+#   - fig05-composition.pdf
+#   - fig06-top10-abs.pdf
+#   - fig07-choropleth.pdf
+#   - fig08-choropleth-compare.pdf
+#   - fig09-heatmap.pdf
+#   - fig10-per-capita-ranking.pdf
+#   - fig11-cv.pdf
+#   - fig12-bubble.pdf
+#   - fig13-choropleth-absolute.pdf
