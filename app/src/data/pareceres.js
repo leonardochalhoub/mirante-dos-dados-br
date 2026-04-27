@@ -598,6 +598,7 @@ export const PARECER_WP_RAIS = {
     'Defensive guards em todas camadas downstream (skip on missing upstream) — evita cascade failures',
     'Bronze auto-recovery: detecta .7z corrompido (Bad7zFile), deleta + re-baixa do FTP PDET, quarenta após 1 retry — não trava por single bad file',
     'Pré-validação por arquivo (py7zr.is_7zfile + getnames): detecta TODOS os .7z corrompidos antes do loop de extração, não só os que falham na ordem do glob',
+    'Extração Hive-partitioned em <TXT_EXTRACTED>/ano=YYYY/ — corrige bug silencioso de colisão entre .7z de anos diferentes (PDET 2019+ usa nomes de .txt sem ano, sobrescrevia em dir flat); ano derivado via regex em _metadata.file_path',
   ],
   problemasParaNotaPlena: [
     'Pipeline em execução pela primeira vez 2026-04-27 — alguns arquivos PDET estão chegando corrompidos (ex.: BR_2009..2013 a 237KB), auto-recovery acionado',
