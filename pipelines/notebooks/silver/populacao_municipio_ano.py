@@ -95,7 +95,12 @@ desaninhado = (
         F.col("source"),
         F.col("s.localidade.id").cast("string").alias("cod_municipio"),
         F.col("s.localidade.nome").alias("municipio_nome"),
-        F.col("s.serie").alias("serie_dict"),
+        # `s.serie` é {ano_str: pop_str}. spark.read.json no bronze inferiu como
+        # STRUCT (campos com nome de ano: 2013, 2014, ...) e não MAP — então
+        # explode() falha com DATATYPE_MISMATCH. Round-trip via to_json/from_json
+        # converte struct→map<string,string> sem precisar enumerar os anos.
+        # Fix de raiz: bronze deveria ser STRING-ONLY (ver TODO no ingest).
+        F.from_json(F.to_json(F.col("s.serie")), "map<string,string>").alias("serie_dict"),
     )
 )
 

@@ -162,6 +162,14 @@ SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/ibge_pop_municipios
 
 # Como o JSON SIDRA v3 é um ARRAY no top-level com 1 elemento, usamos batch
 # overwrite (não streaming) — é estado natural pra esse tipo de fetch.
+#
+# TODO[bronze STRING-ONLY]: spark.read.json() infere tipo, criando STRUCT
+# aninhado pro campo `serie` (cujas chaves são anos numéricos). Isso obriga
+# o silver a fazer round-trip to_json/from_json pra converter STRUCT→MAP.
+# Standard da plataforma manda bronze ser string-only (ler como
+# `binaryFile` ou `text` e guardar o payload bruto numa coluna). Refatorar
+# pra: spark.read.format("text").load(VOLUME_DIR) e silver chama
+# from_json(content, schema) com `serie` declarado MapType<StringType>.
 df = (
     spark.read
         .option("multiLine", "true")
