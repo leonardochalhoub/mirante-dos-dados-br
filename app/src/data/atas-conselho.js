@@ -1002,8 +1002,172 @@ export const ATA_WP6_REUNIAO_2 = {
   },
 };
 
+// ═══════════════════════════════════════════════════════════════════════
+// REUNIÃO #3 — WP#2 v1.0 → v2.0 (Bolsa Família, Auxílio Brasil, NBF)
+// Data: 2026-04-27 · 4 pareceres iniciais paralelos · MAJOR REVISION → v2.0
+// Histórico: v1.0 avaliada lato 8,5; após pareceres, autor reescreveu como
+// stricto sensu B+ (DiD/TWFE/WCB sobre MP 1.061/2021 + Kakwani + benchmark CCT).
+// ═══════════════════════════════════════════════════════════════════════
+export const ATA_WP2_REUNIAO_1 = {
+  meta: {
+    reuniao: 3,
+    artigo: 'WP#2 v1.0 → v2.0 — Bolsa Família, Auxílio Brasil, Novo Bolsa Família (2013–2025)',
+    artigo_titulo_completo:
+      'Três Regimes, Um Programa: Documentação Reproduzível, Identificação Causal e ' +
+      'Sustentabilidade Fiscal do Bolsa Família, Auxílio Brasil e Novo Bolsa Família (2013–2025)',
+    commit: '44bebea (rewrite v2.0)',
+    data: '2026-04-27',
+    coautoria: null,
+    rodadas: 1,
+    status: 'MAJOR REVISION → v2.0 STRICTO SENSU B+',
+    media_quants: 1.5, // (C 1,0 + C+ 1,5 + B 2,0 + Adm qualitativo) / 3 = 1,5 → motivou rewrite
+    limiar_aprovacao: 2.0,
+    nota_promocao:
+      'Pareceres da v1.0 produziram média 1,5 (abaixo do limiar 2,0). ' +
+      'Autor optou por NÃO ajustar incrementalmente — refez como rewrite ' +
+      'stricto sensu v2.0 incorporando P1 (DiD/TWFE/WCB), P2 (Kakwani), ' +
+      'P3 (ITS/IV piso R$600), P4 (Granger PBF→pobreza) e benchmark CCT ' +
+      'internacional (AUH/Prospera/MFA/Renta Dignidad).',
+  },
+
+  pareceres_iniciais: [
+    {
+      cadeira: 'financas',
+      titulo: 'Conselheiro de Finanças & Métodos Quantitativos',
+      lente: 'Identificação causal · econometria · inconsistências verificáveis',
+      score: { tipo: 'letra', letra: 'C', pontos: 1.0 },
+      veredicto: 'major revision — abaixo do limiar 2,0',
+      epigrafe:
+        '"O paper nomeia DOIS choques quasi-experimentais (MP 1.061/2021 e Lei 14.601/2023) ' +
+        'com data precisa, e os deixa inexplorados. WP #4 v3.0 fez DiD/TWFE/WCB com null honesto. ' +
+        'Aqui, nada disso. C calibrado contra o WP#4 que atravessou o limiar."',
+      argumento_central:
+        'Pipeline reproduzível de altíssima qualidade (2,2 bi linhas, 280 GB, deflação IPCA, ' +
+        'correção do swap nov/2021). MAS ausência total de identificação causal apesar de dois ' +
+        'choques naturais explicitamente nomeados. Resumo afirma "lógicas distintas" e ' +
+        '"focalização eficaz" como se fossem achados causais — são associativos. CV PBF×Emendas ' +
+        'sem teste de igualdade. Per capita por UF sem covariáveis. RDD da agenda futura está com ' +
+        'design INCORRETO (RDD requer descontinuidade em variável contínua, piso é escada → ITS).',
+      pendencias: [
+        'PC-1 [CRÍTICO]: ausência total de identificação causal apesar de 2 choques naturais (MP 1.061, Lei 14.601)',
+        'PC-2 [CRÍTICO]: claims causais não identificados em 10+ pontos do texto ("portanto", "confirmam", "mecanismo")',
+        'PC-3 [ALTO]: comparação CV PBF vs Emendas sem inferência estatística (Levene, bootstrap, Granger)',
+        'PC-4 [ALTO]: ranking per capita sem covariáveis — IDH, pobreza, PIB ausentes',
+        'PC-5 [ALTO]: nov/2021 nomeado mas sem ITS (Interrupted Time Series) sobre série mensal',
+        '22 inconsistências verificáveis catalogadas (5 críticas: cherry-picking 2018, INC-07 "triplicou"≠dobrou, INC-09 deflação ambígua)',
+        'INC-07 [CRÍTICO]: "valor real triplicou 2021→2022" — razão real é 2,16, não 3,0 (erro factual no texto)',
+      ],
+      sugestao_para_subir_pra_b:
+        'Implementar P1 (event study sobre MP 1.061/2021 com ±6 períodos + Roth 2022 pre-trend + ' +
+        'wild-cluster bootstrap N=27) + P4 (Kakwani sobre per capita PBF × IDH-M por UF) + ' +
+        'corrigir INC-01 a INC-05 + substituir RDD da agenda por ITS. Resultado null aceitável.',
+    },
+    {
+      cadeira: 'eng-software',
+      titulo: 'Conselheiro de Eng. de Software & Plataforma de Dados',
+      lente: 'Reprodutibilidade · DQ · padrão STRING-ONLY · testes',
+      score: { tipo: 'letra', letra: 'C+', pontos: 1.5 },
+      veredicto: 'major revision — abaixo do limiar 2,0',
+      epigrafe:
+        '"Pipeline Databricks roda — isso é o piso mínimo. Mas o texto e a infraestrutura de suporte ' +
+        'ficam aquém do padrão WP#4 em quase todos os critérios técnicos: zero tests, viola STRING-ONLY ' +
+        'no bronze, dados hardcoded no gerador de figuras. O delta é no que foi escrito, não no que roda."',
+      argumento_central:
+        'Cadeia bronze→silver→gold→export end-to-end demonstrável com tratamento correto do swap nov/2021 ' +
+        '(union + filtragem por origem é não-trivial). MAS: bronze/pbf_pagamentos.py viola padrão ' +
+        'STRING-ONLY do projeto (inferColumnTypes=true), build-figures-pbf.py tem SERIES hardcoded em vez ' +
+        'de ler gold JSON, ausência de test_pbf_gold.py (WP#4 já tem 13 testes pytest sobre seu gold), ' +
+        'zero DQ declarado (sem Great Expectations, sem dbt-style asserts).',
+      pendencias: [
+        'CRÍTICO: bronze/pbf_pagamentos.py com inferColumnTypes=true — viola padrão Bronze STRING-ONLY do projeto',
+        'CRÍTICO: ausência de tests/test_pbf_gold.py (WP#4 tem 13 testes pytest puros, 0,19s)',
+        'CRÍTICO: build-figures-pbf.py usa SERIES = [...] hardcoded em vez de reler /data/gold/gold_pbf_estados_df.json',
+        'ALTO: zero validação declarada — sem Great Expectations, sem dbt-style asserts, sem manifests',
+        'MÉDIO: referências bibliográficas sem datetime de acesso padronizado (\\xurl{...}{data hh:mm})',
+      ],
+      sugestao_para_subir_pra_b:
+        'Aplicar padrão STRING-ONLY no bronze + criar test_pbf_gold.py espelhando o do WP#4 + refatorar ' +
+        'build-figures-pbf.py pra ler gold JSON + adicionar pelo menos uma camada DQ (manifest assinado ' +
+        'ou test). Roadmap técnico análogo ao que tirou WP#4 de B → B+.',
+    },
+    {
+      cadeira: 'design',
+      titulo: 'Conselheira de Design Web & Visualização (HCI)',
+      lente: 'Tufte · Norman · Bostock — identidade visual editorial Mirante',
+      score: { tipo: 'letra', letra: 'B', pontos: 2.0 },
+      veredicto: 'major revision — no limiar 2,0',
+      epigrafe:
+        '"Cividis nos coropléticos é correto. Eixo duplo da Fig02 é correto. Mas as 12 figuras saem ' +
+        'do build-figures-pbf.py SEM editorial_title, SEM source_note, SEM inline_labels, SEM polylabel — ' +
+        'matplotlib padrão com paleta Cividis. A uma camada inteira do magazine-grade do WP#4."',
+      argumento_central:
+        'O artigo cobre dados sólidos com pipeline correto e estrutura ABNT adequada. A vertical web tem o ' +
+        'mínimo funcional. Mas ambos ficam a uma camada inteira de distância do padrão magazine-grade que ' +
+        'a identidade Mirante exige e que o WP#4 já demonstrou ser alcançável. O gap não é de dados — é de ' +
+        'composição visual. build-figures-pbf.py importa apply_mirante_style() mas não usa NENHUM helper ' +
+        'de mirante_charts.py (editorial_title, source_note, inline_labels, chart_skeleton).',
+      pendencias: [
+        'CRÍTICO: build-figures-pbf.py ignora mirante_charts.py — sem editorial_title stack, sem source_note, sem inline_labels, sem GOLDEN_FIGSIZE',
+        'CRÍTICO: fig10 (scatter penetração×per capita) — labels diretamente sobre ponto, sem path_effects halo branco, sem adjustText',
+        'CRÍTICO: mapas coropléticos (fig06, fig07) usam centroid simples — para BA/PA/AM/MT pode cair fora do polígono. Padrão exige polylabel (pole of inaccessibility)',
+        'ALTO: hyperref usa hidelinks em vez de colorlinks magazine-grade',
+        'MÉDIO: botão "Ler artigo na tela" AUSENTE na vertical Web (convenção Mirante)',
+      ],
+      sugestao_para_subir_pra_b_plus:
+        'Refatorar build-figures-pbf.py pra usar mirante_charts.py (editorial_title + source_note + ' +
+        'inline_labels + chart_skeleton + GOLDEN_FIGSIZE) em todas as 12 figuras + adjustText+halo na ' +
+        'fig10 + polylabel nos coropléticos.',
+    },
+    {
+      cadeira: 'administrador',
+      titulo: 'Conselheiro de Administração & Aplicação Prática',
+      lente: 'Sinek (WHY) · Harari (escala histórica) · Carrey (ousadia)',
+      score: { tipo: 'qualitativo' },
+      veredicto: 'continua mas não escala nem monetiza no estado atual',
+      epigrafe:
+        '"O paper sabe o WHAT mas ainda não articulou o WHY. Resumo descreve quatro achados com ' +
+        'precisão técnica admirável — três regimes, 283%, gradiente 7:1, CV menor que emendas. ' +
+        'Isso é WHAT. O WHY — a razão pela qual esse paper PRECISA existir — aparece só implícito."',
+      argumento_central:
+        'WP#2 sem WHY formalizado. Dados excelentes rodando a 40% do potencial. Compare com WP#4: o ' +
+        'título já grita WHY ("iniquidade diagnóstica") e o resumo abre com "condição neurodegenerativa ' +
+        'de crescimento mais acelerado no mundo". Quem lê já sente urgência. WP#2 abre com "O Programa ' +
+        'Bolsa Família, criado pela Lei n. 10.836, de 9 de janeiro de 2004..." — correto, institucional, ' +
+        'morto. Audiência hoje difusa: navega entre gestor SEPLAN, economista IPEA, jornalista Folha, ' +
+        'deputado da Comissão de Assistência Social — nenhuma é dominante.',
+      perguntas_criticas: [
+        'WHY em uma frase? O autor consegue escrever, em UMA frase, por que o paper existe?',
+        '8 milhões de novas famílias do AB — quem são e de onde vieram? Falsos negativos crônicos do PBF clássico OU famílias que entraram na pobreza durante a pandemia?',
+        'R$ 140 bi/ano é sustentável? Até quando? Com qual custo de oportunidade vs SUS, educação, infraestrutura?',
+        'Quem fecha esse PDF e faz algo diferente? Sem agente concreto, prazo e mecanismo, é desejo de gestão, não implicação de política',
+      ],
+      sugestao_v2:
+        'Formalizar WHY triplo no resumo: documentação reproduzível + identificação causal + ' +
+        'sustentabilidade fiscal sob cenários demográficos. Fazer o título gritar pelo menos uma das ' +
+        'três. Resumo abrir com tese, não com lei. Implicações com agente, prazo, mecanismo.',
+    },
+  ],
+
+  resposta_do_autor: {
+    decisao: 'rewrite v2.0 stricto sensu',
+    data: '2026-04-27',
+    commit: '44bebea',
+    nota:
+      'Em vez de patch incremental sobre v1.0, autor optou pelo rewrite completo: WHY triplo ' +
+      'formalizado no resumo (documentação reproduzível + identificação causal + sustentabilidade ' +
+      'fiscal), DiD/TWFE com wild-cluster bootstrap sobre MP 1.061/2021, Kakwani sobre per capita PBF × ' +
+      'IDH-M por UF, ITS sobre série mensal nov/2021, benchmark CCT internacional (AUH Argentina, ' +
+      'Prospera México, MFA Colômbia, Renta Dignidad Bolívia em US$ PPP 2021), 17 figuras vetoriais ' +
+      '(incluindo barbell DiD, event study, curva de Kakwani, razão necessidade/cobertura). Versão ' +
+      'promovida de lato 8,5 → stricto sensu B+. Audit Finanças sobre v2.0 ainda pendente — as 22 ' +
+      'inconsistências da v1.0 foram parcialmente endereçadas mas precisam validação completa pré-submissão.',
+    score_pos_rewrite: 'B+ (2,5) na régua mestrado',
+  },
+};
+
 // ─── Lookup helper ───────────────────────────────────────────────────────
 export const ATAS_BY_ARTIGO = {
   'wp4-equipamentos-rm-parkinson': ATA_WP4_REUNIAO_1,
   'wp6-equipamentos-panorama-cnes': ATA_WP6_REUNIAO_2,
+  'wp2-bolsa-familia':              ATA_WP2_REUNIAO_1,
 };

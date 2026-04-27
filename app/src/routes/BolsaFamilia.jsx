@@ -17,9 +17,11 @@ import EvolutionBar    from '../components/charts/EvolutionBar';
 import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
+import AtaConselho     from '../components/AtaConselho';
 import ArticleTimestamp from '../components/ArticleTimestamp';
 import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
 import { PARECER_WP2_BOLSA_FAMILIA } from '../data/pareceres';
+import { ATA_WP2_REUNIAO_1 } from '../data/atas-conselho';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
 import { COLORSCALES } from '../lib/scales';
@@ -101,6 +103,121 @@ function ufValue(row, metricKey) {
   const d = row[m.denom];
   if (d == null || d <= 0) return 0;
   return ((row.valor_2021 || 0) * 1e9) / d;
+}
+
+// WHY triplo do WP#2 — formalizado no rewrite v2.0 (2026-04-27) após
+// peer review interno das 4 cadeiras do Conselho do Mirante. Estrutura
+// idêntica ao WhyQuadruplo do WP#4 e WhyDuplo do WP#6: cada lente
+// endereça uma audiência distinta com call-to-action próprio.
+const WHY_TRIPLO_WP2 = [
+  {
+    lente: 'Documentação reproduzível',
+    cor: '#0d9488',
+    frase:
+      'tornar acessível ao público não-especialista uma série histórica ' +
+      'completa (2013–2025) de pagamentos do PBF/Auxílio Brasil/NBF ' +
+      'consolidada, deflacionada e auditável — reduzindo o custo marginal ' +
+      'de pesquisa de meses-de-pipeline para minutos-de-leitura.',
+    audiencia: 'Pesquisadores em Saúde Coletiva/Ciência Política · IPEA · ONGs (Transparência Brasil, Open Knowledge BR) · jornalismo de dados',
+    cta: 'Usar o pipeline público como insumo, não como obstáculo, em estudos sobre transferência de renda',
+  },
+  {
+    lente: 'Identificação causal',
+    cor: '#dc2626',
+    frase:
+      'tratar os dois choques institucionais nominalmente declarados (MP ' +
+      '1.061/2021 e Lei 14.601/2023) como experimentos naturais e ' +
+      'submetê-los a desenho causal explícito (DiD/TWFE com wild-cluster ' +
+      'bootstrap), em vez de descrevê-los como "saltos" e parar aí.',
+    audiencia: 'Economia aplicada · econometria política · referees de RAP/RBE/Cad Saúde Pública · agenda de avaliação de impacto',
+    cta: 'Aceitar resultado null honesto como contribuição, não como falha — falsificável é melhor que verossímil',
+  },
+  {
+    lente: 'Sustentabilidade fiscal',
+    cor: '#b45309',
+    frase:
+      'projetar o custo do NBF (R$ 130–141 bi/ano em 2024–2025, ~25% do ' +
+      'orçamento do SUS) sob cenários demográficos da PNAD-C e do IBGE — ' +
+      'separando expansão por crise conjuntural de incorporação de falsos ' +
+      'negativos crônicos do Cadastro Único.',
+    audiencia: 'Ministério da Fazenda · Comissões de Orçamento · Coord. Política Fiscal STN · gestores SEPLAN estaduais',
+    cta: 'Decidir com cenários quantificados, não com intuição sobre "se cabe no orçamento"',
+  },
+];
+
+const TESE_CENTRAL_WP2 =
+  'O Bolsa Família atravessou três regimes legais (PBF clássico, Auxílio ' +
+  'Brasil, Novo Bolsa Família) entre 2013 e 2025, com saltos de cobertura ' +
+  '(16 → 24 milhões de famílias) e de valor real (R$ 36 → R$ 141 bi/ano) ' +
+  'que são simultaneamente: tecnicamente mensuráveis (microdados CGU + ' +
+  'deflação IPCA), causalmente identificáveis (dois choques exógenos com ' +
+  'data precisa), e fiscalmente urgentes (1/4 do orçamento do SUS). Este ' +
+  'artigo é o primeiro a expor as três dimensões sobre o mesmo dataset ' +
+  'auditável.';
+
+function WhyTriploWP2() {
+  return (
+    <div style={{
+      marginTop: 12, marginBottom: 4,
+      padding: 12,
+      background: 'var(--accent-soft, rgba(13, 148, 136, 0.05))',
+      border: '1px solid var(--border)', borderRadius: 8,
+    }}>
+      <div style={{
+        fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
+        textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8,
+      }}>
+        Por que este artigo existe — 3 ângulos sobre o mesmo dataset
+      </div>
+
+      <p style={{
+        fontSize: 13, lineHeight: 1.65, margin: '0 0 12px 0',
+        fontStyle: 'italic', color: 'var(--text)',
+      }}>
+        {TESE_CENTRAL_WP2}
+      </p>
+
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: 10,
+      }}>
+        {WHY_TRIPLO_WP2.map((w) => (
+          <div key={w.lente} style={{
+            padding: '8px 10px',
+            background: 'var(--bg)',
+            borderLeft: `3px solid ${w.cor}`,
+            borderRadius: 4,
+            fontSize: 12, lineHeight: 1.5,
+          }}>
+            <div style={{
+              fontWeight: 700, fontSize: 10, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: w.cor, marginBottom: 4,
+            }}>
+              WHY {w.lente}
+            </div>
+            <div style={{ color: 'var(--text)', marginBottom: 4 }}>
+              <i>Existimos para</i> {w.frase}
+            </div>
+            <div style={{
+              fontSize: 10.5, color: 'var(--muted)',
+              borderTop: '1px solid var(--border)', paddingTop: 4, marginTop: 4,
+            }}>
+              <div style={{ marginBottom: 3 }}><b>Para quem:</b> {w.audiencia}</div>
+              <div><b>CTA:</b> {w.cta}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        fontSize: 10.5, color: 'var(--faint)',
+        marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--border)',
+        textAlign: 'right',
+      }}>
+        Formalizado no rewrite v2.0 do WP#2 · 2026-04-27 · pós peer review interno (4 cadeiras)
+      </div>
+    </div>
+  );
 }
 
 export default function BolsaFamilia() {
@@ -241,6 +358,8 @@ export default function BolsaFamilia() {
 
           <ScoreCard parecer={PARECER_WP2_BOLSA_FAMILIA} />
 
+          <WhyTriploWP2 />
+
           <div className="doc-actions">
             <a className="doc-toggle doc-toggle-primary"
                href={pdfUrl}
@@ -270,6 +389,7 @@ export default function BolsaFamilia() {
             </a>
           </div>
         </div>
+        <AtaConselho ata={ATA_WP2_REUNIAO_1} />
       </section>
 
       <div className="kpiRow" data-export-id="pbf-kpis">

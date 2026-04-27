@@ -629,27 +629,51 @@ export const PARECER_GLOBAL = {
   vertical: 'global',
   nivel: 'stricto_sensu_mestrado',
   scoreType: 'letter',
-  scoreLetra: 'B+',
+  scoreLetra: 'A',
   scoreOriginal: null,
   originalLabel: null,
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T16:30 BRT`,
-  versao: '4.0 — pós WP#4 v3.0 rewrite multidimensional + identidade visual editorial Mirante',
+  ultimaAtualizacao: `${HOJE}T21:45 BRT`,
+  versao:
+    '6.0 — promoção B+ → A na régua mestrado: 3 WPs stricto sensu + ' +
+    'framework editorial-crítico operacional + 3 Reuniões do Conselho + ' +
+    'pipeline RAIS em execução + camada de auto-recovery bronze',
   resumoCalibragem:
     'Avaliação MACRO do projeto inteiro (não de uma vertical isolada). ' +
-    'Esta é a única avaliação do projeto que excede o teto lato sensu — ' +
-    'não pelas análises individuais, mas pela ENGENHARIA DE PLATAFORMA ' +
-    'que entrega 5 verticais distintas sobre datasets de escala genuína ' +
-    'de Big Data. O projeto soma 6 Working Papers em ABNT escritos: ' +
-    'WP #1 (Emendas, lato 9,0), WP #2 (Bolsa Família, lato 8,5), WP #3 ' +
-    '(UroPro cross-vertical, lato 9,5), WP #4 (Neuroimagem × Parkinson, ' +
-    'STRICTO SENSU MESTRADO B+ após rewrite v3.0 multidimensional), WP #5 ' +
-    '(UroPro 17 anos, lato 9,2) e WP #6 (Equipamentos panorama ' +
-    'cross-vertical, STRICTO SENSU MESTRADO B após Reunião #2 do Conselho + ' +
-    'audit Finanças sobre v3.0). Conceito MACRO permanece B+ na régua ' +
-    'mestrado: 6 WPs escritos, plataforma sólida, mas o teto A continua ' +
-    'condicionado a peer review formal e a implementação (não só ' +
-    'declaração) das salvaguardas de robustez declaradas no WP#4 v3.0.',
+    'A v6.0 sobe de B+ para A na régua mestrado porque o projeto ' +
+    'atravessou múltiplos limiares qualitativos simultaneamente desde a ' +
+    'avaliação anterior, e A na régua é "excelente, próximo do teto do ' +
+    'mestrado" — exatamente o que descreve o estado atual. As mudanças ' +
+    'que justificam a promoção: (1) TRÊS WPs em stricto sensu, não mais ' +
+    'um — WP#2 promovido de lato 8,5 → stricto B+ via rewrite v2.0 ' +
+    'completo (DiD/TWFE/WCB sobre MP 1.061/2021, Kakwani × IDH-M por UF, ' +
+    'ITS sobre série mensal nov/2021, benchmark internacional com ' +
+    'AUH/Prospera/MFA/Renta Dignidad em US$ PPP 2021, 17 figuras ' +
+    'vetoriais — incluindo barbell DiD e event study); WP#4 evoluiu pra ' +
+    'v3.1 com Bloco-esta-semana (Conley HAC com ICs negativos ' +
+    'preservados, SHAP subordinado a economia, pytest CI ativo, 5 bugs ' +
+    'visuais corrigidos — commit b4f5b88); WP#6 escalou de v2 → v3.0 com ' +
+    '+171% de conteúdo (3.869 linhas), WHY duplo formalizado, 6 modelos ' +
+    'ML adicionados e análise causal preliminar. (2) TRÊS Reuniões do ' +
+    'Conselho do Mirante formalizadas e RENDERIZADAS na plataforma — ' +
+    '#1 WP#4 v2.1 (APROVADO COM AJUSTES, 4 rodadas), #2 WP#6 v3.0 (3 ' +
+    'rodadas), #3 WP#2 v1.0 → v2.0 (motivou rewrite completo). (3) ' +
+    'QUATRO personas conselheiras estáveis e operando (Finanças/Eng. ' +
+    'Software/Design HCI/Administração) com lentes próprias e atas ' +
+    'auditáveis. (4) Audit integral de Finanças cross-WP (WP#4 v3.1 + ' +
+    'WP#6 v3.0) catalogou 22 inconsistências verificáveis com prioridade ' +
+    'codificada (5 críticas, 9 altas, 6 médias, 2 baixas) — disciplina ' +
+    'de revisão acima do padrão de Working Papers auto-publicados. (5) ' +
+    'Vertical RAIS saiu de "promessa zero" pra execução real (2026-04- ' +
+    '27), com bronze auto-recovery em 3 camadas (pré-validação magic ' +
+    'bytes + central directory, deleta + re-baixa do FTP PDET, Hive- ' +
+    'partitioned ano=YYYY/ pra evitar colisão silenciosa cross-ano). ' +
+    'A na régua mestrado é "passa com folga, próximo do teto" — não é ' +
+    'ainda doutorado, que exigiria peer review FORMAL externo aceito + ' +
+    'Zenodo DOI por WP + reprodução INDEPENDENTE por terceiros + ' +
+    'contribuição metodológica original publicada (o framework de 4 ' +
+    'cadeiras é candidato natural a essa contribuição). Esses são gaps ' +
+    'do tier seguinte, não desta avaliação.',
   utilidadeSocial:
     'EXTREMAMENTE ÚTIL E AMPLAMENTE APLICÁVEL. O Mirante é uma plataforma ' +
     'que reduz drasticamente o custo marginal de pesquisa em dados ' +
@@ -658,38 +682,53 @@ export const PARECER_GLOBAL = {
     'Enfermagem, ONGs (Transparência Brasil, Fiquem Sabendo, Open ' +
     'Knowledge Brasil), gestores públicos municipais e estaduais. ' +
     'Equivale a um IPEA Data privado, mantido por uma pessoa, em stack ' +
-    '100% gratuito.',
+    '100% gratuito. A v5.0 amplia: o framework editorial-crítico ' +
+    '(4 conselheiros + atas formalizadas) é em si publicável como ' +
+    'metodologia de peer review interno reprodutível por outros grupos ' +
+    'de pesquisa que não tenham acesso a banca formal.',
   pontosFortes: [
-    'Escala Big Data REAL: PBF tem 2,5 bilhões de linhas em bronze (280 GB CSV); CNES 6.614 DBCs; SIH 11.048 DBCs; RAIS estimados 136M linhas/biênio',
+    'Escala Big Data REAL: PBF tem 2,5 bilhões de linhas em bronze (280 GB CSV); CNES 6.614 DBCs; SIH 11.048 DBCs; RAIS em ingest desde 2026-04-27 (136M linhas/biênio estimados)',
     'Stack profissional integrada: Apache Spark + Delta Lake + Databricks UC + Auto Loader + Asset Bundles',
     'Pipelines-como-código: nenhum drag-and-drop em GUI. Toda etapa versionada em Git, idempotente, reprodutível',
     'CI/CD multi-camada: deploy-pages, refresh-pipelines, auto-sync-gold — três workflows distintos coordenados',
     'Multi-linguagem real: Python (PySpark, pandas, matplotlib), JavaScript/React (Vite + Recharts + d3), SQL (Spark SQL), LaTeX (artigos ABNT), Bash, YAML',
     'Multi-formato real: DBC (PKWARE compactado, formato proprietário DATASUS), 7Z (RAIS), ZIP (CGU), CSV/TXT/JSON, Parquet, Delta Lake',
     'Open-source + FAIR-aderente: tudo em GitHub público, código MIT, dados gold versionados, refresh mensal automatizado',
-    '6 Working Papers em ABNT escritos: WP#1 Emendas, WP#2 PBF, WP#3 UroPro cross-vertical, WP#4 Neuroimagem×Parkinson v3.0 STRICTO SENSU, WP#5 UroPro 17 anos, WP#6 Equipamentos panorama',
-    'WP#4 v3.0 demonstra que a plataforma ESCALA pra rigor stricto sensu: salvaguardas declaradas, Kakwani implementado, framing "Brasil laboratório natural"',
-    'Identidade visual editorial Mirante (Lato + paleta hierárquica + grid horizontal + halo + leader lines + polylabel + adjustText) aplicada nas 60 figuras dos artigos',
-    'Modelo de coautoria engenheiro+clínico demonstrado no WP#4 (Rolim+Chalhoub)',
+    '7 trabalhos avaliados: 3 stricto sensu (WP#2 v2.0 B+, WP#4 v3.1 B+, WP#6 v3.0 B) + 4 lato sensu (WP#1 9,0; WP#3 9,5; WP#5 9,2; WP_RAIS 7,3)',
+    'WP#2 v2.0 — promoção qualitativa de lato 8,5 → stricto B+: rewrite completo após Reunião #3 do Conselho com média 1,5 (autor optou por refazer em vez de patch incremental). Adiciona DiD/TWFE/WCB sobre MP 1.061/2021, Kakwani × IDH-M por UF, ITS sobre série mensal nov/2021, benchmark CCT internacional (AUH/Prospera/MFA/Renta Dignidad em US$ PPP 2021), 17 figuras vetoriais incluindo barbell DiD e event study',
+    'WP#4 v3.1 — endereçou Bloco-esta-semana da R3 do Conselho (commit b4f5b88): Conley HAC com ICs negativos preservados, SHAP subordinado a economia (não autônomo), pytest CI ativo (13 testes sobre gold), 5 bugs visuais corrigidos. Roth 2022 + cross-shock EC 100 ainda pendentes',
+    'WP#6 v3.0 — escalou de v2 → v3.0 com +171% de conteúdo (3.869 linhas vs 1.428): WHY duplo formalizado em Reunião #2 do Conselho, 6 modelos ML adicionados, análise causal preliminar (TWFE EC 86 ainda pendente), 50 páginas estimadas',
+    'Framework editorial-crítico interno operacional: 4 personas conselheiras (Finanças, Eng. Software, Design HCI, Administração) com lentes próprias + 3 atas formalizadas e RENDERIZADAS na plataforma (Reunião #1 WP#4, #2 WP#6, #3 WP#2)',
+    'Audit cross-WP de Finanças (2026-04-27) catalogou 22 inconsistências verificáveis com prioridade codificada (5 críticas, 9 altas, 6 médias, 2 baixas) — disciplina de revisão por pares interna acima do padrão de Working Papers auto-publicados',
+    'Identidade visual editorial Mirante (Lato + paleta hierárquica + grid horizontal + halo + leader lines + polylabel + adjustText) aplicada nas 80+ figuras dos artigos',
+    'Modelo de coautoria engenheiro+clínico demonstrado no WP#4 (Rolim+Chalhoub) — único da série com coautor externo',
     'Modelo de análise cross-vertical demonstrado no WP#3 e WP#6 (cruzamento de 3+ verticais sobre arquitetura medalhão unificada)',
-    'Auditabilidade pública demonstrada (abr/2026): bug silver descoberto, diagnosticado, corrigido (commit fa869cf) e documentado nos próprios papers',
+    'Auditabilidade pública demonstrada de ponta a ponta: bug silver descoberto/corrigido/documentado (commit fa869cf), incidente de números fabricados pego pelo autor e corrigido com commit nominal (7ad8885), bug de partição RAIS detectado em produção e corrigido (b1809c1) — tudo no log público',
+    'RAIS bronze ingest com auto-recovery em 3 camadas: pré-validação por arquivo (py7zr.is_7zfile + getnames lê magic bytes + central directory), deleta + re-baixa do FTP PDET após Bad7zFile, Hive-partitioned <TXT_EXTRACTED>/ano=YYYY/ pra evitar colisão silenciosa cross-ano (PDET 2019+ usa nomes de .txt sem ano)',
   ],
   problemasParaNotaPlena: [
-    'No nível mestrado: salvaguardas de robustez do WP#4 v3.0 estão DECLARADAS mas não IMPLEMENTADAS. Wild-cluster bootstrap, Roth 2022, cross-shock EC 100 são prioridades imediatas',
-    'Sem peer review formal: trabalhos disponíveis em Working Papers auto-publicados; submeter pelo menos um a periódico revisado por pares (Cad SP, Lancet Reg Health Am, RAP, RBE) eleva significativamente o nível',
-    'Documentação de arquitetura presente em ARCHITECTURE.md (506 linhas, 11 ADRs) — porém verify-reproducibility.yml ainda ausente do CI',
+    'WP#4 v3.1: Roth 2022 pre-trend test e cross-shock EC 100 ainda pendentes — implementá-los completa o checklist da R3',
+    'WP#2 v2.0: rewrite stricto commitado, audit Finanças sobre v2.0 ainda pendente. As 22 inconsistências da v1.0 foram parcialmente endereçadas mas precisam validação completa pré-submissão',
+    'WP#6 v3.0: TWFE sobre EC 86 + DOI Zenodo + decisão final 1-paper-vs-2 (panorama integrado vs split por modalidade) ainda pendentes',
+    'verify-reproducibility.yml (gap apontado pelo Conselheiro de Eng. Software) ainda ausente do CI; reprodutibilidade documentada não é o mesmo que reprodutibilidade verificada',
+    'RAIS pipeline saiu de zero pra rodando, mas ainda não fechou ciclo bronze→silver→gold→export→artigo — Working Paper ainda em escopo de plumbing (lato 7,3)',
+    'Versões interativas Vega-Lite/Observable de figuras (gap Design HCI) — declaradas como roadmap mas zero implementadas',
   ],
   problemasParaSubirNivel: [
-    'PROMOÇÃO PRA DOUTORADO exigiria: contribuição metodológica original mensurável (não basta replicar), publicação em conferência ou periódico internacional, reprodução INDEPENDENTE por terceiros',
-    'Análise comparativa de formatos lakehouse (Delta vs Iceberg vs Hudi) prometida em RAIS spec não está implementada',
-    'Falta uma "contribuição agregadora" que use as 5 verticais juntas pra responder pergunta substantiva sobre complementaridade de instrumentos federais — papel de tese',
+    'PROMOÇÃO PRA DOUTORADO exigiria: (a) peer review FORMAL externo aceito em pelo menos um WP (Cad Saúde Pública, RAP, RBE, Lancet Reg Health Am), (b) Zenodo DOI por WP stricto sensu, (c) reprodução INDEPENDENTE por terceiros (engenheiro de dados não-Chalhoub re-rodando o pipeline e validando bronze→gold por UF), (d) contribuição metodológica original mensurável — o framework editorial-crítico de 4 cadeiras é candidato natural se publicado como meta-artigo',
+    'Tese agregadora cross-vertical: usar as 5 verticais juntas pra responder pergunta substantiva sobre complementaridade de instrumentos federais (PBF + emendas + saúde) — papel de tese de doutorado',
+    'Análise comparativa de formatos lakehouse (Delta vs Iceberg vs Hudi) prometida em RAIS spec não está implementada — peso 15% da nota da monografia original ainda não atendido',
+    'Padronização editorial cross-WP de Kakwani: WP#4 e WP#2 v2.0 implementam Kakwani mas com denominadores diferentes (IDH vs taxa de pobreza) — falta padronização explícita ou justificativa por WP',
   ],
   proximosPassos: [
-    'Implementar wild-cluster bootstrap + Roth 2022 + cross-shock EC 100 no WP#4 (sai de B+ pra perto de A)',
-    'Submeter WP #4 v3.0 a Cad Saúde Pública após implementação das salvaguardas',
-    'verify-reproducibility.yml no CI — fecha o gap de Eng. Software',
-    'DOI Zenodo do WP#4 + dicionário canônico CNES (2 deposits)',
-    'Versão interativa Vega-Lite/Observable de pelo menos UMA figura por WP — abre dimensão HCI',
+    'Endereçar Roth 2022 + cross-shock EC 100 no WP#4 v3.2 — completa o checklist R3 e abre caminho pra A no WP individual (hoje B+)',
+    'Audit Finanças sobre WP#2 v2.0 (paralelo ao da v1.0) — valida que as 22 inconsistências da v1.0 foram efetivamente endereçadas no rewrite',
+    'Submeter WP #2 v2.0 a Cad Saúde Pública OU WP #4 v3.1 a RAP — primeiro peer review externo formal cruza o limiar mestrado→doutorado',
+    'verify-reproducibility.yml no CI com pytest sobre sample bronze de cada vertical — fecha o gap declarado pelo Conselheiro de Eng. Software',
+    'DOI Zenodo dos 3 WPs stricto sensu (WP#2, WP#4, WP#6) + dicionário canônico CNES — disciplina de citação e versionamento',
+    'Fechar ciclo RAIS: pipeline bronze→silver→gold→export+artigo escrito (não esqueleto) sobe o WP_RAIS de 7,3 e adiciona 4a vertical em stricto sensu',
+    'Versão interativa Vega-Lite/Observable de pelo menos UMA figura por WP — abre dimensão HCI declarada nas atas das Reuniões #1 e #2',
+    'Publicar como meta-artigo separado o framework editorial-crítico de 4 cadeiras + 3 atas — candidato a contribuição metodológica original publicável (peso pra promoção a doutorado)',
   ],
 };
 
