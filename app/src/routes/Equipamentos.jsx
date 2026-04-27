@@ -24,7 +24,9 @@ import EvolutionStackedComposed      from '../components/charts/EvolutionStacked
 import DownloadActions               from '../components/DownloadActions';
 import TechBadges                    from '../components/TechBadges';
 import ScoreCard                     from '../components/ScoreCard';
+import AtaConselho                   from '../components/AtaConselho';
 import { PARECER_EQUIPAMENTOS }      from '../data/pareceres';
+import { ATA_WP4_REUNIAO_1 }         from '../data/atas-conselho';
 import { useTheme }                  from '../hooks/useTheme';
 import { loadGold }                  from '../lib/data';
 import { COLORSCALES }               from '../lib/scales';
@@ -538,8 +540,120 @@ function ArticleSection() {
   return (
     <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
       <DocCardWP4 />
+      <AtaConselho ata={ATA_WP4_REUNIAO_1} />
       <DocCardWP6 />
     </section>
+  );
+}
+
+// WHY quádruplo do WP#4 — formalizado na Reunião #1 do Conselho do Mirante
+// (2026-04-26). Aparece imediatamente abaixo do título do artigo. Cada lente
+// endereça uma audiência distinta com call-to-action próprio, mas as 4
+// convergem sobre o mesmo dataset auditável.
+const WHY_QUADRUPLO = [
+  {
+    lente: 'Clínico',
+    cor: '#dc2626',
+    frase:
+      'mostrar que parkinsonismos atípicos no Brasil estão sub-diagnosticados ' +
+      'por gap de capacidade de neuroimagem regional e mensurável.',
+    audiencia: 'Movement Disorders Society Brazil · neurologistas · residentes',
+  },
+  {
+    lente: 'Político',
+    cor: '#1d4ed8',
+    frase:
+      'nomear que o gradiente Norte/Sudeste de RM não é geografia — é resultado ' +
+      'de escolhas orçamentárias rastreáveis (EC 86/2015).',
+    audiencia: 'Comissões de Saúde do Senado/Câmara · CONITEC · Coord. Atenção Especializada do MS',
+  },
+  {
+    lente: 'Demográfico',
+    cor: '#b45309',
+    frase:
+      'alertar que o envelhecimento populacional brasileiro vai colidir com a ' +
+      'iniquidade espacial de neuroimagem nas próximas duas décadas.',
+    audiencia: 'IPEA · IBGE projeções · Secretarias Estaduais com pirâmide etária invertendo',
+  },
+  {
+    lente: 'Epidemiológico',
+    cor: '#059669',
+    frase:
+      'transformar a projeção de 1,25mi de casos de DP até 2060 (ELSI) em mapa ' +
+      'auditável de oferta-demanda por UF.',
+    audiencia: 'Saúde Coletiva acadêmica · jornalismo de saúde de dados · ONGs de pacientes',
+  },
+];
+
+const TESE_CENTRAL_WP4 =
+  'O Brasil tem hoje 535 mil pacientes com Doença de Parkinson e projeção de ' +
+  '1,25 milhão até 2060. A capacidade diagnóstica disponível para esses ' +
+  'pacientes é radicalmente desigual entre UFs — e essa desigualdade é ' +
+  'simultaneamente clinicamente nociva, politicamente rastreável, ' +
+  'demograficamente urgente e epidemiologicamente projetável. Este artigo é ' +
+  'o primeiro a expor as 4 dimensões sobre o mesmo dataset auditável.';
+
+function WhyQuadruplo() {
+  return (
+    <div style={{
+      marginTop: 12, marginBottom: 4,
+      padding: 12,
+      background: 'var(--accent-soft, rgba(13, 148, 136, 0.05))',
+      border: '1px solid var(--border)', borderRadius: 8,
+    }}>
+      <div style={{
+        fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
+        textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8,
+      }}>
+        Por que este artigo existe — 4 ângulos sobre o mesmo dataset
+      </div>
+
+      <p style={{
+        fontSize: 13, lineHeight: 1.65, margin: '0 0 12px 0',
+        fontStyle: 'italic', color: 'var(--text)',
+      }}>
+        {TESE_CENTRAL_WP4}
+      </p>
+
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: 10,
+      }}>
+        {WHY_QUADRUPLO.map((w) => (
+          <div key={w.lente} style={{
+            padding: '8px 10px',
+            background: 'var(--bg)',
+            borderLeft: `3px solid ${w.cor}`,
+            borderRadius: 4,
+            fontSize: 12, lineHeight: 1.5,
+          }}>
+            <div style={{
+              fontWeight: 700, fontSize: 10, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: w.cor, marginBottom: 4,
+            }}>
+              WHY {w.lente}
+            </div>
+            <div style={{ color: 'var(--text)', marginBottom: 4 }}>
+              <i>Existimos para</i> {w.frase}
+            </div>
+            <div style={{
+              fontSize: 10.5, color: 'var(--muted)',
+              borderTop: '1px solid var(--border)', paddingTop: 4, marginTop: 4,
+            }}>
+              <b>Para quem:</b> {w.audiencia}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        fontSize: 10.5, color: 'var(--faint)',
+        marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--border)',
+        textAlign: 'right',
+      }}>
+        Formalizado na Reunião #1 do Conselho do Mirante · 2026-04-26 · APROVADO COM AJUSTES
+      </div>
+    </div>
   );
 }
 
@@ -557,8 +671,13 @@ function DocCardWP4() {
         <b>"Análise estatística da prevalência da Doença de Parkinson no
         Brasil: desafios, tecnologias de neuroimagem e perspectivas de
         políticas públicas"</b> — coautoria com <b>Alexandre Maciel
-        Rolim</b> (manuscrito original epidemiológico, abr/2026). O
-        artigo combina os achados do ELSI-Brazil (prevalência de DP de
+        Rolim</b> (manuscrito original epidemiológico, abr/2026).
+      </p>
+
+      <WhyQuadruplo />
+
+      <p style={{ marginTop: 10, fontSize: 13.5 }}>
+        O artigo combina os achados do ELSI-Brazil (prevalência de DP de
         0,84% em brasileiros 50+, projeção de 1,25 milhão de casos até
         2060) com análise atualizada e reproduzível da infraestrutura
         de RM no SUS via microdados CNES 2013–2025 (filtro{' '}
