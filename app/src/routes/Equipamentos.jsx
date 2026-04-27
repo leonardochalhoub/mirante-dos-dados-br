@@ -27,8 +27,10 @@ import ScoreCard                     from '../components/ScoreCard';
 import AtaConselho                   from '../components/AtaConselho';
 import ArticleTimestamp              from '../components/ArticleTimestamp';
 import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
-import { PARECER_EQUIPAMENTOS }      from '../data/pareceres';
-import { ATA_WP4_REUNIAO_1 }         from '../data/atas-conselho';
+import { PARECER_WP4_EQUIPAMENTOS,
+         PARECER_WP6_EQUIPAMENTOS_PANORAMA } from '../data/pareceres';
+import { ATA_WP4_REUNIAO_1,
+         ATA_WP6_REUNIAO_2 }         from '../data/atas-conselho';
 import { useTheme }                  from '../hooks/useTheme';
 import { loadGold }                  from '../lib/data';
 import { COLORSCALES }               from '../lib/scales';
@@ -243,8 +245,6 @@ export default function Equipamentos() {
           </div>
         }
       />
-
-      <ScoreCard parecer={PARECER_EQUIPAMENTOS} />
 
       <ArticleSection />
 
@@ -544,6 +544,7 @@ function ArticleSection() {
       <DocCardWP4 />
       <AtaConselho ata={ATA_WP4_REUNIAO_1} />
       <DocCardWP6 />
+      <AtaConselho ata={ATA_WP6_REUNIAO_2} />
     </section>
   );
 }
@@ -726,6 +727,118 @@ function DocCardWP4() {
         <code>equipment_key=1:12</code> (Ressonância Magnética; TIPEQUIP=1,
         CODEQUIP=12) e cruza com carga estimada de DP por UF.
       </p>
+
+      <ScoreCard parecer={PARECER_WP4_EQUIPAMENTOS} />
+    </div>
+  );
+}
+
+// WHY duplo do WP#6 — formalizado na Reunião #2 do Conselho do Mirante
+// (2026-04-26). Mesma posição do WhyQuadruplo do WP#4: imediatamente abaixo
+// do título do artigo. Diferente do WP#4 (4 ângulos sobre 1 fenômeno
+// clínico-epidemiológico), o WP#6 tem 2 contribuições genuinamente
+// independentes — substantiva (paradoxo fiscal) e metodológica (auditoria
+// semântica do CNES) — que atraem audiências distintas (Cad SP/RAP vs
+// JOSS/Empirical SE).
+const WHY_DUPLO_WP6 = [
+  {
+    lente: 'Político-Institucional',
+    cor: '#1d4ed8',
+    frase:
+      'expor que as emendas parlamentares à saúde não corrigem o ' +
+      'gradiente de pobreza — em dois domínios empíricos independentes, ' +
+      'UFs que recebem mais emendas per capita têm MENOS infraestrutura ' +
+      'especializada por habitante.',
+    audiencia: 'TCU/SecexSaúde · IFI/Senado · CONASS · DENASUS/AudSUS · Comissões de Saúde do Congresso',
+  },
+  {
+    lente: 'Metodológico-Replicável',
+    cor: '#0d9488',
+    frase:
+      'documentar publicamente o método de auditoria semântica que ' +
+      'detectou e corrigiu uma falha de contagem no módulo Equipamentos ' +
+      'do CNES — versão pré-fix do Mirante superestimava a densidade ' +
+      'nacional de RM em fator ≈2 vs mediana OECD — e entregar o ' +
+      'pipeline aberto que torna esse padrão de auditoria replicável ' +
+      'para qualquer outro módulo do DATASUS.',
+    audiencia: 'DATASUS/CGSI/MS · OpenSAFELY · Software Heritage · OBSERVAGov-FGV · IEPS · FIOCRUZ-Reprodutibilidade',
+  },
+];
+
+const TESE_CENTRAL_WP6 =
+  'O Brasil cadastra hoje 3.900 ressonâncias magnéticas — 18,27 ' +
+  'unidades por milhão de habitantes em 2025, próximo da mediana OECD ' +
+  '(17/Mhab). A distribuição dessas máquinas entre as 27 UFs segue o ' +
+  'gradiente estadual de pobreza com força marcada (ρ ≈ -0,68 com ' +
+  'cobertura do Bolsa Família), e o mesmo padrão reaparece, com sinal ' +
+  'e magnitude semelhantes, num segundo domínio empírico independente ' +
+  '— o acesso cirúrgico medido pelo UroPro. As emendas parlamentares à ' +
+  'saúde, instrumento fiscal de vocação redistributiva, ' +
+  'correlacionam-se negativamente com infraestrutura especializada ' +
+  'nessas duas dimensões simultaneamente. Este artigo organiza a ' +
+  'observação cross-vertical sobre um pipeline aberto, testado e ' +
+  'replicável.';
+
+function WhyDuplo() {
+  return (
+    <div style={{
+      marginTop: 12, marginBottom: 4,
+      padding: 12,
+      background: 'var(--accent-soft, rgba(13, 148, 136, 0.05))',
+      border: '1px solid var(--border)', borderRadius: 8,
+    }}>
+      <div style={{
+        fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
+        textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8,
+      }}>
+        Por que este artigo existe — 2 ângulos sobre o mesmo dataset
+      </div>
+
+      <p style={{
+        fontSize: 13, lineHeight: 1.65, margin: '0 0 12px 0',
+        fontStyle: 'italic', color: 'var(--text)',
+      }}>
+        {TESE_CENTRAL_WP6}
+      </p>
+
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: 10,
+      }}>
+        {WHY_DUPLO_WP6.map((w) => (
+          <div key={w.lente} style={{
+            padding: '8px 10px',
+            background: 'var(--bg)',
+            borderLeft: `3px solid ${w.cor}`,
+            borderRadius: 4,
+            fontSize: 12, lineHeight: 1.55,
+          }}>
+            <div style={{
+              fontWeight: 700, fontSize: 10, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: w.cor, marginBottom: 4,
+            }}>
+              WHY {w.lente}
+            </div>
+            <div style={{ color: 'var(--text)', marginBottom: 4 }}>
+              <i>Existimos para</i> {w.frase}
+            </div>
+            <div style={{
+              fontSize: 10.5, color: 'var(--muted)',
+              borderTop: '1px solid var(--border)', paddingTop: 4, marginTop: 4,
+            }}>
+              <b>Para quem:</b> {w.audiencia}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        fontSize: 10.5, color: 'var(--faint)',
+        marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--border)',
+        textAlign: 'right',
+      }}>
+        Formalizado na Reunião #2 do Conselho do Mirante · 2026-04-26 · APROVADO COM AJUSTES
+      </div>
     </div>
   );
 }
@@ -760,6 +873,9 @@ function DocCardWP6() {
         <i>fix</i> metodológico do <i>double-count</i> via
         dual-flag IND_SUS no CNES.
       </p>
+
+      <WhyDuplo />
+
       <div className="doc-actions">
         <a className="doc-toggle doc-toggle-primary"
            href={pdfUrl} target="_blank" rel="noreferrer"
@@ -787,6 +903,8 @@ function DocCardWP6() {
         emendas parlamentares; análise <i>cross-vertical</i>; FAIR
         data; federalismo brasileiro.
       </p>
+
+      <ScoreCard parecer={PARECER_WP6_EQUIPAMENTOS_PANORAMA} />
     </div>
   );
 }

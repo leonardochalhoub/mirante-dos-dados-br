@@ -721,7 +721,289 @@ export const ATA_WP4_REUNIAO_1 = {
   },
 };
 
+// ═══════════════════════════════════════════════════════════════════════
+// REUNIÃO #2 — WP#6 v2 (Panorama integrado cross-vertical, Chalhoub)
+// Data: 2026-04-26 · 2 rodadas (R1 pareceres + R2 WHY) + verificação factual
+// Status: APROVADO COM AJUSTES · WHY DUPLO formalizado
+// ═══════════════════════════════════════════════════════════════════════
+export const ATA_WP6_REUNIAO_2 = {
+  meta: {
+    reuniao: 2,
+    artigo: 'WP#6 v2 — Panorama integrado cross-vertical (Equipamentos CNES)',
+    artigo_titulo_completo:
+      'Panorama integrado: equipamentos de saúde como nó cross-vertical do ' +
+      'Mirante dos Dados — análise do trio de neuroimagem (RM, CT, PET/CT) e ' +
+      'seus cruzamentos com Bolsa Família, Emendas Parlamentares e UroPro ' +
+      '(Brasil, 2013–2025)',
+    commit: 'dda3e6e',
+    data: '2026-04-26',
+    coautoria: 'Leonardo Chalhoub (autor único)',
+    rodadas: 2,
+    status: 'APROVADO COM AJUSTES',
+    media_quants: 2.33, // (B 2,0 + B+ 2,5 + B+ 2,5) / 3
+    limiar_aprovacao: 2.0,
+  },
+
+  pareceres_iniciais: [
+    {
+      cadeira: 'financas',
+      titulo: 'Conselheiro de Finanças & Métodos Quantitativos',
+      lente: 'Identificação causal · regressão multivariada · robustez estatística',
+      score: { tipo: 'letra', letra: 'B', pontos: 2.0 },
+      veredicto: 'major revision',
+      epigrafe:
+        '"O paper subiu de C para B pela triangulação cross-domain. Não vai subir além do B enquanto a análise ' +
+        'empírica for integralmente baseada em correlação Pearson bivariada sobre 27 pontos."',
+      argumento_central:
+        'A Fase A editorial (newtx, SciencePlots, float layout, datetime stamp) é costura: muda zero o ' +
+        'numerador da equação de aceitação em journal. A análise continua: oito correlações Pearson bivariadas, ' +
+        '27 observações (UFs), sem controle por PIB per capita, sem efeitos fixos, sem robustness check, sem ' +
+        'identificação causal de nenhuma espécie. Sem regressão multivariada, paper trava em B.',
+      pendencias: [
+        'Ausência de controle multivariado (PIB, médicos/1000 hab) — desk-reject provável em RAP/RBE',
+        'Sem robustness checks (Spearman, leave-one-out excluindo DF, AC) — qualquer revisor mediano pede',
+        'Sem painel longitudinal — autor tem 13 anos de dados (351 obs por equação) e não usa',
+        'Sem identificação causal — EC 86/2015 listada como agenda mas não implementada',
+        'Autocorrelação espacial ignorada (Moran\'s I sobre resíduos)',
+      ],
+      sugestao_para_subir_pra_a:
+        'Regressão OLS HC3 multivariada (PIB + médicos + region_FE), n=27, com Spearman + jackknife como ' +
+        'robustness padrão. Essa é a "única ação que muda o jogo" para Finanças no WP#6.',
+    },
+    {
+      cadeira: 'eng-software',
+      titulo: 'Conselheiro de Engenharia de Software & Plataforma',
+      lente: 'Reprodutibilidade · pipeline auditável · contract tests cross-vertical',
+      score: { tipo: 'letra', letra: 'B+', pontos: 2.5 },
+      veredicto: 'minor revision',
+      epigrafe:
+        '"ARCHITECTURE.md existe e tem ADRs completos. Suite de 12 testes invariantes sobre o gold é engenharia ' +
+        'de pesquisa séria. Mas testes rodam sobre o gold JSON, não sobre a transformação."',
+      argumento_central:
+        'O repositório evoluiu em aspectos que a review anterior não havia visto completos — ARCHITECTURE.md ' +
+        'tem 6 ADRs Nygard, suite de 12 testes invariantes calibrados contra OCDE, conftest.py com fixtures para ' +
+        'todos os 4 golds. Bloqueadores remanescentes: testes só sobre artefato (não sobre transformação), ' +
+        'dedup dual-flag não verificado por invariante metodológica, sem DOI Zenodo do código.',
+      pendencias: [
+        'Testes de transformação ausentes (PySpark sintético) — major revision em JOSS/ESE',
+        'Dedup dual-flag verificado por consistência interna, não por invariante metodológica',
+        'ARCHITECTURE.md sem URL permanente nem DOI Zenodo — não citável como artefato',
+        'Contract tests cross-vertical ausentes — schema drift quebra silenciosamente os 6 WPs',
+      ],
+      sugestao_para_subir_pra_a:
+        'Zenodo DOI do código + ARCHITECTURE.md + dicionário canônico (3 dias). Análoga à "única ação que muda ' +
+        'o jogo" do WP#4. Destrava citabilidade como artefato de software de primeira classe.',
+    },
+    {
+      cadeira: 'design',
+      titulo: 'Conselheira de Design & Visualização de Dados',
+      lente: 'Tufte (data-ink) · Norman (affordance) · Bostock (interatividade)',
+      score: { tipo: 'letra', letra: 'B+', pontos: 2.5 },
+      veredicto: 'minor revision',
+      epigrafe:
+        '"As 3 mudanças da Fase A são higiene editorial correta. Não são suficientes para mover o score porque ' +
+        'os 3 problemas estruturais — zero interatividade, acessibilidade não documentada, design-system.md ' +
+        'ausente — permanecem inalterados."',
+      argumento_central:
+        'Mantém B+ do WP v1. Tendência positiva (Fase A entregou tipografia + datetime stamp + cache-buster), ' +
+        'incremental. A figura central que sustenta o WHY do WP#6 sozinha — small multiple 2×2 com eixo X ' +
+        'compartilhado (% PBF) e Cividis por região — não existe ainda. A Tabela 7.2 de correlações deveria ' +
+        'ser um forest plot com IC 95% via Fisher z-transform.',
+      pendencias: [
+        'Zero interatividade — 3 scatters cross-vertical (Fig 13–15) são candidatas naturais a Vega-Lite',
+        'Par cromático #1d4ed8 (azul) / #7e22ce (roxo) na Fig 11 colapsa em deuteranopia',
+        'docs/design-system.md ausente — sem tokens documentados (cores, tipografia, espaçamento)',
+        'Tabela 7.2 (síntese cross-vertical) deveria ser forest plot — anti-storytelling visual atual',
+        'Audit Lighthouse + Axe + WAVE não declarado',
+      ],
+      sugestao_para_subir_pra_a:
+        'Forest plot substituindo Tabela 7.2 (1 semana, custo-benefício alto) + corrigir par cromático ' +
+        'azul/roxo (1-2 dias) + design-system.md em /docs (1 semana). Subiria pra A.',
+    },
+    {
+      cadeira: 'administrador',
+      titulo: 'Conselheiro de Administração & Aplicação Prática',
+      lente: 'Sinek (WHY) · Harari (escala histórica) · Carrey (ousadia)',
+      score: { tipo: 'qualitativo' },
+      veredicto: 'aprovado com ajustes — WHY ausente no manuscrito',
+      epigrafe:
+        '"O federalismo brasileiro financia a aparência de saúde pública — e durante 12 anos, em dois domínios ' +
+        'simultâneos, ninguém havia juntado os dados para provar isso. Esse é o WHY do paper. Mas o paper não ' +
+        'diz isso."',
+      argumento_central:
+        'WHY latente forte mas nunca articulado explicitamente. O texto começa pelo WHAT ("este Working Paper é ' +
+        'deliberadamente agregador") e nunca chega ao "por que isso importa". Audiências subutilizadas: TCU/' +
+        'SecexSaúde, IFI/Senado, CONASS, DENASUS/AudSUS, Banco Mundial Brasil. Cosplay de paper vs mudança real: ' +
+        'autor confortável demais no descritivo-correlacional. EC 86 listada como agenda há vários WPs e nunca ' +
+        'implementada.',
+      perguntas_criticas: [
+        'O WP#6 existe para DOCUMENTAR o paradoxo das emendas — ou para RESOLVER? (Implicações editoriais opostas)',
+        'Para quem este paper é evidência operacional — não acadêmica? Quem cita em decisão de auditoria?',
+        'Onde está o policy brief de 8 páginas para TCU/CONASS derivado do paper?',
+        'Tier 2 BR solo (4 meses) ou Tier 1 internacional com co-autoria FIOCRUZ/UERJ/INCA (12-18 meses)?',
+      ],
+    },
+  ],
+
+  // ═════════ Rodada 2 — definição do WHY do artigo ═════════
+  rodada_2_why: {
+    titulo: 'Rodada 2 — definição do WHY do artigo',
+    contexto:
+      'Com o R1 concluído (média 2,33 — acima do limiar 2,0), os 4 conselheiros foram convocados em paralelo ' +
+      'para propor o WHY do artigo WP#6 (não da plataforma — escopo travado para evitar o erro da R2A v1 da ' +
+      'Reunião #1). Cada cadeira propôs 1-2 WHYs com audiência específica e formato (único / duplo / quádruplo). ' +
+      'Resultado: 3 das 4 cadeiras (Finanças, Eng. Software, Administrador) convergiram em DUPLO; Design ' +
+      'preferiu ÚNICO com geometria interna de 4 elementos. Nenhuma cadeira propôs quádruplo (rejeição unânime ' +
+      'do espelho do WP#4).',
+    whys_propostos: [
+      {
+        cadeira: 'financas',
+        formato_proposto: 'duplo',
+        why_substantivo:
+          'Porque o federalismo fiscal brasileiro financia a aparência de saúde pública: durante doze anos, em ' +
+          'dois domínios independentes (cirurgia urológica WP#3, equipamentos de neuroimagem WP#6), as emendas ' +
+          'parlamentares per capita correlacionam-se NEGATIVAMENTE com capacidade especializada.',
+        why_metodologico:
+          'Iniquidade estrutural cross-vertical (gradiente PBF↔infraestrutura ρ ≈ -0,68) como diagnóstico de ' +
+          'política de saúde de longo prazo, distinguível do paradoxo fiscal compensatório.',
+        audiencia: 'TCU/SecexSaúde · IFI/Senado · STN · Banco Mundial Brasil · Cad SP · RAP',
+      },
+      {
+        cadeira: 'eng-software',
+        formato_proposto: 'duplo',
+        why_substantivo:
+          'Paradoxo das emendas replicado em 2 domínios (cirurgia + neuroimagem) eleva hipótese exploratória a ' +
+          'padrão empírico robusto requerendo explicação causal.',
+        why_metodologico:
+          'Bug semântico CNES (double-count via dual-flag IND_SUS) + pipeline aberto auditável é a primeira ' +
+          'documentação pública desse mecanismo com fix testado e replicável — tornando qualquer análise ' +
+          'downstream que use raw sus+priv potencialmente questionável.',
+        audiencia: 'DATASUS/CGSI/MS · OpenSAFELY · Software Heritage · OBSERVAGov-FGV · IEPS · Empirical SE · JOSS',
+      },
+      {
+        cadeira: 'design',
+        formato_proposto: 'único com geometria 4',
+        why_substantivo:
+          'A desigualdade em saúde no Brasil é coerente através de domínios — só se torna visível quando 4 ' +
+          'fontes (CNES, PBF, Emendas, UroPro) são postas na mesma escala e mesmo sistema de coordenadas.',
+        why_metodologico:
+          '(implícito) Design como método de comensurabilidade entre as 4 dimensões — não como 5ª lente ' +
+          'paralela aos 4 WHYs do WP#4.',
+        audiencia: 'Núcleo Jornalismo · ENSP/Fiocruz · CONASEMS · IEEE CG&A · Information Design Journal',
+      },
+      {
+        cadeira: 'administrador',
+        formato_proposto: 'duplo',
+        why_substantivo:
+          'Político-institucional — paradoxo fiscal das emendas como ilusão de redistribuição que precisa ' +
+          'entrar no debate de revisão do arcabouço fiscal pós-EC 95.',
+        why_metodologico:
+          'Pipeline público auditável replicável — qualquer SES, TCU ou pesquisador pode rodar a auditoria ' +
+          'sobre seus próprios dados.',
+        audiencia: 'TCU · IFI · CONASS · DENASUS · Comissões de Saúde do Congresso (substantivo) + ' +
+                   'pesquisadores · secretarias estaduais (metodológico)',
+      },
+    ],
+
+    voto_sobre_formato: {
+      unico: 1,        // Design
+      duplo: 3,        // Finanças, Eng. Software, Administrador
+      quadruplo: 0,
+      vencedor: 'duplo',
+      observacao:
+        'Convergência forte (3-1) em DUPLO. Design dissente em formato mas seu "WHY único com geometria de 4 ' +
+        'elementos" é compatível com a leitura de que os 2 WHYs do duplo capturam as 4 dimensões internamente.',
+    },
+
+    why_consolidado: {
+      tipo: 'duplo',
+      decidido_pelo_autor: true,
+      data_decisao: '2026-04-26',
+      escopo: 'pesquisador (DOCUMENTAR), não policy maker (RESOLVER) — alinhado com escopo de PhD que publica',
+      nota:
+        'Diferente do WP#4 (quádruplo, 4 audiências distintas para 1 fenômeno clínico-epidemiológico), o WP#6 ' +
+        'tem 2 contribuições genuinamente independentes — substantiva e metodológica — que atraem audiências ' +
+        'diferentes (Cad SP/RAP vs JOSS/Empirical SE). DUPLO mapeia diretamente para essa estrutura.',
+      tese_central:
+        'O Brasil cadastra hoje 3.900 ressonâncias magnéticas — 18,27 unidades por milhão de habitantes em 2025, ' +
+        'próximo da mediana OECD (17/Mhab). A distribuição dessas máquinas entre as 27 UFs segue o gradiente ' +
+        'estadual de pobreza com força marcada (ρ ≈ -0,68 com cobertura do Bolsa Família), e o mesmo padrão ' +
+        'reaparece, com sinal e magnitude semelhantes, num segundo domínio empírico independente — o acesso ' +
+        'cirúrgico medido pelo UroPro. As emendas parlamentares à saúde, instrumento fiscal de vocação ' +
+        'redistributiva, correlacionam-se negativamente com infraestrutura especializada nessas duas dimensões ' +
+        'simultaneamente. Este artigo organiza a observação cross-vertical sobre um pipeline aberto, testado e ' +
+        'replicável.',
+      duplo: [
+        {
+          lente: 'Político-Institucional',
+          cor: '#1d4ed8',
+          frase:
+            'expor que as emendas parlamentares à saúde não corrigem o gradiente de pobreza — em dois domínios ' +
+            'empíricos independentes, UFs que recebem mais emendas per capita têm MENOS infraestrutura ' +
+            'especializada por habitante.',
+          audiencia:
+            'TCU/SecexSaúde · IFI/Senado · CONASS · DENASUS/AudSUS · Comissões de Saúde do Congresso · ' +
+            'Banco Mundial Brasil',
+          cta:
+            'Incluir métrica de RESULTADO (capacidade instalada) nos relatórios de monitoramento das emendas de ' +
+            'saúde — não apenas execução financeira',
+          how_no_paper:
+            'Análise cross-vertical com 8 correlações ρ Pearson UF×UF, replicação independente do paradoxo das ' +
+            'emendas em dois domínios (UroPro WP#3 + Equipamentos WP#6) — 2025 cross-section, 27 UFs',
+        },
+        {
+          lente: 'Metodológico-Replicável',
+          cor: '#0d9488',
+          frase:
+            'documentar publicamente o método de auditoria semântica que detectou e corrigiu uma falha de ' +
+            'contagem no módulo Equipamentos do CNES — versão pré-fix do Mirante superestimava a densidade ' +
+            'nacional de RM em fator ≈2 vs mediana OECD — e entregar o pipeline aberto que torna esse padrão ' +
+            'de auditoria replicável para qualquer outro módulo do DATASUS.',
+          audiencia:
+            'DATASUS/CGSI/MS · OpenSAFELY · Software Heritage · OBSERVAGov-FGV · IEPS · FIOCRUZ-Reprodutibilidade',
+          cta:
+            'Adicionar nota de aviso na documentação de download do DBC Equipamentos do DATASUS sobre o ' +
+            'mecanismo dual-flag IND_SUS — custo zero para o DATASUS, impacto imediato em toda análise downstream',
+          how_no_paper:
+            'Seção 4.3 documenta anatomia completa: detecção (~35,6 RM/Mhab vs OECD 17 = ~2× = sinal de ' +
+            'double-count), hipótese causal (dual-flag IND_SUS), fix (MAX(qt_sus, qt_priv) por (CNES, mês)), ' +
+            'verificação (overlap pós-fix), e generalização',
+        },
+      ],
+    },
+
+    verificacao_factual: {
+      titulo: 'Verificação factual da tese central — Databricks + gold JSON atual',
+      data: '2026-04-26',
+      gatilho:
+        'Autor questionou a frase original "fator ≈2 inflado na literatura corrente" — não há citação direta ' +
+        'da literatura no texto, e o número 35,6/Mhab vinha do Mirante v1 (própria plataforma), não de papers ' +
+        'externos.',
+      narrativa:
+        'Query ao gold JSON publicado (data/gold/gold_equipamentos_estados_ano.json) confirmou que o fix do ' +
+        'dual-flag JÁ ESTÁ EM PRODUÇÃO desde os commits 6f4e1ca + 4d47d37 + 08df2b2. Estado atual: RM Brasil ' +
+        '2025 = 3.900 unidades = 18,27/Mhab; sus+priv = total_avg = 3.900 (idênticos); overlap dual-flag = ' +
+        '0,0% em todos os 13 anos do painel; ratio raw vs deduped = 1,00x. Em 2025, dos 3.082 rows analisáveis, ' +
+        'apenas 19 (0,6%) mostram qualquer overlap detectável — e o maior é "Bomba Balão Intra-Aórtico" em SE ' +
+        'com diferença de 1 unidade.',
+      consequencia:
+        'A §4.3 do manuscrito está STALE — afirma overlap ~60% para RM em 2025 e "ainda não materializada em ' +
+        'Databricks", o que é empiricamente falso no gold atual. O fator ≈2 é HISTÓRICO (Mirante v1 vs OECD), ' +
+        'não atual nem da "literatura corrente". A tese central foi reescrita removendo a autobiografia ' +
+        'metodológica e atribuindo o fator ≈2 corretamente como diagnóstico interno do Mirante (não acusação ' +
+        'de literatura externa). A §4.3 será reescrita no rewrite v3.0 do manuscrito como "auditoria semântica ' +
+        'concluída" — não como problema persistente.',
+      licao:
+        'Toda afirmação de tese deve ser fato-checada contra dado real ANTES de virar parágrafo do paper. ' +
+        'O Conselho falhou em pegar isso na R1; o autor pegou. Esse é o tipo de armadilha que peer review real ' +
+        'em journal Tier 1 detecta — e que reproduz o ciclo de "auto-engano por agente de IA enthusiastic". ' +
+        'Reforçada a regra: tese central só vai ao manuscrito após query ao dado.',
+    },
+  },
+};
+
 // ─── Lookup helper ───────────────────────────────────────────────────────
 export const ATAS_BY_ARTIGO = {
   'wp4-equipamentos-rm-parkinson': ATA_WP4_REUNIAO_1,
+  'wp6-equipamentos-panorama-cnes': ATA_WP6_REUNIAO_2,
 };

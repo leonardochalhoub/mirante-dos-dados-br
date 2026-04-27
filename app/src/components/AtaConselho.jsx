@@ -19,7 +19,7 @@ const CADEIRA_META = {
 
 export default function AtaConselho({ ata }) {
   if (!ata) return null;
-  const { meta, pareceres_iniciais, rodada_4_doutorado } = ata;
+  const { meta, pareceres_iniciais, rodada_4_doutorado, rodada_2_why } = ata;
 
   return (
     <section className="panel no-print" style={{
@@ -40,37 +40,215 @@ export default function AtaConselho({ ata }) {
         </div>
       </details>
 
-      <details open style={{ marginTop: 18 }}>
-        <summary style={summaryStyle}>
-          <b>Rodada 4</b> — re-avaliação completa pós-WHY · {' '}
-          <span style={{ color: '#ca8a04' }}>roadmap para nível de DOUTORADO</span>
-          <span style={summaryHintStyle}>aberto por padrão</span>
-        </summary>
-        <div style={{ marginTop: 14 }}>
-          <div style={{
-            fontSize: 13, lineHeight: 1.6, color: 'var(--muted)', marginBottom: 14,
-            padding: '8px 12px',
-            background: 'var(--accent-soft, rgba(13, 148, 136, 0.05))',
-            borderLeft: '3px solid #ca8a04',
-            borderRadius: 4,
-          }}>
-            <b>Contexto:</b> {rodada_4_doutorado.contexto}
-          </div>
+      {rodada_2_why && <Rodada2WhyBlock r2={rodada_2_why} />}
 
-          <div style={{ display: 'grid', gap: 12 }}>
-            {rodada_4_doutorado.pareceres.map((p) => (
-              <ParecerDoutoradoCard key={p.cadeira} parecer={p} />
-            ))}
-          </div>
+      {rodada_4_doutorado && (
+        <details open style={{ marginTop: 18 }}>
+          <summary style={summaryStyle}>
+            <b>Rodada 4</b> — re-avaliação completa pós-WHY · {' '}
+            <span style={{ color: '#ca8a04' }}>roadmap para nível de DOUTORADO</span>
+            <span style={summaryHintStyle}>aberto por padrão</span>
+          </summary>
+          <div style={{ marginTop: 14 }}>
+            <div style={{
+              fontSize: 13, lineHeight: 1.6, color: 'var(--muted)', marginBottom: 14,
+              padding: '8px 12px',
+              background: 'var(--accent-soft, rgba(13, 148, 136, 0.05))',
+              borderLeft: '3px solid #ca8a04',
+              borderRadius: 4,
+            }}>
+              <b>Contexto:</b> {rodada_4_doutorado.contexto}
+            </div>
 
-          {rodada_4_doutorado.consenso_emergente && (
-            <ConsensoEmergente consenso={rodada_4_doutorado.consenso_emergente} />
-          )}
-        </div>
-      </details>
+            <div style={{ display: 'grid', gap: 12 }}>
+              {rodada_4_doutorado.pareceres.map((p) => (
+                <ParecerDoutoradoCard key={p.cadeira} parecer={p} />
+              ))}
+            </div>
+
+            {rodada_4_doutorado.consenso_emergente && (
+              <ConsensoEmergente consenso={rodada_4_doutorado.consenso_emergente} />
+            )}
+          </div>
+        </details>
+      )}
 
       <Footer meta={meta} />
     </section>
+  );
+}
+
+// ─── Rodada 2 (WP#6) — definição do WHY do artigo ─────────────────────────
+function Rodada2WhyBlock({ r2 }) {
+  return (
+    <details open style={{ marginTop: 18 }}>
+      <summary style={summaryStyle}>
+        <b>Rodada 2</b> — definição do WHY do artigo · {' '}
+        <span style={{ color: '#0d9488' }}>WHY DUPLO formalizado</span>
+        <span style={summaryHintStyle}>aberto por padrão</span>
+      </summary>
+      <div style={{ marginTop: 14 }}>
+        <div style={{
+          fontSize: 13, lineHeight: 1.6, color: 'var(--muted)', marginBottom: 14,
+          padding: '8px 12px',
+          background: 'var(--accent-soft, rgba(13, 148, 136, 0.05))',
+          borderLeft: '3px solid #0d9488',
+          borderRadius: 4,
+        }}>
+          <b>Contexto:</b> {r2.contexto}
+        </div>
+
+        <details style={{ marginBottom: 12 }}>
+          <summary style={{
+            cursor: 'pointer', padding: '8px 0', userSelect: 'none',
+            fontSize: 12.5, fontWeight: 700, color: 'var(--muted)',
+          }}>
+            ▸ 4 propostas de WHY (uma por cadeira)
+          </summary>
+          <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
+            {r2.whys_propostos.map((w) => {
+              const cm = CADEIRA_META[w.cadeira];
+              return (
+                <div key={w.cadeira} style={{
+                  padding: 12, borderLeft: `3px solid ${cm.cor}`,
+                  background: 'var(--bg)', borderRadius: 4,
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                    <b style={{ fontSize: 12.5 }}>{cm.emoji} {cm.curto}</b>
+                    <span style={{
+                      fontSize: 10, padding: '2px 8px', borderRadius: 999,
+                      background: cm.cor, color: 'white', fontWeight: 600,
+                    }}>
+                      formato: {w.formato_proposto}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11.5, lineHeight: 1.55, marginBottom: 6 }}>
+                    <b style={{ color: cm.cor }}>WHY substantivo:</b> <i>{w.why_substantivo}</i>
+                  </div>
+                  {w.why_metodologico && (
+                    <div style={{ fontSize: 11.5, lineHeight: 1.55, marginBottom: 6 }}>
+                      <b style={{ color: cm.cor }}>WHY metodológico:</b> <i>{w.why_metodologico}</i>
+                    </div>
+                  )}
+                  <div style={{ fontSize: 10.5, color: 'var(--muted)', marginTop: 4 }}>
+                    <b>Para quem:</b> {w.audiencia}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </details>
+
+        {r2.voto_sobre_formato && (
+          <div style={{
+            marginBottom: 14, padding: 12,
+            background: 'rgba(13, 148, 136, 0.08)',
+            border: '1px solid #0d9488', borderRadius: 6,
+          }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: '#0d9488', marginBottom: 8,
+            }}>
+              🗳 Voto sobre formato do WHY
+            </div>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 8 }}>
+              <span><b>Único:</b> {r2.voto_sobre_formato.unico}</span>
+              <span><b>Duplo:</b> {r2.voto_sobre_formato.duplo} ← vencedor</span>
+              <span><b>Quádruplo:</b> {r2.voto_sobre_formato.quadruplo}</span>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.55 }}>
+              {r2.voto_sobre_formato.observacao}
+            </div>
+          </div>
+        )}
+
+        {r2.why_consolidado && (
+          <div style={{
+            padding: 14, marginBottom: 14,
+            background: 'var(--accent-soft, rgba(13, 148, 136, 0.05))',
+            border: '2px solid #0d9488', borderRadius: 8,
+          }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: '#0d9488', marginBottom: 8,
+            }}>
+              ✅ WHY consolidado pelo autor — formato {r2.why_consolidado.tipo}
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--muted)', marginBottom: 10, fontStyle: 'italic', lineHeight: 1.55 }}>
+              <b>Escopo:</b> {r2.why_consolidado.escopo}
+            </div>
+            <p style={{ fontSize: 12.5, lineHeight: 1.65, fontStyle: 'italic', margin: '0 0 12px 0' }}>
+              {r2.why_consolidado.tese_central}
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10 }}>
+              {r2.why_consolidado.duplo.map((w) => (
+                <div key={w.lente} style={{
+                  padding: '10px 12px', background: 'var(--bg)',
+                  borderLeft: `3px solid ${w.cor}`, borderRadius: 4,
+                  fontSize: 12, lineHeight: 1.55,
+                }}>
+                  <div style={{
+                    fontWeight: 700, fontSize: 10.5, letterSpacing: '0.06em',
+                    textTransform: 'uppercase', color: w.cor, marginBottom: 6,
+                  }}>
+                    WHY {w.lente}
+                  </div>
+                  <div style={{ marginBottom: 6 }}>
+                    <i>Existimos para</i> {w.frase}
+                  </div>
+                  <div style={{
+                    fontSize: 10.5, color: 'var(--muted)',
+                    paddingTop: 6, borderTop: '1px solid var(--border)', marginTop: 6,
+                  }}>
+                    <div style={{ marginBottom: 3 }}><b>Para quem:</b> {w.audiencia}</div>
+                    {w.cta && <div style={{ marginBottom: 3 }}><b>CTA:</b> {w.cta}</div>}
+                    {w.how_no_paper && <div><b>Como no paper:</b> {w.how_no_paper}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {r2.why_consolidado.nota && (
+              <div style={{
+                fontSize: 11, color: 'var(--muted)', marginTop: 10,
+                paddingTop: 8, borderTop: '1px solid var(--border)', lineHeight: 1.55,
+              }}>
+                <b>Nota:</b> {r2.why_consolidado.nota}
+              </div>
+            )}
+          </div>
+        )}
+
+        {r2.verificacao_factual && (
+          <div style={{
+            padding: 14, marginTop: 14,
+            background: 'rgba(220, 38, 38, 0.05)',
+            border: '1px solid #dc2626', borderRadius: 6,
+          }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: '#dc2626', marginBottom: 8,
+            }}>
+              🔍 Verificação factual — {r2.verificacao_factual.titulo}
+            </div>
+            <div style={{ fontSize: 12, lineHeight: 1.6, marginBottom: 8 }}>
+              <b style={{ color: '#dc2626' }}>Gatilho:</b> {r2.verificacao_factual.gatilho}
+            </div>
+            <div style={{ fontSize: 12, lineHeight: 1.6, marginBottom: 8 }}>
+              <b style={{ color: '#dc2626' }}>Achado:</b> {r2.verificacao_factual.narrativa}
+            </div>
+            <div style={{ fontSize: 12, lineHeight: 1.6, marginBottom: 8 }}>
+              <b style={{ color: '#dc2626' }}>Consequência:</b> {r2.verificacao_factual.consequencia}
+            </div>
+            <div style={{
+              fontSize: 11.5, color: 'var(--muted)', fontStyle: 'italic',
+              paddingTop: 8, borderTop: '1px solid var(--border)', lineHeight: 1.55,
+            }}>
+              <b>Lição:</b> {r2.verificacao_factual.licao}
+            </div>
+          </div>
+        )}
+      </div>
+    </details>
   );
 }
 
