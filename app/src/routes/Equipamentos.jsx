@@ -687,6 +687,8 @@ function DocCardWP4() {
         recomendações de protocolo, abr/2026).
       </p>
 
+      <ScoreCard parecer={PARECER_WP4_EQUIPAMENTOS} />
+
       <WhyQuadruplo />
 
       <p style={{ marginTop: 10, fontSize: 13.5 }}>
@@ -727,8 +729,6 @@ function DocCardWP4() {
         <code>equipment_key=1:12</code> (Ressonância Magnética; TIPEQUIP=1,
         CODEQUIP=12) e cruza com carga estimada de DP por UF.
       </p>
-
-      <ScoreCard parecer={PARECER_WP4_EQUIPAMENTOS} />
     </div>
   );
 }
@@ -874,6 +874,8 @@ function DocCardWP6() {
         dual-flag IND_SUS no CNES.
       </p>
 
+      <ScoreCard parecer={PARECER_WP6_EQUIPAMENTOS_PANORAMA} />
+
       <WhyDuplo />
 
       <div className="doc-actions">
@@ -903,8 +905,6 @@ function DocCardWP6() {
         emendas parlamentares; análise <i>cross-vertical</i>; FAIR
         data; federalismo brasileiro.
       </p>
-
-      <ScoreCard parecer={PARECER_WP6_EQUIPAMENTOS_PANORAMA} />
     </div>
   );
 }

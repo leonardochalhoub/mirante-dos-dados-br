@@ -268,6 +268,9 @@ function DocSection() {
           padrão ABNT), com 13 figuras, 3 mapas coropléticos e ~10 mil palavras.
           Fontes: Portal da Transparência (CGU), IBGE, BCB.
         </p>
+
+        <ScoreCard parecer={PARECER_WP1_EMENDAS} />
+
         <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>
           <b>Palavras-chave:</b> emendas parlamentares; transparência fiscal; execução
           orçamentária; orçamento público federal; controle social; gestão pública.
@@ -313,8 +316,6 @@ function DocSection() {
           </a>
         </div>
       </div>
-
-      <ScoreCard parecer={PARECER_WP1_EMENDAS} />
 
       {/* (artigo React inline removido: o canônico agora é o PDF compilado
            via LaTeX, aberto em nova aba pelo botão acima) */}

@@ -150,6 +150,9 @@ export default function Rais() {
             sobre microdados RAIS Vínculos Públicos, com scoring FAIR
             quantitativo via FAIR Data Maturity Model (RDA).
           </p>
+
+          <ScoreCard parecer={PARECER_WP_RAIS} />
+
           <div className="doc-actions">
             <a className="doc-toggle doc-toggle-primary"
                href={pdfUrl} target="_blank" rel="noreferrer"
@@ -172,8 +175,6 @@ export default function Rais() {
               ↗ Abrir no Overleaf
             </a>
           </div>
-
-          <ScoreCard parecer={PARECER_WP_RAIS} />
         </div>
       </section>
 

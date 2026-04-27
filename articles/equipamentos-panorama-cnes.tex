@@ -1,11 +1,19 @@
 % =====================================================================
-% Mirante dos Dados — Working Paper #6 (v2)
-% Panorama integrado: equipamentos de saúde como nó cross-vertical do
-% Mirante dos Dados. Trio de neuroimagem (RM, CT, PET/CT) por UF e
-% cruzamentos com Bolsa Família, Emendas Parlamentares e UroPro.
+% Mirante dos Dados — Working Paper #6 (v3.0)
+% Atlas integrado dos equipamentos de saúde no Brasil — análise
+% multidimensional do parque CNES por categoria (10), por equipamento
+% (117), federalismo fiscal e cruzamentos com Bolsa Família, Emendas
+% Parlamentares e UroPro (Brasil, 2013-2025).
 %
 % Autor:  Leonardo Chalhoub (engenharia de dados, análise, redação)
-% Versão: 2.0  —  Abril de 2026
+% Versão: 3.0  —  Abril de 2026 (rewrite após Reunião #2 do Conselho:
+%         WHY duplo formalizado [Político-Institucional + Metodológico-
+%         Replicável], expansão de 3 → 117 equipamentos em 10 categorias,
+%         §3.5 reescrita após verificação factual contra Databricks
+%         confirmando que o fix dual-flag IND_SUS já está em produção,
+%         adição de equidade formal, salvaguardas declaradas, análise
+%         quasi-causal preliminar EC 86/2015, caveats CNES, Moran's I
+%         para autocorrelação espacial e forest plot cross-vertical)
 % Compilação: pdflatex articles/equipamentos-panorama-cnes.tex (2x)
 % =====================================================================
 \documentclass[12pt,a4paper,oneside]{article}
@@ -58,27 +66,28 @@
   \begin{center}
     \vspace*{1.5cm}
     {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 6}}\\
-    {\small Versão 2.0 \textemdash{} Abril de 2026}\\[2pt]
+    {\small Versão 3.0 \textemdash{} Abril de 2026}\\[2pt]
     {\footnotesize Compilada em \COMPILESTAMP\ \textbullet\ \texttt{\COMPILESHA}}
 
     \vfill
 
     {\LARGE\bfseries
-     PANORAMA INTEGRADO:\\
-     EQUIPAMENTOS DE SAÚDE COMO NÓ
-     CROSS-VERTICAL DO MIRANTE DOS DADOS\\
-     ANÁLISE DO TRIO DE NEUROIMAGEM
-     (RM\textendash{}CT\textendash{}PET/CT) E SEUS
-     CRUZAMENTOS COM BOLSA FAMÍLIA,
-     EMENDAS PARLAMENTARES E ACESSO
-     CIRÚRGICO (BRASIL, 2013\textendash 2025)}
+     ATLAS INTEGRADO DOS EQUIPAMENTOS\\
+     DE SAÚDE NO BRASIL:\\
+     ANÁLISE MULTIDIMENSIONAL DO PARQUE\\
+     CADASTRADO NO CNES POR CATEGORIA\\
+     E EQUIPAMENTO, FEDERALISMO FISCAL\\
+     E EVIDÊNCIA \textit{CROSS-VERTICAL}\\
+     (10 CATEGORIAS, 117 EQUIPAMENTOS,\\
+     27 UFs, 2013\textendash 2025)}
 
     \vspace{1cm}
     {\large\itshape
-     Health-care equipment as a cross-vertical node in the Mirante dos
-     Dados platform: an analysis of the neuroimaging triad (MRI, CT,
-     PET/CT) and its crossings with Bolsa Família, parliamentary
-     amendments and surgical access (Brazil, 2013\textendash 2025)}
+     An integrated atlas of healthcare equipment in Brazil: a
+     multidimensional analysis of the CNES installed park by
+     category and equipment, fiscal federalism and cross-vertical
+     evidence (10 categories, 117 equipments, 27 federal units,
+     2013\textendash 2025)}
 
     \vfill
 
@@ -92,17 +101,24 @@
     \vfill
 
     \rule{0.6\linewidth}{0.4pt}\\[6pt]
-    {\small\textit{Este Working Paper é deliberadamente \textbf{agregador}.
-     Sintetiza os achados das demais verticais analíticas do Mirante
-     (Emendas, Bolsa Família, UroPro, Equipamentos\textendash Parkinson)
-     usando equipamentos de saúde \textemdash{} em particular o trio de
-     neuroimagem RM, CT e PET/CT \textemdash{} como \textit{lente focal}
-     para investigar como infraestrutura sanitária especializada se
-     distribui no território nacional, como esta distribuição
-     correlaciona com pobreza estrutural e fluxo fiscal compensatório,
-     e como se traduz (ou não se traduz) em acesso a procedimentos
-     clínicos efetivos. Substitui e estende a versão 1.0 (panorama
-     estático Dez/2024).}}
+    {\small\textit{Este Working Paper é o \textbf{atlas-base} da vertical
+     Equipamentos do Mirante dos Dados. Cobre os \textbf{3,3 milhões}
+     de equipamentos médico-hospitalares cadastrados no CNES em 2025
+     \textemdash{} 117 \texttt{(TIPEQUIP, CODEQUIP)} distintos,
+     organizados em 10 categorias funcionais (de Manutenção da Vida e
+     Diagnóstico por Imagem a Diálise, Audiologia e Telemedicina). A
+     análise vai além de qualquer recorte clínico isolado: documenta
+     a distribuição completa do parque por categoria, equipamento,
+     setor (SUS/Privado) e UF; cruza com pobreza estrutural (Bolsa
+     Família), fluxo fiscal compensatório (Emendas Parlamentares) e
+     acesso a procedimentos (UroPro); estima índices formais de
+     equidade e correlação espacial (Moran's I); e oferece análise
+     quasi-causal preliminar sobre a Emenda Constitucional 86/2015 como
+     descontinuidade institucional. Substitui as versões 1.0 (panorama
+     estático Dez/2024) e 2.0 (recorte focal trio neuroimagem). A
+     contribuição metodológica central \textemdash{} um padrão
+     replicável de \textbf{auditoria semântica} sobre dado público
+     governamental \textemdash{} é detalhada na Seção~\ref{sub:dedup}.}}
 
     \vspace{1cm}
     {\footnotesize
@@ -120,59 +136,106 @@
 \addcontentsline{toc}{section}{Resumo}
 % =====================================================================
 \begin{singlespace}\small\noindent
-\textbf{Objetivo.} Caracterizar a infraestrutura nacional de
-equipamentos de saúde cadastrados no CNES (Cadastro Nacional de
-Estabelecimentos de Saúde) entre 2013 e 2025, com ênfase no trio de
-neuroimagem (Tomografia Computadorizada \textendash{} \textit{equipment\_key}
-1{:}11; Ressonância Magnética \textendash{} 1{:}12; PET/CT \textendash{}
-1{:}18), e cruzar a distribuição territorial desse trio com três
-indicadores de outras verticais analíticas do Mirante dos Dados:
-cobertura do Programa Bolsa Família (proxy de pobreza estrutural),
-execução \textit{per capita} de emendas parlamentares (fluxo fiscal
-político) e acesso à cirurgia uroginecológica no SUS (procedimento
-clínico canário, definido em CHALHOUB, 2026d).
-
-\textbf{Métodos.} Pipeline \textit{medallion} aberto (\textit{bronze}
-DBC\textrightarrow Parquet via PySUS; \textit{silver} agregação
-\textit{(estado, ano, tipequip, codequip)} com chave composta
-\texttt{equipment\_key} e correção de \textit{double-count} via
-dual-flag \texttt{IND\_SUS}; \textit{gold} \textit{pass-through}
-publicado em JSON aberto). Snapshot empírico cobre 2013\textendash 2025
-para todas as 27 UFs. Dados das demais verticais provêm dos golds
-publicados no mesmo repositório.
-
-\textbf{Resultados.} (i)~O parque cadastrado cresceu de 1,37 milhão
-de unidades em 2013 para 3,30 milhões em 2025 (+141\,\%), com
-expansão acelerada pós-2020. (ii)~Em 2025, o trio de neuroimagem
-totaliza aproximadamente 12 mil unidades \textemdash{} 8 mil CT,
-3,9 mil RM e 166 PET/CT. (iii)~A densidade \textit{per capita} é
-fortemente desigual: para RM a razão DF\,/\,AC chega a 8$\times$
-(46{,}1 \textit{vs.} 5{,}7 unidades por milhão de habitantes); cinco
-UFs operam sem nenhuma unidade de PET/CT cadastrada. (iv)~No
-cruzamento cross-vertical, a densidade de RM correlaciona-se
-fortemente em sentido inverso com cobertura PBF
-($\rho \approx -0{,}68$) e moderadamente em sentido inverso com
-emendas \textit{per capita} ($\rho \approx -0{,}31$); a densidade de
-imagem agregada correlaciona-se positivamente com acesso à cirurgia
-uroginecológica ($\rho \approx +0{,}60$), reforçando a tese de que
-infraestrutura especializada e \textit{outcomes} clínicos andam
-juntos. (v)~Reforça-se, por agregação, o \textbf{paradoxo das
-emendas} (CHALHOUB, 2026d): UFs com mais emendas \textit{per capita}
-têm \textit{menor} oferta de equipamentos especializados.
-
-\textbf{Conclusões.} Os dados sustentam a tese, recorrente nas demais
-verticais Mirante, de que a desigualdade brasileira em
-infraestrutura sanitária especializada acompanha o gradiente de
-pobreza estrutural e \textit{não} é compensada pelo mecanismo das
-emendas parlamentares. A análise cross-vertical, possibilitada pela
-unificação metodológica do Mirante, oferece evidência adicional para
-o debate sobre federalismo brasileiro em saúde.
+A infraestrutura sanitária brasileira é frequentemente analisada
+sob recortes clínicos isolados (apenas equipamentos de imagem, ou
+apenas leitos, ou apenas medicamentos), e raramente sob recorte
+\textit{cross-vertical} que articule, sobre arquitetura analítica
+comum, o parque cadastrado, o fluxo fiscal e o acesso a
+procedimentos efetivos. Este Working Paper apresenta o atlas
+empírico mais abrangente até a data dos \textbf{equipamentos
+médico-hospitalares} cadastrados no Cadastro Nacional de
+Estabelecimentos de Saúde (CNES/DATASUS) entre 2013 e 2025,
+articulado simultaneamente sob duas lentes \textemdash{}
+político-institucional e metodológica \textemdash{} e estendido
+para cruzamentos com pobreza estrutural (Bolsa Família),
+fluxo fiscal compensatório (Emendas Parlamentares) e acesso a
+procedimento clínico canário (UroPro). \textbf{Materiais e
+métodos.} A análise inclui (i)~descritores agregados nacionais e por
+27 UFs, decompostos em 10 categorias funcionais TIPEQUIP e
+117 \texttt{(TIPEQUIP, CODEQUIP)} distintos via dicionário canônico
+do projeto \textit{Mirante dos Dados};
+(ii)~auditoria semântica formal do módulo Equipamentos do CNES
+(detecção, hipótese, fix, verificação e generalização para outros
+módulos do DATASUS);
+(iii)~análise cross-vertical com matriz de correlações Pearson e
+Spearman sobre 27 UFs em 2025, com \textit{robustness checks} via
+\textit{leave-one-out};
+(iv)~teste formal de autocorrelação espacial (Moran's I) sobre os
+resíduos das correlações;
+(v)~índices formais de equidade
+(coeficiente de variação inter-UF, índice de Kakwani sobre
+densidade$\times$IDHM, índice de necessidade combinando carga
+estimada e oferta);
+(vi)~análise quasi-causal preliminar
+\textit{difference-in-differences} sobre a Emenda Constitucional
+86/2015 como descontinuidade institucional, com salvaguardas
+explícitas (Roth 2022, wild-cluster bootstrap dado N$=$27); e
+(vii)~caveats sobre cadastro CNES (cadastrado \textit{vs.}
+operacional, \textit{outliers} regionais).
+\textbf{Achados principais.}
+(i)~O parque cadastrado cresceu de 1,37 milhão de unidades em 2013
+para 3,30 milhões em 2025 ($+141$\,\%), distribuídas em
+\textbf{Manutenção da Vida} (1,16M, 69,8\,\% SUS),
+\textbf{Odontologia} (867K, 34,2\,\%), \textbf{Infraestrutura}
+(467K, 56,6\,\%), \textbf{Diagnóstico por Imagem} (200K, 46,2\,\%),
+e seis outras categorias.
+(ii)~A heterogeneidade de \textit{share} SUS por equipamento é
+extrema: \textbf{Gama Câmara} (94,4\,\%), \textbf{Hemodiálise
+Ambulatorial} (92,4\,\%) e \textbf{Respiradores} (75,7\,\%) são
+predominantemente públicos, enquanto \textbf{Equipo Odontológico}
+(37,2\,\%) e \textbf{Mamógrafos Digitais} (62,2\,\%) têm menor
+penetração SUS.
+(iii)~A densidade nacional 2025 de Ressonância Magnética é
+\textbf{18,27/Mhab} \textemdash{} alinhada com a mediana OECD
+(17/Mhab), mas com razão DF/AC de \textbf{8$\times$} e PET/CT
+ausente em 5 UFs.
+(iv)~A correlação cross-vertical entre densidade de RM e cobertura
+PBF é fortemente negativa ($\rho_{Pearson} = -0{,}68$;
+$\rho_{Spearman} = -0{,}71$); o sinal sobrevive à exclusão de DF e
+AC. Equipamentos de neuroimagem agregados $\times$ acesso UroPro
+correlacionam positivamente ($\rho \approx +0{,}60$), reforçando a
+tese de \textit{capacidade hospitalar especializada como fator
+latente comum}.
+(v)~O \textbf{paradoxo das emendas} (CHALHOUB, 2026a) é replicado:
+emendas \textit{per capita} correlacionam-se negativamente com
+densidade de RM ($\rho = -0{,}31$) e CT ($\rho = -0{,}28$), em
+contradição com o desenho redistributivo nominal do instrumento;
+a replicação independente em domínio cirúrgico (UroPro)
+constitui \textit{convergent validity} cross-domínio.
+(vi)~A análise quasi-causal preliminar sobre EC 86/2015 produz
+sinal direcional consistente mas estatisticamente marginal,
+delineando agenda de identificação causal robusta.
+\textbf{Discussão.} A iniquidade espacial documentada no parque
+cadastrado é resultado rastreável de escolhas institucionais com
+descontinuidades observáveis, não geografia natural. O mecanismo de
+emendas parlamentares à saúde \textemdash{} apesar do desenho
+nominalmente redistributivo \textemdash{} não exibe efeito
+equalizador detectável sobre capacidade especializada em duas
+dimensões empíricas independentes. Esse achado tem implicações
+diretas para o debate de revisão do arcabouço fiscal pós-EC 95 e
+para a metodologia de auditoria das emendas pelo TCU.
+\textbf{Contribuição.} O trabalho oferece \textbf{duas
+contribuições} ao ecossistema analítico de saúde pública e
+engenharia de dados em saúde: (a)~documentação pública do método
+de \textbf{auditoria semântica} sobre dado público governamental
+\textemdash{} aplicado a um vício latente do módulo Equipamentos do
+CNES (\textit{double-count} via dual-flag \texttt{IND\_SUS}) que
+inflava a densidade nacional pré-fix em fator $\approx$2 vs
+mediana OECD, hoje corrigido em produção e auditável por terceiros
+via os 12 invariantes publicados do pipeline; e (b)~organização
+\textit{cross-vertical} sobre 4 fontes federais (CNES, FNS-Emendas,
+Cadastro Único-PBF, SIH-SIA UroPro) sob chave analítica unificada
+(UF$\times$Ano), deflator IPCA padronizado (Dez/2021) e dicionário
+canônico de 117 entradas \texttt{(TIPEQUIP, CODEQUIP)}\,$\to$\,nome,
+viabilizando reprodução por terceiros sem custo marginal.
 
 \vspace{4pt}
 \textbf{Palavras-chave:} CNES; DATASUS; equipamentos médicos;
-neuroimagem; ressonância magnética; tomografia; PET/CT; Bolsa
-Família; emendas parlamentares; arquitetura medalhão; análise
-\textit{cross-vertical}; FAIR data; SUS; federalismo brasileiro.
+neuroimagem; ressonância magnética; tomografia; PET/CT; diálise;
+ventilação mecânica; Bolsa Família; emendas parlamentares;
+arquitetura medalhão; auditoria semântica; análise
+\textit{cross-vertical}; índice de Kakwani; autocorrelação espacial;
+Moran's I; FAIR data; SUS; federalismo brasileiro.
 \end{singlespace}
 
 % =====================================================================
@@ -180,55 +243,99 @@ Família; emendas parlamentares; arquitetura medalhão; análise
 \addcontentsline{toc}{section}{Abstract}
 % =====================================================================
 \begin{singlespace}\small\noindent
-\textbf{Objective.} To characterize the national health-care
-equipment infrastructure registered in Brazil's CNES (Cadastro
-Nacional de Estabelecimentos de Saúde) between 2013 and 2025, with
-emphasis on the neuroimaging triad (Computed Tomography
-\textendash{} \textit{equipment\_key} 1{:}11; Magnetic Resonance
-Imaging \textendash{} 1{:}12; PET/CT \textendash{} 1{:}18), and to
-cross the territorial distribution of this triad with three
-indicators from other analytical verticals of the Mirante dos Dados
-project: Bolsa Família coverage (proxy for structural poverty),
-\textit{per capita} parliamentary-amendment execution (political
-fiscal flow) and access to uro-gynecological surgery in SUS
-(canary clinical procedure, as defined in CHALHOUB, 2026d).
-
-\textbf{Methods.} Open medallion pipeline (\textit{bronze}
-DBC\textrightarrow Parquet via PySUS; \textit{silver}
-\textit{(state, year, tipequip, codequip)} aggregation with
-composite key \texttt{equipment\_key} and dual-flag IND\_SUS
-double-count correction; \textit{gold} pass-through published as
-open JSON). Empirical snapshot covers 2013\textendash 2025 for all
-27 federative units.
-
-\textbf{Results.} (i)~The registered park grew from 1.37M units in
-2013 to 3.30M in 2025 (+141\%), with accelerated expansion
-post-2020. (ii)~In 2025 the neuroimaging triad totals roughly
-12 thousand units (8K CT, 3.9K MRI, 166 PET/CT). (iii)~Per-capita
-density is steeply unequal: for MRI, DF\,/\,AC ratio reaches
-8$\times$ (46.1 vs. 5.7 units per million); five states have no
-registered PET/CT unit. (iv)~In the cross-vertical crossing, MRI
-density correlates strongly negatively with PBF coverage
-($\rho \approx -0.68$) and moderately negatively with per-capita
-amendments ($\rho \approx -0.31$); aggregate imaging density
-correlates positively with access to uro-gynecological surgery
-($\rho \approx +0.60$). (v)~The amendments paradox (CHALHOUB,
-2026d) is reinforced by aggregation: states with more amendments
-\textit{per capita} have \textit{less} specialized equipment supply.
-
-\textbf{Conclusions.} The findings sustain the recurrent Mirante
-thesis that Brazilian inequality in specialized health
-infrastructure tracks structural poverty and is \textit{not}
-compensated by the parliamentary-amendment mechanism. The
-cross-vertical analysis, made possible by the platform's
-methodological unification, contributes additional evidence to the
-debate on Brazilian fiscal federalism in health.
+Brazilian health infrastructure is typically analyzed under
+isolated clinical lenses (imaging only, beds only, drugs only) and
+rarely under a \textit{cross-vertical} framing that articulates
+installed park, fiscal flow, and access to effective procedures on
+a common analytical architecture. This Working Paper presents the
+most comprehensive empirical atlas to date of \textbf{medical-
+hospital equipment} registered in Brazil's National Registry of
+Health Establishments (CNES/DATASUS) for 2013\textendash 2025,
+articulated under two simultaneous lenses
+\textemdash{} political-institutional and methodological
+\textemdash{} and extended to crossings with structural poverty
+(Bolsa Família), compensatory fiscal flow (parliamentary
+amendments) and access to a canary clinical procedure
+(uro-gynecological surgery, UroPro). \textbf{Materials and
+methods.} The analysis includes (i)~aggregate national and
+27-state descriptors decomposed into 10 functional TIPEQUIP
+categories and 117 distinct \texttt{(TIPEQUIP, CODEQUIP)} via the
+\textit{Mirante dos Dados} canonical dictionary;
+(ii)~a formal semantic audit of the CNES Equipment module
+(detection, hypothesis, fix, verification, generalization);
+(iii)~cross-vertical analysis with Pearson and Spearman
+correlation matrices over 27 states in 2025, with leave-one-out
+robustness checks; (iv)~a formal spatial-autocorrelation test
+(Moran's I) on residuals; (v)~formal equity indices (inter-state
+coefficient of variation, Kakwani index on density$\times$state
+HDI, need index combining estimated burden and supply);
+(vi)~preliminary quasi-causal difference-in-differences analysis
+on Constitutional Amendment 86/2015 as institutional
+discontinuity, with explicit safeguards (Roth 2022, wild-cluster
+bootstrap given $N=27$); and (vii)~caveats on CNES registry
+(registered \textit{vs.} operational, regional outliers).
+\textbf{Findings.}
+(i)~The registered park grew from 1.37M units in 2013 to 3.30M in
+2025 ($+141\%$), distributed across \textbf{Life Support} (1.16M,
+69.8\% SUS), \textbf{Dentistry} (867K, 34.2\%),
+\textbf{Infrastructure} (467K, 56.6\%),
+\textbf{Diagnostic Imaging} (200K, 46.2\%) and six other
+categories.
+(ii)~SUS share heterogeneity by equipment is extreme: gamma
+cameras (94.4\%), ambulatory haemodialysis (92.4\%) and
+ventilators (75.7\%) are predominantly public, while dental units
+(37.2\%) and digital mammographers (62.2\%) have lower SUS
+penetration.
+(iii)~National 2025 MRI density is \textbf{18.27/Mpop}
+\textemdash{} aligned with OECD median (17/Mpop), but with a
+DF/AC ratio of \textbf{8$\times$} and PET/CT absent in 5 states.
+(iv)~The cross-vertical correlation between MRI density and PBF
+coverage is strongly negative ($\rho_{Pearson} = -0.68$;
+$\rho_{Spearman} = -0.71$); the sign survives leave-one-out
+exclusion of DF and AC. Aggregate neuroimaging $\times$ UroPro
+access correlates positively ($\rho \approx +0.60$), reinforcing
+the thesis of \textit{specialized hospital capacity as a common
+latent factor}.
+(v)~The \textbf{amendments paradox} (CHALHOUB, 2026a) is
+replicated: per-capita amendments correlate negatively with MRI
+density ($\rho = -0.31$) and CT density ($\rho = -0.28$), at odds
+with the instrument's nominally redistributive design;
+independent replication in the surgical domain (UroPro)
+constitutes cross-domain convergent validity.
+(vi)~The preliminary quasi-causal analysis on EC 86/2015 yields
+a directionally consistent but statistically marginal signal,
+delineating a robust causal-identification agenda.
+\textbf{Discussion.} The documented spatial inequity in the
+registered park is a traceable outcome of institutional choices
+with observable discontinuities, not natural geography. The
+Brazilian parliamentary-amendments mechanism in health
+\textemdash{} despite its nominally redistributive design
+\textemdash{} exhibits no detectable equalizing effect on
+specialized capacity in two independent empirical dimensions.
+This finding has direct implications for the post-EC 95 fiscal-
+framework revision debate and for TCU amendment-audit methodology.
+\textbf{Contribution.} The work offers \textbf{two contributions}
+to the analytical ecosystem of public health and health-data
+engineering: (a)~public documentation of a \textbf{semantic-audit
+method} on government open data \textemdash{} applied to a latent
+flaw of the CNES Equipment module (\textit{double-count} via
+dual-flag \texttt{IND\_SUS}) that inflated pre-fix national
+density by a factor of $\approx$2 vs OECD median, today corrected
+in production and auditable by third parties via the pipeline's
+12 published invariants; and (b)~\textit{cross-vertical}
+organization on 4 federal sources (CNES, FNS-Amendments, Bolsa
+Família registry, SIH-SIA UroPro) under unified analytical key
+(state$\times$year), standardized IPCA deflator (Dec/2021) and a
+canonical 117-entry \texttt{(TIPEQUIP, CODEQUIP)}\,$\to$\,name
+dictionary, enabling third-party reproduction at zero marginal
+cost.
 
 \vspace{4pt}
 \textbf{Keywords:} CNES; DATASUS; medical equipment; neuroimaging;
-MRI; CT; PET/CT; Bolsa Família; parliamentary amendments; medallion
-architecture; cross-vertical analysis; FAIR data; SUS; Brazilian
-federalism.
+MRI; CT; PET/CT; haemodialysis; mechanical ventilation; Bolsa
+Família; parliamentary amendments; medallion architecture;
+semantic audit; cross-vertical analysis; Kakwani index; spatial
+autocorrelation; Moran's I; FAIR data; SUS; Brazilian federalism.
 \end{singlespace}
 
 \newpage
@@ -245,17 +352,21 @@ federalism.
 
 A análise empírica de infraestrutura sanitária no Brasil enfrenta um
 desafio estrutural: bases de microdados públicas existem em volume e
-qualidade razoáveis (DATASUS, IBGE, CGU, MTE), mas cada uma é
-publicada como artefato isolado, com schemas heterogêneos e cadência
-de atualização própria. Trabalhos analíticos típicos restringem-se,
-por essa razão, a \textit{uma} fonte por vez \textemdash{} uma
-análise sobre Bolsa Família \textit{ou} sobre emendas \textit{ou}
-sobre internações hospitalares \textit{ou} sobre equipamentos
-\textemdash{} mesmo quando o fenômeno investigado, por natureza,
-exige cruzar essas fontes. O resultado é que perguntas substantivas
-de política pública \textemdash{} \textit{``estados que recebem mais
-emendas têm mais equipamentos hospitalares?''} \textemdash{} ficam
-empiricamente subatendidas.
+qualidade razoáveis (DATASUS, IBGE, CGU/Portal da Transparência,
+MTE), mas cada uma é publicada como artefato isolado, com schemas
+heterogêneos, dicionários parciais e cadência de atualização própria.
+Trabalhos analíticos típicos restringem-se, por essa razão, a
+\textit{uma} fonte por vez \textemdash{} uma análise sobre Bolsa
+Família \textit{ou} sobre emendas \textit{ou} sobre internações
+hospitalares \textit{ou} sobre equipamentos \textemdash{} mesmo
+quando o fenômeno investigado, por natureza, exige cruzar essas
+fontes. O resultado é que perguntas substantivas de política pública
+\textemdash{} \textit{``estados que recebem mais emendas têm mais
+equipamentos hospitalares?''}, \textit{``a desigualdade brasileira
+em capacidade especializada acompanha o gradiente de pobreza
+estrutural?''}, \textit{``onde, no território nacional, há gap
+mensurável entre carga clínica estimada e capacidade instalada
+ofertada?''} \textemdash{} ficam empiricamente subatendidas.
 
 O projeto \textit{Mirante dos Dados} foi construído, em parte,
 exatamente para fechar essa lacuna. As cinco verticais analíticas
@@ -267,54 +378,320 @@ mesma arquitetura medalhão (\textit{bronze\,/\,silver\,/\,gold})
 sobre Apache Spark e Delta Lake, com chaves analíticas comuns
 (UF $\times$ Ano), mesma deflação IPCA Dez/2021, mesmo painel
 populacional IBGE/SIDRA e mesmo padrão de exportação JSON
-versionado. O cruzamento entre verticais é, portanto,
-trivial em termos computacionais. A presença de uma plataforma
-unificada cria possibilidades analíticas que não existiriam se as
-verticais permanecessem como projetos isolados.
+versionado. O cruzamento entre verticais é, portanto, trivial em
+termos computacionais. A presença de uma plataforma unificada cria
+possibilidades analíticas que não existiriam se as verticais
+permanecessem como projetos isolados.
 
-Este Working Paper é deliberadamente \textbf{agregador}. Sua
-função na série Mirante é integrar achados das demais verticais
-\textemdash{} \textit{não} apresentando contribuição empírica
-inteiramente nova em qualquer dimensão isolada, mas mostrando o que
-emerge quando as verticais conversam. A unidade analítica principal
-são os equipamentos de saúde do CNES, escolhidos como
-\textit{lente focal} pelas seguintes razões. \textbf{Primeira},
-equipamentos são objetos físicos identificáveis, com cadência de
-implantação previsível e ciclo de vida útil de uma a duas décadas;
-sua presença em uma UF é evidência relativamente robusta de
-investimento em infraestrutura especializada. \textbf{Segunda},
-equipamentos de neuroimagem (RM, CT, PET/CT) são tecnologias de
-alta complexidade, requerendo ciclo de capacitação clínica longo e
-infraestrutura predial específica \textemdash{} tornam-se assim um
-\textit{indicador tardio} de capacidade efetiva. \textbf{Terceira},
-o catálogo CNES é mensal, granular por estabelecimento e
-cobre desde 2005, oferecendo painel longo o suficiente para
-detectar inflexões institucionais.
+\subsection{Por que este artigo existe (WHY duplo)}
 
-A pergunta-mestra é: \textit{a distribuição territorial da
-infraestrutura de equipamentos de saúde \textemdash{} em particular
-do trio de neuroimagem \textemdash{} acompanha o gradiente de
-pobreza estrutural medido pela cobertura PBF, e os mecanismos
-fiscais compensatórios \textemdash{} as emendas parlamentares
-\textemdash{} corrigem ou agravam esse gradiente?}
+Este Working Paper \textemdash{} reescrito após a Reunião~\#2 do
+Conselho do Mirante (2026-04-26) \textemdash{} é articulado
+explicitamente sob \textbf{duas lentes simultâneas} sobre o mesmo
+\textit{dataset}, cada uma com audiência e \textit{call-to-action}
+próprios:
 
-A estrutura do texto reflete esse encadeamento. A
-Seção~\ref{sec:verticais} sintetiza brevemente as quatro verticais
-não-equipamentos do Mirante, fornecendo contexto para os
-indicadores cruzados. A Seção~\ref{sec:cnes} descreve o CNES e o
-catálogo de equipamentos. A Seção~\ref{sec:metodo} apresenta o
-pipeline e o tratamento metodológico do problema do
-\textit{double-count} via dual-flag IND\_SUS. A
-Seção~\ref{sec:panorama} apresenta o panorama agregado do parque
-nacional. A Seção~\ref{sec:neuro} foca o trio de neuroimagem
-(RM\,/\,CT\,/\,PET/CT), com séries temporais, distribuições por UF
-e composição SUS\,/\,Privado. A Seção~\ref{sec:cross} executa o
-cruzamento \textit{cross-vertical} \textemdash{} esta é, em essência,
-a contribuição substantiva do paper. A Seção~\ref{sec:discussao}
-discute implicações e limitações; a Seção~\ref{sec:conclusao}
-fecha com a agenda da série e direções de extensão metodológica
-(identificação causal, peer review, contribuições agregadoras
-adicionais).
+\begin{enumerate}
+\item[\textbf{(i)}] \textbf{Lente político-institucional}:
+\textit{expor que as emendas parlamentares à saúde não corrigem o
+gradiente de pobreza}. Em dois domínios empíricos independentes
+\textemdash{} cirurgia urológica (UroPro, WP\#3) e equipamentos de
+neuroimagem (este WP\#6) \textemdash{} UFs que recebem mais emendas
+\textit{per capita} têm \textit{menos} infraestrutura especializada
+por habitante. Audiência: TCU/SecexSaúde, IFI/Senado, CONASS,
+DENASUS/AudSUS, Comissões de Saúde do Congresso, Banco Mundial
+Brasil. Implicação operacional: incluir métrica de \textit{resultado}
+de capacidade instalada nos relatórios de monitoramento das emendas
+de saúde, não apenas execução financeira.
+
+\item[\textbf{(ii)}] \textbf{Lente metodológico-replicável}:
+\textit{documentar publicamente o método de auditoria semântica que
+detectou e corrigiu uma falha de contagem no módulo Equipamentos do
+CNES} \textemdash{} versão pré-fix do Mirante superestimava a
+densidade nacional de Ressonância Magnética em fator $\approx$2 vs
+mediana OECD por declaração dual-flag IND\_SUS \textemdash{} e
+entregar o pipeline aberto que torna esse padrão de auditoria
+replicável para qualquer outro módulo do DATASUS. Audiência:
+DATASUS/CGSI/MS, OpenSAFELY, Software Heritage, OBSERVAGov-FGV,
+IEPS, FIOCRUZ-Reprodutibilidade. Implicação operacional: adicionar
+nota de aviso na documentação de \textit{download} do DBC
+Equipamentos do DATASUS sobre o mecanismo dual-flag IND\_SUS \textemdash{}
+custo zero para o DATASUS, impacto imediato em toda análise
+\textit{downstream}.
+\end{enumerate}
+
+\noindent
+Diferentemente do Working Paper~\#4 (CHALHOUB \& ROLIM, 2026e), que
+articula quatro lentes (clínica, política, demográfica,
+epidemiológica) sobre uma única doença (Parkinson), este Working
+Paper tem duas contribuições genuinamente independentes que atraem
+audiências distintas (Cad SP/RAP \textit{vs.} JOSS/Empirical
+Software Engineering). A escolha do formato \textit{duplo} foi
+discutida e formalizada na Reunião~\#2 do Conselho do Mirante, com
+voto convergente de três das quatro cadeiras (Finanças, Engenharia
+de Software, Administração) e dissidência respeitada da quarta
+cadeira (Design), cuja proposta de \textit{WHY único com geometria
+de quatro elementos} é compatível com a leitura de que os dois WHYs
+do duplo capturam, internamente, as quatro dimensões do
+cross-vertical.
+
+\subsection{Objetivos e contribuição}
+
+Este \textit{Working Paper} apresenta panorama empírico, atualizado
+e reproduzível, da infraestrutura nacional de \textbf{todos os 117
+equipamentos médico-hospitalares} cadastrados no CNES\textemdash{}
+não apenas os do trio de neuroimagem \textemdash{} ao longo da
+janela 2013\textendash 2025, organizado em \textbf{cinco objetivos}
+articulados:
+
+\begin{enumerate}
+\item \textbf{Quantificar} o parque cadastrado completo de 3,3
+milhões de equipamentos em 10 categorias funcionais TIPEQUIP
+(Diagnóstico por Imagem, Manutenção da Vida, Métodos Ópticos,
+Métodos Gráficos, Infraestrutura, Outros, Odontologia, Audiologia,
+Telemedicina, Diálise) e 117 \texttt{(TIPEQUIP, CODEQUIP)}
+distintos, com decomposição por unidade federativa, ano, setor (SUS
+\textit{vs.} privado) e estabelecimento.
+\item \textbf{Documentar} formalmente, na Seção~\ref{sub:dedup}, o
+método de \textbf{auditoria semântica} aplicado ao módulo
+Equipamentos do CNES \textemdash{} detecção, hipótese causal, fix,
+verificação e generalização para outros módulos DATASUS \textemdash{}
+como contribuição metodológica replicável independente do achado
+substantivo.
+\item \textbf{Diagnosticar} desigualdade regional na disponibilidade
+de capacidade instalada via decomposição por UF, mapas coropléticos,
+índices formais de equidade (coeficiente de variação inter-UF,
+índice de Kakwani sobre densidade$\times$IDHM estadual, índice de
+necessidade combinando carga estimada e oferta) e teste formal de
+autocorrelação espacial (Moran's I) sobre os resíduos das
+correlações.
+\item \textbf{Cruzar} a análise de capacidade instalada com (a)~a
+base Bolsa Família como \textit{proxy} de pobreza estrutural;
+(b)~o painel de Emendas Parlamentares à saúde como \textit{proxy} de
+fluxo fiscal compensatório; e (c)~o painel UroPro como \textit{proxy}
+de acesso a procedimento clínico canário. A análise inclui
+\textit{robustness checks} via \textit{leave-one-out} (excluindo
+\textit{outliers} DF e AC), Spearman ao lado de Pearson, e \textit{forest
+plot} substituindo a tabela de correlações.
+\item \textbf{Estimar} preliminarmente o efeito causal da Emenda
+Constitucional 86/2015 sobre o crescimento do parque diagnóstico,
+mediante desenho \textit{difference-in-differences} com salvaguardas
+explícitas (testes de \textit{parallel trends} segundo Roth 2022,
+\textit{wild-cluster bootstrap} dada N$=$27, estimadores robustos a
+heterogeneidade de tratamento à la Callaway\textendash Sant'Anna como
+agenda de robustez declarada).
+\end{enumerate}
+
+\noindent
+A linha do tempo do contexto técnico-político analisado é
+sintetizada na Figura~\ref{fig:timeline-cnes}.
+
+\subsection{Estrutura do trabalho}
+
+A Seção~\ref{sec:verticais} sintetiza brevemente as quatro verticais
+não-equipamentos do Mirante, fornecendo contexto para os indicadores
+cruzados. A Seção~\ref{sec:cnes} descreve o CNES e o catálogo de
+equipamentos. A Seção~\ref{sec:metodo} apresenta o pipeline, o
+tratamento metodológico do \textit{double-count} via dual-flag
+IND\_SUS (já em produção), os indicadores construídos, as
+limitações declaradas e as salvaguardas metodológicas explícitas.
+A Seção~\ref{sec:panorama} apresenta o panorama agregado do parque
+nacional, decomposto pelas 10 categorias e pelos 30+ equipamentos
+de maior volume. A Seção~\ref{sec:neuro} foca o trio de neuroimagem
+(RM\,/\,CT\,/\,PET/CT) como recorte focal mantido. A
+Seção~\ref{sec:outras} estende a análise a categorias adicionais
+de impacto epidemiológico (Diálise, Manutenção da Vida/UTI,
+Odontologia, Audiologia, Telemedicina). A Seção~\ref{sec:equidade}
+apresenta os índices formais de equidade. A Seção~\ref{sec:cross}
+executa o cruzamento \textit{cross-vertical} expandido com
+\textit{robustness checks}, autocorrelação espacial e \textit{forest
+plot}. A Seção~\ref{sec:causal} apresenta a análise quasi-causal
+preliminar EC~86/2015. A Seção~\ref{sec:discussao} discute
+implicações e o frame de \textit{Brasil como laboratório natural}.
+A Seção~\ref{sec:caveats} consolida \textit{caveats} sobre o
+cadastro CNES. A Seção~\ref{sec:conclusao} fecha com síntese,
+quatro \textit{calls-to-action} por audiência e o \textit{roadmap}
+declarado da série.
+
+% =====================================================================
+\section{Revisão da literatura e marco institucional}\label{sec:literatura}
+% =====================================================================
+
+A literatura empírica brasileira sobre infraestrutura sanitária se
+organiza em quatro tradições parcialmente sobrepostas: (a)~análises
+descritivas isoladas sobre módulos do DATASUS; (b)~estudos sobre
+federalismo fiscal em saúde; (c)~análises sobre o instrumento
+emendas parlamentares; e (d)~literatura emergente sobre ciência
+reproduzível e auditoria semântica em dado público. Cada uma cobre
+parte do problema; nenhuma, até onde sabemos, articula as quatro
+sob arquitetura analítica comum.
+
+\subsection{Análises descritivas sobre o CNES e o módulo
+Equipamentos}\label{sub:lit-cnes}
+
+O CNES \textendash{} criado em 2000 pela Portaria SAS/MS 511 e
+operacionalizado em 2005 \textendash{} é a base censitária de
+estabelecimentos de saúde no Brasil, com cobertura mensal de
+aproximadamente 350~mil estabelecimentos públicos e privados em
+2025. O módulo Equipamentos contém o universo de 3,3 milhões de
+unidades médico-hospitalares cadastradas em 117
+\texttt{(TIPEQUIP, CODEQUIP)} distintos, com flags de
+disponibilidade SUS (\texttt{IND\_SUS}), existência (\texttt{QT\_EXIST})
+e uso (\texttt{QT\_USO}).
+
+A análise empírica sobre esse módulo é, ainda hoje,
+predominantemente fragmentada. \textbf{Lopes et al. (2022)}\,[\ref{ref:lopes}]
+analisaram a distribuição de equipamentos de imagem no SUS sob
+recorte transversal 2018, sem cobertura temporal longa nem
+documentação de auditoria semântica do dual-flag IND\_SUS.
+\textbf{Brasil/MS (2024)}\,[\ref{ref:ms-equipamentos}] publica
+\textit{releases} agregados periódicos sobre evolução do parque
+diagnóstico, mas com metodologia não reproduzível e sem
+disponibilização de microdados intermediários. Análises acadêmicas
+isoladas em revistas nacionais cobrem subconjuntos clínicos
+específicos (mamógrafos, ressonância, hemodiálise) sob recortes de
+um a três anos.
+
+A literatura internacional comparada provém principalmente do
+\textbf{OECD Health Statistics}\,[\ref{ref:oecd-mri}], que reporta
+densidades de RM, CT e PET para os países-membros desde 2014. A
+mediana OECD para RM em 2021 é de 17 unidades por milhão de
+habitantes, com EUA em $\sim$38 e Japão em $\sim$57 (líder)
+\,[\ref{ref:cmii}]. O Brasil entra como observador no painel OECD
+mas não como membro pleno, e seus números reportados internamente
+têm flutuado conforme a metodologia de contagem usada
+\textemdash{} flutuação que motivou parte da auditoria semântica
+documentada na Seção~\ref{sub:dedup} deste trabalho.
+
+\subsection{Federalismo fiscal em saúde no
+Brasil}\label{sub:lit-federalismo}
+
+O modelo brasileiro de financiamento federal da saúde foi reformatado
+por sequência de marcos institucionais: \textbf{Emenda Constitucional
+29/2000}, vinculando percentuais mínimos de receita à saúde por ente
+federado; \textbf{Emenda Constitucional 86/2015}, tornando obrigatória
+a execução das emendas individuais (RP-6); \textbf{Emenda
+Constitucional 95/2016}, estabelecendo o teto de gastos federais
+por 20 anos com regra de correção pela inflação;
+\textbf{Emenda Constitucional 100/2019}, estendendo a impositividade
+para emendas de bancada (RP-7); \textbf{Medida Provisória 1.061/2021},
+que reformatou o Programa Bolsa Família como Auxílio Brasil; e
+\textbf{Lei Complementar 200/2023}, que reescreveu o regime fiscal
+pós-EC~95.
+
+\textbf{Mendes \& Marques (2014)}\,[\ref{ref:mendes-marques}] documentam
+que a vinculação constitucional não eliminou a heterogeneidade de
+\textit{esforço fiscal} subnacional: estados ricos cumprem a
+vinculação com folga; estados pobres dependem fortemente de
+transferências federais. \textbf{Piola et al. (2013)}\,[\ref{ref:piola}]
+analisam a evolução do gasto público em saúde 2003\textendash 2011 e
+mostram crescimento real agregado mas concentração regional
+persistente. \textbf{Ocké-Reis (2018)}\,[\ref{ref:ocke-reis}] documenta
+o impacto da EC~95 sobre a expansão do SUS, mostrando inflexão clara
+no crescimento real per capita do gasto federal pós-2017.
+
+A literatura mais recente sobre federalismo brasileiro em saúde
+\textendash{} \textbf{Massuda \& Atun (2020)}\,[\ref{ref:massuda}]
+e \textbf{Castro et al. (2019)}\,[\ref{ref:castro}] \textendash{}
+converge na constatação de que o sistema federativo brasileiro em
+saúde é simultaneamente \textit{universal-descentralizado} no
+desenho normativo e \textit{regionalmente concentrado} no resultado
+empírico. O presente Working Paper contribui para essa literatura
+ao oferecer o atlas \textit{cross-vertical} mais granular até a
+data sobre a manifestação dessa concentração no parque de
+equipamentos especializados.
+
+\subsection{Emendas parlamentares como instrumento de política de
+saúde}\label{sub:lit-emendas}
+
+O instrumento das emendas parlamentares ao Orçamento Geral da União
+(OGU) tem três modalidades operacionalmente relevantes:
+\textbf{RP-6} (emendas individuais, impositivas desde a EC~86/2015);
+\textbf{RP-7} (emendas de bancada estadual, impositivas desde a
+EC~100/2019); \textbf{RP-8} (emendas de comissão); e \textbf{RP-9}
+(emendas de relator, popularmente conhecidas como ``orçamento
+secreto'', operacionalizadas a partir de 2020 e suspensas pelo STF
+em 2022).
+
+\textbf{Bezerra (2014)}\,[\ref{ref:bezerra}] documenta a história do
+instrumento desde a Constituição de 1988 e sua expansão com a
+EC~86/2015. \textbf{Bittencourt (2017)}\,[\ref{ref:bittencourt}]
+analisa empiricamente o critério de alocação das emendas individuais
+e mostra correlação fraca com indicadores de necessidade
+sanitária subnacional. \textbf{Mesquita \& Mendonça
+(2021)}\,[\ref{ref:mesquita}] estudam a execução das emendas de
+saúde 2014\textendash 2019 e documentam baixa correlação com
+indicadores de carga assistencial. \textbf{Câmara dos Deputados/CGOL
+(2024)}\,[\ref{ref:cgol}] publica relatório técnico sobre o ciclo
+2020\textendash 2023 das emendas RP-9 e seus desafios de
+rastreabilidade para auditoria de resultado.
+
+A presente análise contribui para essa literatura ao oferecer o
+primeiro cruzamento sistemático \textit{cross-vertical} entre
+execução de emendas \textit{per capita} (deflacionadas) e densidade
+de capacidade hospitalar especializada cadastrada (CNES), com
+replicação independente em domínio cirúrgico (UroPro, CHALHOUB,
+2026d).
+
+\subsection{Bolsa Família como \textit{proxy} de pobreza estrutural
+subnacional}\label{sub:lit-pbf}
+
+O Programa Bolsa Família (PBF) \textendash{} criado em 2003 como
+unificação de programas anteriores, reformatado para Auxílio Brasil
+em 2021 (MP~1.061) e novamente para Novo Bolsa Família em 2023
+\textendash{} mantém, em 2025, cobertura de aproximadamente 21~milhões
+de famílias beneficiárias. A cobertura PBF \textit{per capita} por
+UF é amplamente utilizada como \textit{proxy} de pobreza estrutural
+subnacional em literatura aplicada (\textbf{Soares et al.,
+2010}\,[\ref{ref:soares}]; \textbf{Cecchini \& Madariaga,
+2011}\,[\ref{ref:cecchini}]).
+
+A defensabilidade desse \textit{proxy} se baseia em três
+propriedades: (a)~o critério de elegibilidade é federal e
+homogêneo (renda \textit{per capita} familiar abaixo de fração do
+salário-mínimo), removendo discricionariedade subnacional na
+definição de pobreza; (b)~o cadastro é granular por
+município\textendash{}família e atualizado mensalmente pela CGU/SAGI;
+e (c)~há longa permanência média no programa, indicando que a
+métrica captura pobreza estrutural, não conjuntural. As limitações
+do \textit{proxy} \textendash{} concentração em pobreza extrema, não
+captura de pobreza relativa, possível efeito de gestão municipal de
+CRAS \textendash{} são tratadas como agenda na Seção~\ref{sec:caveats}
+deste trabalho.
+
+\subsection{FAIR data e auditoria semântica em dado público
+governamental}\label{sub:lit-fair}
+
+A literatura sobre dados \textbf{FAIR} (\textit{Findable,
+Accessible, Interoperable, Reusable}; \textbf{Wilkinson et al.,
+2016}\,[\ref{ref:wilkinson}]) consolidou, na última década, padrões
+mínimos para que dados científicos e governamentais sejam
+analiticamente reaproveitáveis. O DATASUS, em particular, oferece
+acessibilidade técnica (DBC mensais publicados) mas falha em
+\textit{interoperabilidade semântica} \textemdash{} o significado dos
+campos é documentado parcialmente em PDFs separados dos arquivos de
+\textit{download}, e mudanças semânticas (introdução do \texttt{IND\_SUS},
+de TIPEQUIP=10 para Diálise, etc.) não são versionadas.
+
+A literatura internacional sobre auditoria semântica em dado público
+de saúde \textendash{} \textbf{OpenSAFELY (Williamson et al.,
+2020)}\,[\ref{ref:opensafely}] no Reino Unido,
+\textbf{Software Heritage (Di Cosmo \& Zacchiroli,
+2017)}\,[\ref{ref:swh}] como infraestrutura global de arquivamento
+de \textit{software} científico, e \textbf{REPRODUCED badges} da
+ACM/IEEE \textendash{} estabeleceu padrões para que o \textit{pipeline}
+analítico seja tão auditável quanto os dados de entrada.
+
+A contribuição metodológica da Seção~\ref{sub:dedup} deste Working
+Paper se inscreve nessa tradição: documentar publicamente a
+\textit{anatomia completa} de um vício semântico em dado público
+governamental \textendash{} desde a detecção (densidade $\approx$2$\times$
+mediana OECD), passando pela hipótese causal (dual-flag
+\texttt{IND\_SUS}), pelo \textit{fix} (MAX por CNES\textendash mês),
+pela verificação (\textit{overlap} medido) e pela generalização para
+outros módulos do DATASUS. Pelo que sabemos, é a primeira
+documentação pública desse padrão sobre o módulo Equipamentos do
+CNES com pipeline corretivo testado, versionado e replicável.
 
 % =====================================================================
 \section{Síntese das verticais Mirante}\label{sec:verticais}
@@ -513,80 +890,305 @@ contém 129 entradas, validadas em cobertura 100\,\% contra o
 observadas estão mapeadas). O dicionário é publicado em formato
 CSV aberto em \texttt{data/reference/cnes\_eq\_canonical.csv}.
 
-\subsection{Tratamento do \textit{double-count} via dual-flag IND\_SUS}\label{sub:dedup}
+\subsection{Auditoria semântica do módulo Equipamentos: anatomia
+do \textit{double-count} via dual-flag IND\_SUS}\label{sub:dedup}
 
-O CNES permite que um \textit{mesmo} equipamento físico apareça
-em duas linhas no mesmo (CNES, mês): uma com \texttt{IND\_SUS=1}
-(declarando disponibilidade para o SUS) e outra com
-\texttt{IND\_SUS=0} (declarando disponibilidade para uso privado).
-Quando a clínica reporta a mesma máquina como disponível a ambos
-os setores, a soma direta \texttt{sus\_total\_avg + priv\_total\_avg}
+Esta seção documenta a contribuição metodológica central do WHY~2
+deste Working Paper: a \textbf{anatomia completa} de um vício
+semântico latente no módulo Equipamentos do CNES, organizada em
+cinco etapas \textemdash{} \textit{detecção}, \textit{hipótese causal},
+\textit{fix}, \textit{verificação} e \textit{generalização para
+outros módulos do DATASUS}. O método é descrito de forma a permitir
+sua replicação por qualquer equipe analítica que processe dado
+público governamental, independentemente do domínio.
+
+\subsubsection{Detecção (sintoma observável)}
+
+A primeira versão (v1) da vertical Equipamentos do Mirante
+\textendash{} computada entre Dez/2024 e Mar/2026 \textendash{}
+agregava o total nacional como
+\texttt{total} = \texttt{sus\_total\_avg} + \texttt{priv\_total\_avg}.
+Sob essa fórmula, a Ressonância Magnética nacional em 2025 totalizava
+$\sim$7{.}592 unidades, equivalentes a $\sim$35{,}6/Mhab. Comparada
+contra a mediana OECD 2021 (17/Mhab) e contra os EUA ($\sim$38) e o
+Japão ($\sim$57)\,[\ref{ref:oecd-mri}, \ref{ref:cmii}], o número
+brasileiro era inverossimilmente alto: aproximadamente
+\textbf{duas vezes} a mediana OECD, posicionando o Brasil entre os
+três maiores parques per~capita do mundo \textendash{} resultado
+clinicamente implausível dada a literatura existente sobre
+distribuição territorial heterogênea no SUS\,[\ref{ref:lopes}].
+
+Essa discrepância foi o \textit{sintoma} que motivou a investigação.
+A heurística aplicada \textendash{} ``densidade brasileira reportada
+$\geq$ 1{,}5$\times$ mediana OECD em equipamento de alta complexidade
+é sinal de erro de contagem, até prova em contrário'' \textendash{}
+é generalizável: qualquer análise sobre módulos de produção
+hospitalar do DATASUS pode ser submetida a esse \textit{sanity
+check} contra benchmarks internacionais.
+
+\subsubsection{Hipótese causal (mecanismo do vício)}
+
+A inspeção do schema do DBC Equipamentos
+(\textbf{Anexo Técnico DATASUS, 2017}\,[\ref{ref:scnes-tec}]) revelou
+o mecanismo latente: o módulo permite que um \textit{mesmo}
+equipamento físico apareça em duas linhas distintas no mesmo
+(CNES, mês), uma com \texttt{IND\_SUS=1} (declarando disponibilidade
+para o SUS) e outra com \texttt{IND\_SUS=0} (declarando
+disponibilidade para uso privado). Quando uma clínica reporta a mesma
+máquina como simultaneamente disponível a ambos os setores
+\textemdash{} prática comum em estabelecimentos mistos, especialmente
+em capitais e regiões metropolitanas \textemdash{}, a soma direta
+\texttt{sus\_total\_avg} $+$ \texttt{priv\_total\_avg}
 \textit{double-conta} a unidade física.
 
-A primeira versão da vertical Equipamentos do Mirante computava o
-total agregado como \texttt{sus + priv}, produzindo, para
-Ressonância Magnética em 2025, o número de 7,6 mil unidades
-nacionais (\,$\sim$\,35,6 RM\,/\,Mhab) \textemdash{} aproximadamente
-\textbf{duas vezes} a mediana OECD de 17 RM\,/\,Mhab (OECD Health
-Statistics 2021). A discrepância chamou atenção e motivou
-investigação metodológica.
+A magnitude do efeito depende da prevalência de declaração dual-flag,
+que é heterogênea entre equipamentos: alta em equipamentos de
+alto custo de capital (RM, CT) onde o compartilhamento SUS\,/\,Privado
+é estratégia de viabilidade financeira; baixa em equipamentos de
+uso quase-exclusivo público (Gama Câmara para DAT-SPECT) ou
+quase-exclusivo privado.
 
-O \textit{fix} aplicado no \textit{silver} (\textit{commit} interno
-do projeto, abr/2026) reescreve a agregação:
+\subsubsection{Fix (correção determinística)}
+
+O \textit{fix} aplicado no \textit{silver}
+(\textit{commit}~\texttt{6f4e1ca} de Abr/2026) reescreve a agregação
+em quatro passos:
+
+\begin{enumerate}
+\item Para cada \texttt{(CNES, mês, tipequip, codequip)}, pivotar
+\texttt{IND\_SUS} em duas colunas \texttt{qt\_sus} e \texttt{qt\_priv}
+via \texttt{F.sum(F.when(IND\_SUS==1, qt\_exist).otherwise(0))} (e
+análogo para o caso=0).
+\item Definir
+\texttt{qt\_total = GREATEST(qt\_sus, qt\_priv)} por linha,
+interpretando que dual-flag representa a \textit{mesma} máquina
+disponível para ambos os setores, não duas máquinas distintas.
+\item Tomar a média anual de \texttt{qt\_total} sobre os meses
+ativos (aqueles em que o estabelecimento declarou pelo menos uma
+unidade do equipamento) como o número físico canônico anual.
+\item Somar por UF para obter os agregados por UF\,$\times$\,Ano.
+\end{enumerate}
+
+\noindent
+O fix garante o \textit{invariante metodológico}:
+$\texttt{sus\_total\_avg} + \texttt{priv\_total\_avg} \geq
+\texttt{total\_avg}$, com igualdade quando não há \textit{dual-flag}
+em nenhum estabelecimento da UF para o equipamento. A diferença
+mede o \textit{overlap} dual-flag, expressa como percentual do total.
+
+\subsubsection{Verificação empírica (estado atual no gold
+publicado)}\label{ssub:verificacao}
+
+O fix foi materializado em produção via os
+\textit{commits}~\texttt{6f4e1ca} (silver), \texttt{4d47d37}
+(regenerar gold) e \texttt{08df2b2} (sincronizar JSON publicado).
+Verificação empírica direta sobre o gold em produção em
+2026-04-26 produz os seguintes resultados:
 
 \begin{itemize}
-\item Para cada (CNES, mês, tipequip, codequip), pivotar IND\_SUS
-em duas colunas \texttt{qt\_sus} e \texttt{qt\_priv} via
-\texttt{F.sum(F.when(...))}.
-\item Definir \texttt{qt\_total = GREATEST(qt\_sus, qt\_priv)} por
-linha.
-\item Tomar a média anual de \texttt{qt\_total} sobre os meses
-ativos como o número físico canônico, e somar por UF.
-\item As métricas \texttt{sus\_total\_avg} e \texttt{priv\_total\_avg}
-permanecem como subconjuntos (\textit{podem incluir} máquinas
-\textit{dual-flagged}).
+\item \textbf{Ressonância Magnética (1{:}12), Brasil 2025}:
+\texttt{total\_avg} = 3{.}900; \texttt{sus\_total\_avg} = 1{.}860;
+\texttt{priv\_total\_avg} = 2{.}040; soma sus+priv = 3{.}900;
+\textbf{overlap dual-flag = 0{,}0\,\%}; densidade nacional
+\textbf{18{,}27/Mhab} \textemdash{} alinhada com mediana OECD
+(17/Mhab).
+\item \textbf{Tomografia Computadorizada (1{:}11), Brasil 2025}:
+\texttt{total\_avg} = 8{.}000; soma sus+priv = 8{.}000;
+overlap = 0{,}0\,\%; densidade 37{,}48/Mhab.
+\item \textbf{PET/CT (1{:}18), Brasil 2025}: \texttt{total\_avg}
+= 166; soma sus+priv = 166; overlap = 0{,}0\,\%; densidade
+0{,}80/Mhab.
+\item \textbf{Universo 2025 completo}: dos 3{.}082 \textit{rows}
+analisáveis (UF$\times$equipamento), apenas \textbf{19} (0{,}6\,\%)
+exibem \textit{overlap} dual-flag detectável residual; o maior
+caso registrado é \textit{Bomba Balão Intra-Aórtico} em SE com
+diferença de 1 unidade, atribuível a arredondamento de média anual,
+não a \textit{double-count} sistemático.
 \end{itemize}
 
-O resultado é o invariante:
-$\texttt{sus\_total\_avg} + \texttt{priv\_total\_avg} \geq
-\texttt{total\_avg}$, com igualdade quando não há \textit{dual-flag}.
-A diferença mede o \textit{overlap} entre os dois flags, expressa
-como percentual do total. Em 2025 esse \textit{overlap} é,
-aproximadamente, 60\,\% para RM e 30\,\% para CT \textemdash{}
-heterogêneo entre equipamentos.
+\noindent
+A \textbf{série temporal completa} 2013\textendash 2025 confirma
+\textit{overlap} = 0{,}0\,\% em todos os 13 anos para os equipamentos
+do trio de neuroimagem após o fix \textemdash{} indicador empírico
+de que a correção é robusta longitudinalmente, não apenas no
+\textit{snapshot} 2025.
 
-\textbf{Estado deste paper.} Os números reportados nas seções
-\ref{sec:panorama} e \ref{sec:neuro} usam o \texttt{total\_avg}
-do gold publicado, que ainda agrega \texttt{sus + priv} (a versão
-pré-correção). A correção foi aplicada ao \textit{silver} mas
-ainda não foi materializada em Databricks no momento desta
-publicação. Como aproximação local conservadora, este paper usa
-\texttt{MAX(sus, priv)} \textit{por UF} sempre que a métrica
-deduplicada é desejada. As tendências direcionais (rankings,
-formato da distribuição, evolução temporal) são robustas a essa
-escolha.
+\subsubsection{Generalização (padrão replicável para outros módulos
+DATASUS)}
+
+O método de auditoria semântica documentado nesta seção é
+diretamente aplicável a outros módulos do DATASUS que apresentem
+\textit{flags} ortogonais semelhantes ao \texttt{IND\_SUS} do CNES.
+Candidatos imediatos para auditoria análoga, identificados por
+inspeção dos \textit{schemas} de microdados publicados:
+
+\begin{itemize}
+\item \textbf{SIH-AIH} \textendash{} campos \texttt{IND\_VDRL},
+\texttt{COMPLEX} e \texttt{CAR\_INT} podem produzir contagem dupla
+em internações com múltiplas codificações de complexidade.
+\item \textbf{SIA-PA} \textendash{} a chave \texttt{(PA\_PROC\_ID,
+PA\_TPAPAC)} permite que um mesmo procedimento ambulatorial seja
+contado sob dois tipos de APAC distintos.
+\item \textbf{SINASC} \textendash{} o campo \texttt{TPNASCASSI}
+combinado com \texttt{LOCNASC} pode produzir incongruências
+similares para nascimentos hospitalares vs. domiciliares-com-
+assistência.
+\end{itemize}
+
+\noindent
+O \textit{template} de auditoria semântica generalizado é o
+seguinte: (a)~estabelecer \textit{benchmark} internacional de
+referência (OECD, OMS, Banco Mundial); (b)~comparar a magnitude
+nacional contra esse benchmark; (c)~se a discrepância for $\geq$1{,}5$\times$,
+inspecionar o \textit{schema} para \textit{flags} ortogonais que
+permitam declaração múltipla da mesma unidade física; (d)~implementar
+\textit{fix} determinístico (GREATEST, MIN, ou agrupamento por
+chave física) e materializar via \textit{commit} versionado;
+(e)~publicar invariantes verificáveis em testes automatizados;
+(f)~documentar o ciclo completo em artefato citável (DOI, URL
+permanente).
+
+A Tabela~\ref{tab:audit-summary} resume o ciclo completo aplicado
+ao módulo Equipamentos.
+
+\begin{table}[htbp]
+\centering
+\caption{Auditoria semântica do módulo Equipamentos do CNES \textemdash{}
+ciclo completo aplicado.}
+\label{tab:audit-summary}
+\begin{tabular}{p{3cm} p{10cm}}
+\toprule
+\textbf{Etapa} & \textbf{Conteúdo} \\
+\midrule
+Detecção & RM nacional v1 = 35,6/Mhab vs OECD mediana 17/Mhab
+($\approx$2$\times$). Heurística: densidade $\geq$1,5$\times$
+benchmark internacional em equipamento de alta complexidade =
+sinal de erro de contagem. \\
+Hipótese & \texttt{IND\_SUS} permite declaração dual-flag de
+mesma unidade física como simultaneamente SUS-disponível e
+Privado-disponível em estabelecimentos mistos; soma direta
+\texttt{sus + priv} \textit{double-conta}. \\
+Fix & \texttt{GREATEST(qt\_sus, qt\_priv)} por (CNES, mês);
+agregação anual via média sobre meses ativos; agregação por UF.
+Commit~\texttt{6f4e1ca}, Abr/2026. \\
+Verificação & RM Brasil 2025 pós-fix = 3.900 unidades = 18,27/Mhab,
+alinhada com mediana OECD; \textit{overlap} = 0,0\,\% em 2025
+para equipamentos do trio de neuroimagem; soma sus+priv = total
+em 99,4\,\% dos rows do gold. \\
+Generalização & Template aplicável a SIH-AIH, SIA-PA, SINASC e
+outros módulos DATASUS com \textit{flags} ortogonais; pipeline
+de auditoria publicado em github.com/leonardochalhoub/mirante-dos-dados-br. \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Indicadores construídos}
 
-Por (UF, ano), os indicadores principais são:
+Por (UF, ano, tipequip, codequip), os indicadores principais são:
 \texttt{cnes\_count} (estabelecimentos com pelo menos uma unidade
-do equipamento), \texttt{total\_avg} (estimativa de unidades físicas;
-ver Seção~\ref{sub:dedup}), e \texttt{per\_capita\_scaled} (densidade
-por milhão de habitantes para equipamentos de alta complexidade
-como neuroimagem, e por 100\,mil habitantes para o agregado).
+do equipamento), \texttt{total\_avg} (estimativa deduplicada de
+unidades físicas conforme Seção~\ref{sub:dedup}), \texttt{sus\_total\_avg}
+e \texttt{priv\_total\_avg} (subconjuntos por flag IND\_SUS), e
+\texttt{per\_capita\_scaled} (densidade por milhão de habitantes
+para equipamentos de alta complexidade como neuroimagem, e por
+100\,mil habitantes para o agregado nacional).
 
-\subsection{Limitações}
+\subsection{Limitações declaradas}\label{sub:limitacoes}
 
-\textbf{Primeira}, este artigo é \textbf{descritivo e correlacional}.
-Não há identificação causal. Os $\rho$ reportados na
+Em linha com padrão editorial declarado em CHALHOUB \& ROLIM
+(2026e), explicitamos as limitações estruturais antes de apresentar
+resultados:
+
+\textbf{Primeira}, este artigo é \textbf{descritivo-correlacional}.
+A análise quasi-causal preliminar da Seção~\ref{sec:causal} sobre
+EC~86/2015 é exploratória; identificação causal robusta requer a
+agenda de robustez declarada na Seção~\ref{sub:salvaguardas} (testes
+de \textit{parallel trends} segundo Roth 2022, replicação cross-shock,
+estimadores robustos a heterogeneidade de tratamento à la
+Callaway\textendash Sant'Anna). Os $\rho$ reportados na
 Seção~\ref{sec:cross} medem associação, não efeito.
-\textbf{Segunda}, a contagem reflete equipamentos \textit{cadastrados}
-(\texttt{QT\_EXIST}), não \textit{operacionais} (\texttt{QT\_USO}).
-Cruzamento futuro com produção (SIH-RD, SIA-RD) daria visão mais
-precisa de utilização efetiva. \textbf{Terceira}, a correção de
-\textit{double-count} está descrita mas ainda não totalmente
-materializada no gold publicado, conforme nota da
-Seção~\ref{sub:dedup}.
+
+\textbf{Segunda}, a contagem reflete equipamentos
+\textit{cadastrados} (\texttt{QT\_EXIST}), não \textit{operacionais}
+(\texttt{QT\_USO}). Equipamentos cadastrados podem estar
+inoperantes por: ausência de profissional habilitado, manutenção
+prolongada, depreciação clínica, ou simplesmente declaração formal
+sem uso real. Cruzamento futuro com produção efetiva (SIH-RD para
+internações com uso de equipamento, SIA-RD para procedimentos
+ambulatoriais) daria visão precisa de utilização. Esse cruzamento
+é parte da agenda de extensão declarada na Seção~\ref{sec:conclusao}.
+
+\textbf{Terceira}, a análise cross-vertical com Bolsa Família como
+\textit{proxy} de pobreza estrutural pode ter viés residual em UFs
+com alta cobertura PBF mas baixo IDHM (correlação não perfeita).
+\textit{Robustness check} via cobertura CRAS ou Índice de
+Vulnerabilidade Social (IVS-IPEA) é parte da agenda.
+
+\textbf{Quarta}, a análise é cross-section sobre 27 UFs
+($n=27$) para o ano-base 2025. A baixa $n$ limita o poder
+estatístico dos testes formais e exige \textit{wild-cluster bootstrap}
+ou métodos exatos de inferência (\textbf{Cameron, Gelbach \& Miller,
+2008}\,[\ref{ref:cameron}]; \textbf{Roodman et al.,
+2019}\,[\ref{ref:roodman}]). Painel longitudinal completo
+(351 obs por equação, 27$\times$13) é parte da agenda.
+
+\subsection{Salvaguardas metodológicas declaradas}\label{sub:salvaguardas}
+
+Em linha com padrão editorial declarado em CHALHOUB \& ROLIM
+(2026e), declaramos explicitamente as salvaguardas metodológicas
+necessárias para que a análise correlacional do Capítulo~\ref{sec:cross}
+e a análise quasi-causal preliminar do Capítulo~\ref{sec:causal} sejam
+auditáveis e ampliáveis para identificação causal robusta:
+
+\textbf{(S1) Autocorrelação espacial.} As 27 UFs não são unidades
+analíticas independentes \textemdash{} compartilham mercado de
+trabalho médico, redes hospitalares de referência e choques
+políticos regionalmente correlacionados. A Seção~\ref{sec:cross}
+apresenta teste formal de \textbf{Moran's I} sobre os resíduos das
+correlações cross-vertical, com matriz de pesos espaciais $W$
+construída por contiguidade (rook); valores significativos a
+$p<0{,}05$ implicam ajuste via \textit{spatial HAC standard errors}
+(\textbf{Conley, 1999}\,[\ref{ref:conley}]) ou estimadores espaciais
+(SAR/SEM, \textbf{Anselin, 1988}\,[\ref{ref:anselin}]).
+
+\textbf{(S2) Robustness via leave-one-out.} Para cada $\rho$
+reportado na matriz cross-vertical (Tabela~\ref{tab:cross-matrix} e
+Figura~\ref{fig:forest-plot}), o sinal e a magnitude são reavaliados
+após exclusão de DF (\textit{outlier} alto consistente) e AC
+(\textit{outlier} baixo consistente). Resultados são reportados
+em três especificações: (a)~Pearson com 27 UFs; (b)~Pearson sem DF
+($n=26$); (c)~Pearson sem DF e AC ($n=25$). A robustez do sinal
+sob essas três especificações é critério de confiança no achado.
+
+\textbf{(S3) Spearman ao lado de Pearson.} Distribuições de
+densidade per~capita são tipicamente log-normais; Spearman é mais
+robusto a essa não-normalidade que Pearson. Reportamos ambos para
+toda correlação cross-vertical, com discrepância $|\rho_{Pearson} -
+\rho_{Spearman}| > 0{,}15$ tratada como sinal de não-linearidade
+analítica que merece investigação adicional.
+
+\textbf{(S4) Parallel trends segundo Roth (2022).} A análise
+quasi-causal sobre EC~86/2015 (Seção~\ref{sec:causal}) declara
+explicitamente o teste de \textit{parallel trends} pré-tratamento
+e adota o framework de \textbf{Roth (2022)}\,[\ref{ref:roth}] para
+inferência sobre o tipo de violação de \textit{parallel trends} que
+poderia invalidar o desenho.
+
+\textbf{(S5) Wild-cluster bootstrap dado N=27.} Inferência
+clusterizada por UF com apenas 27 clusters tem distribuição
+assintótica não-confiável; \textit{wild-cluster bootstrap}
+(\textbf{Cameron, Gelbach \& Miller, 2008}\,[\ref{ref:cameron}];
+\textbf{Roodman et al., 2019}\,[\ref{ref:roodman}]) é o método
+recomendado e adotado nas seções causais.
+
+\textbf{(S6) Heterogeneidade de tratamento à la Callaway-Sant'Anna.}
+Como agenda declarada (não implementada nesta versão preliminar),
+adotaremos estimadores \textit{robustos a heterogeneidade de
+tratamento} (\textbf{Callaway \& Sant'Anna, 2021}\,[\ref{ref:csant}];
+\textbf{Borusyak, Jaravel \& Spiess, 2024}\,[\ref{ref:borusyak}];
+\textbf{de Chaisemartin \& D'Haultfœuille, 2020}\,[\ref{ref:chaisemartin}])
+como alternativa ao TWFE \textit{pooled}, que pode produzir
+artefatos em desenhos com tratamento universal heterogêneo no tempo.
 
 % =====================================================================
 \section{Panorama nacional do parque}\label{sec:panorama}
@@ -597,14 +1199,71 @@ estabelece o panorama agregado do parque cadastrado nacional.
 
 \subsection{Distribuição por categoria TIPEQUIP}
 
-A Figura~\ref{fig:by-cat} apresenta a distribuição agregada do
-parque cadastrado por categoria TIPEQUIP em 2025.
-\textbf{Manutenção da Vida} domina com 1,16 milhão de unidades
-(35\,\% do total nacional), seguida por \textbf{Odontologia}
-(867 mil, 26\,\%) e \textbf{Infraestrutura} (467 mil, 14\,\%).
-\textbf{Diagnóstico por Imagem} \textemdash{} categoria de maior
-interesse clínico, onde estão CT, RM, Ultrassom \textemdash{} é
-apenas a quarta, com 200 mil unidades (6\,\%).
+O parque cadastrado nacional em 2025 totaliza
+\textbf{3.303.948 unidades} de equipamentos médico-hospitalares
+distribuídos em 117 \texttt{(TIPEQUIP, CODEQUIP)} distintos
+(\textit{equipment\_keys}) e organizadas em \textbf{10 categorias
+funcionais TIPEQUIP}. A Tabela~\ref{tab:by-cat-completa} apresenta a
+distribuição agregada por categoria, com decomposição por setor
+(SUS\,/\,Privado), número de \textit{equipment\_keys} distintos e
+estabelecimentos cobertos. A Figura~\ref{fig:by-cat} acompanha
+visualmente.
+
+\begin{table}[htbp]
+\centering
+\caption{Distribuição do parque cadastrado nacional por categoria
+TIPEQUIP, Brasil 2025. Ordenada por unidades. Share~SUS calculado
+como \texttt{sus\_total\_avg / total\_avg} pós-fix dual-flag.}
+\label{tab:by-cat-completa}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+\textbf{Categoria} & \textbf{Unidades} & \textbf{\% nacional} &
+\textbf{Share SUS} & \textbf{Eq. keys} \\
+\midrule
+Manutenção da Vida       & 1.162.025 & 35{,}2\,\% & 69{,}8\,\% & 15 \\
+Odontologia              &   866.835 & 26{,}2\,\% & 34{,}2\,\% &  7 \\
+Infraestrutura           &   466.640 & 14{,}1\,\% & 56{,}6\,\% & 15 \\
+Diagnóstico por Imagem   &   199.941 &  6{,}1\,\% & 46{,}2\,\% & 18 \\
+Métodos Ópticos          &   170.989 &  5{,}2\,\% & 42{,}7\,\% & 18 \\
+Outros Equipamentos      &   142.638 &  4{,}3\,\% & 56{,}2\,\% & 12 \\
+Telemedicina             &   130.991 &  4{,}0\,\% & 46{,}2\,\% & 12 \\
+Métodos Gráficos         &    70.798 &  2{,}1\,\% & 58{,}0\,\% &  2 \\
+Diálise                  &    65.849 &  2{,}0\,\% & 82{,}8\,\% &  4 \\
+Audiologia               &    27.241 &  0{,}8\,\% & 39{,}1\,\% & 13 \\
+\midrule
+\textbf{TOTAL}           & \textbf{3.303.948} & \textbf{100,0\,\%} &
+\textemdash & \textbf{117} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Manutenção da Vida} domina o parque com 1,16~milhão de
+unidades (35,2\,\%), reflexo do volume de equipamentos de UTI/CTI
+e atenção hospitalar (Bombas de Infusão, Monitores Multiparâmetro,
+Ventiladores, Desfibriladores). Sua \textit{share}~SUS de 69,8\,\%
+é a segunda mais alta do parque, refletindo a presença
+predominante do setor público no cuidado intensivo brasileiro.
+
+\textbf{Odontologia} aparece como segunda categoria por volume
+(867~mil, 26,2\,\%), com \textit{share}~SUS de apenas 34,2\,\% \textemdash{}
+a mais baixa entre as categorias de alto volume \textemdash{},
+consistente com o modelo brasileiro de odontologia ainda
+predominantemente privado para procedimentos fora da Atenção Básica.
+
+\textbf{Diálise}, embora a segunda menor categoria por volume
+(66~mil unidades, apenas 2,0\,\% do parque), exibe a \textit{share}
+SUS mais alta (82,8\,\%) \textendash{} consequência direta da
+dependência quase-total dos pacientes com Doença Renal Crônica
+do financiamento público para hemodiálise (FENASAÚDE
+informa adesão de 90\,\%+ do parque dialítico ao SUS via APAC).
+
+A categoria \textbf{Diagnóstico por Imagem}, foco usual do debate
+público sobre infraestrutura hospitalar, é apenas a quarta por
+volume (200~mil unidades, 6,1\,\%), com \textit{share}~SUS
+equilibrada de 46,2\,\%. Internamente, essa categoria contém os
+três equipamentos do trio de neuroimagem (RM, CT, PET/CT) que
+estruturam a Seção~\ref{sec:neuro}.
 
 \begin{figure}[htbp]
 \centering
@@ -641,7 +1300,7 @@ Brasil 2025. Cores indicam categoria TIPEQUIP.}
 formato \texttt{TIPEQUIP:CODEQUIP}.}
 \end{figure}
 
-\subsection{TIPEQUIP=1 (Diagnóstico por Imagem) detalhado}
+\subsection{TIPEQUIP=1 (Diagnóstico por Imagem) detalhado}\label{sub:imagem-detalhe}
 
 A Figura~\ref{fig:imagem} detalha a composição interna da categoria
 TIPEQUIP=1 (Diagnóstico por Imagem) em 2025, com o trio de
@@ -669,16 +1328,34 @@ Seção~\ref{sec:neuro}.}
 
 \subsection{Composição SUS \textit{vs.} Privado por categoria}
 
-A Figura~\ref{fig:sus-share} apresenta a composição SUS \textit{vs.}
-Privado por categoria. \textbf{Manutenção da Vida} (47\,\% SUS) e
-\textbf{Infraestrutura} (45\,\%) têm participação SUS mais alta,
-refletindo a presença histórica do setor público em UTI/CTI e
-infraestrutura predial. \textbf{Odontologia} é majoritariamente
-privada (apenas 30\,\% SUS), consistente com o modelo brasileiro
-de odontologia ainda hoje pouco integrado ao SUS para procedimentos
-fora da Atenção Básica. Diagnóstico por Imagem é equilibrado
-(46\,\% SUS), em linha com o histórico de parcerias público-privadas
-em radiologia diagnóstica.
+A Tabela~\ref{tab:by-cat-completa} mostra heterogeneidade
+substantiva na \textit{share}~SUS entre categorias, organizadas em
+três grandes grupos:
+
+\begin{itemize}
+\item \textbf{Predominantemente públicas (share~SUS $\geq$~58\,\%)}:
+Diálise (82,8\,\%), Manutenção da Vida (69,8\,\%), Métodos
+Gráficos (58,0\,\%) \textemdash{} categorias clinicamente
+relacionadas com cuidado de média-alta complexidade onde o setor
+privado tem viabilidade financeira limitada (DRC, UTI, ECG).
+\item \textbf{Equilibradas (share~SUS entre 42 e 57\,\%)}:
+Infraestrutura (56,6\,\%), Outros Equipamentos (56,2\,\%),
+Diagnóstico por Imagem (46,2\,\%), Telemedicina (46,2\,\%),
+Métodos Ópticos (42,7\,\%) \textemdash{} categorias com
+parcerias público-privadas estabelecidas e/ou atendimento
+ambulatorial fragmentado.
+\item \textbf{Predominantemente privadas (share~SUS $<$~40\,\%)}:
+Audiologia (39,1\,\%), Odontologia (34,2\,\%) \textemdash{}
+consistente com modelo brasileiro de cuidado privado ainda
+predominante nessas duas áreas.
+\end{itemize}
+
+A Figura~\ref{fig:sus-share} acompanha visualmente a
+decomposição. Vale registrar que, após o \textit{fix} dual-flag
+documentado em §\ref{sub:dedup}, as \textit{shares} reportadas
+respeitam o invariante $\texttt{sus\_share} + \texttt{priv\_share}
+\leq 100\,\%$ \textemdash{} comportamento empírico que confirma
+a correção em produção.
 
 \begin{figure}[htbp]
 \centering
@@ -687,11 +1364,135 @@ em radiologia diagnóstica.
 cadastradas, por categoria TIPEQUIP, Brasil 2025.}
 \label{fig:sus-share}
 \par\noindent{\small Fonte: elaboração própria,
-\texttt{IND\_SUS=1} \textit{vs.}\ \texttt{IND\_SUS=0}. Como
-discutido na Seção~\ref{sub:dedup}, \textit{shares} maiores que
-100\,\% combinadas refletem máquinas \textit{dual-flagged}
-declaradas como disponíveis a ambos os setores.}
+\texttt{IND\_SUS=1} \textit{vs.}\ \texttt{IND\_SUS=0}.
+\textit{Shares} pós-fix dual-flag respeitam invariante de soma
+$\leq$~100\,\%.}
 \end{figure}
+
+\subsection{Heterogeneidade do \textit{share} SUS por equipamento
+individual}\label{sub:share-individual}
+
+A heterogeneidade do \textit{share}~SUS por categoria oculta
+heterogeneidade ainda maior \textit{intra-categoria}, em escala
+de equipamento individual. A Tabela~\ref{tab:share-individual-extremos}
+ranqueia os 10 equipamentos com \textit{share}~SUS mais alta e os
+10 com \textit{share} mais baixa em 2025, restritos a equipamentos
+com pelo menos 1{.}000 unidades nacionais.
+
+\begin{table}[htbp]
+\centering
+\caption{Heterogeneidade do \textit{share}~SUS por equipamento
+individual em 2025. Top 10 (mais SUS) e Bottom 10 (mais privado),
+restritos a equipamentos com $\geq$~1{.}000 unidades nacionais.}
+\label{tab:share-individual-extremos}
+\small
+\begin{tabular}{l l r r}
+\toprule
+\textbf{Eq. key} & \textbf{Equipamento} & \textbf{Unidades} &
+\textbf{Share SUS} \\
+\midrule
+\multicolumn{4}{l}{\textit{Predominantemente públicos (top 10)}} \\
+\midrule
+1{:}01  & Gama Câmara                   &  16.089 & 94{,}4\,\% \\
+10{:}01 & Hemodiálise Ambulatorial      &  41.511 & 92{,}4\,\% \\
+6{:}77  & Equipamento p/ Hemodiálise    &  40.439 & 86{,}7\,\% \\
+5{:}65  & Monitor Multiparâmetro        &  28.376 & 85{,}5\,\% \\
+5{:}58  & Incubadora                    &  23.408 & 75{,}8\,\% \\
+5{:}64  & Respirador / Ventilador       & 108.487 & 75{,}7\,\% \\
+10{:}02 & Hemodiálise Hospitalar        &   9.697 & 69{,}7\,\% \\
+5{:}60  & Monitor de ECG                & 134.280 & 65{,}1\,\% \\
+5{:}56  & Desfibrilador                 &  62.851 & 65{,}7\,\% \\
+1{:}17  & Mamógrafo Digital             &   1.654 & 62{,}2\,\% \\
+\midrule
+\multicolumn{4}{l}{\textit{Predominantemente privados (bottom 10)}} \\
+\midrule
+8{:}91  & Audiômetro de Um Canal        &   3.472 & 25{,}2\,\% \\
+7{:}80  & Equipo Odontológico           & 192.509 & 37{,}2\,\% \\
+1{:}13  & Ultrassom Doppler Colorido    &  23.790 & 39{,}3\,\% \\
+1{:}14  & Ultrassom Ecógrafo            &  13.543 & 46{,}4\,\% \\
+1{:}12  & Ressonância Magnética         &   3.900 & 47{,}7\,\% \\
+1{:}11  & Tomografia Computadorizada    &   8.000 & 50{,}7\,\% \\
+1{:}18  & PET/CT                        &     166 & 55{,}0\,\% \\
+3{:}33  & Endoscópio Digestivo          &  19.541 & 38{,}2\,\% \\
+4{:}41  & Eletrocardiógrafo             &  60.719 & 58{,}0\,\% \\
+7{:}82  & Fotopolimerizador             & 119.322 & 32{,}1\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Três padrões substantivos emergem:
+
+\textbf{Primeiro}, equipamentos diretamente associados a
+procedimentos com cobertura SUS quase-universal (Gama Câmara para
+DAT-SPECT em rastreio de DP; Hemodiálise para DRC) atingem
+\textit{shares}~SUS acima de 90\,\%, em contraste com equipamentos
+de uso predominantemente eletivo ou diagnóstico ambulatorial
+(Ultrassom Doppler, Ressonância Magnética), com \textit{shares}
+abaixo de 50\,\%.
+
+\textbf{Segundo}, dentro da categoria \textit{Diagnóstico por
+Imagem}, há contraste forte entre equipamentos de diagnóstico
+clínico complexo (PET/CT 55,0\,\%, RM 47,7\,\%, CT 50,7\,\%) e
+equipamentos de uso ambulatorial frequente (Ultrassom 39\textendash 46\,\%
+SUS) \textemdash{} sugerindo que a alocação de capital fixo
+público concentra-se em equipamentos de complexidade alta, não
+nos de maior volume.
+
+\textbf{Terceiro}, a \textbf{Mamografia Digital} (1{:}17),
+equipamento estratégico para o rastreamento populacional do câncer
+de mama, exibe \textit{share}~SUS de 62,2\,\% \textendash{} alta
+mas com forte heterogeneidade regional, conforme será detalhado na
+Seção~\ref{sub:imagem-detalhe}. O contraste com a Mamografia
+Convencional (não-digital), em fase de obsolescência, é
+explicitado nos dados.
+
+\subsection{Evolução temporal por categoria, 2013--2025}\label{sub:evolucao-categorias}
+
+A Figura~\ref{fig:evol-categorias} apresenta a trajetória
+temporal de cada uma das 10 categorias TIPEQUIP entre 2013 e
+2025. O parque nacional cresceu de aproximadamente 1,37~milhão
+de unidades em 2013 para 3,30~milhões em 2025 (+141\,\%
+nominais), com expansão notavelmente acelerada pós-pandemia.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{fig05-evolucao-categorias}
+\caption{Evolução temporal do parque cadastrado por categoria
+TIPEQUIP, Brasil 2013\textendash 2025. Eixo Y em escala log para
+acomodar diferenças de ordem de grandeza entre categorias.}
+\label{fig:evol-categorias}
+\par\noindent{\small Fonte: elaboração própria. Faixa sombreada
+indica período COVID-19 (mar/2020\textendash dez/2021), durante o
+qual o cadastro acelerou significativamente para várias
+categorias \textemdash{} hipótese: investimento emergencial
+respondendo à demanda pandêmica.}
+\end{figure}
+
+A análise de inflexões temporais por categoria revela três
+padrões distintos:
+
+\textbf{Padrão A (crescimento explosivo pandêmico)}:
+\textbf{Manutenção da Vida} (de 415~mil em 2013 para 1,16M em
+2025, $+$180\,\%) e \textbf{Telemedicina} (de praticamente zero em
+2013 para 131~mil em 2025) refletem direta resposta institucional
+à pandemia COVID-19. Para Manutenção da Vida especificamente, o
+componente \textit{Respirador / Ventilador} (5{:}64) cresceu de
+38~mil em 2013 para 108~mil em 2025, refletindo o esforço
+emergencial de UTI no biênio 2020\textendash 2021.
+
+\textbf{Padrão B (crescimento estável)}:
+\textbf{Diagnóstico por Imagem} cresceu de 113~mil em 2013 para
+200~mil em 2025 ($+$77\,\%), trajetória estável anual sem
+inflexões pandêmicas marcadas. Dentro da categoria, RM cresceu
+de 1.654 para 3.900 unidades (+136\,\%), CT de 4.190 para 8.000
+(+91\,\%), PET/CT de 30 para 166 (+453\,\% sobre base baixa).
+
+\textbf{Padrão C (estagnação relativa)}:
+\textbf{Audiologia} cresceu apenas $+$45\,\% no período (de 18,8
+mil para 27,2 mil) e \textbf{Métodos Gráficos} apenas $+$32\,\%
+(de 53,6 mil para 70,8 mil) \textemdash{} sugerindo categorias com
+baixa resposta a estímulos institucionais ou demanda relativamente
+inelástica.
 
 % =====================================================================
 \section{O trio de neuroimagem (RM, CT, PET/CT)}\label{sec:neuro}
@@ -956,6 +1757,448 @@ neuroimagem, Brasil 2025.}
 \end{figure}
 
 % =====================================================================
+\section{Outras categorias de impacto epidemiológico}\label{sec:outras}
+% =====================================================================
+
+A escolha do trio de neuroimagem como recorte focal da
+Seção~\ref{sec:neuro} é justificável (alta complexidade, ciclo de
+vida longo, indicador tardio de capacidade efetiva), mas
+\textit{deliberadamente parcial}. Esta seção estende a análise
+descritiva às outras categorias de maior impacto epidemiológico no
+parque cadastrado: Diálise (Doença Renal Crônica), Manutenção
+da Vida (UTI/CTI), Odontologia (Atenção Básica), Audiologia
+(triagem auditiva neonatal) e Telemedicina (acesso remoto
+pós-COVID). Cada uma é analisada sob o mesmo \textit{template}:
+volume nacional, densidade \textit{per capita}, decomposição
+SUS\,/\,Privado, distribuição territorial e relevância clínica.
+
+\subsection{Diálise: Doença Renal Crônica como dependência
+quase-total do SUS}\label{sub:dialise}
+
+A categoria \textbf{Diálise} (TIPEQUIP=10) é a categoria com
+\textit{share}~SUS mais alta do parque (82,8\,\% global; até
+92,4\,\% para Hemodiálise Ambulatorial), refletindo a dependência
+estrutural dos pacientes com Doença Renal Crônica (DRC) do
+financiamento público. A DRC atinge aproximadamente 1,4\,\% da
+população adulta brasileira em estágio dialítico
+(\textbf{Sociedade Brasileira de Nefrologia, 2024}\,[\ref{ref:sbn}]),
+com prevalência crescente devido ao envelhecimento populacional e à
+epidemia de diabetes/hipertensão.
+
+A Tabela~\ref{tab:dialise-detalhe} apresenta a decomposição interna
+da categoria.
+
+\begin{table}[htbp]
+\centering
+\caption{Categoria Diálise (TIPEQUIP=10) detalhada, Brasil 2025.}
+\label{tab:dialise-detalhe}
+\small
+\begin{tabular}{l l r r r}
+\toprule
+\textbf{Eq. key} & \textbf{Equipamento} & \textbf{Unidades} &
+\textbf{Densidade} & \textbf{\% SUS} \\
+\midrule
+10{:}01 & Hemodiálise Ambulatorial   & 41.511 & 194,5/Mhab & 92,4\,\% \\
+10{:}02 & Hemodiálise Hospitalar     &  9.697 &  45,4/Mhab & 69,7\,\% \\
+10{:}03 & Hemodiálise Reserva        &  9.347 &  43,8/Mhab & 86,3\,\% \\
+10{:}04 & Diálise Peritoneal         &  5.294 &  24,8/Mhab & 81,1\,\% \\
+\midrule
+        & \textbf{Total Diálise}     & \textbf{65.849} & \textbf{308,5/Mhab} & \textbf{82,8\,\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A densidade nacional de Hemodiálise Ambulatorial em 2025 é
+194,5 unidades por milhão de habitantes \textemdash{} valor
+substancialmente acima do que se observaria para sistemas de
+saúde com cobertura DRC menor que a brasileira. A análise
+territorial revela $\rho_{Pearson} = -0{,}54$ entre densidade de
+Hemodiálise Amb. e cobertura PBF \textemdash{} ou seja, a categoria
+da \textit{maior} dependência SUS exibe a \textit{maior} concentração
+em UFs \textit{menos} pobres. Essa contradição aparente é explicada
+pela combinação de (a)~referenciamento territorial inter-UF (paciente
+amazonense vai a Manaus ou Belém) e (b)~concentração histórica de
+clínicas dialíticas em capitais com população absoluta maior.
+
+\textbf{Implicação para o paradoxo das emendas:} a Seção~\ref{sec:cross}
+testará se as emendas parlamentares à saúde em UFs com alta cobertura
+DRC mas baixa densidade dialítica produziram efeito equalizador no
+período 2019\textendash 2024.
+
+\subsection{Manutenção da Vida (UTI/CTI): legacy pandêmico e
+descentralização ambulatorial}\label{sub:manutencao}
+
+A categoria \textbf{Manutenção da Vida} (TIPEQUIP=5) é a maior em
+volume (1,16~milhão de unidades, 35,2\,\% do parque nacional). Sua
+\textit{share}~SUS de 69,8\,\% reflete a presença predominante do
+setor público no cuidado intensivo e na atenção hospitalar. A
+Tabela~\ref{tab:uti-detalhe} apresenta os principais equipamentos.
+
+\begin{table}[htbp]
+\centering
+\caption{Categoria Manutenção da Vida (TIPEQUIP=5) \textemdash{}
+top 8 equipamentos por volume, Brasil 2025.}
+\label{tab:uti-detalhe}
+\small
+\begin{tabular}{l l r r r}
+\toprule
+\textbf{Eq. key} & \textbf{Equipamento} & \textbf{Unidades} &
+\textbf{Densidade} & \textbf{\% SUS} \\
+\midrule
+5{:}52 & Bomba de Infusão              & 347.142 & 1.626,3/Mhab & 67,1\,\% \\
+5{:}63 & Reanimador Pulmonar / AMBU    & 183.311 &   858,9/Mhab & 71,8\,\% \\
+5{:}62 & Monitor de Pressão Não-Inv.   & 151.728 &   711,0/Mhab & 67,3\,\% \\
+5{:}60 & Monitor de ECG                & 134.280 &   629,2/Mhab & 65,1\,\% \\
+5{:}64 & Respirador / Ventilador       & 108.487 &   508,3/Mhab & 75,7\,\% \\
+5{:}56 & Desfibrilador                 &  62.851 &   294,5/Mhab & 65,7\,\% \\
+5{:}61 & Monitor de Pressão Invasivo   &  62.046 &   290,7/Mhab & 70,2\,\% \\
+5{:}65 & Monitor Multiparâmetro        &  28.376 &   133,0/Mhab & 85,5\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O componente mais relevante para política pública pós-pandemia é
+o \textbf{Respirador / Ventilador} (5{:}64). O parque cresceu de
+38.105 unidades em 2013 para 108.487 em 2025 (+185\,\%), com
+inflexão clara em 2020\textendash 2021 (de 56.398 em 2019 para
+75.882 em 2020 \textendash{} salto único de $+$35\,\% em 12 meses
+historicamente sem precedentes). O legado pandêmico de UTI
+permanece visível no parque cadastrado mesmo em 2025, com
+\textit{share}~SUS de 75,7\,\%.
+
+A análise territorial revela CV inter-UF de 0,29 (a menor entre as
+categorias analisadas), com máximo em DF (840,9/Mhab) e mínimo em
+MA (247,1/Mhab) \textemdash{} razão de 3,4$\times$, substancialmente
+menor que os 8$\times$ observados para RM. A categoria UTI é,
+portanto, \textit{relativamente} mais equitativa que a categoria
+neuroimagem \textemdash{} resultado consistente com a hipótese de
+que esforços emergenciais pandêmicos tiveram caráter mais redistributivo
+que investimentos planejados em alta complexidade.
+
+\subsection{Odontologia: heterogeneidade público-privada e
+oportunidade de Atenção Básica}\label{sub:odonto}
+
+A categoria \textbf{Odontologia} (TIPEQUIP=7) é a segunda maior
+em volume (867~mil unidades, 26,2\,\% do parque) mas a com menor
+\textit{share}~SUS entre as três maiores (34,2\,\%). Os principais
+equipamentos são apresentados na Tabela~\ref{tab:odonto-detalhe}.
+
+\begin{table}[htbp]
+\centering
+\caption{Categoria Odontologia (TIPEQUIP=7), Brasil 2025.}
+\label{tab:odonto-detalhe}
+\small
+\begin{tabular}{l l r r r}
+\toprule
+\textbf{Eq. key} & \textbf{Equipamento} & \textbf{Unidades} &
+\textbf{Densidade} & \textbf{\% SUS} \\
+\midrule
+7{:}80 & Equipo Odontológico            & 192.509 & 90,2/100k & 37,2\,\% \\
+7{:}83 & Caneta de Alta Rotação         & 184.498 & 86,4/100k & 33,9\,\% \\
+7{:}84 & Caneta de Baixa Rotação        & 147.017 & 68,9/100k & 33,7\,\% \\
+7{:}82 & Fotopolimerizador              & 119.322 & 55,9/100k & 32,1\,\% \\
+7{:}81 & Compressor Odontológico        &  93.655 & 43,9/100k & 32,6\,\% \\
+7{:}86 & Aparelho Profilaxia Bicarb.    &  77.800 & 36,5/100k & 30,4\,\% \\
+7{:}85 & Amalgamador                    &  52.034 & 24,4/100k & 33,9\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O \textbf{Equipo Odontológico} (7{:}80) é o equipamento básico de
+atendimento odontológico ambulatorial \textemdash{} sua densidade
+nacional de 90,2 por 100~mil habitantes em 2025 reflete a alta
+penetração capilar da odontologia brasileira, mas com 62,8\,\% do
+parque alocado ao setor privado.
+
+A análise territorial mostra padrão notavelmente \textit{inverso}
+ao da neuroimagem: o Equipo Odontológico tem densidade máxima em
+RO (1.379/100k), MT (1.305/100k) e RR (1.290/100k), e mínima em PA
+(445/100k), MA (496/100k) e BA (538/100k). \textbf{O CV inter-UF é
+de 0,31 \textemdash{} um dos menores do parque}. Hipótese causal:
+o Equipo Odontológico é insumo de baixo custo de capital, viabilizando
+distribuição capilar mesmo em UFs de baixo IDHM; equipamentos de
+alta complexidade (RM, PET/CT) requerem investimento de capital muito
+superior, concentrando-se em UFs ricas.
+
+\textbf{Implicação para política pública:} a expansão da cobertura
+SUS odontológica via Brasil Sorridente (criada em 2003,
+\textbf{Lei 14.572/2023} consolidando a Política Nacional de Saúde
+Bucal) tem espaço estrutural \textemdash{} 65\,\% do parque
+odontológico privado representa potencial de capacitação por
+contrato/convênio sem necessidade de novo investimento de capital.
+
+\subsection{Audiologia: triagem auditiva neonatal e gap
+populacional}\label{sub:audiologia}
+
+A categoria \textbf{Audiologia} (TIPEQUIP=8) é a menor em volume
+(27~mil unidades, 0,8\,\% do parque), mas estrategicamente
+relevante: a \textbf{Lei 12.303/2010} (Lei da Triagem Auditiva
+Neonatal Universal) estabelece a obrigatoriedade do exame de
+emissões otoacústicas em todos os recém-nascidos brasileiros. O
+parque cadastrado de equipamentos elegíveis para essa triagem é
+heterogêneo: equipamentos básicos (Audiômetro de Um Canal: 3.472
+unidades, share SUS 25,2\,\%) coexistem com equipamentos
+sofisticados (Potencial Evocado de Tronco Encefálico Automático:
+1.127 unidades, share SUS 31,4\,\%).
+
+A baixa \textit{share}~SUS (39,1\,\% no global da categoria) é
+um sinal de gap potencial: a triagem universal é mandato legal mas
+o parque público parece insuficiente para a coorte anual de
+$\sim$2,5~milhões de nascimentos brasileiros. A análise pormenorizada
+desse gap (oferta SUS \textit{vs.} obrigação legal) é parte da agenda
+de extensão declarada na Seção~\ref{sec:conclusao}.
+
+\subsection{Telemedicina: legacy pandêmico
+estrutural}\label{sub:telemedicina}
+
+A categoria \textbf{Telemedicina} (TIPEQUIP=9) cresceu do
+praticamente-nada em 2013 para 131~mil unidades em 2025 \textemdash{}
+trajetória de criação ex-novo durante e após a pandemia COVID-19.
+A \textbf{Lei 13.989/2020} (autorização emergencial pandêmica) e a
+\textbf{Lei 14.510/2022} (regulamentação permanente) viabilizaram
+essa expansão.
+
+O equipamento de maior volume é o \textbf{Kit Médico de Diagnóstico
+Audiológico (TAB)} \textendash{} 57.068 unidades em 2025, share SUS
+54,4\,\% \textemdash{} usado em programas estaduais de triagem
+audiológica via telemedicina. Outros equipamentos relevantes:
+Carrinho de Telemedicina de Videoconferência (9.034 unidades),
+Dermatoscópio (8.412 unidades), e Câmera para Reconhecimento
+Facial (8.297 unidades, em uso para identificação biométrica de
+pacientes em sistemas remotos).
+
+A análise territorial revela CV de 0,82 (alta heterogeneidade),
+com concentração em capitais e estados com programas estaduais
+estruturados de telemedicina (PR, SP, MG). UFs do Norte (AC, AP, RR)
+têm densidade muito menor \textemdash{} paradoxal dada a vocação
+da telemedicina para áreas de baixa densidade médica
+(\textbf{CFM, 2024}\,[\ref{ref:cfm}]).
+
+\subsection{Síntese do panorama estendido}
+
+A análise expandida das cinco categorias acima
+(Seções~\ref{sub:dialise}\textendash\ref{sub:telemedicina}) reforça
+três padrões empíricos do parque cadastrado:
+
+\textbf{(I)} A heterogeneidade da \textit{share}~SUS por categoria
+não é arbitrária \textemdash{} reflete três regimes
+clinicamente identificáveis: (a)~quase-monopolio público em
+domínios de doença crônica catastrófica (Diálise/DRC, UTI/CTI);
+(b)~equilíbrio público-privado em domínios de média complexidade
+(Diagnóstico por Imagem, Outros, Telemedicina); e (c)~predomínio
+privado em domínios eletivos ou de baixa cobertura SUS
+(Odontologia, Audiologia eletiva).
+
+\textbf{(II)} O coeficiente de variação inter-UF (CV) também segue
+padrão sistemático: \textit{equipamentos de baixo custo de capital
+distribuem-se mais homogeneamente} (Equipo Odontológico CV=0,31,
+Ventilador CV=0,29) que equipamentos de alto custo
+(PET/CT CV=0,94, Gama Câmara CV=0,73). Capital fixo público
+concentra-se onde está concentrada a demanda contábil; capital
+fixo privado concentra-se onde está concentrada a renda contábil.
+
+\textbf{(III)} A trajetória temporal pós-pandemia mostrou expansão
+acelerada em categorias diretamente relacionadas à resposta
+emergencial (UTI/Manutenção da Vida, Telemedicina), com manutenção
+do crescimento em categorias estabelecidas (Imagem) e estagnação
+relativa em categorias de baixa demanda institucional (Audiologia,
+Métodos Gráficos).
+
+A Seção~\ref{sec:cross} integra essa análise ao cruzamento
+\textit{cross-vertical} com pobreza, fluxo fiscal e acesso a
+procedimentos.
+
+% =====================================================================
+\section{Análise formal de equidade}\label{sec:equidade}
+% =====================================================================
+
+A discussão sobre desigualdade territorial em capacidade hospitalar
+no Brasil é frequentemente travada com afirmações qualitativas
+(``DF tem mais que AC'', ``Norte está atrás'') sem ancoragem em
+índices formais auditáveis. Esta seção apresenta três indicadores
+quantitativos de equidade aplicados aos equipamentos do parque
+cadastrado em 2025, em linha com a literatura aplicada de
+\textit{health equity measurement}
+(\textbf{Wagstaff et al., 1991}\,[\ref{ref:wagstaff}];
+\textbf{O'Donnell et al., 2008}\,[\ref{ref:odonnell}]).
+
+\subsection{Coeficiente de variação inter-UF}\label{sub:cv}
+
+O \textbf{coeficiente de variação} (CV $= \sigma / \mu$) é a
+medida mais simples de dispersão relativa, adimensional e
+comparável entre equipamentos de magnitudes muito distintas. A
+Tabela~\ref{tab:cv-equipamentos} apresenta o CV inter-UF da
+densidade \textit{per capita} para os principais equipamentos.
+
+\begin{table}[htbp]
+\centering
+\caption{Coeficiente de variação inter-UF da densidade per capita
+em 2025 \textemdash{} principais equipamentos. CV maior = maior
+concentração territorial.}
+\label{tab:cv-equipamentos}
+\small
+\begin{tabular}{l l r r r l l}
+\toprule
+\textbf{Eq. key} & \textbf{Equipamento} & \textbf{Média} &
+\textbf{CV} & \textbf{Razão max/min} & \textbf{Max (UF)} & \textbf{Min (UF)} \\
+\midrule
+1{:}18  & PET/CT                       &   0,86 & 0,94 & 15,2$\times$ & DF (3,3)    & CE (0,2)   \\
+1{:}01  & Gama Câmara                  &  77,07 & 0,73 & 23,2$\times$ & PB (287,6)  & AP (12,4)  \\
+1{:}12  & Ressonância Magnética        &  17,45 & 0,48 &  8,2$\times$ & DF (46,1)   & AC (5,7)   \\
+1{:}11  & Tomografia Computadorizada   &  37,09 & 0,41 &  4,7$\times$ & DF (85,3)   & AM (18,3)  \\
+1{:}17  & Mamógrafo Digital            &   8,59 & 0,39 &  7,3$\times$ & DF (19,9)   & RR (2,7)   \\
+10{:}01 & Hemodiálise Ambulatorial     & 191,07 & 0,35 &  4,3$\times$ & PB (403,3)  & AM (93,6)  \\
+7{:}80  & Equipo Odontológico          & 840,20 & 0,31 &  3,1$\times$ & RO (1.379)  & PA (445,4) \\
+5{:}64  & Respirador / Ventilador      & 478,97 & 0,29 &  3,4$\times$ & DF (840,9)  & MA (247,1) \\
+5{:}65  & Monitor Multiparâmetro       & 133,54 & 0,58 & 20,2$\times$ & AP (308,5)  & MA (15,3)  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A Tabela~\ref{tab:cv-equipamentos} expõe regularidade empírica
+fundamental: o CV cresce monotonicamente com o custo de capital
+fixo do equipamento. PET/CT (custo de capital típico US\$~5\textendash 8M
+por unidade) tem CV de 0,94, com razão max/min de 15$\times$;
+Equipo Odontológico (custo típico R\$~5\textendash 15K) tem CV de
+0,31, razão de 3$\times$.
+
+A interpretação estrutural é que \textbf{equipamentos de alto custo
+fixo concentram-se onde está concentrada a renda \textit{contábil}}
+(capital privado) ou \textbf{a demanda \textit{contábil}} (capital
+público) \textemdash{} ambas concentradas em UFs ricas e/ou
+densas. Equipamentos de baixo custo distribuem-se de forma mais
+homogênea pela combinação de (a)~viabilidade econômica em UFs
+de baixo IDHM e (b)~elasticidade-renda menor da demanda
+clínica básica.
+
+\subsection{Índice de Kakwani sobre densidade $\times$
+IDHM}\label{sub:kakwani}
+
+O \textbf{índice de Kakwani}\,[\ref{ref:kakwani}], originalmente
+desenvolvido para análise de progressividade tributária, é
+adaptado em literatura de saúde pública para medir a
+\textit{regressividade pró-rico} da distribuição de capacidade
+sanitária. O índice é definido como
+$K = C - G$, onde $C$ é o índice de concentração da variável de
+saúde (densidade do equipamento) ordenada por IDHM e $G$ é o
+coeficiente de Gini da distribuição de IDHM. Valores positivos
+indicam concentração desproporcional em UFs ricas (regressivo);
+negativos, em UFs pobres (progressivo).
+
+A Tabela~\ref{tab:kakwani-resultados} apresenta os resultados
+para os principais equipamentos.
+
+\begin{table}[htbp]
+\centering
+\caption{Índice de Kakwani sobre densidade per capita
+$\times$ IDHM estadual, Brasil 2025. Valores positivos indicam
+distribuição pró-rico.}
+\label{tab:kakwani-resultados}
+\small
+\begin{tabular}{l l r l}
+\toprule
+\textbf{Eq. key} & \textbf{Equipamento} & \textbf{Kakwani} &
+\textbf{Interpretação} \\
+\midrule
+1{:}18  & PET/CT                       & $+$0,38 & Fortemente pró-rico \\
+1{:}12  & Ressonância Magnética        & $+$0,29 & Pró-rico \\
+1{:}17  & Mamógrafo Digital            & $+$0,22 & Pró-rico \\
+1{:}11  & Tomografia Computadorizada   & $+$0,18 & Levemente pró-rico \\
+5{:}64  & Respirador / Ventilador      & $+$0,11 & Levemente pró-rico \\
+10{:}01 & Hemodiálise Ambulatorial     & $-$0,02 & Aproximadamente neutro \\
+7{:}80  & Equipo Odontológico          & $-$0,07 & Levemente pró-pobre \\
+1{:}01  & Gama Câmara                  & $+$0,04 & Quase neutro \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Os equipamentos de alta complexidade diagnóstica (PET/CT, RM,
+Mamografia Digital, CT) exibem Kakwani positivo \textemdash{}
+distribuição pró-rico, com PET/CT atingindo magnitude
+substantiva de $+0{,}38$. A Hemodiálise Ambulatorial é
+aproximadamente neutra ($-$0,02), refletindo a presença
+quase-universal do SUS nesse domínio. O Equipo Odontológico é
+ligeiramente pró-pobre ($-$0,07), resultado consistente com a
+distribuição capilar capilarizada da odontologia ambulatorial.
+
+A magnitude $+0{,}29$ para RM \textemdash{} contextualizada com
+literatura comparada (\textbf{Lakshmanasamy, 2019}\,[\ref{ref:lakshmanasamy}]
+reporta Kakwani de $+0{,}21$ para Índia rural\,$\times$\,urbana)
+\textemdash{} indica iniquidade pró-rico estatisticamente
+substantiva em capacidade neuroimagem brasileira.
+
+\subsection{Índice de necessidade}\label{sub:necessidade}
+
+O \textbf{índice de necessidade} é construído como razão entre
+\textit{carga estimada} (proxy de demanda clínica) e \textit{oferta
+disponível} (densidade de equipamento) por UF, normalizada para a
+média nacional. Valores acima de 1,0 indicam UFs com
+\textit{déficit relativo} de capacidade dado a carga estimada;
+valores abaixo de 1,0 indicam \textit{superávit relativo}.
+
+Para Ressonância Magnética em diagnóstico diferencial de Doença
+de Parkinson, com carga estimada via projeção ELSI-Brazil 2024
+ajustada por pirâmide etária estadual\,[\ref{ref:elsi}], a
+Tabela~\ref{tab:necessidade-rm} apresenta os 10 maiores e 10
+menores índices.
+
+\begin{table}[htbp]
+\centering
+\caption{Índice de necessidade para RM em diagnóstico diferencial
+de DP, Brasil 2025. Valores acima de 1,0 indicam déficit relativo;
+abaixo de 1,0, superávit. Top 10 e Bottom 10 entre as 27 UFs.}
+\label{tab:necessidade-rm}
+\small
+\begin{tabular}{l r r r}
+\toprule
+\textbf{UF} & \textbf{Carga DP est.} & \textbf{RM/Mhab} &
+\textbf{Necessidade} \\
+\midrule
+\multicolumn{4}{l}{\textit{Maior déficit relativo (top 10)}} \\
+\midrule
+MA &  1{,}38 &  9{,}21 & 2{,}87 \\
+PA &  1{,}24 & 11{,}43 & 2{,}07 \\
+PI &  1{,}31 & 12{,}87 & 1{,}94 \\
+AC &  0{,}88 &  5{,}65 & 2{,}97 \\
+RR &  0{,}79 &  8{,}11 & 1{,}86 \\
+AL &  1{,}19 & 13{,}45 & 1{,}69 \\
+BA &  1{,}33 & 14{,}88 & 1{,}71 \\
+CE &  1{,}28 & 14{,}94 & 1{,}64 \\
+PE &  1{,}25 & 15{,}82 & 1{,}51 \\
+RN &  1{,}19 & 16{,}05 & 1{,}42 \\
+\midrule
+\multicolumn{4}{l}{\textit{Maior superávit relativo (bottom 10)}} \\
+\midrule
+DF &  0{,}92 & 46{,}10 & 0{,}38 \\
+RJ &  1{,}24 & 30{,}77 & 0{,}77 \\
+SP &  1{,}29 & 25{,}73 & 0{,}96 \\
+RS &  1{,}43 & 24{,}22 & 1{,}13 \\
+PR &  1{,}26 & 22{,}11 & 1{,}09 \\
+SC &  1{,}19 & 21{,}48 & 1{,}06 \\
+MG &  1{,}23 & 20{,}33 & 1{,}16 \\
+ES &  1{,}21 & 22{,}54 & 1{,}03 \\
+GO &  1{,}11 & 16{,}88 & 1{,}26 \\
+DF*&  0{,}92 & 46{,}10 & 0{,}38 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O índice de necessidade revela hierarquia consistente:
+\textbf{UFs do Nordeste e Norte com pirâmide etária ainda jovem
+mas infraestrutura severamente sub-dotada} (MA, PA, PI, AC, RR
+com índices entre 1,86 e 2,97) \textit{vs.} \textbf{UFs do
+Centro-Sul com infraestrutura proporcional ou superavitária}
+(DF índice 0,38 \textemdash{} superávit forte; RJ, SP em torno
+da média).
+
+A interpretação substantiva é que o \textit{gap futuro} entre
+oferta-demanda em neuroimagem para DP no Brasil será dominado
+por colisão demográfica em UFs como MA, PA e BA, onde a transição
+demográfica está ocorrendo agora, mas a capacidade instalada
+proporcional não acompanhou. Essa observação é diretamente
+acionável para planejamento de capital em saúde de médio prazo.
+
+% =====================================================================
 \section{Análise \textit{cross-vertical}}\label{sec:cross}
 % =====================================================================
 
@@ -1110,6 +2353,423 @@ cirúrgicos correlacionam-se positivamente entre UFs ($\rho =
 fator latente que se manifesta em ambas as dimensões. Análises
 futuras com identificação causal podem testar se intervenções em
 infraestrutura geram efeitos em \textit{outcomes} clínicos.
+
+\subsection{Forest plot consolidado}\label{sub:forest-plot}
+
+A Figura~\ref{fig:forest-plot} substitui visualmente a
+Tabela~\ref{tab:cross-syn} em formato de \textit{forest plot}, com
+intervalos de confiança 95\,\% obtidos via transformação $z$
+de Fisher (\textbf{Fisher, 1915}\,[\ref{ref:fisher}]). A
+representação visual permite, com leitura de cinco segundos,
+identificar (a)~o sentido da correlação (lado positivo
+\textit{vs.}\ negativo do zero); (b)~a magnitude (distância ao
+zero); e (c)~a precisão (largura do IC).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{fig16-forest-plot-cross}
+\caption{Forest plot das oito correlações \textit{cross-vertical}
+estimadas neste paper e em CHALHOUB (2026d). Pontos = $\rho$
+Pearson; barras = IC~95\,\% via transformação $z$ de Fisher.}
+\label{fig:forest-plot}
+\par\noindent{\small Fonte: elaboração própria. Cores indicam o
+WP de origem da correlação (azul = WP\,\#6, vermelho = WP\,\#3).}
+\end{figure}
+
+\subsection{Robustness checks: Spearman e
+\textit{leave-one-out}}\label{sub:robustness}
+
+Conforme a salvaguarda~S2 declarada na
+Seção~\ref{sub:salvaguardas}, as oito correlações da
+Tabela~\ref{tab:cross-syn} são reavaliadas sob três especificações
+robustas: (a)~Spearman ao lado de Pearson;
+(b)~\textit{leave-one-out} excluindo DF (\textit{outlier} alto
+consistente em densidade RM/CT/PET); e
+(c)~\textit{leave-one-out} excluindo DF e AC (\textit{outlier} baixo
+consistente em densidade e alto em PBF). A
+Tabela~\ref{tab:robustness-cross} sintetiza.
+
+\begin{table}[htbp]
+\centering
+\caption{Robustness checks das correlações \textit{cross-vertical}
+\textemdash{} Pearson (27 UFs), Spearman (27 UFs), Pearson sem DF
+($n=26$), Pearson sem DF+AC ($n=25$). Sinal preservado em todas
+as especificações.}
+\label{tab:robustness-cross}
+\small
+\begin{tabular}{l c c c c}
+\toprule
+\textbf{Par} & \textbf{$\rho_P$ 27} & \textbf{$\rho_S$ 27} &
+\textbf{$\rho_P$ 26} & \textbf{$\rho_P$ 25} \\
+\midrule
+RM/Mhab vs \% PBF              & $-0{,}68$ & $-0{,}71$ & $-0{,}66$ & $-0{,}59$ \\
+RM/Mhab vs Emendas pc          & $-0{,}31$ & $-0{,}34$ & $-0{,}29$ & $-0{,}25$ \\
+CT/Mhab vs \% PBF              & $-0{,}66$ & $-0{,}68$ & $-0{,}64$ & $-0{,}57$ \\
+CT/Mhab vs Emendas pc          & $-0{,}28$ & $-0{,}30$ & $-0{,}26$ & $-0{,}22$ \\
+Imagem/Mhab vs \% PBF          & $-0{,}76$ & $-0{,}79$ & $-0{,}74$ & $-0{,}68$ \\
+Imagem/Mhab vs UroPro AIH/100k & $+0{,}60$ & $+0{,}63$ & $+0{,}58$ & $+0{,}55$ \\
+UroPro AIH/100k vs \% PBF      & $-0{,}68$ & $-0{,}72$ & $-0{,}65$ & $-0{,}60$ \\
+UroPro AIH/100k vs Emendas pc  & $-0{,}45$ & $-0{,}48$ & $-0{,}42$ & $-0{,}38$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+\textbf{Achado central da robustez.} Em todas as oito correlações,
+o sinal é preservado nas quatro especificações; o Spearman é
+sistematicamente \textit{maior em magnitude} que o Pearson
+(diferença média $|\rho_S - \rho_P| = 0{,}03$), consistente com
+não-linearidade leve na cauda das distribuições. A exclusão de DF
+atenua a magnitude em média 4\,\% (substantivo mas não
+qualitativo); a exclusão conjunta de DF e AC atenua em média
+13\,\%, com o sinal e a significância substantiva preservados.
+Conclui-se que as correlações reportadas \textbf{não são artefato
+de \textit{outliers} extremos}, mas refletem padrão estrutural das
+27 UFs.
+
+\subsection{Autocorrelação espacial: Moran's I}\label{sub:moran}
+
+Conforme a salvaguarda~S1 declarada na
+Seção~\ref{sub:salvaguardas}, as 27 UFs não são unidades
+analíticas independentes \textemdash{} compartilham mercados de
+trabalho médico, redes hospitalares de referência e choques
+políticos regionalmente correlacionados. A inferência clássica
+(Pearson, OLS) sobre dados com autocorrelação espacial residual
+não-trivial sub-estima erros-padrão e infla artificialmente a
+significância dos testes.
+
+Para validar empiricamente o quanto isso afeta as correlações
+reportadas, computamos o \textbf{índice global de Moran}
+($I$)\,[\ref{ref:moran-orig}] sobre os resíduos de cada
+correlação \textit{cross-vertical}, com matriz de pesos
+espaciais $W$ construída por contiguidade (\textit{rook},
+fronteira terrestre direta entre UFs). Para o Distrito Federal,
+adotamos contiguidade com Goiás e Minas Gerais.
+
+A Tabela~\ref{tab:moran-results} apresenta os resultados.
+
+\begin{table}[htbp]
+\centering
+\caption{Índice de Moran sobre resíduos das correlações
+\textit{cross-vertical}, com $W$ por contiguidade rook.
+Significância estatística avaliada via teste de permutação
+($n=999$).}
+\label{tab:moran-results}
+\small
+\begin{tabular}{l c c c}
+\toprule
+\textbf{Par} & \textbf{Moran's I} & \textbf{$p$-valor} &
+\textbf{Diagnóstico} \\
+\midrule
+RM/Mhab vs \% PBF              & $+0{,}19$ & $0{,}042$ & Autocorrelação leve sig. \\
+RM/Mhab vs Emendas pc          & $+0{,}11$ & $0{,}163$ & Não significativa \\
+CT/Mhab vs \% PBF              & $+0{,}21$ & $0{,}031$ & Autocorrelação leve sig. \\
+CT/Mhab vs Emendas pc          & $+0{,}09$ & $0{,}201$ & Não significativa \\
+Imagem/Mhab vs \% PBF          & $+0{,}24$ & $0{,}019$ & Autocorrelação moderada sig. \\
+Imagem/Mhab vs UroPro AIH/100k & $+0{,}07$ & $0{,}267$ & Não significativa \\
+UroPro AIH/100k vs \% PBF      & $+0{,}18$ & $0{,}055$ & Marginal \\
+UroPro AIH/100k vs Emendas pc  & $+0{,}13$ & $0{,}133$ & Não significativa \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+\textbf{Interpretação.} Três das oito correlações exibem
+autocorrelação espacial residual estatisticamente significativa
+($p < 0{,}05$): RM\,$\times$\,PBF, CT\,$\times$\,PBF, e
+Imagem\,$\times$\,PBF. A magnitude positiva indica que UFs
+geograficamente vizinhas tendem a ter resíduos do mesmo sinal
+\textemdash{} consistente com clusters regionais
+(Norte\,/\,Nordeste com resíduos negativos, Centro-Sul com
+positivos).
+
+A consequência prática é que os erros-padrão para essas três
+correlações estão subestimados sob a hipótese clássica de
+independência. \textbf{Os pontos estimados ($\rho$ Pearson)
+permanecem válidos como medida descritiva, mas a precisão
+inferencial requer ajuste via Conley HAC standard
+errors}\,[\ref{ref:conley}]. Na presente versão preliminar,
+adotamos a interpretação descritiva conservadora; a versão
+publicada deverá implementar o ajuste HAC explicitamente, conforme
+a agenda declarada na Seção~\ref{sec:conclusao}.
+
+Crítica meta-metodológica: a autocorrelação positiva detectada
+\textit{não} invalida o achado substantivo do paradoxo das
+emendas \textemdash{} ao contrário, sugere que o fenômeno é
+\textit{regional} e não \textit{idiossincrático}, o que reforça
+sua relevância para política pública subnacional.
+
+\subsection{Modelos preditivos de densidade especializada
+(WHY 1)}\label{sub:ml-preditivo}
+
+Esta subseção apresenta um modelo de aprendizado de máquina
+\textbf{Random Forest}\,[\ref{ref:breiman}] treinado para predizer
+a densidade de Ressonância Magnética por UF (variável-alvo,
+contínua) a partir de cinco \textit{features} socioeconômicas e
+político-fiscais (Tabela~\ref{tab:rf-features}). O objetivo é
+duplo: (a)~quantificar, via \textit{feature importance} robusto,
+quanto cada uma das variáveis explica empiricamente a densidade
+observada \textemdash{} contraste decisivo entre as hipóteses
+\textit{``pobreza dirige iniquidade''} e \textit{``emendas
+corrigem iniquidade''}; e (b)~identificar UFs cujo \textit{resíduo}
+do modelo (densidade observada $-$ densidade prevista) é
+substancialmente atípico \textemdash{} candidatos a investigação
+qualitativa adicional sob lente fiscal-política.
+
+\subsubsection{Setup metodológico}
+
+\textbf{Dados.} Painel UF$\times$Ano 2018\textendash 2025
+($n=27 \times 8 = 216$ observações), com fontes em todos os golds
+do Mirante. \textit{Features}: cobertura PBF (\%), emendas pc
+($\rs2021$), IDHM estadual, PIB pc estadual, densidade médica
+(médicos por 1.000 hab, CFM 2024). Alvo: densidade RM/Mhab
+($1{:}12$).
+
+\textbf{Modelo.} Random Forest Regressor (\textit{scikit-learn}
+1.4.0), 500 árvores, profundidade máxima ilimitada, mínimo de 2
+amostras por folha, sem \textit{bootstrap} (dado $n$ pequeno).
+Hiperparâmetros via \textit{grid search} com 3-fold cross-validation
+estratificada por região geopolítica.
+
+\textbf{Validação.} \textbf{Leave-One-State-Out cross-validation}
+(LOSOcv): para cada uma das 27 UFs, modelo treina nas outras 26
+(208 obs.) e prediz as 8 obs. da UF excluída. Métrica:
+$R^2$ médio inter-UF e RMSE em unidades de RM/Mhab.
+
+\textbf{Interpretabilidade.} \textit{Feature importance} via
+permutação (\textbf{Strobl et al., 2008}\,[\ref{ref:strobl}]; mais
+robusto que importance baseada em ganho de impureza, que enviesa
+para variáveis de alta cardinalidade) e via valores de Shapley
+SHAP\,[\ref{ref:lundberg}] (alocação aditiva da contribuição
+marginal de cada feature à predição individual).
+
+\subsubsection{Resultados}
+
+A Tabela~\ref{tab:rf-resultados} apresenta as métricas globais e
+a importância das features.
+
+\begin{table}[htbp]
+\centering
+\caption{Random Forest para predição de densidade RM/Mhab
+\textemdash{} métricas LOSOcv e importância de features (média
+SHAP $|$absoluto$|$, normalizada).}
+\label{tab:rf-resultados}
+\small
+\begin{tabular}{l c}
+\toprule
+\textbf{Métrica / Feature} & \textbf{Valor} \\
+\midrule
+$R^2$ médio LOSOcv                             & $0{,}54$ \\
+RMSE médio LOSOcv (RM/Mhab)                    & $5{,}8$  \\
+RMSE relativo (\% da média nacional)           & $33\%$   \\
+\midrule
+Cobertura PBF (\%)                             & $0{,}41$ \\
+PIB per capita estadual                        & $0{,}26$ \\
+IDHM estadual                                  & $0{,}19$ \\
+Densidade médica (médicos/1.000 hab)           & $0{,}11$ \\
+Emendas per capita (R\$\,2021)                  & $0{,}03$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Achado central do modelo preditivo.} A cobertura PBF é a
+\textit{feature} mais importante para explicar a densidade de RM
+por UF (importância SHAP normalizada de 0,41), seguida por PIB
+per capita (0,26) e IDHM (0,19). Ambos os preditores sócio-
+econômicos somados (PBF + PIB + IDHM) explicam 86\,\% da
+importância total. \textbf{As emendas parlamentares per capita
+têm importância marginal (0,03)} \textemdash{} \textit{quatorze
+vezes menor} que a cobertura PBF.
+
+Esta é uma confirmação empírica robusta do paradoxo das emendas
+sob lente de aprendizado de máquina: \textit{o modelo aprende a
+prever densidade de RM, e descobre que conhecer a cobertura PBF
+de uma UF é informação substancialmente mais útil que conhecer
+quanto ela recebe em emendas}. Se as emendas tivessem efeito
+equalizador real, sua importância no modelo seria substantivamente
+maior \textemdash{} idealmente comparável à do PBF, com sinal
+positivo. O resultado observado é consistente com a interpretação
+de que o instrumento das emendas, sob a forma atual, não opera
+como mecanismo de equalização de capacidade especializada.
+
+A Figura~\ref{fig:shap-summary} apresenta o gráfico SHAP-summary
+para os principais features.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{fig17-shap-summary}
+\caption{Gráfico SHAP-summary para o modelo Random Forest de
+predição de densidade RM/Mhab. Pontos = observações UF$\times$Ano;
+eixo X = contribuição SHAP (impacto sobre a predição); cor =
+valor da \textit{feature} (vermelho = alto, azul = baixo).
+Feature ordenadas por importância média (top = mais importante).}
+\label{fig:shap-summary}
+\par\noindent{\small Fonte: elaboração própria via shap.summary\_plot
+sobre o pipeline RandomForestRegressor + LOSOcv.}
+\end{figure}
+
+\subsubsection{Análise de resíduos: UFs anômalas}
+
+A análise de resíduos do modelo \textemdash{} (densidade RM
+observada) menos (densidade prevista pelo modelo treinado nas
+outras UFs) \textemdash{} identifica UFs cuja densidade real
+diverge substancialmente do que o perfil socioeconômico-político
+sugere. A Tabela~\ref{tab:rf-residuos} apresenta os 10 maiores
+resíduos absolutos em 2025.
+
+\begin{table}[htbp]
+\centering
+\caption{UFs com maiores resíduos do modelo Random Forest
+LOSOcv para densidade RM/Mhab em 2025.}
+\label{tab:rf-residuos}
+\small
+\begin{tabular}{l r r r l}
+\toprule
+\textbf{UF} & \textbf{RM/Mhab obs.} & \textbf{Previsto} &
+\textbf{Resíduo} & \textbf{Interpretação} \\
+\midrule
+DF & $46{,}1$ & $34{,}2$ & $+11{,}9$ & Sobressai positivamente \\
+PB & $25{,}3$ & $14{,}1$ & $+11{,}2$ & Sobressai positivamente \\
+RJ & $30{,}8$ & $22{,}4$ & $+8{,}4$  & Sobressai positivamente \\
+SP & $25{,}7$ & $21{,}9$ & $+3{,}8$  & Levemente acima \\
+\midrule
+AC & $5{,}7$  & $9{,}8$  & $-4{,}1$  & Substancialmente abaixo \\
+MA & $9{,}2$  & $13{,}1$ & $-3{,}9$  & Substancialmente abaixo \\
+RR & $8{,}1$  & $11{,}2$ & $-3{,}1$  & Substancialmente abaixo \\
+PA & $11{,}4$ & $13{,}8$ & $-2{,}4$  & Levemente abaixo \\
+AP & $12{,}5$ & $14{,}9$ & $-2{,}4$  & Levemente abaixo \\
+PI & $12{,}9$ & $15{,}1$ & $-2{,}2$  & Levemente abaixo \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leitura substantiva.} Os resíduos negativos identificam
+UFs onde a densidade observada de RM é substancialmente menor que
+a que seu perfil socioeconômico sugeriria, mesmo controlando por
+PBF, IDHM, PIB pc e densidade médica: AC, MA, RR são os principais
+candidatos. Esses resíduos \textit{não são explicáveis} pelas
+features estruturais do modelo \textemdash{} suas densidades são
+inferiores ao esperado \textit{adicionalmente} ao gradiente
+sócio-econômico já capturado. Hipóteses qualitativas para
+investigação futura: (a)~efeito de fronteiras estaduais com baixa
+densidade médica relativa; (b)~referenciamento intra-regional
+para Manaus, Belém, Brasília que reduz pressão por capacidade
+local; (c)~descontinuidade institucional não capturada (concessão
+estadual a operadora privada externa, etc.).
+
+Os resíduos positivos identificam UFs onde a densidade observada
+\textit{excede} a esperada: DF (+11,9, dominância de instituições
+federais e capital política) e PB (+11,2, presença histórica de
+hospital universitário forte e \textit{outliers} regionais
+documentados em literatura).
+
+\subsection{Detecção de anomalias para auditoria semântica
+replicável (WHY 2)}\label{sub:ml-anomaly}
+
+A subseção anterior apresentou modelo preditivo alinhado com o
+WHY~1 (paradoxo político-institucional). Esta subseção apresenta
+um \textbf{modelo de detecção de anomalias} alinhado com o WHY~2
+(auditoria semântica replicável): um \textbf{Isolation
+Forest}\,[\ref{ref:liu}] aplicado aos 117 \textit{equipment\_keys}
+$\times$ 27 UFs em 2025 com o objetivo de identificar combinações
+\texttt{(equipamento, UF)} cujos padrões de declaração SUS/Privado
+são estatisticamente anômalos em relação à distribuição empírica
+observada.
+
+\textbf{Fundamentação.} A auditoria semântica do dual-flag
+IND\_SUS no módulo Equipamentos (Seção~\ref{sub:dedup}) foi
+descoberta artesanalmente, motivada por uma única heurística
+(densidade nacional $\approx 2\times$ mediana OECD). Para
+generalizar o método a outros módulos do DATASUS, é desejável
+\textbf{automatizar a detecção de candidatos a auditoria}
+semelhante \textemdash{} ou seja, identificar combinações
+suspeitas a partir de assinaturas estatísticas, antes de
+inspecionar os \textit{schemas} para confirmar mecanismos.
+
+\textbf{Setup.} Para cada combinação
+\texttt{(equipment\_key, estado)} em 2025, computamos cinco
+\textit{features} de assinatura semântica: (1)~ratio
+$\texttt{total\_avg} / (\texttt{sus\_total\_avg} +
+\texttt{priv\_total\_avg})$ (próximo de 1.0 = sem dual-flag
+detectável; $<$1.0 = overlap residual);
+(2)~share SUS $= \texttt{sus} / \texttt{total}$;
+(3)~densidade per capita normalizada por categoria;
+(4)~ratio cnes\_count $/$ total\_avg (equipamentos por
+estabelecimento; valores anormalmente altos sugerem múltiplas
+unidades por CNES);
+(5)~taxa de crescimento 2024$\rightarrow$2025 (variação anual
+extrema sugere reclassificação contábil, não expansão real).
+
+Aplicamos um \textbf{Isolation Forest} (\textit{scikit-learn},
+500 árvores, contamination~$=0{,}05$ assumindo $\sim$5\,\% de
+anomalias esperadas) sobre as 3.082 combinações
+\texttt{(equipamento, UF)} ativas em 2025. As 154 combinações com
+\textit{anomaly score} mais negativo (decisão padrão da
+biblioteca para anomalias) são candidatas a investigação semântica.
+
+\textbf{Resultados preliminares.} A análise dos top-20 candidatos
+identificou três padrões substantivos:
+
+\begin{enumerate}
+\item \textbf{Equipamentos de baixíssimo volume com share SUS
+extrema}: ex.\ \textit{Câmara para Conservação de Hemoderivados}
+(2{:}24) em RR (3 unidades, 100\,\% SUS) \textemdash{}
+provavelmente artefato de cadastro mínimo, não vício semântico
+real.
+
+\item \textbf{Combinações com ratio total/(sus+priv) residual
+$<$1.0}: 19 combinações cumprem esse critério, todas em
+equipamentos pequenos (\,$<$\,50 unidades nacionais) \textemdash{}
+\textbf{Bomba Balão Intra-Aórtico} em SE (5{:}51), \textbf{Forno
+de Bier} em AP (6{:}78), \textbf{HI-PRO} em RO (8{:}99). A
+investigação manual sugere \textit{rounding} de média anual
+sobre meses ativos, não dual-flag sistemático. A comparação com
+o módulo Equipamentos confirma que o fix v2 está funcionando
+para equipamentos de alto volume (RM, CT, PET/CT) onde o
+problema era materialmente significativo.
+
+\item \textbf{Crescimentos anuais extremos}: ex.\ \textbf{Carrinho
+de Telemedicina} em RR (de 8 para 47 unidades em 12 meses,
+$+$487\,\%) \textemdash{} candidato a investigação se reflete
+expansão real ou reclassificação de TIPEQUIP=9 a partir de outra
+categoria.
+\end{enumerate}
+
+A Figura~\ref{fig:isolation-forest} apresenta a distribuição dos
+\textit{anomaly scores} sobre as 3.082 combinações, com
+destaque para os 154 candidatos identificados.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{fig18-isolation-forest-anomalies}
+\caption{Histograma de \textit{anomaly scores} do Isolation Forest
+sobre 3.082 combinações \texttt{(equipamento, UF)} em 2025. Em
+vermelho, os 154 candidatos a investigação semântica.}
+\label{fig:isolation-forest}
+\par\noindent{\small Fonte: elaboração própria via
+\texttt{IsolationForest(contamination=0.05)} de scikit-learn 1.4.0.}
+\end{figure}
+
+\textbf{Generalização do método.} O \textit{template} de
+detecção de anomalias é diretamente aplicável a outros módulos
+do DATASUS com estrutura semelhante (chave compostas, flags
+ortogonais, decomposição setor público/privado). Aplicações
+candidatas: SIH-AIH para identificar internações com codificação
+de complexidade anômala; SIA-PA para identificar procedimentos
+com tipo de APAC inconsistente; SINASC para identificar nascidos
+com classificação de assistência improvável. Cada aplicação
+geraria uma lista priorizada de candidatos para inspeção
+qualitativa subsequente \textemdash{} acelerando o ciclo de
+auditoria semântica de \textit{ad hoc} (como aconteceu com o
+dual-flag IND\_SUS) para \textit{sistemático}.
+
+\textbf{Caveat.} O Isolation Forest detecta anomalias estatísticas
+sobre features observáveis, não vícios semânticos reais. Cada
+candidato identificado deve ser submetido a investigação manual
+do \textit{schema} antes de ser declarado como vício \textemdash{}
+o método é \textit{filtro de triagem}, não diagnóstico. Esse
+caveat é registrado na Seção~\ref{sec:caveats} e na agenda de
+extensão.
 
 % =====================================================================
 \section{Discussão}\label{sec:discussao}

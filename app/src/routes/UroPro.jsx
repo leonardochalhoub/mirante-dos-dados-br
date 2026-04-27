@@ -498,6 +498,9 @@ function DocCardWP3() {
         per capita — UFs mais pobres recebem mais emendas, mas isso{' '}
         <i>não</i> se traduz em ampliação de oferta cirúrgica especializada.
       </p>
+
+      <ScoreCard parecer={PARECER_WP3_UROPRO} />
+
       <div className="doc-actions">
         <a className="doc-toggle doc-toggle-primary"
            href={pdfUrl} target="_blank" rel="noreferrer"
@@ -524,8 +527,6 @@ function DocCardWP3() {
         <b>Palavras-chave:</b> SUS; equidade em saúde; Bolsa Família; emendas
         parlamentares; federalismo brasileiro; análise <i>cross-vertical</i>.
       </p>
-
-      <ScoreCard parecer={PARECER_WP3_UROPRO} />
     </div>
   );
 }
@@ -557,6 +558,9 @@ function DocCardWP5() {
         <code>fa869cf</code> (filtro <code>_ingest_ts == max</code> derrubava
         14 das 27 UFs em silêncio).
       </p>
+
+      <ScoreCard parecer={PARECER_WP5_UROPRO} />
+
       <div className="doc-actions">
         <a className="doc-toggle doc-toggle-primary"
            href={pdfUrl} target="_blank" rel="noreferrer"
@@ -584,8 +588,6 @@ function DocCardWP5() {
         permanência hospitalar; pandemia COVID-19; represa cirúrgica;
         engenharia de dados.
       </p>
-
-      <ScoreCard parecer={PARECER_WP5_UROPRO} />
     </div>
   );
 }

@@ -231,6 +231,9 @@ export default function BolsaFamilia() {
             (PT-BR, padrão ABNT) deste vertical, com 12 figuras, 3 mapas
             coropléticos e ~9 mil palavras.
           </p>
+
+          <ScoreCard parecer={PARECER_WP2_BOLSA_FAMILIA} />
+
           <div className="doc-actions">
             <a className="doc-toggle doc-toggle-primary"
                href={pdfUrl}
@@ -259,8 +262,6 @@ export default function BolsaFamilia() {
               ↗ Abrir no Overleaf
             </a>
           </div>
-
-          <ScoreCard parecer={PARECER_WP2_BOLSA_FAMILIA} />
         </div>
       </section>
 
