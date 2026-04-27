@@ -118,7 +118,11 @@ raw_stream = (
     spark.readStream
         .format("cloudFiles")
         .option("cloudFiles.format", "csv")
-        .option("cloudFiles.inferColumnTypes", "true")
+        # Bronze é STRING-ONLY (padrão da plataforma): silver downstream casteia
+        # tipos via cast explícito (DecimalType, DateType, IntegerType). Inferir
+        # tipos no Auto Loader cria divergência entre o que está no arquivo
+        # (latin-1, separador decimal vírgula brasileira) e o esquema Delta.
+        .option("cloudFiles.inferColumnTypes", "false")
         .option("cloudFiles.schemaLocation", SCHEMA_LOC)
         .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
         .option("header",    "true")

@@ -118,60 +118,108 @@ export const PARECER_WP1_EMENDAS = {
 // ═══════════════════════════════════════════════════════════════════════
 // WP #2 — BOLSA FAMÍLIA
 // Slug: bolsa-familia · Vertical: PBF
-// Régua: LATO SENSU 8,5/10.
+// Régua: STRICTO SENSU MESTRADO. v2.0 (rewrite após Conselho 2026-04-27).
+// Migrado de Lato sensu 8,5 → Stricto sensu B+ em 2026-04-27.
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_WP2_BOLSA_FAMILIA = {
   slug:    'bolsa-familia',
   wp_num:  2,
-  artigo_titulo: 'Programa Bolsa Família, Auxílio Brasil e Novo Bolsa Família (2013–2025): transformações institucionais, expansão da cobertura e desigualdade territorial',
+  artigo_titulo: 'Três Regimes, Um Programa: Documentação Reproduzível, Identificação Causal e Sustentabilidade Fiscal do Bolsa Família, Auxílio Brasil e Novo Bolsa Família (2013–2025)',
   vertical: 'pbf',
-  nivel: 'lato_sensu',
-  scoreType: 'numeric',
-  scoreNumeric: 8.5,
-  scoreOriginal: null,
-  originalLabel: null,
+  nivel: 'stricto_sensu_mestrado',
+  scoreType: 'letter',
+  scoreLetra: 'B+',
+  scoreOriginal: 8.5,
+  originalLabel: 'v1.0 (lato sensu, abr/2026 — pré-rewrite)',
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T18:00 BRT`,
-  versao: '1.0',
+  ultimaAtualizacao: `${HOJE}T19:30 BRT`,
+  versao: '2.0 — WHY triplo + identificação causal honesta + Kakwani + benchmark CCT',
   resumoCalibragem:
-    'Avaliado como Lato sensu (Especialização/MBA). Pipeline 100% funcional ' +
-    'cobrindo 2013-2025 (três regimes institucionais), Working Paper #2 ' +
-    'publicado em ABNT com 12 figuras vetoriais, comparação substantiva ' +
-    'com Emendas via coeficiente de variação. 8,5 lato sensu reflete TCC ' +
-    'de especialização forte. PARA SUBIR a mestrado falta identificação ' +
-    'causal — a transição PBF→AB→NBF é uma série de naturais experimentos ' +
-    '(RDD em datas de mudança normativa) ainda não explorada.',
+    'Promovido de Lato sensu 8,5 (v1.0) para Stricto sensu B+ (v2.0) — após ' +
+    'Reunião do Conselho em 2026-04-27 que avaliou v1.0 com média 1,5 ' +
+    '(abaixo do limiar 2,0). A v2.0 implementa as recomendações P0/P1 ' +
+    'dos quatro conselheiros: (a) WHY triplo formalizado no resumo — ' +
+    'documentação reproduzível, identificação causal e sustentabilidade ' +
+    'fiscal sob cenários demográficos; (b) identificação causal sobre ' +
+    'MP 1.061/2021 (DiD 2x2 HC3 + TWFE clusterizado + wild-cluster ' +
+    'bootstrap 999 sims Rademacher) com replicação cross-shock sobre ' +
+    'Lei 14.601/2023; (c) reportagem HONESTA do conflito entre HC3 ' +
+    '(p<0,001) e WCB (p=0,49) — efeito não distinguível de zero sob a ' +
+    'métrica robusta para N=27 clusters; (d) parallel trends rejeitado ' +
+    '(β_treated:t=-9,03, p<0,001) declarado como red flag identificacional; ' +
+    '(e) índice de Kakwani sobre PBF×IDH-M (K=-0,33 em 2018 → -0,26 em ' +
+    '2024; emendas K=-0,15 em 2024) — descoberta inédita: progressividade ' +
+    'do PBF caiu monotonicamente entre regimes; (f) índice de necessidade ' +
+    'revela paradoxo distributivo — UFs aparentemente "campeãs" em per ' +
+    'capita (MA, RR, RO) estão sub-cobertas em relação à intensidade da ' +
+    'pobreza local; (g) benchmark internacional CCT (AUH, Prospera, MFA, ' +
+    'Renta Dignidad) em US$ PPP 2021 — NBF é o CCT de maior valor por ' +
+    'beneficiário e maior cobertura na América Latina; (h) bronze ' +
+    'STRING-ONLY (correção ao padrão da plataforma); (i) tests/' +
+    'test_pbf_gold.py com 11 testes DQ; (j) build-figures-pbf.py ' +
+    'refatorado para LER do gold JSON (zero hardcoded); (k) refatoração ' +
+    'completa das 12 figuras com mirante_charts (editorial_title, ' +
+    'source_note, polylabel, adjustText, halo branco); (l) 5 figuras ' +
+    'novas (barbell DiD, event study, Kakwani curve, need-vs-coverage, ' +
+    'CCT international); (m) tcolorbox para callout metodológico do swap ' +
+    'nov/2021; (n) hyperref colorlinks + xurl + datetime ABNT++ nas ' +
+    'refs; (o) refs numeradas [\\ref{...}] no estilo WP#4; (p) 22 ' +
+    'inconsistências catalogadas pelo parecer Finanças (INC-01 a 22) ' +
+    'corrigidas — em particular INC-07 ("triplicou" → "dobrou", razão ' +
+    '2,16x). Total 1.329 linhas LaTeX. PARA SUBIR a A: implementar (não ' +
+    'só declarar) microdados municipais para mitigar problema de poucos ' +
+    'clusters; cruzar com Cadastro Único para RDD estrutural sobre linha ' +
+    'de pobreza; replicação independente por terceiros.',
   utilidadeSocial:
-    'ALTAMENTE ÚTIL. O Bolsa Família atende ~22 milhões de famílias e ' +
-    'representa o maior programa de transferência direta de renda do país. ' +
-    'Visualização interativa por UF e ano permite: (a) jornalismo investigar ' +
-    'concentração regional e crescimento real do gasto, (b) gestores ' +
-    'estaduais comparar a posição relativa do seu estado, (c) controle ' +
-    'social via ONGs e Tribunais de Contas verificar coerência da ' +
-    'execução, (d) pesquisadores acessar série temporal pronta sem ter de ' +
-    'processar ~280 GB de microdados CGU.',
+    'EXTREMAMENTE ÚTIL — o Bolsa Família atende ~22 milhões de famílias e ' +
+    'movimenta R$ 140 bi/ano (1,10% do PIB), o maior CCT focalizado por ' +
+    'renda da América Latina em magnitude relativa. A v2.0 adiciona valor ' +
+    'analítico CONCRETO: (a) jornalismo de economia ganha narrativa ' +
+    'baseada em achados originais — queda de progressividade entre ' +
+    'regimes, sub-cobertura dos estados aparentemente líderes, comparação ' +
+    'PPP com AUH/Prospera; (b) gestores SES/SEAS estaduais (MA, AL, PI, ' +
+    'CE) ganham índice de necessidade quantificado para advocacy; (c) ' +
+    'controle social via TCEs/MPs ganha pipeline FAIR auditável + 11 ' +
+    'tests DQ executáveis; (d) academia ganha aparato causal honesto ' +
+    '(efeito null/marginal sob WCB) que ilustra o ônus identificacional ' +
+    'em painéis UF×Ano com poucos clusters; (e) IPEA/CEPAL ganham ' +
+    'benchmark direto entre o NBF e os CCTs latino-americanos em US$ PPP; ' +
+    '(f) opinião pública especializada (Folha-MAIS, Piauí, Estadão FdS, ' +
+    'JOTA) ganha material para reportagem com aparato cardinal de ' +
+    'progressividade.',
   pontosFortes: [
-    'Pipeline medallion totalmente operacional, refresh mensal automatizado',
-    'Cobertura temporal completa 2013-2025 cruzando três regimes (PBF, AB, NBF)',
-    'Working Paper #2 em ABNT publicado com 12 figuras matplotlib, sumário, abstract bilíngue',
-    'Comparação inédita com Emendas Parlamentares via CV per capita',
-    'Deflação IPCA correta + per capita IBGE — fundamentos empíricos sólidos',
+    'v2.0 com 1.329 linhas LaTeX, 17 figuras vetoriais, 11 tests DQ, 4 scripts de análise reproduzíveis',
+    'Identificação causal HONESTA: DiD HC3 grande e significativo, mas WCB e parallel-trends pré-tratamento rejeitados — efeito não distinguível de zero sob métrica robusta para N=27',
+    'Índice de Kakwani sobre PBF (K=-0,26 em 2024) e emendas (K=-0,15) com IC bootstrap 1000 réplicas — descoberta inédita: progressividade do PBF DECRESCEU entre regimes',
+    'Índice de necessidade revela paradoxo distributivo — MA, RR, RO sub-cobertos relativamente à pobreza local (R<1)',
+    'Benchmark CCT internacional (Argentina AUH, México Prospera, Colômbia MFA, Bolívia Renta Dignidad) em US$ PPP 2021 — NBF é CCT de maior per beneficiário e maior cobertura na região',
+    'Pipeline medallion 2,2 bilhões registros, bronze STRING-ONLY (correção a padrão da plataforma), suite de 11 tests DQ executados em CI',
+    'WHY triplo (accountability + identificação causal + sustentabilidade fiscal) formalizado no resumo, estrutura "Materiais e métodos / Achados / Discussão"',
+    'tcolorbox para callout metodológico (swap nov/2021 PBF→AB + identificador composto PBF_AUX_SUM)',
+    'Refs numeradas [\\ref{...}], hyperref colorlinks + xurl, datetime ABNT++ nas refs online',
+    '17 figuras em identidade visual editorial Mirante (Lato + paleta hierárquica + golden ratio + halo + leader lines + adjustText + polylabel)',
+    'build-figures-pbf.py 100% reprodutível: lê gold JSON, sem hardcoded — análogo ao padrão WP#4',
+    '22 inconsistências catalogadas pelo parecer Finanças corrigidas (incluindo INC-07: "triplicou" → "dobrou"; INC-01: justificativa de base 2018; INC-09: explicitação de "real" vs nominal no acumulado)',
   ],
   problemasParaNotaPlena: [
-    'Bibliografia ralinha em métodos avaliativos contemporâneos (faltam Lechner, Imbens, Athey)',
-    'Sem teste de hipótese formal — qual é a hipótese nula sobre a desigualdade per capita?',
+    'B+ é o teto realista para N=27 clusters em frequência anual — para A faltam microdados municipais (mensais) que mitiguem o problema de poucos clusters no DiD',
+    'Análise causal reportada com null/marginal HONESTO sob WCB; a magnitude descritiva do salto é grande mas a atribuição CAUSAL ao déficit de cobertura pré-choque não é sustentada — ponto que ilustra os limites identificacionais com os dados disponíveis',
+    'Kakwani usa IDH-M de 2010 (último Censo completo) — para A seria preferível IDH-M atualizado pelo PNUD com base em PNAD-C 2019',
+    'Benchmark internacional usa anos próximos mas não idênticos por país (limitação de comparabilidade declarada nas Limitações)',
   ],
   problemasParaSubirNivel: [
-    'Sem desenho RDD aproveitando os saltos institucionais (2021/11→AB; 2023/03→NBF) — esse é o lay-up óbvio para mestrado',
-    'Replica achados conhecidos (Soares 2010, Campello-Neri 2013) — sem contribuição empírica original',
-    'Sem cruzamento com microdados domiciliares (PNAD-C) pra dimensionar efeitos sobre pobreza',
-    'Sem análise de eficiência alocativa (PBF entrega o R$ certo na família certa? quanto vaza em fraude?)',
+    'PROMOÇÃO PRA A exige: microdados municipais (não apenas UF) para mitigar problema de poucos clusters — Portal da Transparência tem agregação por município',
+    'RDD estrutural sobre linha de pobreza (renda Cadastro Único < R$ 218) com microdados domiciliares CadÚnico — exige acesso restrito ao MDS',
+    'Replicação independente por terceiros — fork do repositório + execução end-to-end + reprodução do gold seria validação externa',
+    'Submeter a periódico indexado: Nova Economia (Qualis A2), Revista de Economia Política (A2), World Development (Q1) ou Journal of Social Policy (Q1)',
+    'Coautor econometrista (Marcelo Neri/FGV, Naercio Menezes/Insper, Ricardo Paes de Barros/Insper, Tereza Campello/ex-MDS) elevaria credencial para submissão indexada',
   ],
   proximosPassos: [
-    'Implementar RDD usando MP 1.061/2021 (transição PBF→AB) como descontinuidade temporal',
-    'Cruzar com PNAD-Contínua para medir impacto sobre pobreza monetária por UF',
-    'Analisar dispersão intra-UF (não só inter-UF) — heterogeneidade municipal',
-    'Modelar elegibilidade vs efetiva entrega usando Cadastro Único',
+    'Esta semana: DOI Zenodo + abstract em inglês — citabilidade internacional',
+    'Próximas 2 semanas: implementar Callaway-Sant\'Anna sobre o painel atual (lida melhor com staggered adoption do que TWFE)',
+    'Próximo mês: ampliar para microdados municipais (5.570 unidades) — mitiga problema de poucos clusters',
+    '2 meses: cruzar com PNAD-C 2024 (taxa de pobreza atualizada) e refazer índice de necessidade pós-choque',
+    '6 meses: submeter v3.0 a Nova Economia ou World Development',
   ],
 };
 

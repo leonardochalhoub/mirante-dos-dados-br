@@ -225,11 +225,16 @@ export default function BolsaFamilia() {
             <ArticleTimestamp slug="bolsa-familia" />
           </div>
           <p style={{ marginTop: 6, fontSize: 13.5 }}>
-            <b>"Programa Bolsa Família, Auxílio Brasil e Novo Bolsa Família
-            (2013–2025): transformações institucionais, expansão da cobertura
-            e desigualdade territorial"</b> — análise empírica completa
-            (PT-BR, padrão ABNT) deste vertical, com 12 figuras, 3 mapas
-            coropléticos e ~9 mil palavras.
+            <b>"Três Regimes, Um Programa: Documentação Reproduzível,
+            Identificação Causal e Sustentabilidade Fiscal do Bolsa Família,
+            Auxílio Brasil e Novo Bolsa Família (2013–2025)"</b> — Working
+            Paper #2 v2.0 (Abril/2026), padrão ABNT, com 17 figuras
+            vetoriais (incluindo barbell DiD, event study, curva de Kakwani,
+            razão necessidade/cobertura e benchmark CCT internacional),
+            DiD/TWFE/wild-cluster bootstrap sobre MP 1.061/2021, índices
+            formais de progressividade (Kakwani) e de necessidade, e
+            comparativo com AUH (Argentina), Prospera (México), MFA
+            (Colômbia) e Renta Dignidad (Bolívia) em US$ PPP 2021.
           </p>
 
           <ScoreCard parecer={PARECER_WP2_BOLSA_FAMILIA} />
