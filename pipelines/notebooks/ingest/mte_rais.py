@@ -73,6 +73,12 @@ def list_year(year: int, retries: int = 3) -> list[str]:
     for attempt in range(1, retries + 1):
         try:
             ftp = ftplib.FTP(FTP_HOST, timeout=FTP_TIMEOUT)
+            # PDET FTP entrega filenames com bytes não-UTF8 (0x97 = em-dash em
+            # cp1252) — ex.: "Comunicado — Microdados RAIS 2024.htm" em /2023/
+            # e /2024/. ftplib default 'utf-8' crasha o nlst() inteiro com
+            # UnicodeDecodeError, fazendo o ano todo retornar []. latin-1
+            # aceita TODOS os bytes 0x00-0xFF sem erro — filtramos .7z depois.
+            ftp.encoding = "latin-1"
             ftp.login()
             ftp.cwd(f"{FTP_DIR}/{year}/")
             names = [n for n in ftp.nlst() if n.lower().endswith(".7z")]
@@ -118,6 +124,8 @@ def download_one(year: int, filename: str, dest_dir: Path) -> tuple[str, str]:
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             ftp = ftplib.FTP(FTP_HOST, timeout=FTP_TIMEOUT)
+            # latin-1: aceita filenames com bytes não-UTF8 do PDET (em-dash 0x97)
+            ftp.encoding = "latin-1"
             ftp.login()
             ftp.cwd(f"{FTP_DIR}/{year}/")
 
