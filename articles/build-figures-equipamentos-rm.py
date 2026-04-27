@@ -24,9 +24,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 import matplotlib as mpl
 import numpy as np
-from matplotlib.patches import Polygon as MplPolygon
-from shapely.geometry import Polygon as ShPolygon
-from shapely.ops import polylabel
 from adjustText import adjust_text
 
 # Mirante visual identity
@@ -38,161 +35,22 @@ from mirante_style import (
 from mirante_charts import (
     editorial_title, source_note, inline_labels, apply_hierarchy,
 )
+from mirante_maps import (
+    load_brazil_geojson, draw_choropleth, set_brazil_extent,
+    add_horizontal_colorbar,
+)
 
 apply_mirante_style()
 
 ROOT     = Path("/home/leochalhoub/mirante-dos-dados-br/articles")
 FIG_DIR  = ROOT / "figures-equipamentos-rm"
 FIG_DIR.mkdir(exist_ok=True)
-GEO_PATH = ROOT.parent / "app" / "public" / "geo" / "brazil-states.geojson"
 CIVIDIS  = mpl.cm.cividis_r
 
 SOURCE_DEFAULT = ("Fonte: DATASUS/CNES e IBGE/SIDRA, "
                   "processamento Mirante dos Dados.")
 SOURCE_OECD = ("Fonte: DATASUS/CNES, IBGE/SIDRA. "
                "OCDE: Health at a Glance 2023. Processamento Mirante dos Dados.")
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# Helpers cartográficos editoriais
-# ═══════════════════════════════════════════════════════════════════════════
-
-# Override manuais — para estados onde polylabel cai em ponto visualmente ruim.
-# Coordenadas em (longitude, latitude) WGS84 (mesmo do GeoJSON do IBGE).
-MANUAL_LABEL_POSITION = {
-    "MT": (-55.5, -13.0), "MA": (-45.5, -5.5),  "PA": (-52.5, -4.5),
-    "SC": (-50.0, -27.2), "RS": (-53.5, -29.5), "CE": (-39.5, -5.5),
-    "BA": (-42.0, -12.0), "GO": (-49.5, -15.5), "MG": (-44.5, -18.5),
-    "TO": (-48.5, -10.5), "AM": (-65.0, -4.5),  "RJ": (-43.0, -22.0),
-    "SP": (-49.0, -22.0), "ES": (-40.5, -19.6), "PR": (-51.5, -24.5),
-    "PI": (-43.0, -7.5),  "RO": (-63.0, -10.5), "AC": (-70.0, -9.0),
-    "AP": (-52.0, 1.5),   "RR": (-61.5, 2.5),   "MS": (-54.5, -20.5),
-}
-
-# Estados com leader lines (label fora, fio fino apontando pra dentro).
-# (label_x, label_y, ha_alignment)
-LEADER_LINE_STATES = {
-    "RN": (-32.5, -3.5,  "left"),
-    "PB": (-31.8, -5.2,  "left"),
-    "PE": (-31.0, -7.0,  "left"),
-    "AL": (-31.0, -9.5,  "left"),
-    "SE": (-32.0, -11.0, "left"),
-    "DF": (-43.0, -19.0, "left"),
-}
-
-
-def load_brazil_geojson():
-    g = json.load(open(GEO_PATH))
-    states = {}
-    for f in g["features"]:
-        sigla = f["properties"]["sigla"]
-        geom = f["geometry"]
-        polys = (geom["coordinates"] if geom["type"] == "MultiPolygon"
-                 else [geom["coordinates"]])
-        rings = [np.array(p[0]) for p in polys]
-        states[sigla] = rings
-    return states
-
-
-def state_label_position(rings, sigla=None):
-    """Posição ideal do label de UF.
-    Hierarquia: override manual → polylabel → representative_point → mean.
-    """
-    if sigla and sigla in MANUAL_LABEL_POSITION:
-        return np.array(MANUAL_LABEL_POSITION[sigla])
-    polys = []
-    for ring in rings:
-        if len(ring) < 3:
-            continue
-        try:
-            p = ShPolygon(ring)
-            if p.is_valid and p.area > 0:
-                polys.append(p)
-        except Exception:
-            pass
-    if not polys:
-        return np.concatenate(rings).mean(axis=0)
-    main = max(polys, key=lambda p: p.area)
-    try:
-        pt = polylabel(main, tolerance=0.05)
-        return np.array([pt.x, pt.y])
-    except Exception:
-        pt = main.representative_point()
-        return np.array([pt.x, pt.y])
-
-
-def draw_choropleth(ax, states, values, cmap=CIVIDIS, label_fontsize=9):
-    """Choropleth com paleta cividis_r + halo branco + leader lines.
-
-    `values` = dict[sigla → numérico] (estados sem dados ficam cinza claro).
-    Retorna o `Normalize` usado, para colorbar externo.
-    """
-    vs = [v for v in values.values() if v is not None]
-    norm = mpl.colors.Normalize(vmin=min(vs), vmax=max(vs))
-
-    for sigla, rings in states.items():
-        v = values.get(sigla)
-        color = cmap(norm(v)) if v is not None else "#EEEEEE"
-        for ring in rings:
-            ax.add_patch(MplPolygon(ring, closed=True, facecolor=color,
-                                    edgecolor="white", linewidth=0.4))
-        if v is None:
-            continue
-
-        cx, cy = state_label_position(rings, sigla=sigla)
-        if sigla in LEADER_LINE_STATES:
-            lx, ly, ha = LEADER_LINE_STATES[sigla]
-            ax.plot([cx, lx + (0.4 if ha == "left" else -0.4)], [cy, ly],
-                    color=PALETTE_MIRANTE["neutro_soft"], linewidth=0.5,
-                    zorder=20, solid_capstyle="round")
-            ax.plot(cx, cy, "o", color=PALETTE_MIRANTE["neutro_soft"],
-                    markersize=2.5, zorder=21)
-            ax.text(lx, ly, sigla, ha=ha, va="center",
-                    fontsize=label_fontsize, fontweight="bold",
-                    color=PALETTE_MIRANTE["neutro"], zorder=22,
-                    path_effects=[pe.Stroke(linewidth=2.5, foreground="white"),
-                                  pe.Normal()])
-        else:
-            tcol = "white" if norm(v) > 0.55 else PALETTE_MIRANTE["neutro"]
-            halo = PALETTE_MIRANTE["neutro"] if tcol == "white" else "white"
-            ax.text(cx, cy, sigla, ha="center", va="center",
-                    fontsize=label_fontsize, fontweight="bold",
-                    color=tcol, zorder=22,
-                    path_effects=[pe.Stroke(linewidth=2.0, foreground=halo),
-                                  pe.Normal()])
-    return norm
-
-
-def set_brazil_extent(ax, states, leader_pad=4):
-    pts = np.concatenate([r for rings in states.values() for r in rings])
-    ax.set_xlim(pts[:, 0].min() - 1, pts[:, 0].max() + leader_pad)
-    ax.set_ylim(pts[:, 1].min() - 1, pts[:, 1].max() + 1)
-    ax.set_aspect("equal")
-    ax.axis("off")
-
-
-def add_horizontal_colorbar(fig, cmap, norm, *, x=0.12, y=0.10, w=0.50, h=0.018,
-                            label="", ref_value=None, ref_label=None):
-    """Colorbar horizontal editorial (sem outline, ticks pequenos).
-    Opcionalmente marca uma referência (ex: mediana OCDE) com linha vermelha.
-    """
-    cax = fig.add_axes([x, y, w, h])
-    sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
-    cb = fig.colorbar(sm, cax=cax, orientation="horizontal")
-    cb.outline.set_visible(False)
-    cb.ax.tick_params(length=2, labelsize=8.5, color=PALETTE_MIRANTE["neutro"])
-    if label:
-        cb.set_label(label, fontsize=9,
-                     color=PALETTE_MIRANTE["neutro_soft"], labelpad=4)
-    if ref_value is not None:
-        ref_pos = norm(ref_value)
-        cax.axvline(ref_pos, color=PALETTE_MIRANTE["destaque"], linewidth=1.8,
-                    ymin=-0.4, ymax=1.4, clip_on=False)
-        if ref_label:
-            cax.text(ref_pos, 2.4, ref_label, transform=cax.transAxes,
-                     fontsize=8.5, color=PALETTE_MIRANTE["destaque"],
-                     fontweight="semibold", ha="center", va="bottom")
-    return cb
 
 
 # ═══════════════════════════════════════════════════════════════════════════
