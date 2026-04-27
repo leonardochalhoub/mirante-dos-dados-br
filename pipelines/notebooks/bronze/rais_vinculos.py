@@ -46,6 +46,7 @@ import re
 import ftplib
 import shutil
 import time
+import unicodedata
 from pathlib import Path
 import py7zr
 
@@ -517,6 +518,42 @@ def _add_ano_from_path(df):
           .withColumn("_ingest_ts", F.current_timestamp())
     )
 
+
+def _sanitize_col(name: str) -> str:
+    """Converte um nome de coluna RAIS pra snake_case ASCII compatível com Delta.
+    Delta rejeita ' ,;{}()\n\t=' nos nomes; CSV da RAIS tem todos: 'Bairros SP',
+    'Vínculo Ativo 31/12', 'Faixa Remun Dezem (SM)', 'Mês Admissão' etc.
+
+    Estratégia (preserva nomes já snake_case como 'ano', '_source_file'):
+    1. NFKD normalize + strip acentos (Vínculo → Vinculo, Mês → Mes)
+    2. Replace qualquer não-[a-zA-Z0-9_] por '_' (espaço, /, (), -, etc.)
+    3. Collapse múltiplos '_' e strip leading/trailing
+    4. Lower-case
+    Mantém prefixo `_` se já existir (ex.: _source_file, _ingest_ts).
+    """
+    if not name:
+        return "col"
+    leading_underscore = name.startswith("_")
+    nfkd = unicodedata.normalize("NFKD", name)
+    no_accents = "".join(c for c in nfkd if not unicodedata.combining(c))
+    sanitized = re.sub(r"[^a-zA-Z0-9_]+", "_", no_accents)
+    sanitized = re.sub(r"_+", "_", sanitized).strip("_").lower()
+    if not sanitized:
+        sanitized = "col"
+    return ("_" + sanitized) if leading_underscore else sanitized
+
+
+def _sanitize_columns(df):
+    """Renomeia TODAS as colunas pra snake_case ASCII. Idempotente (já-clean
+    permanece clean). Imprime um sample dos renames pra auditoria."""
+    renames = [(c, _sanitize_col(c)) for c in df.columns]
+    changed = [(orig, new) for orig, new in renames if orig != new]
+    if changed:
+        print(f"  sanitizando {len(changed)} colunas; sample: "
+              f"{', '.join(f'{a!r}→{b!r}' for a, b in changed[:5])}"
+              + (f" (+{len(changed)-5})" if len(changed) > 5 else ""))
+    return df.toDF(*[new for _, new in renames])
+
 # Path de leitura: glob explícito pelas partições ano=YYYY/ pra evitar
 # pegar arquivos órfãos no root de TXT_EXTRACTED (markers .done/.bad ou
 # resíduos de runs antigas que sobreviveram à migração).
@@ -525,14 +562,14 @@ READ_PATH = f"{TXT_EXTRACTED}/ano=*/"
 if use_batch:
     print(f"▸ MODO BATCH — table_exists={table_exists} rows={existing_rows:,}")
     print(f"  lendo: {READ_PATH}")
-    df = _add_ano_from_path(
+    df = _sanitize_columns(_add_ano_from_path(
         spark.read
             .option("header", "true")
             .option("sep", ";")
             .option("encoding", "latin1")
             .option("inferSchema", "false")  # tudo string no bronze; tipagem no silver
             .csv(READ_PATH)
-    )
+    ))
     # Sanity: se algum arquivo cair fora de ano=YYYY/ por algum motivo,
     # `ano` vira null e partitionBy("ano") explode no commit. Falha cedo.
     n_null_ano = df.filter(F.col("ano").isNull()).limit(1).count()
@@ -548,14 +585,14 @@ if use_batch:
         .saveAsTable(BRONZE_TABLE))
     # priming Auto Loader checkpoint
     print("  primando checkpoint Auto Loader…")
-    init = _add_ano_from_path(
+    init = _sanitize_columns(_add_ano_from_path(
         spark.readStream.format("cloudFiles")
             .option("cloudFiles.format","csv")
             .option("cloudFiles.schemaLocation", SCHEMA_LOC)
             .option("cloudFiles.includeExistingFiles","false")
             .option("header","true").option("sep",";").option("encoding","latin1")
             .load(READ_PATH)
-    )
+    ))
     (init.writeStream.format("delta")
         .option("checkpointLocation", CHECKPOINT_LOC)
         .option("mergeSchema","true")
@@ -565,14 +602,14 @@ if use_batch:
 else:
     print(f"▸ MODO AUTO LOADER — table_exists=True rows={existing_rows:,}")
     print(f"  lendo: {READ_PATH}")
-    stream = _add_ano_from_path(
+    stream = _sanitize_columns(_add_ano_from_path(
         spark.readStream.format("cloudFiles")
             .option("cloudFiles.format","csv")
             .option("cloudFiles.schemaLocation", SCHEMA_LOC)
             .option("cloudFiles.schemaEvolutionMode","addNewColumns")
             .option("header","true").option("sep",";").option("encoding","latin1")
             .load(READ_PATH)
-    )
+    ))
     (stream.writeStream.format("delta")
         .option("checkpointLocation", CHECKPOINT_LOC)
         .option("mergeSchema","true")

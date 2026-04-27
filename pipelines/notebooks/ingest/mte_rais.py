@@ -242,3 +242,43 @@ if errors:
         print(f"  {e}")
 
 print(f"\n.7z no Volume agora: {len(sorted(dest_dir.glob('*.7z')))}")
+
+# ─── Auditoria final por ano: detecta gaps SILENCIOSOS ──────────────────────
+# (caso list_year tenha retornado [] após esgotar retries pra um ano que
+# historicamente tem dados, o ingest seguia sem alerta visível no orchestrator)
+print("\n=== AUDITORIA FINAL — .7z por ano no Volume ===")
+year_re = __import__("re").compile(r"_(\d{4})\.7z$", __import__("re").I)
+counts: dict[int, int] = {}
+for f in dest_dir.iterdir():
+    if f.is_file() and f.suffix.lower() == ".7z":
+        m = year_re.search(f.name)
+        if m:
+            y = int(m.group(1))
+            counts[y] = counts.get(y, 0) + 1
+
+# Anos esperados: o que list_year reportou ter > 0 arquivos
+expected_years = {y for y, files in year_to_files.items() if files}
+parts = sorted(dest_dir.glob("*.part"))
+print(f"  total .7z: {sum(counts.values())}  ·  total .part: {len(parts)}")
+
+zero_data_years = sorted(expected_years - set(counts.keys()))
+if zero_data_years:
+    print(f"\n  ⚠⚠ ANOS COM 0 ARQUIVOS no Volume mas FTP listou >0: {zero_data_years}")
+    print(f"     Causa provável: download falhou em todos os arquivos ou .part órfão")
+    for y in zero_data_years:
+        files = year_to_files.get(y, [])
+        print(f"       {y}: esperado {len(files)} → {files[:3]}{'...' if len(files)>3 else ''}")
+
+if parts:
+    print(f"\n  ⚠ {len(parts)} .part órfãos (download incompleto, podem causar Illegal seek loop):")
+    for p in parts[:10]:
+        print(f"       {p.name}  ({p.stat().st_size/1_048_576:.0f} MB)")
+    if len(parts) > 10:
+        print(f"       ... +{len(parts) - 10}")
+
+print("\n  contagem por ano:")
+for y in sorted(counts.keys()):
+    expected = len(year_to_files.get(y, []))
+    flag = "  ✓" if expected and counts[y] >= expected else f"  ⚠ esperado {expected}"
+    print(f"    {y}: {counts[y]} arquivos{flag if expected else ''}")
+print("=== FIM AUDITORIA ===\n")
