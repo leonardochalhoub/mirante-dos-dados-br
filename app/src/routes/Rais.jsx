@@ -14,6 +14,7 @@ import EvolutionBar    from '../components/charts/EvolutionBar';
 import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
+import ArticleTimestamp from '../components/ArticleTimestamp';
 import { PARECER_RAIS } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
@@ -135,7 +136,10 @@ export default function Rais() {
 
       <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
         <div className="doc-block">
-          <div className="kicker">Working Paper n. 3 — Mirante dos Dados</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+            <div className="kicker">Working Paper n. 3 — Mirante dos Dados</div>
+            <ArticleTimestamp slug="rais-fair-lakehouse" />
+          </div>
           <p style={{ marginTop: 6, fontSize: 13.5 }}>
             <b>"RAIS, FAIRness e Lakehouse: replicação e extensão de
             comparação empírica de formatos para Big Data público brasileiro

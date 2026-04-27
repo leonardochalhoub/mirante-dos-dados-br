@@ -25,6 +25,7 @@ import DownloadActions               from '../components/DownloadActions';
 import TechBadges                    from '../components/TechBadges';
 import ScoreCard                     from '../components/ScoreCard';
 import AtaConselho                   from '../components/AtaConselho';
+import ArticleTimestamp              from '../components/ArticleTimestamp';
 import { PARECER_EQUIPAMENTOS }      from '../data/pareceres';
 import { ATA_WP4_REUNIAO_1 }         from '../data/atas-conselho';
 import { useTheme }                  from '../hooks/useTheme';
@@ -666,7 +667,10 @@ function DocCardWP4() {
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
   return (
     <div className="doc-block" style={{ marginBottom: 14 }}>
-      <div className="kicker">Working Paper n. 4 — Mirante dos Dados</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+        <div className="kicker">Working Paper n. 4 — Mirante dos Dados</div>
+        <ArticleTimestamp slug="equipamentos-rm-parkinson" />
+      </div>
       <p style={{ marginTop: 6, fontSize: 13.5 }}>
         <b>"Análise estatística da prevalência da Doença de Parkinson no
         Brasil: desafios, tecnologias de neuroimagem e perspectivas de
@@ -727,7 +731,10 @@ function DocCardWP6() {
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
   return (
     <div className="doc-block">
-      <div className="kicker">Working Paper n. 6 — Mirante dos Dados</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+        <div className="kicker">Working Paper n. 6 — Mirante dos Dados</div>
+        <ArticleTimestamp slug="equipamentos-panorama-cnes" />
+      </div>
       <p style={{ marginTop: 6, fontSize: 13.5 }}>
         <b>"Panorama integrado: equipamentos de saúde como nó
         cross-vertical do Mirante dos Dados — análise do trio de

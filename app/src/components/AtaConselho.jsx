@@ -88,6 +88,30 @@ function Header({ meta, pareceres }) {
       </div>
 
       <div style={{
+        fontSize: 12.5, lineHeight: 1.55,
+        marginTop: 8, marginBottom: 12,
+        padding: '8px 12px',
+        background: 'rgba(202, 138, 4, 0.08)',
+        border: '1px solid #ca8a04',
+        borderRadius: 6,
+      }}>
+        <div style={{
+          fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em',
+          textTransform: 'uppercase', color: '#ca8a04', marginBottom: 4,
+        }}>
+          ⚠ Aviso editorial — Peer reviews de IA, não humanos
+        </div>
+        <div style={{ color: 'var(--text)' }}>
+          Os 4 pareceres abaixo são <b>peer reviews simulados por personas de IA</b>{' '}
+          (Claude Opus/Sonnet, Anthropic), consolidadas a partir de referências reais
+          anonimizadas (PhDs, professores titulares, fundadores e tech leads das áreas
+          de Finanças, Eng. de Software, Design/HCI e Administração). <b>Não substituem</b>{' '}
+          peer review humano formal — servem como auto-avaliação rigorosa pré-submissão,
+          triangulando 4 lentes que avaliadores reais cobririam.
+        </div>
+      </div>
+
+      <div style={{
         fontSize: 13, color: 'var(--muted)', lineHeight: 1.6,
         marginTop: 4, marginBottom: 12,
       }}>
@@ -475,7 +499,7 @@ function Footer({ meta }) {
     }}>
       <div>
         Conselho fictício · 4 personas IA Claude consolidadas a partir de referências reais
-        anonimizadas · régua mestrado <i>stricto sensu</i>
+        anonimizadas · régua mestrado, doutorado e pós-doutorado <i>stricto sensu</i>
       </div>
       <div>
         Reunião #{meta.reuniao} · {meta.data} · concluída em {meta.rodadas} rodadas

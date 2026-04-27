@@ -50,3 +50,17 @@ export async function loadStats(filename = 'platform_stats.json') {
   if (!res.ok) return null;                              // optional — Home renders without if missing
   return res.json();
 }
+
+// Carrega o manifest de artigos (gerado em prebuild por scripts/articles-meta.mjs).
+// Devolve { manifest_built_at, articles: { <slug>: { tex_last_edited, tex_last_sha } } }
+// ou null se o arquivo não existir (ex.: ambiente sem git, primeira run).
+export async function loadArticlesMeta() {
+  const url = `${base}articles/_meta.json`.replace(/\/{2,}/g, '/');
+  try {
+    const res = await fetch(url, { cache: 'no-cache' });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}

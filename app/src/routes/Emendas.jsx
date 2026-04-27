@@ -15,6 +15,7 @@ import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
 import EmendasArticle  from '../components/EmendasArticle';
 import ScoreCard       from '../components/ScoreCard';
+import ArticleTimestamp from '../components/ArticleTimestamp';
 import { PARECER_EMENDAS } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
@@ -254,7 +255,10 @@ function DocSection() {
   return (
     <section className="emendas-abstract">
       <div className="doc-block no-print">
-        <div className="kicker">Working Paper n. 1 — Mirante dos Dados</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+          <div className="kicker">Working Paper n. 1 — Mirante dos Dados</div>
+          <ArticleTimestamp slug="emendas-parlamentares" />
+        </div>
         <p style={{ marginTop: 8 }}>
           <b>"Emendas Parlamentares no Orçamento Federal Brasileiro (2015–2025):
           distribuição espacial, execução orçamentária e efeitos das mudanças

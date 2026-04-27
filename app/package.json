@@ -5,8 +5,8 @@
   "type": "module",
   "description": "Mirante dos Dados — Dados públicos do Brasil em um só lugar.",
   "scripts": {
-    "predev": "node ../scripts/sync-data.mjs",
-    "prebuild": "node ../scripts/sync-data.mjs",
+    "predev": "node ../scripts/sync-data.mjs && node ../scripts/articles-meta.mjs",
+    "prebuild": "node ../scripts/sync-data.mjs && node ../scripts/articles-meta.mjs",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 4173",

@@ -28,6 +28,7 @@ import EvolutionStackedByKey from '../components/charts/EvolutionStackedByKey';
 import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
+import ArticleTimestamp from '../components/ArticleTimestamp';
 import { PARECER_UROPRO } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
@@ -480,7 +481,10 @@ function DocCardWP3() {
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
   return (
     <div className="doc-block" style={{ marginBottom: 14 }}>
-      <div className="kicker">Working Paper n. 3 — Mirante dos Dados</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+        <div className="kicker">Working Paper n. 3 — Mirante dos Dados</div>
+        <ArticleTimestamp slug="uropro-serie-2008-2025" />
+      </div>
       <p style={{ marginTop: 6, fontSize: 13.5 }}>
         <b>"Acesso desigual: cirurgia uroginecológica no SUS como indicador
         de pobreza estrutural e os limites da compensação fiscal por emendas
@@ -531,7 +535,10 @@ function DocCardWP5() {
     encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
   return (
     <div className="doc-block">
-      <div className="kicker">Working Paper n. 5 — Mirante dos Dados</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+        <div className="kicker">Working Paper n. 5 — Mirante dos Dados</div>
+        <ArticleTimestamp slug="uropro-saude-publica-2008-2025" />
+      </div>
       <p style={{ marginTop: 6, fontSize: 13.5 }}>
         <b>"Cirurgia uroginecológica no SUS, 2008–2025: ganhos silenciosos
         de eficiência, desigualdade territorial persistente, choque pandêmico

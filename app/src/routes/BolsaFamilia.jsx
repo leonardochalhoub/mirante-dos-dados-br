@@ -17,6 +17,7 @@ import EvolutionBar    from '../components/charts/EvolutionBar';
 import DownloadActions from '../components/DownloadActions';
 import TechBadges      from '../components/TechBadges';
 import ScoreCard       from '../components/ScoreCard';
+import ArticleTimestamp from '../components/ArticleTimestamp';
 import { PARECER_PBF } from '../data/pareceres';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
@@ -217,7 +218,10 @@ export default function BolsaFamilia() {
 
       <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
         <div className="doc-block">
-          <div className="kicker">Working Paper n. 2 — Mirante dos Dados</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+            <div className="kicker">Working Paper n. 2 — Mirante dos Dados</div>
+            <ArticleTimestamp slug="bolsa-familia" />
+          </div>
           <p style={{ marginTop: 6, fontSize: 13.5 }}>
             <b>"Programa Bolsa Família, Auxílio Brasil e Novo Bolsa Família
             (2013–2025): transformações institucionais, expansão da cobertura

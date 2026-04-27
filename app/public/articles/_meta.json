@@ -1,0 +1,33 @@
+{
+  "manifest_built_at": "2026-04-27T01:18:43.979Z",
+  "articles": {
+    "bolsa-familia": {
+      "tex_last_edited": "2026-04-25T15:08:08-03:00",
+      "tex_last_sha": "bd440cc"
+    },
+    "emendas-parlamentares": {
+      "tex_last_edited": "2026-04-25T14:54:35-03:00",
+      "tex_last_sha": "9060d76"
+    },
+    "equipamentos-panorama-cnes": {
+      "tex_last_edited": "2026-04-26T11:04:52-03:00",
+      "tex_last_sha": "8f5828a"
+    },
+    "equipamentos-rm-parkinson": {
+      "tex_last_edited": "2026-04-26T11:31:28-03:00",
+      "tex_last_sha": "31bed6d"
+    },
+    "rais-fair-lakehouse": {
+      "tex_last_edited": "2026-04-25T17:16:27-03:00",
+      "tex_last_sha": "bbcefbc"
+    },
+    "uropro-saude-publica-2008-2025": {
+      "tex_last_edited": "2026-04-26T11:09:01-03:00",
+      "tex_last_sha": "0bfcc67"
+    },
+    "uropro-serie-2008-2025": {
+      "tex_last_edited": "2026-04-25T23:44:16-03:00",
+      "tex_last_sha": "be671cf"
+    }
+  }
+}
