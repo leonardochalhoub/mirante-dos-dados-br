@@ -352,6 +352,62 @@ if not zips:
     print(f"     databricks fs cp ./RAIS_VINC_PUB_BR_2021.7z dbfs:{ZIPS_DIR}/")
     dbutils.notebook.exit("SKIPPED: no .7z files to extract")
 
+# ─── Re-validação de markers .done existentes — derruba os falsos-positivos ──
+# Se um run anterior gravou .done mas o CONTEÚDO está ruim (ex.: ano=2023
+# extraiu .COMT em vez de .txt, ou tail truncado), o conteúdo do bronze fica
+# corrompido. Aqui revalidamos cada .done existente; se falhar, REMOVEMOS o
+# marker pra forçar re-extração no loop principal (que tem auto-recovery).
+print("=== RE-VALIDAÇÃO DE MARKERS .done EXISTENTES ===")
+revalidated_ok = 0
+revalidated_removed = 0
+revalidate_skipped = 0
+for zp in zips:
+    marker_ok = Path(TXT_EXTRACTED) / f"_{zp.stem}.done"
+    if not marker_ok.exists():
+        continue
+    year = _parse_year_from_local(zp.name)
+    if year is None:
+        revalidate_skipped += 1
+        continue
+    target_dir = Path(TXT_EXTRACTED) / f"ano={year}"
+    if not target_dir.exists():
+        # marker .done existe mas dir não existe — situação inconsistente;
+        # remove marker pra forçar re-extração
+        try: marker_ok.unlink()
+        except Exception: pass
+        revalidated_removed += 1
+        continue
+
+    expected = _list_archive_names(zp)
+    if not expected:
+        # arquivo .7z corrompido — central directory não retorna nada
+        revalidate_skipped += 1
+        continue
+
+    bad: list[str] = []
+    for name in expected:
+        f = target_dir / name
+        if not f.exists():
+            bad.append(f"{name}(missing)")
+            continue
+        ok_c, reason_c = _validate_txt_content(f)
+        if not ok_c:
+            bad.append(f"{name}({reason_c})")
+
+    if bad:
+        if revalidated_removed < 5:
+            print(f"  ⚠ {zp.name}: {bad[:2]} → removendo .done marker (será re-extraído)")
+        try: marker_ok.unlink()
+        except Exception: pass
+        revalidated_removed += 1
+    else:
+        revalidated_ok += 1
+
+print(f"\n  ✓ {revalidated_ok} markers .done revalidados (conteúdo OK)")
+print(f"  ⚠ {revalidated_removed} markers .done REMOVIDOS (conteúdo inválido → re-extrair)")
+print(f"  ⊘ {revalidate_skipped} pulados (sem ano parseável ou .7z corrompido)")
+print("=== FIM RE-VALIDAÇÃO .done ===\n")
+
 # ─── Reconciliação de markers — preserva extrações já feitas ────────────────
 # Quando markers .done foram limpos (force_reconvert=true em run anterior, ou
 # sumiço inesperado), os .txt em ano=YYYY/ ainda estão lá — preferimos NÃO
@@ -542,9 +598,30 @@ for zp in zips:
 
     print(f"  extraindo {zp.name} ({zp.stat().st_size:,} bytes) → ano={year}/...")
     ok, err = _try_extract(zp, year)
+    # GATE: extração completou com sucesso técnico, mas o CONTEÚDO dos .txt
+    # pode estar quebrado (header sem ';', cauda truncada, .COMT em vez de
+    # .txt etc). Se conteúdo inválido → re-classifica como bad_archive pra
+    # entrar no fluxo de auto-recovery (delete + redownload + retry).
+    if ok and expected_names and target_dir.exists():
+        bad_content_files = []
+        for name in expected_names:
+            f = target_dir / name
+            if not f.exists():
+                bad_content_files.append(f"{name}(missing_after_extract)")
+                continue
+            ok_c, reason_c = _validate_txt_content(f)
+            if not ok_c:
+                bad_content_files.append(f"{name}({reason_c})")
+        if bad_content_files:
+            print(f"    ✗ extração técnica OK mas CONTEÚDO inválido em "
+                  f"{len(bad_content_files)} arquivo(s): {bad_content_files[:2]}")
+            print(f"    → re-classificando como bad_archive p/ auto-recovery")
+            ok = False
+            err = "bad_archive"
+
     if ok:
         marker_ok.write_text("ok"); extracted += 1
-        print(f"    ✓ ok")
+        print(f"    ✓ ok (conteúdo validado)")
         continue
 
     # Bad7zFile / LZMAError / CrcError → deleta, re-baixa, tenta uma vez.
@@ -584,6 +661,23 @@ for zp in zips:
         _cleanup_partial_extraction(target_dir, expected_names_post)
     print(f"    re-tentando extração após re-download…")
     ok, err = _try_extract(zp, year)
+    # Mesmo gate de conteúdo após re-extract — se PDET source também tem
+    # conteúdo inválido (ex.: .COMT em vez de .txt), force quarentena
+    if ok and expected_names_post and target_dir.exists():
+        bad_after_rd = []
+        for name in expected_names_post:
+            f = target_dir / name
+            if not f.exists():
+                bad_after_rd.append(f"{name}(missing)")
+                continue
+            ok_c, reason_c = _validate_txt_content(f)
+            if not ok_c:
+                bad_after_rd.append(f"{name}({reason_c})")
+        if bad_after_rd:
+            print(f"      ✗ ainda CONTEÚDO inválido pós-redownload: {bad_after_rd[:2]}")
+            print(f"      → fonte PDET tem problema permanente nesse arquivo")
+            ok = False
+            err = "bad_archive"
     if ok:
         marker_ok.write_text("ok"); extracted += 1
         print(f"    ✓ ok (após re-download)")
