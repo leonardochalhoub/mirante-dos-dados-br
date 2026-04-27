@@ -29,12 +29,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-# SciencePlots: estilo Nature/Lancet aplicado ANTES dos rcParams customizados.
-try:
-    import scienceplots  # noqa: F401
-    plt.style.use(["science", "no-latex", "grid"])
-except ImportError:
-    pass
+# Mirante visual identity — paleta Wong + sans-serif + grid sutil (Economist-tier)
+import sys
+from pathlib import Path as _PathHelper
+sys.path.insert(0, str(_PathHelper(__file__).resolve().parent))
+from mirante_style import apply_mirante_style  # noqa: E402
 import numpy as np
 from matplotlib.patches import Polygon as MplPolygon
 
@@ -46,6 +45,7 @@ plt.rcParams.update({
     "axes.linewidth": 0.5, "xtick.major.width": 0.5, "ytick.major.width": 0.5,
     "savefig.dpi": 200, "savefig.bbox": "tight", "savefig.facecolor": "white",
 })
+apply_mirante_style()    # OVERRIDE FINAL — identidade visual Mirante vence
 
 ROOT = Path("/home/leochalhoub/mirante-dos-dados-br/articles")
 DATA = ROOT.parent / "data" / "gold"
