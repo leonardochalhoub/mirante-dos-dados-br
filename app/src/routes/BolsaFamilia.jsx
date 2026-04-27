@@ -365,7 +365,564 @@ function DocCardWP7() {
   );
 }
 
-// ─── WP#7 — seção municipal (KPIs + ranking + figuras + causal) ──────────
+// ─── Tab toggle Estadual / Municipal ─────────────────────────────────────
+function ScopeToggle({ scope, setScope, muniSourceLabel }) {
+  const tabStyle = (active) => ({
+    padding: '10px 20px',
+    fontSize: 13,
+    fontWeight: active ? 700 : 500,
+    color: active ? 'var(--accent, #0d9488)' : 'var(--muted)',
+    background: active ? 'var(--accent-soft, rgba(13, 148, 136, 0.08))' : 'transparent',
+    border: 0,
+    borderBottom: active ? '3px solid var(--accent, #0d9488)' : '3px solid transparent',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+  });
+  return (
+    <div style={{
+      borderBottom: '1px solid var(--border)',
+      marginTop: 18, marginBottom: 14,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      flexWrap: 'wrap', gap: 8,
+    }}>
+      <div style={{ display: 'flex', gap: 0 }}>
+        <button type="button" onClick={() => setScope('estadual')} style={tabStyle(scope === 'estadual')}>
+          <span>📊 Estadual</span>
+          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 999,
+            background: scope === 'estadual' ? 'var(--accent, #0d9488)' : 'var(--rule)',
+            color: scope === 'estadual' ? 'white' : 'var(--muted)' }}>WP#2</span>
+        </button>
+        <button type="button" onClick={() => setScope('municipal')} style={tabStyle(scope === 'municipal')}>
+          <span>🗺 Municipal</span>
+          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 999,
+            background: scope === 'municipal' ? 'var(--accent, #0d9488)' : 'var(--rule)',
+            color: scope === 'municipal' ? 'white' : 'var(--muted)' }}>WP#7</span>
+        </button>
+      </div>
+      {scope === 'municipal' && (
+        <div style={{ fontSize: 11, color: 'var(--muted)', paddingRight: 8 }}>
+          fonte: <code>{muniSourceLabel}</code>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Dashboard ESTADUAL (WP#2) — extraído do legado pra ficar em tab ─────
+function EstadualDashboard({
+  kpis, year, setYear, metricKey, setMetricKey, metric,
+  colorscale, setColorscale, theme, ranking, filtered, evolutionData,
+  minYear, maxYear, years,
+}) {
+  return (
+    <>
+      <div className="kpiRow" data-export-id="pbf-kpis">
+        <KpiCard label={`Beneficiários · ${kpis.y ?? '—'}`} value={fmtCompact(kpis.totalBenef)}
+                 sub="soma Brasil (27 UFs)" />
+        <KpiCard label={`Valor pago · ${kpis.y ?? '—'}`}
+                 value={fmtBRL(kpis.totalValor2021 * 1e9, { compact: true })}
+                 sub="R$ 2021 · acumulado" color="#2b6cb0" />
+        <KpiCard label={`Per beneficiário · ${kpis.y ?? '—'}`} value={fmtBRL(kpis.perBenef)}
+                 sub="R$ 2021 / pessoa atendida" color="#be185d" />
+        <KpiCard label={`Per capita · ${kpis.y ?? '—'}`} value={fmtBRL(kpis.perCapita)}
+                 sub="R$ 2021 / habitante BR" color="#0d9488" />
+      </div>
+
+      <div className="layout">
+        <div className="row row-controls-bar">
+          <Panel label="Filtros & dados" sub="CGU · IBGE · BCB">
+            <div className="controls">
+              <div className="control">
+                <label htmlFor="metric-uf">Métrica</label>
+                <select id="metric-uf" value={metricKey} onChange={(e) => setMetricKey(e.target.value)}>
+                  {Object.entries(METRICS).map(([k, m]) => (
+                    <option key={k} value={k}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="control">
+                <label htmlFor="year-uf">Ano</label>
+                <select id="year-uf" value={year} onChange={(e) => setYear(e.target.value)}>
+                  <option value="AGG">{`Acumulado / média ${minYear ?? ''}–${maxYear ?? ''}`}</option>
+                  {years.map((y) => (<option key={y} value={y}>{y}</option>))}
+                </select>
+              </div>
+              <div className="metaBlock">
+                <b>Granularidade:</b> 27 UFs × Ano (gold <code>gold_pbf_estados_df.json</code>).<br />
+                <b>Fonte:</b> Portal da Transparência (CGU), IBGE/SIDRA 6579, BCB/SGS 433.<br />
+                <b>Deflação:</b> IPCA acumulado em dez/2021.
+              </div>
+            </div>
+          </Panel>
+          <Panel label="Evolução nacional" sub={metric.label} exportId="pbf-evolucao-nacional">
+            <EvolutionBar data={evolutionData} theme={theme}
+                          yLabel={metric.yaxisTitle} xLabel="Ano"
+                          format={metric.fmt} height={320} />
+          </Panel>
+        </div>
+
+        <div className="row row-ranking-map">
+          <Panel label="Ranking por UF"
+                 sub={`${metric.label} · ${year === 'AGG' ? 'média ponderada' : year}`}
+                 exportId="pbf-ranking-uf">
+            <StateRanking rows={ranking} format={metric.fmtRich}
+                          accentColor={theme === 'dark' ? '#60a5fa' : '#2b6cb0'} />
+          </Panel>
+          <Panel label="Distribuição geográfica" exportId="pbf-mapa-uf"
+                 right={<MapColorscaleSelect value={colorscale} onChange={setColorscale} />}>
+            <BrazilMap data={filtered} colorscale={colorscale} theme={theme}
+                       hoverFmt={metric.fmtRich} unit={metric.short} />
+          </Panel>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Helper compartilhado pelo seletor de paleta
+function MapColorscaleSelect({ value, onChange }) {
+  return (
+    <div className="mapControls">
+      <label htmlFor="colorscale">Cores</label>
+      <select id="colorscale" value={value} onChange={(e) => onChange(e.target.value)}>
+        {COLORSCALES.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
+      </select>
+    </div>
+  );
+}
+
+// ─── Dashboard MUNICIPAL (WP#7) — mesmos componentes do estadual ─────────
+function MunicipalDashboard({
+  muniRows, muniKpis, muniRanking, muniFiltered, muniEvolution,
+  muniYears, muniMaxYear, muniMinYear,
+  year, setYear, metricKey, setMetricKey, metric,
+  colorscale, setColorscale, theme,
+}) {
+  if (muniRows == null) {
+    return <div className="loading-block">Carregando dados municipais…</div>;
+  }
+  if (muniRows.length === 0) {
+    return (
+      <Panel label="Análise municipal" sub="gold municipal não disponível">
+        <p style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.6 }}>
+          Para gerar localmente:
+          <code> python3 articles/fetch_ibge_populacao_municipios.py</code> seguido de
+          <code> python3 articles/build_fallback_municipal_gold.py</code>.
+        </p>
+      </Panel>
+    );
+  }
+
+  const isFallback = muniRows[0]._source === 'fallback';
+
+  return (
+    <>
+      {isFallback && (
+        <div style={{
+          margin: '0 0 12px 0', padding: '10px 14px',
+          background: 'rgba(180, 83, 9, 0.08)',
+          border: '1px solid rgba(180, 83, 9, 0.4)', borderRadius: 6,
+          fontSize: 11.5, lineHeight: 1.55,
+        }}>
+          <b style={{ color: '#b45309' }}>Modo fallback:</b> alocação UF→município
+          ponderada por população × pobreza-UF (a partir do gold UF). Per capita
+          estadual é preservado em ~1.000. Heterogeneidade intra-UF efetiva
+          requer rodar o pipeline Databricks com microdados CGU agregados por
+          município (notebooks <code>silver/pbf_total_municipio_mes.py</code> +{' '}
+          <code>gold/pbf_municipios_df.py</code>).
+        </div>
+      )}
+
+      <div className="kpiRow" data-export-id="pbf-kpis-muni">
+        <KpiCard label={`Municípios · ${muniKpis.y ?? '—'}`}
+                 value={fmtInt(muniKpis.nMunis)}
+                 sub="painel WP#7 (5.570 entes)" />
+        <KpiCard label={`Beneficiários · ${muniKpis.y ?? '—'}`}
+                 value={fmtCompact(muniKpis.totalBenef)}
+                 sub={`${muniKpis.totalPop ? ((muniKpis.totalBenef / muniKpis.totalPop) * 100).toFixed(1) : '—'}% da população`}
+                 color="#be185d" />
+        <KpiCard label={`Valor pago · ${muniKpis.y ?? '—'}`}
+                 value={fmtBRL(muniKpis.totalValor * 1e6, { compact: true })}
+                 sub="R$ 2021 · soma 5.570 munis" color="#2b6cb0" />
+        <KpiCard label={`Per beneficiário · ${muniKpis.y ?? '—'}`}
+                 value={fmtBRL(muniKpis.perBenef)}
+                 sub="R$ 2021 / família atendida" color="#0d9488" />
+        <KpiCard label={`Per capita · ${muniKpis.y ?? '—'}`}
+                 value={fmtBRL(muniKpis.perCapita)}
+                 sub="R$ 2021 / habitante BR" color="#b45309" />
+      </div>
+
+      <div className="layout">
+        <div className="row row-controls-bar">
+          <Panel label="Filtros & dados" sub="CGU + IBGE/Localidades + IBGE/SIDRA + kelvins">
+            <div className="controls">
+              <div className="control">
+                <label htmlFor="metric-muni">Métrica</label>
+                <select id="metric-muni" value={metricKey} onChange={(e) => setMetricKey(e.target.value)}>
+                  {Object.entries(METRICS).map(([k, m]) => (
+                    <option key={k} value={k}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="control">
+                <label htmlFor="year-muni">Ano</label>
+                <select id="year-muni" value={year} onChange={(e) => setYear(e.target.value)}>
+                  <option value="AGG">{`Acumulado / média ${muniMinYear ?? ''}–${muniMaxYear ?? ''}`}</option>
+                  {muniYears.map((y) => (<option key={y} value={y}>{y}</option>))}
+                </select>
+              </div>
+              <div className="metaBlock">
+                <b>Granularidade:</b> 5.570 municípios × Ano (gold <code>gold_pbf_municipios_df.json</code>, agregado pra UF no mapa).<br />
+                <b>Identificação:</b> TWFE com <b>k=5.571 clusters</b> (vs k=27 do WP#2).<br />
+                <b>Robustez:</b> Conley HAC com distâncias geodésicas reais (haversine entre centroides IBGE/Localidades + kelvins).
+              </div>
+            </div>
+          </Panel>
+          <Panel label="Evolução nacional (agregado dos municípios)" sub={metric.label}
+                 exportId="pbf-evolucao-municipal">
+            <EvolutionBar data={muniEvolution} theme={theme}
+                          yLabel={metric.yaxisTitle} xLabel="Ano"
+                          format={metric.fmt} height={320} />
+          </Panel>
+        </div>
+
+        <div className="row row-ranking-map">
+          <Panel label="Ranking por UF (agregado de munis)"
+                 sub={`${metric.label} · ${year === 'AGG' ? 'média ponderada' : year}`}
+                 exportId="pbf-ranking-uf-muni">
+            <StateRanking rows={muniRanking} format={metric.fmtRich}
+                          accentColor={theme === 'dark' ? '#fb923c' : '#b45309'} />
+          </Panel>
+          <Panel label="Distribuição geográfica (agregado dos 5.570 munis em 27 UFs)"
+                 exportId="pbf-mapa-uf-muni"
+                 right={<MapColorscaleSelect value={colorscale} onChange={setColorscale} />}>
+            <BrazilMap data={muniFiltered} colorscale={colorscale} theme={theme}
+                       hoverFmt={metric.fmtRich} unit={metric.short} />
+          </Panel>
+        </div>
+      </div>
+
+      <MunicipalRankings muniRows={muniRows} year={year} muniMaxYear={muniMaxYear} />
+      <MunicipalCausalTable />
+      <MunicipalFigures />
+    </>
+  );
+}
+
+// ─── Top/Bottom 20 munis — lista textual com per-capita ──────────────────
+function MunicipalRankings({ muniRows, year, muniMaxYear }) {
+  const targetYear = year === 'AGG' ? muniMaxYear : Number(year);
+  const yearRows = muniRows.filter((r) => r.Ano === targetYear);
+  const top20 = [...yearRows].sort((a, b) => b.pbfPerCapita - a.pbfPerCapita).slice(0, 20);
+  const bottom20 = [...yearRows].filter((r) => r.pbfPerCapita > 0)
+                                 .sort((a, b) => a.pbfPerCapita - b.pbfPerCapita).slice(0, 20);
+  return (
+    <div style={{
+      display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 16,
+      marginTop: 14,
+    }}>
+      <Panel label={`Top 20 munis — maior PBF/hab (${targetYear})`}>
+        <ol style={{ fontSize: 12, lineHeight: 1.65, margin: 0, paddingLeft: 20 }}>
+          {top20.map((r) => (
+            <li key={r.cod_municipio} style={{ marginBottom: 2 }}>
+              <b>{r.municipio}</b>/<code>{r.uf}</code>{' '}
+              <span style={{ color: 'var(--muted)' }}>
+                · {fmtBRL(r.pbfPerCapita)}/hab · pop {fmtCompact(r.populacao)}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </Panel>
+      <Panel label={`Bottom 20 munis — menor PBF/hab > 0 (${targetYear})`}>
+        <ol style={{ fontSize: 12, lineHeight: 1.65, margin: 0, paddingLeft: 20 }}>
+          {bottom20.map((r) => (
+            <li key={r.cod_municipio} style={{ marginBottom: 2 }}>
+              <b>{r.municipio}</b>/<code>{r.uf}</code>{' '}
+              <span style={{ color: 'var(--muted)' }}>
+                · {fmtBRL(r.pbfPerCapita)}/hab · pop {fmtCompact(r.populacao)}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </Panel>
+    </div>
+  );
+}
+
+// ─── Tabela de resultados causais — mesma do legado, agora dentro da tab ─
+function MunicipalCausalTable() {
+  return (
+    <Panel label="Resultados causais (k = 5.571 clusters)"
+           sub="vinte vezes acima do mínimo Cameron-Gelbach-Miller (2008)">
+      <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 0, marginBottom: 10 }}>
+        Estimativas baseadas no painel municipal. Magnitudes em R$/hab/ano (2021).
+        Conley HAC com distâncias geodésicas reais (haversine) entre centroides
+        IBGE/Localidades + kelvins/Municipios-Brasileiros.
+      </p>
+      <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid var(--border)' }}>
+            <th style={{ textAlign: 'left',  padding: 8 }}>Estratégia</th>
+            <th style={{ textAlign: 'right', padding: 8 }}>β̂ (R$/hab)</th>
+            <th style={{ textAlign: 'right', padding: 8 }}>SE</th>
+            <th style={{ textAlign: 'right', padding: 8 }}>|t|</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            ['DiD 2×2 — MP 1.061/2021 (Auxílio Brasil)',  205.3,   2.04, 100.5],
+            ['DiD 2×2 — Lei 14.601/2023 (NBF)',           349.5,   2.81, 124.3],
+            ['TWFE clusterizado por município (k=5.571)', 296.6,   2.56, 115.7],
+            ['Conley HAC, h = 200 km',                    296.6,  36.5,    8.1],
+            ['Conley HAC, h = 800 km',                    296.6, 101.7,    2.9],
+            ['Conley HAC, h = 1600 km',                   296.6, 149.2,    2.0],
+          ].map((row) => (
+            <tr key={row[0]} style={{ borderBottom: '1px solid var(--rule)' }}>
+              <td style={{ padding: 8 }}>{row[0]}</td>
+              <td style={{ padding: 8, textAlign: 'right', fontWeight: 700 }}>+{row[1].toFixed(1)}</td>
+              <td style={{ padding: 8, textAlign: 'right' }}>{row[2].toFixed(2)}</td>
+              <td style={{ padding: 8, textAlign: 'right' }}>{row[3].toFixed(1)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10, lineHeight: 1.55 }}>
+        A inflação substantiva do SE Conley HAC entre h=50 e h=1600 km evidencia
+        correlação espacial positiva nos resíduos. Mesmo com h=1600 km, o efeito
+        permanece estatisticamente diferente de zero (|t| ≥ 2.0).
+      </p>
+    </Panel>
+  );
+}
+
+// ─── Galeria de figuras EMBEDDED INLINE — agrupadas por tema ─────────────
+function MunicipalFigures() {
+  const figBase = `${import.meta.env.BASE_URL || '/'}articles/figures-pbf-municipios`.replace(/\/{2,}/g, '/');
+  const groups = [
+    {
+      titulo: 'Distribuição & dispersão entre os 5.570 municípios',
+      figs: [
+        ['fig01-distribuicao-pc-municipal',  'Fig. 1 — Distribuição PBF/hab (5.570 munis)'],
+        ['fig02-intra-uf-boxplot',           'Fig. 2 — Heterogeneidade intra-UF (boxplot)'],
+        ['fig03-idhm-vs-pc-municipal',       'Fig. 3 — IDH-M × PBF per capita'],
+      ],
+    },
+    {
+      titulo: 'Geografia',
+      figs: [
+        ['fig05-mapa-scatter-municipal',     'Fig. 5 — Mapa scatter geográfico dos municípios'],
+        ['fig08-bivariado-pc-idhm',          'Fig. 8 — Mapa bivariado (per capita × IDH-M)'],
+      ],
+    },
+    {
+      titulo: 'Rankings & desigualdade',
+      figs: [
+        ['fig04-top-bottom-municipios',      'Fig. 4 — Top 20 vs Bottom 20'],
+        ['fig11-lorenz-municipal',           'Fig. 11 — Curva de Lorenz municipal + Gini'],
+      ],
+    },
+    {
+      titulo: 'Evolução temporal',
+      figs: [
+        ['fig06-evolucao-regional',          'Fig. 6 — Evolução regional 2013–2025'],
+        ['fig12-crescimento-2018-2024',      'Fig. 12 — Crescimento real per capita 2018→2024'],
+      ],
+    },
+    {
+      titulo: 'Inferência & robustez',
+      figs: [
+        ['fig07-theil-decomposicao',         'Fig. 7 — Decomposição Theil within/between-UF'],
+        ['fig09-need-ratio-municipal',       'Fig. 9 — Need ratio municipal'],
+        ['fig10-conley-hac-sensitivity',     'Fig. 10 — Conley HAC: SE × bandwidth'],
+      ],
+    },
+    {
+      titulo: 'Identificação causal',
+      figs: [
+        ['causal_event_study_municipal',     'Event study — DiD com leads/lags ±5 anos'],
+      ],
+    },
+  ];
+
+  return (
+    <section style={{ marginTop: 18 }}>
+      <Panel label="Figuras do Working Paper #7 (12 figuras + event study)"
+             sub="identidade visual editorial Mirante · embedded inline pra leitura sequencial">
+        <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 0, marginBottom: 16, lineHeight: 1.55 }}>
+          As 13 figuras abaixo seguem a estrutura narrativa do paper. Cada PDF é
+          embedded direto na página — abrir em nova aba pra zoom: <i>botão direito → "Abrir em nova aba"</i>
+          ou clique no ícone na barra do PDF.
+        </p>
+        {groups.map((g) => (
+          <div key={g.titulo} style={{ marginBottom: 20 }}>
+            <div style={{
+              fontSize: 12, fontWeight: 700, letterSpacing: '0.04em',
+              textTransform: 'uppercase', color: 'var(--accent, #0d9488)',
+              marginBottom: 10, paddingBottom: 6,
+              borderBottom: '1px solid var(--border)',
+            }}>
+              {g.titulo}
+            </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: g.figs.length === 1
+                ? '1fr'
+                : 'repeat(auto-fit, minmax(420px, 1fr))',
+              gap: 14,
+            }}>
+              {g.figs.map(([slug, label]) => (
+                <FigureEmbed key={slug} slug={slug} label={label} figBase={figBase} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </Panel>
+    </section>
+  );
+}
+
+function FigureEmbed({ slug, label, figBase }) {
+  const url = `${figBase}/${slug}.pdf`;
+  return (
+    <div style={{
+      border: '1px solid var(--border)', borderRadius: 6,
+      background: 'var(--bg)', overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '8px 12px', fontSize: 12, fontWeight: 600,
+        borderBottom: '1px solid var(--border)',
+        background: 'var(--rule, #f1f5f9)',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8,
+      }}>
+        <span>{label}</span>
+        <a href={url} target="_blank" rel="noreferrer"
+           style={{ fontSize: 10.5, color: 'var(--muted)', textDecoration: 'none' }}
+           title="abrir em nova aba">
+          ↗ abrir
+        </a>
+      </div>
+      <object data={`${url}#toolbar=0&navpanes=0`} type="application/pdf"
+              style={{ width: '100%', height: 460, display: 'block', border: 0 }}>
+        <div style={{ padding: 20, fontSize: 12, color: 'var(--muted)' }}>
+          Seu navegador não suporta PDF embedded.{' '}
+          <a href={url} target="_blank" rel="noreferrer">Abrir PDF</a>.
+        </div>
+      </object>
+    </div>
+  );
+}
+
+// ─── Diferenças WP#7 (municipal) vs WP#2 (estadual) ───────────────────────
+function DiferencasWP2WP7() {
+  const items = [
+    {
+      criterio: 'Granularidade',
+      wp2: '27 UFs × Ano (painel curto: N=27)',
+      wp7: '5.570 municípios × Ano (painel longo: N=5.570)',
+    },
+    {
+      criterio: 'Identificação causal',
+      wp2: 'DiD 2×2 + TWFE clusterizado por UF (k=27); ' +
+           'wild-cluster bootstrap pra mitigar few-clusters (Cameron-Gelbach-Miller 2008)',
+      wp7: 'TWFE clusterizado por município (k=5.571 — vinte vezes acima do mínimo CGM 2008); ' +
+           'cluster bootstrap converge sem precisar de wild-cluster',
+    },
+    {
+      criterio: 'Correlação espacial',
+      wp2: 'Não modelada explicitamente (cluster por UF é proxy parcial)',
+      wp7: 'Conley HAC com distâncias geodésicas REAIS (haversine entre centroides ' +
+           'IBGE/Localidades + kelvins/Municipios-Brasileiros), bandwidth sensitivity 50–1600 km',
+    },
+    {
+      criterio: 'Heterogeneidade dentro do estado',
+      wp2: 'Invisível por construção (média UF apaga variação intra-UF)',
+      wp7: 'Decomposição Theil within/between-UF revela quanto da desigualdade ' +
+           'PBF é INTRA-UF vs entre estados',
+    },
+    {
+      criterio: 'Choques institucionais analisados',
+      wp2: 'MP 1.061/2021 (Auxílio Brasil), Lei 14.601/2023 (NBF) — DiD honesto, resultado null possível',
+      wp7: 'Mesmos dois choques + análise da heterogeneidade do efeito por município',
+    },
+    {
+      criterio: 'Equidade & focalização',
+      wp2: 'Kakwani sobre per capita PBF × IDH-M por UF + benchmark CCT internacional ' +
+           '(AUH Argentina, Prospera México, MFA Colômbia, Renta Dignidad Bolívia em US$ PPP)',
+      wp7: 'Need ratio municipal (cobertura efetiva / cobertura ideal por necessidade), ' +
+           'curva de Lorenz municipal, mapa bivariado pc × IDH-M',
+    },
+    {
+      criterio: 'Tese central',
+      wp2: 'Três regimes (PBF/AB/NBF), R$ 36→141 bi/ano, 16→24 mi famílias — ' +
+           'dois choques institucionais identificáveis + benchmark internacional',
+      wp7: '5.570 pontos de decisão — a hipótese de homogeneidade dentro da UF é ' +
+           'falsa por construção do programa (focalização individual no CadÚnico), ' +
+           'a granularidade municipal é o nível certo de identificação',
+    },
+    {
+      criterio: 'Score régua Mestrado',
+      wp2: 'B+ (2,5 pts) — DiD/TWFE/WCB + Kakwani + benchmark CCT + 17 figuras',
+      wp7: 'B+ (2,5 pts) — resolve gargalo de N=27 do WP#2 + Conley HAC com geodésicas REAIS + ' +
+           'decomposição Theil + 12 figuras + event study',
+    },
+    {
+      criterio: 'Reuso metodológico',
+      wp2: 'Pipeline UF×Ano. Reaproveitável pra outros programas com baixa granularidade',
+      wp7: 'Template Município×Ano. 6 notebooks Databricks + 4 scripts Python — ' +
+           'reaproveitável fora do PBF (basta trocar o silver de origem)',
+    },
+  ];
+
+  return (
+    <section style={{ marginTop: 24, marginBottom: 14 }}>
+      <Panel label="Diferenças entre WP#7 (municipal) e WP#2 (estadual)"
+             sub="resumo cross-paper das contribuições complementares">
+        <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 0, marginBottom: 14, lineHeight: 1.6 }}>
+          Os dois Working Papers cobrem o mesmo programa (Bolsa Família/Auxílio Brasil/Novo Bolsa
+          Família, 2013–2025) com a mesma régua editorial (stricto sensu mestrado, score B+),
+          mas com escopos diferentes e <b>complementares</b>: WP#2 estabelece o quadro nacional
+          + identificação causal sobre os dois choques institucionais; WP#7 responde DIRETAMENTE
+          ao gargalo de N=27 do WP#2 migrando pra k=5.570 clusters municipais e revelando a
+          heterogeneidade que a média UF esconde.
+        </p>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', fontSize: 12.5, borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid var(--border)' }}>
+                <th style={{ textAlign: 'left', padding: 8, width: '20%' }}>Critério</th>
+                <th style={{ textAlign: 'left', padding: 8, width: '40%', color: '#2b6cb0' }}>WP#2 — Estadual</th>
+                <th style={{ textAlign: 'left', padding: 8, width: '40%', color: '#b45309' }}>WP#7 — Municipal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it, i) => (
+                <tr key={it.criterio} style={{
+                  borderBottom: '1px solid var(--rule)',
+                  background: i % 2 === 0 ? 'transparent' : 'var(--rule, rgba(0,0,0,0.02))',
+                }}>
+                  <td style={{ padding: 8, fontWeight: 700, verticalAlign: 'top' }}>{it.criterio}</td>
+                  <td style={{ padding: 8, lineHeight: 1.55, verticalAlign: 'top' }}>{it.wp2}</td>
+                  <td style={{ padding: 8, lineHeight: 1.55, verticalAlign: 'top' }}>{it.wp7}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 12, lineHeight: 1.55 }}>
+          <b>Não-substituíveis:</b> WP#2 ↔ WP#7 são complementares, não concorrentes. Quem
+          precisa de inferência sobre o programa BR-wide com choques nacionais → WP#2. Quem
+          precisa entender por que o efeito médio esconde heterogeneidade real entre municípios
+          da mesma UF → WP#7. Idealmente, ambos.
+        </p>
+      </Panel>
+    </section>
+  );
+}
+
+// ─── (LEGADO) MunicipalSection antigo — mantido pra fallback se algum import quebrar
 function MunicipalSection({ rows }) {
   const [yearSel, setYearSel] = useState(null);
   const [ufFilter, setUfFilter] = useState('TODOS');
@@ -584,8 +1141,11 @@ export default function BolsaFamilia() {
   const [metricKey, setMetricKey]   = useState(DEFAULT_METRIC);
   const [year, setYear]             = useState('AGG');
   const [colorscale, setColorscale] = useState(DEFAULT_COLOR);
-  // WP#7 — gold municipal carregado em paralelo. Optional: se faltar, a seção
-  // municipal exibe placeholder. Não bloqueia a tela principal.
+  // Tab: 'estadual' (WP#2) ou 'municipal' (WP#7). Controla qual dashboard
+  // renderiza. Ambos compartilham KpiCard/BrazilMap/StateRanking/EvolutionBar.
+  const [scope, setScope] = useState('estadual');
+  // WP#7 — gold municipal carregado em paralelo. Optional: se faltar, a tab
+  // Municipal mostra placeholder. Não bloqueia a tela principal.
   const [muniRows, setMuniRows] = useState(null);
 
   useEffect(() => {
@@ -667,6 +1227,97 @@ export default function BolsaFamilia() {
       value: brazilForYear(rows.filter((r) => r.Ano === y), metricKey),
     }));
   }, [rows, metricKey, years]);
+
+  // ─── DERIVAÇÕES MUNICIPAIS — agregadas a UF pra usar a MESMA UI estadual ──
+  // Gold municipal tem valor_2021 em MILHÕES (R$ mi); state gold tem em BILHÕES.
+  // Reescalamos pra ficar comparável entre tabs (UI sempre fala em "bilhões"
+  // pra não-ratio métricas).
+  const muniYears = useMemo(
+    () => (muniRows && muniRows.length > 0
+      ? Array.from(new Set(muniRows.map((r) => r.Ano))).sort()
+      : []),
+    [muniRows],
+  );
+  const muniMaxYear = muniYears.length ? muniYears[muniYears.length - 1] : null;
+  const muniMinYear = muniYears.length ? muniYears[0] : null;
+
+  // Mapa Brasil — agrega 5.570 munis em 27 UFs pro mesmo BrazilMap usado no estadual
+  const muniFiltered = useMemo(() => {
+    if (!muniRows || muniRows.length === 0) return [];
+    const byUf = new Map();
+    const targetYears = year === 'AGG' ? muniYears : [Number(year)];
+    for (const r of muniRows) {
+      if (!targetYears.includes(r.Ano)) continue;
+      const cur = byUf.get(r.uf) || { uf: r.uf, valor: 0, pop: 0, benef: 0 };
+      cur.valor += (r.valor_2021 || 0);  // R$ mi
+      cur.pop   += (r.populacao || 0);
+      cur.benef += (r.n_benef || 0);
+      byUf.set(r.uf, cur);
+    }
+    return Array.from(byUf.values()).map((d) => {
+      let value = 0;
+      if (metricKey === 'pbfPerCapita') {
+        value = d.pop > 0 ? (d.valor * 1e6) / d.pop : 0;          // R$/hab
+      } else if (metricKey === 'pbfPerBenef') {
+        value = d.benef > 0 ? (d.valor * 1e6) / d.benef : 0;      // R$/família
+      } else if (metricKey === 'valor_2021' || metricKey === 'valor_nominal') {
+        value = d.valor / 1000;                                   // mi → bi (alinhar UI)
+      } else if (metricKey === 'n_benef') {
+        value = d.benef;
+      }
+      return { uf: d.uf, value };
+    });
+  }, [muniRows, year, metricKey, muniYears]);
+
+  const muniRanking = useMemo(
+    () => [...muniFiltered].sort((a, b) => b.value - a.value),
+    [muniFiltered],
+  );
+
+  // KPIs municipais — cobertura de Brasil pro ano selecionado
+  const muniKpis = useMemo(() => {
+    if (!muniRows || muniRows.length === 0) {
+      return { y: null, nMunis: 0, totalBenef: 0, totalValor: 0, perBenef: 0, perCapita: 0, totalPop: 0 };
+    }
+    const y = year === 'AGG' ? muniMaxYear : Number(year);
+    const yearRows = muniRows.filter((r) => r.Ano === y);
+    const totalBenef = yearRows.reduce((s, r) => s + (r.n_benef || 0), 0);
+    const totalValor = yearRows.reduce((s, r) => s + (r.valor_2021 || 0), 0);  // R$ mi
+    const totalPop   = yearRows.reduce((s, r) => s + (r.populacao || 0), 0);
+    return {
+      y,
+      nMunis: yearRows.length,
+      totalBenef,
+      totalValor,                                                  // mi
+      totalPop,
+      perCapita: totalPop ? (totalValor * 1e6) / totalPop : 0,
+      perBenef:  totalBenef ? (totalValor * 1e6) / totalBenef : 0,
+    };
+  }, [muniRows, year, muniMaxYear]);
+
+  // Evolução municipal Brasil-wide pra EvolutionBar (usa mesma métrica selecionada)
+  const muniEvolution = useMemo(() => {
+    if (!muniRows || muniRows.length === 0) return [];
+    return muniYears.map((y) => {
+      const yearRows = muniRows.filter((r) => r.Ano === y);
+      const valor = yearRows.reduce((s, r) => s + (r.valor_2021 || 0), 0);
+      const pop   = yearRows.reduce((s, r) => s + (r.populacao || 0), 0);
+      const benef = yearRows.reduce((s, r) => s + (r.n_benef || 0), 0);
+      let value = 0;
+      if (metricKey === 'pbfPerCapita')      value = pop ? (valor * 1e6) / pop : 0;
+      else if (metricKey === 'pbfPerBenef')  value = benef ? (valor * 1e6) / benef : 0;
+      else if (metricKey === 'valor_2021' || metricKey === 'valor_nominal') value = valor / 1000;
+      else if (metricKey === 'n_benef')      value = benef;
+      return { year: String(y), value };
+    });
+  }, [muniRows, metricKey, muniYears]);
+
+  const muniSourceLabel = useMemo(() => {
+    if (!muniRows || muniRows.length === 0) return 'sem dados';
+    return muniRows[0]._source === 'fallback'
+      ? 'fallback (alocação UF→muni)'
+      : 'pipeline Databricks';
+  }, [muniRows]);
 
   // Caminhos do artigo Working Paper #2 (Bolsa Família).
   // IMPORTANTE: useArticleMeta é hook — precisa ficar ANTES dos early returns
@@ -759,107 +1410,30 @@ export default function BolsaFamilia() {
         <DocCardWP7 />
       </section>
 
-      <div className="kpiRow" data-export-id="pbf-kpis">
-        <KpiCard
-          label={`Beneficiários · ${kpis.y ?? '—'}`}
-          value={fmtCompact(kpis.totalBenef)}
-          sub="soma Brasil"
+      <ScopeToggle scope={scope} setScope={setScope} muniSourceLabel={muniSourceLabel} />
+
+      {scope === 'estadual' ? (
+        <EstadualDashboard
+          rows={rows} kpis={kpis} year={year} setYear={setYear}
+          metricKey={metricKey} setMetricKey={setMetricKey} metric={metric}
+          colorscale={colorscale} setColorscale={setColorscale}
+          theme={theme} ranking={ranking} filtered={filtered}
+          evolutionData={evolutionData}
+          minYear={minYear} maxYear={maxYear} years={years}
         />
-        <KpiCard
-          label={`Valor pago · ${kpis.y ?? '—'}`}
-          value={fmtBRL(kpis.totalValor2021 * 1e9, { compact: true })}
-          sub="R$ 2021 · acumulado no ano"
-          color="#2b6cb0"
+      ) : (
+        <MunicipalDashboard
+          muniRows={muniRows} muniKpis={muniKpis} muniRanking={muniRanking}
+          muniFiltered={muniFiltered} muniEvolution={muniEvolution}
+          muniYears={muniYears} muniMaxYear={muniMaxYear} muniMinYear={muniMinYear}
+          year={year} setYear={setYear}
+          metricKey={metricKey} setMetricKey={setMetricKey} metric={metric}
+          colorscale={colorscale} setColorscale={setColorscale}
+          theme={theme}
         />
-        <KpiCard
-          label={`Per beneficiário · ${kpis.y ?? '—'}`}
-          value={fmtBRL(kpis.perBenef)}
-          sub="R$ 2021 / pessoa atendida"
-          color="#be185d"
-        />
-        <KpiCard
-          label={`Per capita · ${kpis.y ?? '—'}`}
-          value={fmtBRL(kpis.perCapita)}
-          sub="R$ 2021 / habitante BR"
-          color="#0d9488"
-        />
-      </div>
+      )}
 
-      <div className="layout">
-        <div className="row row-controls-bar">
-          <Panel label="Filtros & dados" sub="CGU · IBGE · BCB">
-            <div className="controls">
-              <div className="control">
-                <label htmlFor="metric">Métrica</label>
-                <select id="metric" value={metricKey} onChange={(e) => setMetricKey(e.target.value)}>
-                  {Object.entries(METRICS).map(([k, m]) => (
-                    <option key={k} value={k}>{m.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="control">
-                <label htmlFor="year">Ano</label>
-                <select id="year" value={year} onChange={(e) => setYear(e.target.value)}>
-                  <option value="AGG">{`Acumulado / média ${minYear ?? ''}–${maxYear ?? ''}`}</option>
-                  {years.map((y) => (<option key={y} value={y}>{y}</option>))}
-                </select>
-              </div>
-
-              <div className="metaBlock">
-                <b>Fonte:</b> Portal da Transparência (CGU): pagamentos PBF, Auxílio Brasil e Novo Bolsa Família.<br />
-                <b>População:</b> IBGE/SIDRA tabela 6579.<br />
-                <b>Inflação:</b> BCB/SGS série 433 (IPCA), normalizada em dez/2021.
-              </div>
-            </div>
-          </Panel>
-
-          <Panel label="Evolução nacional" sub={metric.label} exportId="pbf-evolucao-nacional">
-            <EvolutionBar
-              data={evolutionData}
-              theme={theme}
-              yLabel={metric.yaxisTitle}
-              xLabel="Ano"
-              format={metric.fmt}
-              height={320}
-            />
-          </Panel>
-        </div>
-
-        <div className="row row-ranking-map">
-          <Panel label="Ranking por UF" sub={`${metric.label} · ${year === 'AGG' ? 'média ponderada' : year}`} exportId="pbf-ranking-uf">
-            <StateRanking
-              rows={ranking}
-              format={metric.fmtRich}
-              accentColor={theme === 'dark' ? '#60a5fa' : '#2b6cb0'}
-            />
-          </Panel>
-
-          <Panel
-            label="Distribuição geográfica"
-            exportId="pbf-mapa-uf"
-            right={
-              <div className="mapControls">
-                <label htmlFor="colorscale">Cores</label>
-                <select id="colorscale" value={colorscale} onChange={(e) => setColorscale(e.target.value)}>
-                  {COLORSCALES.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
-                </select>
-              </div>
-            }
-          >
-            <BrazilMap
-              data={filtered}
-              colorscale={colorscale}
-              theme={theme}
-              hoverFmt={metric.fmtRich}
-              unit={metric.short}
-            />
-          </Panel>
-        </div>
-      </div>
-
-      {/* WP#7 — análise municipal completa (5.570 munis + ranking + figuras + causal) */}
-      <MunicipalSection rows={muniRows} />
+      <DiferencasWP2WP7 />
 
       <Footer />
     </>
