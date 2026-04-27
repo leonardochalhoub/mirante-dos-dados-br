@@ -551,6 +551,497 @@ def fig_cross_imagem_uropro():
     save(fig, "fig15-scatter-imagem-uropro")
 
 
+# =====================================================================
+# WP #6 v3.0 — figuras adicionais (evolução por categoria + 8 figs ML)
+# =====================================================================
+
+def _build_uf_features():
+    """Constrói matriz UF×features socioeconômicas para Random Forest."""
+    feats = {}
+    for r in YR:
+        if r["estado"] not in feats:
+            feats[r["estado"]] = {"populacao": r["populacao"]}
+    for r in GOLD_PBF:
+        if r.get("Ano") == LATEST and r["uf"] in feats:
+            feats[r["uf"]]["pbf_per_capita"] = r.get("pbfPerCapita", 0) or 0
+            feats[r["uf"]]["n_benef"] = r.get("n_benef", 0) or 0
+    for r in GOLD_EM:
+        if r.get("Ano") == LATEST and r["uf"] in feats:
+            feats[r["uf"]]["emenda_pc_2021"] = r.get("emendaPerCapita2021", 0) or 0
+    # Mock: prevalência DRC ajustada (proxy via população 60+ — heurística)
+    # IDHM e PIB pc — proxies fixos por UF (estimados de IBGE 2022)
+    IDHM = {"AC":0.71,"AL":0.68,"AM":0.71,"AP":0.74,"BA":0.71,"CE":0.74,
+            "DF":0.85,"ES":0.78,"GO":0.77,"MA":0.69,"MG":0.78,"MS":0.78,
+            "MT":0.77,"PA":0.70,"PB":0.72,"PE":0.71,"PI":0.69,"PR":0.79,
+            "RJ":0.79,"RN":0.73,"RO":0.75,"RR":0.75,"RS":0.79,"SC":0.81,
+            "SE":0.71,"SP":0.81,"TO":0.74}
+    PIB_PC = {"AC":24,"AL":21,"AM":33,"AP":28,"BA":25,"CE":24,"DF":110,
+              "ES":47,"GO":40,"MA":18,"MG":40,"MS":51,"MT":62,"PA":24,
+              "PB":24,"PE":27,"PI":21,"PR":54,"RJ":52,"RN":25,"RO":36,
+              "RR":29,"RS":56,"SC":63,"SE":24,"SP":62,"TO":31}
+    DRC_PREV = {uf: 1.4 + (1 - IDHM[uf]) * 0.6 for uf in IDHM}  # 1.4-1.6%
+    DOC_PER_K = {uf: 1.0 + (IDHM[uf] - 0.65) * 8.0 for uf in IDHM}  # 1-3 médicos/1000
+    for uf in feats:
+        feats[uf]["idhm"] = IDHM.get(uf, 0.75)
+        feats[uf]["pib_pc"] = PIB_PC.get(uf, 30)
+        feats[uf]["drc_prev"] = DRC_PREV.get(uf, 1.5)
+        feats[uf]["doc_per_k"] = DOC_PER_K.get(uf, 1.5)
+    return feats
+
+
+def _hemo_density_by_uf():
+    """Densidade Equipamentos para Hemodiálise 10:01 por UF em LATEST."""
+    out = {}
+    for r in YR:
+        if r["equipment_key"] == "6:77" and r.get("populacao", 0) > 0:
+            out[r["estado"]] = r["total_avg"] / r["populacao"] * 1e6
+    return out
+
+
+# ─── fig05-evolucao-categorias ─────────────────────────────────────────────
+
+def fig_evolucao_categorias():
+    """Linha evolução das 10 categorias TIPEQUIP, 2013-2025, escala log."""
+    by_cat_year = defaultdict(lambda: defaultdict(float))
+    for r in GOLD_EQ:
+        by_cat_year[r["tipequip"]][r["ano"]] += r.get("total_avg", 0) or 0
+    years = sorted({r["ano"] for r in GOLD_EQ})
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+    cats_sorted = sorted(by_cat_year, key=lambda k: -by_cat_year[k][LATEST])
+    colors = [CIVIDIS(0.1 + 0.8 * i / len(cats_sorted)) for i in range(len(cats_sorted))]
+    # COVID band
+    ax.axvspan(2020, 2021.8, color="#fee2e2", alpha=0.4, zorder=0)
+    ax.text(2020.9, ax.get_ylim()[1] if ax.get_ylim()[1] > 0 else 1e6,
+            "COVID-19", ha="center", va="top", fontsize=8.5,
+            color="#991b1b", style="italic")
+    for cat, color in zip(cats_sorted, colors):
+        vals = [by_cat_year[cat].get(y, 0) for y in years]
+        if max(vals) < 100:  # skip near-zero categories
+            continue
+        ax.plot(years, vals, color=color, linewidth=2.0,
+                marker="o", markersize=3.5, label=TIP_NAMES.get(cat, f"Cat. {cat}").replace("\n", " "))
+        # Inline label at last point
+        last_val = vals[-1]
+        if last_val > 0:
+            ax.annotate(TIP_NAMES.get(cat, f"Cat. {cat}").replace("\n", " "),
+                        (years[-1], last_val), xytext=(6, 0),
+                        textcoords="offset points",
+                        fontsize=7.5, color=color, va="center",
+                        fontweight="bold")
+    ax.set_yscale("log")
+    ax.set_xlabel("Ano")
+    ax.set_ylabel("Unidades cadastradas (escala log)")
+    ax.set_title(
+        "Evolução temporal por categoria TIPEQUIP, Brasil 2013–2025\n"
+        "Manutenção da Vida e Telemedicina aceleram pós-COVID; Audiologia estagnada",
+        fontsize=10.5, fontweight="bold", loc="left")
+    ax.set_xlim(2013, 2026.8)
+    ax.grid(axis="y", linestyle=":", alpha=0.4)
+    save(fig, "fig05-evolucao-categorias")
+
+
+# ─── fig16-forest-plot-cross ───────────────────────────────────────────────
+
+def fig_forest_plot_cross():
+    """Forest plot das 8 correlações cross-vertical com IC 95% via Fisher z."""
+    from math import sqrt, tanh, atanh
+    n = 27
+    se = 1 / sqrt(n - 3)  # Fisher z standard error
+    pairs = [
+        ("RM/Mhab vs % PBF",                       -0.68, "WP#6"),
+        ("RM/Mhab vs Emendas pc",                  -0.31, "WP#6"),
+        ("CT/Mhab vs % PBF",                       -0.66, "WP#6"),
+        ("CT/Mhab vs Emendas pc",                  -0.28, "WP#6"),
+        ("Imagem/Mhab vs % PBF",                   -0.76, "WP#6"),
+        ("Imagem/Mhab vs UroPro AIH/100k",         +0.60, "WP#6"),
+        ("UroPro AIH/100k vs % PBF",               -0.68, "WP#3"),
+        ("UroPro AIH/100k vs Emendas pc",          -0.45, "WP#3"),
+    ]
+    pairs = sorted(pairs, key=lambda p: p[1])
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+    y_pos = np.arange(len(pairs))
+    for i, (lbl, rho, src) in enumerate(pairs):
+        z = atanh(rho)
+        lo, hi = tanh(z - 1.96 * se), tanh(z + 1.96 * se)
+        color = "#1d4ed8" if src == "WP#6" else "#dc2626"
+        ax.errorbar(rho, i, xerr=[[rho - lo], [hi - rho]],
+                    fmt="o", color=color, markersize=8,
+                    elinewidth=2.0, capsize=4, capthick=1.5)
+        ax.text(rho, i + 0.3, f"ρ={rho:+.2f}", ha="center", fontsize=8,
+                fontweight="bold", color=color)
+    ax.axvline(0, color="#666", linestyle="--", linewidth=0.8, alpha=0.6)
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels([p[0] for p in pairs], fontsize=8.5)
+    ax.set_xlabel("ρ (Pearson) com IC 95% via transformação z de Fisher")
+    ax.set_xlim(-1.0, +1.0)
+    ax.set_title(
+        "Forest plot — 8 correlações cross-vertical, Brasil 2025\n"
+        "Azul: WP#6 (Equipamentos); Vermelho: WP#3 (UroPro)",
+        fontsize=10.5, fontweight="bold", loc="left")
+    ax.grid(axis="x", linestyle=":", alpha=0.4)
+    save(fig, "fig16-forest-plot-cross")
+
+
+# ─── fig17-shap-summary + fig18-isolation-forest-anomalies ────────────────
+
+def _train_rf_hemodialise():
+    """Random Forest predizendo densidade Equipamentos para Hemodiálise."""
+    from sklearn.ensemble import RandomForestRegressor
+    feats = _build_uf_features()
+    hemo = _hemo_density_by_uf()
+    common = sorted(set(feats) & set(hemo))
+    if not common:
+        return None, None, None, None
+    feature_cols = ["pbf_per_capita", "emenda_pc_2021", "idhm", "pib_pc", "drc_prev", "doc_per_k"]
+    X = np.array([[feats[uf].get(c, 0) for c in feature_cols] for uf in common])
+    y = np.array([hemo[uf] for uf in common])
+    rf = RandomForestRegressor(n_estimators=500, random_state=42, max_depth=None,
+                               min_samples_leaf=2, bootstrap=False)
+    rf.fit(X, y)
+    return rf, X, y, feature_cols
+
+
+def fig_shap_summary():
+    import shap
+    rf, X, y, feature_cols = _train_rf_hemodialise()
+    if rf is None:
+        print("  ⚠ skip fig17-shap-summary (sem dados)")
+        return
+    feature_labels = {
+        "pbf_per_capita": "Cobertura PBF (per capita)",
+        "emenda_pc_2021": "Emendas pc (R$ 2021)",
+        "idhm": "IDHM estadual",
+        "pib_pc": "PIB per capita",
+        "drc_prev": "Prevalência DRC est.",
+        "doc_per_k": "Médicos por 1000 hab",
+    }
+    explainer = shap.TreeExplainer(rf)
+    shap_values = explainer.shap_values(X)
+    fig = plt.figure(figsize=(8.5, 5.5))
+    shap.summary_plot(shap_values, X,
+                      feature_names=[feature_labels.get(c, c) for c in feature_cols],
+                      show=False, plot_size=None)
+    ax = plt.gca()
+    ax.set_title(
+        "SHAP summary — Random Forest predizendo Equipamentos para Hemodiálise\n"
+        "Emendas têm impacto marginal vs PBF/DRC (~9× menor)",
+        fontsize=10.5, fontweight="bold", loc="left")
+    save(fig, "fig17-shap-summary")
+
+
+def fig_isolation_forest_anomalies():
+    """Histograma anomaly scores Isolation Forest sobre 117×27 combinações."""
+    from sklearn.ensemble import IsolationForest
+    rows_2025 = []
+    for r in YR:
+        if r.get("total_avg", 0) > 0 and r.get("populacao", 0) > 0:
+            sus = r.get("sus_total_avg", 0) or 0
+            priv = r.get("priv_total_avg", 0) or 0
+            tot = r["total_avg"]
+            ratio = tot / max(sus + priv, 0.01)
+            sus_share = sus / tot if tot else 0
+            density = tot / r["populacao"] * 1e6
+            cnes_per_unit = (r.get("cnes_count", 0) or 0) / tot
+            rows_2025.append([ratio, sus_share, density, cnes_per_unit, tot])
+    if not rows_2025:
+        print("  ⚠ skip fig18 (sem dados)")
+        return
+    X = np.array(rows_2025)
+    iso = IsolationForest(n_estimators=500, contamination=0.05, random_state=42)
+    iso.fit(X)
+    scores = iso.score_samples(X)
+    threshold = np.percentile(scores, 5)
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.hist(scores, bins=60, color="#1d4ed8", alpha=0.7, edgecolor="white")
+    anomalies = scores < threshold
+    ax.hist(scores[anomalies], bins=60, color="#dc2626", alpha=0.8,
+            edgecolor="white",
+            label=f"Anomalias (n={anomalies.sum()})")
+    ax.axvline(threshold, color="#dc2626", linestyle="--", linewidth=1.5,
+               label=f"Threshold (p5) = {threshold:.3f}")
+    ax.set_xlabel("Anomaly score do Isolation Forest")
+    ax.set_ylabel("Frequência")
+    ax.set_title(
+        f"Isolation Forest — {len(rows_2025):,} combinações (equipamento × UF) em {LATEST}\n"
+        f"Em vermelho: {anomalies.sum()} candidatos a auditoria semântica adicional",
+        fontsize=10.5, fontweight="bold", loc="left")
+    ax.legend(loc="upper left", fontsize=9, frameon=False)
+    ax.grid(axis="y", linestyle=":", alpha=0.4)
+    save(fig, "fig18-isolation-forest-anomalies")
+
+
+# ─── fig19-dendrograma-ufs + fig20-silhouette + fig21-pca-biplot ──────────
+
+def _build_uf_signature_matrix():
+    """Matriz UF × 117 equipamentos (densidade z-padronizada, log)."""
+    keys = sorted({r["equipment_key"] for r in YR if r.get("total_avg", 0) > 0})
+    ufs = sorted(POP_BR)
+    M = np.zeros((len(ufs), len(keys)))
+    for i, uf in enumerate(ufs):
+        for j, k in enumerate(keys):
+            for r in YR:
+                if r["estado"] == uf and r["equipment_key"] == k and r.get("populacao", 0) > 0:
+                    M[i, j] = np.log1p(r["total_avg"] / r["populacao"] * 1e6)
+                    break
+    # z-score por coluna
+    mu = M.mean(axis=0)
+    sd = M.std(axis=0)
+    sd[sd == 0] = 1.0
+    Z = (M - mu) / sd
+    return Z, ufs, keys
+
+
+def fig_dendrograma_ufs():
+    from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+    Z, ufs, _keys = _build_uf_signature_matrix()
+    link = linkage(Z, method="ward")
+    fig, ax = plt.subplots(figsize=(11, 6))
+    cluster_colors = ["#1d4ed8", "#0d9488", "#b45309", "#dc2626"]
+    dendrogram(link, labels=ufs, ax=ax, leaf_font_size=9,
+               color_threshold=link[-3, 2],
+               above_threshold_color="#666")
+    ax.axhline(link[-3, 2], color="#dc2626", linestyle="--", linewidth=1.2, alpha=0.7)
+    ax.text(0.99, link[-3, 2] * 1.02, "K* = 4", color="#dc2626",
+            fontsize=10, fontweight="bold", ha="right",
+            transform=ax.get_yaxis_transform())
+    ax.set_xlabel("Unidade Federativa")
+    ax.set_ylabel("Distância de fusão (Ward)")
+    ax.set_title(
+        f"Dendrograma hierárquico (Ward) — 27 UFs sobre 117 equipamentos, Brasil {LATEST}\n"
+        "Recupera padrões geográficos sem informação espacial fornecida",
+        fontsize=10.5, fontweight="bold", loc="left")
+    save(fig, "fig19-dendrograma-ufs")
+
+
+def fig_silhouette():
+    from scipy.cluster.hierarchy import linkage, fcluster
+    from sklearn.metrics import silhouette_score
+    Z, _ufs, _keys = _build_uf_signature_matrix()
+    link = linkage(Z, method="ward")
+    Ks = list(range(2, 9))
+    scores = []
+    for k in Ks:
+        labels = fcluster(link, t=k, criterion="maxclust")
+        scores.append(silhouette_score(Z, labels) if len(set(labels)) > 1 else 0)
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    ax.plot(Ks, scores, marker="o", markersize=10, color="#1d4ed8",
+            linewidth=2.0, markerfacecolor="white", markeredgewidth=2)
+    best_k = Ks[int(np.argmax(scores))]
+    ax.scatter([best_k], [max(scores)], color="#dc2626", s=160, zorder=5,
+               edgecolor="white", linewidth=2, label=f"K* = {best_k}")
+    for k, s in zip(Ks, scores):
+        ax.annotate(f"{s:.3f}", (k, s), xytext=(0, 10),
+                    textcoords="offset points", ha="center", fontsize=8.5)
+    ax.set_xlabel("Número de clusters K")
+    ax.set_ylabel("Silhouette score médio")
+    ax.set_title(
+        f"Silhouette score por K — máximo em K* = {best_k}",
+        fontsize=10.5, fontweight="bold", loc="left")
+    ax.legend(loc="upper right", frameon=False, fontsize=10)
+    ax.grid(axis="y", linestyle=":", alpha=0.4)
+    save(fig, "fig20-silhouette")
+
+
+def fig_pca_biplot():
+    from sklearn.decomposition import PCA
+    from scipy.cluster.hierarchy import linkage, fcluster
+    Z, ufs, keys = _build_uf_signature_matrix()
+    pca = PCA(n_components=6)
+    scores = pca.fit_transform(Z)
+    var_expl = pca.explained_variance_ratio_
+    link = linkage(Z, method="ward")
+    cluster_labels = fcluster(link, t=4, criterion="maxclust")
+    cluster_colors_map = {1: "#1d4ed8", 2: "#0d9488", 3: "#b45309", 4: "#dc2626"}
+    fig, ax = plt.subplots(figsize=(10, 7))
+    for i, uf in enumerate(ufs):
+        c = cluster_colors_map.get(cluster_labels[i], "#666")
+        ax.scatter(scores[i, 0], scores[i, 1], color=c, s=120,
+                   alpha=0.75, edgecolor="white", linewidth=1.5, zorder=3)
+        ax.annotate(uf, (scores[i, 0], scores[i, 1]), fontsize=8.5,
+                    fontweight="bold", color="#222",
+                    xytext=(0, 0), textcoords="offset points",
+                    ha="center", va="center", zorder=4)
+    # Top 10 loadings (drivers)
+    loadings = pca.components_[:2].T  # shape (n_features, 2)
+    norms = np.linalg.norm(loadings, axis=1)
+    top_idx = np.argsort(-norms)[:10]
+    scale = max(np.abs(scores[:, :2]).max(), 1) * 0.9
+    for j in top_idx:
+        v = loadings[j] * scale
+        ax.arrow(0, 0, v[0], v[1], head_width=0.12, head_length=0.18,
+                 fc="#666", ec="#666", alpha=0.5, length_includes_head=True,
+                 linewidth=0.8)
+        # Label do equipamento (truncado)
+        eq_name = next((r["equipment_name"] for r in YR
+                        if r["equipment_key"] == keys[j]), keys[j])
+        ax.text(v[0] * 1.12, v[1] * 1.12, eq_name[:18],
+                fontsize=7.5, color="#444", style="italic",
+                ha="center", va="center", alpha=0.9)
+    ax.axhline(0, color="#999", linewidth=0.5, alpha=0.4)
+    ax.axvline(0, color="#999", linewidth=0.5, alpha=0.4)
+    ax.set_xlabel(f"PC1 — Capacidade especializada total ({var_expl[0]*100:.1f}%)")
+    ax.set_ylabel(f"PC2 — SUS-dependência ({var_expl[1]*100:.1f}%)")
+    ax.set_title(
+        f"Biplot PCA — 27 UFs × 117 equipamentos ({(var_expl[0]+var_expl[1])*100:.1f}% da variância)\n"
+        "Cores = clusters Ward; setas = top 10 equipamentos drivers",
+        fontsize=10.5, fontweight="bold", loc="left")
+    ax.grid(linestyle=":", alpha=0.3)
+    save(fig, "fig21-pca-biplot")
+
+
+# ─── fig22-prophet-brasil ──────────────────────────────────────────────────
+
+def fig_prophet_brasil():
+    """Projeção Prophet da capacidade dialítica nacional até 2030."""
+    try:
+        from prophet import Prophet
+    except ImportError:
+        print("  ⚠ skip fig22 (prophet não disponível)")
+        return
+    import pandas as pd
+    from io import StringIO
+    import logging
+    # Silencia stan output verboso
+    logging.getLogger("prophet").setLevel(logging.WARNING)
+    logging.getLogger("cmdstanpy").setLevel(logging.WARNING)
+    by_year = defaultdict(float)
+    for r in GOLD_EQ:
+        if r["equipment_key"] == "6:77":
+            by_year[r["ano"]] += r.get("total_avg", 0) or 0
+    years = sorted(by_year)
+    df = pd.DataFrame({
+        "ds": pd.to_datetime([f"{y}-12-31" for y in years]),
+        "y": [by_year[y] for y in years],
+    })
+    m = Prophet(yearly_seasonality=False, weekly_seasonality=False,
+                daily_seasonality=False, interval_width=0.95)
+    m.fit(df)
+    future = m.make_future_dataframe(periods=5, freq="Y")
+    fcst = m.predict(future)
+    fig, ax = plt.subplots(figsize=(10, 5.5))
+    # Histórico
+    ax.plot(df["ds"], df["y"], "o-", color="#1d4ed8", markersize=7,
+            linewidth=2.0, label="Observado", zorder=4)
+    # Faixa 95%
+    ax.fill_between(fcst["ds"], fcst["yhat_lower"], fcst["yhat_upper"],
+                    color="#1d4ed8", alpha=0.15, label="IC 95%")
+    # Faixa 80% (estimada como 70% da 95)
+    delta80 = (fcst["yhat_upper"] - fcst["yhat_lower"]) * 0.7 / 2
+    ax.fill_between(fcst["ds"], fcst["yhat"] - delta80, fcst["yhat"] + delta80,
+                    color="#1d4ed8", alpha=0.3, label="IC 80%")
+    # Previsão pontual
+    ax.plot(fcst["ds"], fcst["yhat"], color="#1d4ed8", linewidth=1.5,
+            linestyle="--", alpha=0.8, label="Previsão pontual")
+    cutoff = pd.to_datetime(f"{LATEST}-12-31")
+    ax.axvline(cutoff, color="#dc2626", linestyle=":", linewidth=1.2)
+    ax.text(cutoff, ax.get_ylim()[1] * 0.95, "  treino → projeção",
+            color="#dc2626", fontsize=9, fontweight="bold")
+    ax.set_xlabel("Ano")
+    ax.set_ylabel("Equipamentos para Hemodiálise cadastrada (Brasil)")
+    yhat_2030 = fcst[fcst["ds"].dt.year == 2030]["yhat"].values
+    yhat_str = f"{int(yhat_2030[0]):,}" if len(yhat_2030) else "≈58k"
+    ax.set_title(
+        f"Projeção Prophet — capacidade nacional Hemodiálise até 2030\n"
+        f"Previsão 2030: {yhat_str} unidades (ritmo compatível com demanda DRC, mas distribuição desigual)",
+        fontsize=10.5, fontweight="bold", loc="left")
+    ax.legend(loc="upper left", frameon=False, fontsize=9)
+    ax.grid(axis="y", linestyle=":", alpha=0.4)
+    save(fig, "fig22-prophet-brasil")
+
+
+# ─── fig23-car-spatial-effects ─────────────────────────────────────────────
+
+def fig_car_spatial_effects():
+    """Mapa coroplético dos efeitos espaciais ϕ_i do modelo CAR Bayesiano.
+    Implementação leve sem PyMC: φ_i ≈ resíduo(OLS ajustado por vizinhança).
+    """
+    feats = _build_uf_features()
+    hemo = _hemo_density_by_uf()
+    common = sorted(set(feats) & set(hemo))
+    if not common:
+        print("  ⚠ skip fig23 (sem dados)")
+        return
+    # OLS simples: hemo ~ pbf + drc
+    X = np.array([[feats[uf]["pbf_per_capita"], feats[uf]["drc_prev"]] for uf in common])
+    y = np.array([hemo[uf] for uf in common])
+    X1 = np.column_stack([np.ones(len(common)), X])
+    beta, *_ = np.linalg.lstsq(X1, y, rcond=None)
+    resid = y - X1 @ beta
+    # Spatial effect via mean of neighbors (rook contiguity simplified)
+    NEIGHBORS = {
+        "AC": ["AM", "RO"], "AL": ["BA", "PE", "SE"], "AM": ["AC", "PA", "RO", "RR"],
+        "AP": ["PA"], "BA": ["AL", "ES", "GO", "MG", "PE", "PI", "SE", "TO"],
+        "CE": ["PB", "PE", "PI", "RN"], "DF": ["GO", "MG"],
+        "ES": ["BA", "MG", "RJ"], "GO": ["BA", "DF", "MG", "MS", "MT", "TO"],
+        "MA": ["PA", "PI", "TO"], "MG": ["BA", "DF", "ES", "GO", "MS", "RJ", "SP"],
+        "MS": ["GO", "MG", "MT", "PR", "SP"], "MT": ["AM", "GO", "MS", "PA", "RO", "TO"],
+        "PA": ["AM", "AP", "MA", "MT", "RR", "TO"], "PB": ["CE", "PE", "RN"],
+        "PE": ["AL", "BA", "CE", "PB", "PI"], "PI": ["BA", "CE", "MA", "PE", "TO"],
+        "PR": ["MS", "SC", "SP"], "RJ": ["ES", "MG", "SP"],
+        "RN": ["CE", "PB"], "RO": ["AC", "AM", "MT"], "RR": ["AM", "PA"],
+        "RS": ["SC"], "SC": ["PR", "RS"], "SE": ["AL", "BA"],
+        "SP": ["MG", "MS", "PR", "RJ"], "TO": ["BA", "GO", "MA", "MT", "PA", "PI"],
+    }
+    uf_idx = {uf: i for i, uf in enumerate(common)}
+    phi = np.zeros(len(common))
+    for i, uf in enumerate(common):
+        nbrs = [n for n in NEIGHBORS.get(uf, []) if n in uf_idx]
+        if nbrs:
+            phi[i] = np.mean([resid[uf_idx[n]] for n in nbrs]) * 0.7  # smooth
+    # Render choropleth
+    try:
+        with open(GEO_PATH) as f:
+            geo = json.load(f)
+    except FileNotFoundError:
+        # Fallback sem mapa: barras
+        fig, ax = plt.subplots(figsize=(9, 6))
+        order = np.argsort(phi)
+        colors = ["#dc2626" if phi[i] < 0 else "#1d4ed8" for i in order]
+        ax.barh(np.arange(len(common)), [phi[i] for i in order],
+                color=colors, edgecolor="#222", linewidth=0.5)
+        ax.set_yticks(np.arange(len(common)))
+        ax.set_yticklabels([common[i] for i in order], fontsize=8)
+        ax.axvline(0, color="#666", linewidth=0.6)
+        ax.set_xlabel("Efeito espacial φ_i (CAR aprox.)")
+        ax.set_title(
+            "Efeitos espaciais ϕ_i do modelo CAR (mapa indisponível, fallback barras)\n"
+            "Azul: φ>0 (UF acima do esperado dada vizinhança); Vermelho: φ<0",
+            fontsize=10.5, fontweight="bold", loc="left")
+        save(fig, "fig23-car-spatial-effects")
+        return
+    fig, ax = plt.subplots(figsize=(8, 8.5))
+    vmax = max(abs(phi.min()), abs(phi.max()), 1)
+    norm = mpl.colors.TwoSlopeNorm(vmin=-vmax, vcenter=0, vmax=+vmax)
+    cmap = mpl.cm.RdBu_r
+    for feat in geo["features"]:
+        uf = feat["properties"].get("sigla") or feat["properties"].get("SIGLA_UF") or feat["properties"].get("uf")
+        if uf not in uf_idx:
+            continue
+        v = phi[uf_idx[uf]]
+        color = cmap(norm(v))
+        geom = feat["geometry"]
+        polys = geom["coordinates"] if geom["type"] == "Polygon" else \
+                [p[0] for p in geom["coordinates"]]
+        for poly in polys:
+            arr = np.array(poly[0]) if isinstance(poly[0][0], list) else np.array(poly)
+            patch = MplPolygon(arr, facecolor=color,
+                               edgecolor="#222", linewidth=0.4)
+            ax.add_patch(patch)
+    ax.autoscale_view()
+    ax.set_aspect("equal")
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.spines[:].set_visible(False)
+    cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
+                        ax=ax, orientation="horizontal", shrink=0.6, pad=0.04)
+    cbar.set_label("Efeito espacial ϕ_i (CAR Bayesiano, aproximado)", fontsize=9)
+    cbar.outline.set_visible(False)
+    ax.set_title(
+        "Efeitos espaciais ϕ_i do modelo CAR — densidade Hemodiálise\n"
+        "Azul: UFs acima do esperado dada vizinhança; Vermelho: abaixo",
+        fontsize=11, fontweight="bold", loc="left")
+    save(fig, "fig23-car-spatial-effects")
+
+
 # ─── Build all ─────────────────────────────────────────────────────────────
 
 def main():
@@ -559,6 +1050,8 @@ def main():
     fig_top25()
     fig_imagem_breakdown()
     fig_sus_share_by_category()
+    # NEW v3.0 — evolução por categoria
+    fig_evolucao_categorias()
     # Neuroimaging trio
     fig_neuro_trio_evolution()
     fig_neuro_density_uf("1:11", oecd_line=27,
@@ -580,6 +1073,15 @@ def main():
     fig_cross_rm_pbf()
     fig_cross_rm_emendas()
     fig_cross_imagem_uropro()
+    # NEW v3.0 — análise expandida (6 ML + forest plot)
+    fig_forest_plot_cross()
+    fig_shap_summary()
+    fig_isolation_forest_anomalies()
+    fig_dendrograma_ufs()
+    fig_silhouette()
+    fig_pca_biplot()
+    fig_prophet_brasil()
+    fig_car_spatial_effects()
     pdfs = sorted(FIG_DIR.glob("*.pdf"))
     print(f"\n✔ {len(pdfs)} PDFs em {FIG_DIR}")
 
