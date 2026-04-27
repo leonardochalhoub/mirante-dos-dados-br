@@ -1,0 +1,12 @@
+{
+  "source_tag": "fallback",
+  "n_munis": 106,
+  "latest": 2025,
+  "theil_within": 0.007740741076162322,
+  "theil_between": 0.13559133275570587,
+  "share_within_pct": 5.400564485826381,
+  "conley_beta_pov_to_pc": 38.28603675302943,
+  "conley_se_ols": 1.2943162150581657,
+  "conley_se_max": 3.9399797839946875,
+  "gini_pbf_municipal": 0.2948573958852052
+}
