@@ -140,8 +140,9 @@ const OUTCOME_LABEL = {
 
 // ── Page ────────────────────────────────────────────────────────────────────
 // ── BCB USD→BRL FX rate ─────────────────────────────────────────────────────
-// Fonte oficial: BCB SGS série 1 ("Taxa de câmbio - Livre - Dólar americano
-// compra"). API pública, CORS aberto, sem autenticação. Retorna o último valor
+// Fonte oficial: BCB SGS série 1 (BCB descreve a série como "Taxa de câmbio
+// - Livre - Dólar americano compra"; nesta plataforma usamos o termo "dólar
+// estadunidense"). API pública, CORS aberto, sem autenticação. Retorna o último valor
 // disponível (D-1 em dias úteis; o BCB não publica cotação em fim de semana
 // nem feriado, então a "última disponível" pode ser de até 3 dias atrás).
 //
@@ -394,7 +395,7 @@ function CurrencyBanner({ fx, totalUsd }) {
           <span className="finops-currency-pill secondary">BRL</span>
         </div>
         <div className="finops-currency-text">
-          Todos os valores faturados pela Databricks são em <b>dólar americano (USD)</b>{' '}
+          Todos os valores faturados pela Databricks são em <b>dólar estadunidense (USD)</b>{' '}
           — verificado em <code>system.billing.list_prices.currency_code</code>.
           Conversão para reais usa cotação <b>BCB SGS série 1</b> (PTAX compra, fonte
           oficial do Banco Central).
