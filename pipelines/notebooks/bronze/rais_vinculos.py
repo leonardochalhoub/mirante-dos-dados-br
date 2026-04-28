@@ -1163,7 +1163,15 @@ def _filter_vinc(df):
 def _read_batch(glob: str, sep: str):
     """Lê em batch todos os arquivos casando `glob` em ano=*/ com separador `sep`,
     sanitiza colunas, deriva `ano` do path e filtra ESTAB.
-    Retorna None se não houver arquivo casando."""
+
+    ⚠ Esta função tem comportamento POR-PATH-GLOB-INTEIRO: spark.read.csv com
+    múltiplos arquivos pega o header do PRIMEIRO arquivo só e usa pra todos.
+    PDET/RAIS muda header entre 1985 (24 cols), 1996 (31 cols), 2018 (44 cols),
+    2023 (60 cols) — usar essa função num path que casa MULTIPLOS anos quebra
+    o alinhamento de colunas.
+
+    Use APENAS pra ler arquivos com header consistente (ex.: dentro de UM ano).
+    Pra batch cross-anos, use `_read_batch_per_year` que itera por ano."""
     return _filter_vinc(_sanitize_columns(_add_ano_from_path(
         spark.read
             .option("header", "true")
@@ -1174,6 +1182,65 @@ def _read_batch(glob: str, sep: str):
             .option("pathGlobFilter", glob)
             .csv(READ_PATH)
     )))
+
+
+def _read_batch_per_year(glob: str, sep: str):
+    """Lê em batch ano-a-ano e faz unionByName, preservando alinhamento por
+    HEADER de cada ano (não posição). Cross-year, PDET/RAIS expandiu o schema
+    em 1994 (+7 cols), 2018 (+5), 2023 (+18 cols + sufixo '- Código' em todos).
+    Spark CSV reader lê o header só do primeiro arquivo de um glob multi-ano —
+    pra alinhar corretamente, precisamos de uma read separada por ano.
+
+    Dentro de um ano todos os arquivos compartilham o mesmo header (PDET libera
+    1 schema por ano-batch), então `spark.read.csv(year_path/*)` é seguro.
+
+    Retorna DataFrame consolidado (todos os anos do glob) ou None se nenhum ano
+    tiver arquivos casando."""
+    parts_y = []
+    try:
+        year_dirs = [d for d in dbutils.fs.ls(TXT_EXTRACTED)
+                     if d.isDir() and d.name.startswith("ano=")]
+    except Exception:
+        return None
+    year_dirs.sort(key=lambda d: d.name)
+
+    for d in year_dirs:
+        # Confirma que esse ano tem arquivos casando o glob
+        try:
+            has_match = any(
+                _match_glob(f.name, glob) for f in dbutils.fs.ls(d.path)
+                if not f.isDir()
+            )
+        except Exception:
+            continue
+        if not has_match:
+            continue
+
+        df_y = (
+            spark.read
+                .option("header", "true")
+                .option("sep", sep)
+                .option("encoding", "latin1")
+                .option("inferSchema", "false")
+                .option("ignoreMissingFiles", "true")
+                .option("pathGlobFilter", glob)
+                .csv(d.path)
+        )
+        df_y = _filter_vinc(_sanitize_columns(_add_ano_from_path(df_y)))
+        parts_y.append(df_y)
+
+    if not parts_y:
+        return None
+    out = parts_y[0]
+    for p in parts_y[1:]:
+        out = out.unionByName(p, allowMissingColumns=True)
+    return out
+
+
+def _match_glob(name: str, pattern: str) -> bool:
+    """Match simples de glob estilo Spark (apenas '*' como wildcard)."""
+    import fnmatch
+    return fnmatch.fnmatchcase(name, pattern)
 
 
 def _stream_cf(glob: str, sep: str, schema_loc: str, include_existing: bool, evolution: bool):
@@ -1237,24 +1304,25 @@ def _assert_ano_not_null(df, label: str):
 
 if use_batch:
     print(f"▸ MODO BATCH — table_exists={table_exists} rows={existing_rows:,}")
+    print(f"  estratégia: read PER-ANO (header próprio de cada ano) + unionByName")
     parts = []
-    if has_legacy_txt_any:
-        # Lê .txt e .TXT separadamente (pathGlobFilter é case-sensitive)
-        if has_txt:
-            df_txt_lower = _read_batch("*.txt", ";"); _assert_ano_not_null(df_txt_lower, "txt")
-            parts.append(df_txt_lower)
-        if has_TXT:
-            df_txt_upper = _read_batch("*.TXT", ";"); _assert_ano_not_null(df_txt_upper, "TXT")
-            parts.append(df_txt_upper)
+    if has_txt:
+        df_txt_lower = _read_batch_per_year("*.txt", ";")
+        if df_txt_lower is not None:
+            _assert_ano_not_null(df_txt_lower, "txt"); parts.append(df_txt_lower)
+    if has_TXT:
+        df_txt_upper = _read_batch_per_year("*.TXT", ";")
+        if df_txt_upper is not None:
+            _assert_ano_not_null(df_txt_upper, "TXT"); parts.append(df_txt_upper)
     if has_comt:
-        df_comt = _read_batch("*.COMT", ","); _assert_ano_not_null(df_comt, "COMT")
-        parts.append(df_comt)
+        df_comt = _read_batch_per_year("*.COMT", ",")
+        if df_comt is not None:
+            _assert_ano_not_null(df_comt, "COMT"); parts.append(df_comt)
     if not parts:
         raise RuntimeError("Nenhum arquivo .txt/.TXT/.COMT encontrado em ano=*/")
 
-    # unionByName(allowMissingColumns=True) preserva o drift de schema entre
-    # eras: colunas que só existem em .COMT (ex.: vl_rem_janeiro_sc) viram NULL
-    # nas linhas .txt; e vice-versa pras colunas legacy.
+    # unionByName(allowMissingColumns=True) cross-format (.txt vs .COMT). O
+    # alinhamento PER-ANO já resolveu drift cross-year dentro de cada formato.
     df = parts[0]
     for p in parts[1:]:
         df = df.unionByName(p, allowMissingColumns=True)
