@@ -200,7 +200,11 @@ def _validate_txt_content(txt_path: Path, sample_kb: int = 64) -> tuple[bool, st
     Aplicável tanto na reconciliação (gate antes de gravar .done) quanto no
     quality check pós-extração.
 
-    Checagens:
+    Sidecars não-CSV (ex.: .COMT, .pdf, .doc, README) co-empacotados nos .7z do
+    PDET/RAIS são pulados — eles NÃO são CSV PT-BR e fazem o check de ';' falhar
+    sempre, gerando falso-positivo que mandava archives saudáveis pra quarentena.
+
+    Checagens (apenas em arquivos .txt):
       1. tamanho > 1 KB (não-vazio nem só header)
       2. primeira linha (header) decodifica em latin-1 e tem ≥ 5 ';' (CSV PT-BR
          da RAIS tem ~40 colunas separadas por ';')
@@ -208,6 +212,8 @@ def _validate_txt_content(txt_path: Path, sample_kb: int = 64) -> tuple[bool, st
          (tolerância ±2 pra cobrir casos raros de ';' embutido em campo)
       4. cauda termina com '\\n' (não foi truncado mid-line)
     """
+    if not txt_path.name.lower().endswith(".txt"):
+        return True, "non_txt_sidecar_skipped"
     try:
         size = txt_path.stat().st_size
         if size < 1024:
@@ -336,6 +342,28 @@ if flat_txts_legacy:
         for f in flat_txts_legacy[:5]:
             print(f"    {f.name}  ({f.stat().st_size:,} bytes)")
         dbutils.notebook.exit("MIGRATION REQUIRED: legacy flat .txt files; run with force_reconvert=true")
+
+# ─── Restore de quarentena quando force_reconvert=true ─────────────────────
+# Runs anteriores podem ter mandado .7z saudáveis pra _bad/ por causa de bugs
+# de validação (ex.: sidecar .COMT falhando check de CSV antes do fix que pula
+# arquivos não-.txt). Quando force_reconvert=true, devolvemos esses archives
+# pro ZIPS_DIR pra que o loop principal os processe novamente.
+if FORCE_RECONVERT and QUARANTINE_DIR.exists():
+    quarantined_archives = sorted(QUARANTINE_DIR.glob("*.7z"))
+    if quarantined_archives:
+        print(f"⚠ Restaurando {len(quarantined_archives)} .7z de {QUARANTINE_DIR} → {ZIPS_DIR} (force_reconvert=true)…")
+        restored = 0
+        for src in quarantined_archives:
+            dst = Path(ZIPS_DIR) / src.name
+            try:
+                if dst.exists():
+                    src.unlink()  # já tem cópia ativa, descarta a quarentena
+                else:
+                    src.replace(dst)
+                restored += 1
+            except Exception as e:
+                print(f"  ⚠ falha ao restaurar {src.name}: {type(e).__name__}: {e}")
+        print(f"  ✓ {restored} archives restaurados pra reprocessamento")
 
 zips = sorted(Path(ZIPS_DIR).glob("*.7z"))
 print(f".7z encontrados pra extração: {len(zips)}")
@@ -472,9 +500,15 @@ for zp in zips:
                   f"→ vai re-extrair")
         continue
 
-    # Gate adicional: valida conteúdo do PRIMEIRO .txt (header CSV + linha de
+    # Gate adicional: valida conteúdo do PRIMEIRO .txt real (header CSV + linha de
     # dados + truncamento). Se falhar, não reconcilia — extração vai pegar.
-    first_txt = target_dir / expected[0]
+    # Pula sidecars (.COMT, .pdf etc) — `expected` vem alfabético e .COMT < .txt.
+    first_txt_name = next((n for n in expected if n.lower().endswith(".txt")), None)
+    if first_txt_name is None:
+        # Archive sem .txt? Não dá pra validar conteúdo — deixa extração lidar.
+        reconcile_skipped_partial += 1
+        continue
+    first_txt = target_dir / first_txt_name
     content_ok, content_reason = _validate_txt_content(first_txt)
     if not content_ok:
         reconcile_skipped_partial += 1
