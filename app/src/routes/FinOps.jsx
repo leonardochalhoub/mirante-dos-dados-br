@@ -797,60 +797,63 @@ function PerVerticalSizeBars({ verticals, labelOf, theme }) {
     );
   };
 
-  return (
-    <div className="finops-chart-vertbars" style={{ height: Math.max(220, 44 * data.length + 80) }}>
-      <ResponsiveContainer>
-        <BarChart data={data} layout="vertical"
-                  margin={{ top: 8, right: 110, bottom: 16, left: 8 }}>
-          <CartesianGrid stroke={s.grid} horizontal={false} />
-          <XAxis type="number" stroke={s.tickColor} fontSize={10}
-                 tickLine={false} axisLine={false}
-                 tickFormatter={(v) => fmtBytes(v)} />
-          <YAxis type="category" dataKey="name" stroke={s.tickColor} fontSize={11}
-                 tickLine={false} axisLine={false} width={150}
-                 interval={0} />
-          <Tooltip content={<RichTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-          <Bar dataKey="raw"    stackId="s" fill={COLORS.raw}    />
-          <Bar dataKey="inter"  stackId="s" fill={COLORS.inter}  />
-          <Bar dataKey="bronze" stackId="s" fill={COLORS.bronze} />
-          <Bar dataKey="silver" stackId="s" fill={COLORS.silver} />
-          <Bar dataKey="gold"   stackId="s" fill={COLORS.gold}
-               radius={[0, 4, 4, 0]}
-               label={(props) => {
-                 // Recharts passa o `value` da DataKey atual (gold), que costuma
-                 // ser 0/MB pequeno — não dá pra usar pra rotular o total. Aqui
-                 // usamos `index` pra puxar `total` do array `data` fechado pelo escopo.
-                 const { x, y, width, height, index } = props;
-                 const total = data[index]?.total ?? 0;
-                 if (!total) return null;
-                 return (
-                   <text x={x + width + 6} y={y + height / 2}
-                         fill={s.tickColor} fontSize={10}
-                         dominantBaseline="middle">
-                     {fmtBytes(total)}
-                   </text>
-                 );
-               }} />
-        </BarChart>
-      </ResponsiveContainer>
+  // Itens da legenda — ordem do stack
+  const legendItems = [
+    { k: 'raw',    text: 'Raw (7Z/ZIP/DBC)' },
+    { k: 'inter',  text: 'Intermediate (TXT/CSV/Parquet)' },
+    { k: 'bronze', text: 'Delta · bronze' },
+    { k: 'silver', text: 'Delta · silver' },
+    { k: 'gold',   text: 'Delta · gold' },
+  ];
 
-      {/* Legenda — bronze/silver/gold sempre Delta */}
-      <div style={{ display: 'flex', gap: 14, fontSize: 11, marginTop: 6,
+  return (
+    <div>
+      {/* Legenda ANTES do chart — evita overlap com tabela seguinte (ResponsiveContainer */}
+      {/* dentro de uma div height-fixed empurra a legenda pra fora do bound). */}
+      <div style={{ display: 'flex', gap: 14, fontSize: 11, marginBottom: 10,
                     flexWrap: 'wrap', justifyContent: 'center',
                     color: s.tickColor }}>
-        {[
-          { k: 'raw',    text: 'Raw (7Z/ZIP/DBC)' },
-          { k: 'inter',  text: 'Intermediate (TXT/CSV/Parquet)' },
-          { k: 'bronze', text: 'Delta · bronze' },
-          { k: 'silver', text: 'Delta · silver' },
-          { k: 'gold',   text: 'Delta · gold' },
-        ].map((item) => (
+        {legendItems.map((item) => (
           <span key={item.k} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
             <span style={{ width: 12, height: 12, background: COLORS[item.k], borderRadius: 2,
                            display: 'inline-block', border: '1px solid rgba(0,0,0,0.15)' }} />
             {item.text}
           </span>
         ))}
+      </div>
+
+      <div className="finops-chart-vertbars" style={{ height: Math.max(220, 44 * data.length + 60) }}>
+        <ResponsiveContainer>
+          <BarChart data={data} layout="vertical"
+                    margin={{ top: 8, right: 110, bottom: 16, left: 8 }}>
+            <CartesianGrid stroke={s.grid} horizontal={false} />
+            <XAxis type="number" stroke={s.tickColor} fontSize={10}
+                   tickLine={false} axisLine={false}
+                   tickFormatter={(v) => fmtBytes(v)} />
+            <YAxis type="category" dataKey="name" stroke={s.tickColor} fontSize={11}
+                   tickLine={false} axisLine={false} width={150}
+                   interval={0} />
+            <Tooltip content={<RichTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+            <Bar dataKey="raw"    stackId="s" fill={COLORS.raw}    />
+            <Bar dataKey="inter"  stackId="s" fill={COLORS.inter}  />
+            <Bar dataKey="bronze" stackId="s" fill={COLORS.bronze} />
+            <Bar dataKey="silver" stackId="s" fill={COLORS.silver} />
+            <Bar dataKey="gold"   stackId="s" fill={COLORS.gold}
+                 radius={[0, 4, 4, 0]}
+                 label={(props) => {
+                   const { x, y, width, height, index } = props;
+                   const total = data[index]?.total ?? 0;
+                   if (!total) return null;
+                   return (
+                     <text x={x + width + 6} y={y + height / 2}
+                           fill={s.tickColor} fontSize={10}
+                           dominantBaseline="middle">
+                       {fmtBytes(total)}
+                     </text>
+                   );
+                 }} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

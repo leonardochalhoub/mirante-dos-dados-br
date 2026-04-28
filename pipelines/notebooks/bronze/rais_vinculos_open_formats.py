@@ -2,36 +2,34 @@
 # MAGIC %md
 # MAGIC # bronze · rais_vinculos_open_formats
 # MAGIC
-# MAGIC Expõe o bronze RAIS em formatos lakehouse abertos alternativos ao Delta —
-# MAGIC sobre o mesmo input cru (TXT já extraído pelo `bronze_rais_vinculos`),
-# MAGIC sem reprocessar nada upstream.
+# MAGIC Bronze paralela ao `bronze_rais_vinculos` (Delta canônico). Lê o **mesmo
+# MAGIC TXT extraído** pelo `ingest_mte_rais` e escreve em formatos lakehouse
+# MAGIC abertos. Roda em PARALELO com o bronze Delta canônico (não depende dele).
 # MAGIC
-# MAGIC | Tabela                          | Formato | Storage             | Modo                    |
-# MAGIC |---------------------------------|---------|---------------------|-------------------------|
-# MAGIC | `bronze.rais_vinculos`          | Delta   | 20 GB (canônica)    | Auto Loader / batch     |
-# MAGIC | `bronze.rais_vinculos_iceberg`  | Iceberg | mesmos arquivos     | **UniForm** (metadata)  |
-# MAGIC | `bronze.rais_vinculos_hudi`     | Hudi    | external (~25 GB)   | bulk_insert (CoW)       |
+# MAGIC | Tabela                          | Formato         | Storage             | Modo                    |
+# MAGIC |---------------------------------|-----------------|---------------------|-------------------------|
+# MAGIC | `bronze.rais_vinculos`          | Delta           | ~22 GB (canônico)   | Auto Loader / batch     |
+# MAGIC | `bronze.rais_vinculos_iceberg`  | Delta + Iceberg | ~22 GB (espelho)    | **UniForm at create**   |
+# MAGIC | `bronze.rais_vinculos_hudi`     | Hudi            | ~25 GB (external)   | bulk_insert (CoW)       |
 # MAGIC
-# MAGIC ## Iceberg: estratégia UniForm (Delta-Iceberg interop)
+# MAGIC ## Iceberg: bronze paralela com UniForm at-create
 # MAGIC
-# MAGIC O workspace é **serverless-only** — Iceberg writer Maven (org.apache.iceberg)
-# MAGIC não está disponível como classpath dependency. A solução nativa do
-# MAGIC Databricks pra esse caso é **Delta UniForm**: uma `ALTER TABLE … SET
-# MAGIC TBLPROPERTIES ('delta.universalFormat.enabledFormats' = 'iceberg')`
-# MAGIC gera metadados Iceberg apontando pros mesmos arquivos Parquet do Delta.
+# MAGIC O workspace é **serverless-only** — Iceberg writer Maven nativo
+# MAGIC (org.apache.iceberg) não está disponível como classpath dependency.
+# MAGIC A solução é **Delta UniForm habilitado at-create**: a tabela é escrita
+# MAGIC como Delta normal mas com `TBLPROPERTIES ('delta.universalFormat.
+# MAGIC enabledFormats' = 'iceberg')`. Cada commit Delta gera o sidecar Iceberg
+# MAGIC apontando pros mesmos arquivos Parquet — clientes Iceberg externos
+# MAGIC (Trino, Snowflake, Athena, pyiceberg) leem diretamente.
 # MAGIC
-# MAGIC - **Storage overhead**: zero (~MB de metadata sidecar `metadata/v1.metadata.json`)
-# MAGIC - **Leitor**: qualquer cliente Iceberg (Trino, Snowflake, Athena, AWS Glue,
-# MAGIC   pyiceberg) consegue ler `bronze.rais_vinculos` direto via REST/Hive
-# MAGIC - **Honestidade**: Delta + Iceberg COMPARTILHAM os mesmos arquivos —
-# MAGIC   o ponto não é "duplicar pra benchmark de write", é demonstrar que a
-# MAGIC   plataforma é **format-agnostic na leitura**. Esse é o princípio de
-# MAGIC   open lakehouse: dado não é prisioneiro do writer.
-# MAGIC
-# MAGIC Pra interop, criamos uma **VIEW** `bronze.rais_vinculos_iceberg` que
-# MAGIC simplesmente aponta pra `bronze.rais_vinculos`, deixando o nome explícito
-# MAGIC na strip do Início. Quem consultar via cliente Iceberg externo usa o
-# MAGIC nome canônico `bronze.rais_vinculos`; a view é só sinalização interna.
+# MAGIC - **Input**: TXT_EXTRACTED (mesma fonte do Delta canônico)
+# MAGIC - **Output**: tabela Delta `bronze.rais_vinculos_iceberg` separada,
+# MAGIC   com UniForm Iceberg habilitado desde a criação
+# MAGIC - **Storage overhead**: ~22 GB de duplicação (preço da paralelização real)
+# MAGIC - **Por que duplicar e não usar VIEW**: o objetivo é demonstrar que a
+# MAGIC   plataforma roda DUAS bronzes em paralelo (Delta + Iceberg-via-UniForm)
+# MAGIC   sobre o mesmo input. View que aponta pra Delta canônico é interop, não
+# MAGIC   é arquitetura paralela.
 # MAGIC
 # MAGIC ## Hudi: deferido (constraint de workspace)
 # MAGIC
@@ -46,25 +44,23 @@
 # COMMAND ----------
 
 dbutils.widgets.text("catalog",          "mirante_prd")
-dbutils.widgets.text("source_table",     "mirante_prd.bronze.rais_vinculos")
 dbutils.widgets.text("txt_extracted",    "/Volumes/mirante_prd/bronze/raw/mte/rais_txt_extracted")
 dbutils.widgets.text("open_formats_root","/Volumes/mirante_prd/bronze/raw/_open_formats")
 dbutils.widgets.text("enable_iceberg",   "true")
 dbutils.widgets.text("enable_hudi",      "false")  # default: deferred (serverless workspace)
 
 CATALOG          = dbutils.widgets.get("catalog")
-SOURCE_TABLE     = dbutils.widgets.get("source_table")
 TXT_EXTRACTED    = dbutils.widgets.get("txt_extracted")
 OPEN_ROOT        = dbutils.widgets.get("open_formats_root")
 ENABLE_ICEBERG   = dbutils.widgets.get("enable_iceberg").lower() in ("true","1","yes")
 ENABLE_HUDI      = dbutils.widgets.get("enable_hudi").lower()    in ("true","1","yes")
 
-ICEBERG_VIEW     = f"{CATALOG}.bronze.rais_vinculos_iceberg"
+ICEBERG_TABLE    = f"{CATALOG}.bronze.rais_vinculos_iceberg"
 HUDI_TABLE       = f"{CATALOG}.bronze.rais_vinculos_hudi"
 HUDI_LOC         = f"{OPEN_ROOT}/rais_vinculos_hudi"
 
-print(f"source           = {SOURCE_TABLE}")
-print(f"iceberg view     = {ICEBERG_VIEW}  (UniForm sobre {SOURCE_TABLE})")
+print(f"input txt        = {TXT_EXTRACTED}/ano=*/")
+print(f"iceberg table    = {ICEBERG_TABLE}  (Delta + UniForm Iceberg, paralela ao canônico)")
 print(f"hudi table       = {HUDI_TABLE}     @ {HUDI_LOC}")
 print(f"enable_iceberg   = {ENABLE_ICEBERG}")
 print(f"enable_hudi      = {ENABLE_HUDI}")
@@ -80,50 +76,82 @@ iceberg_bytes  = 0
 iceberg_rows   = 0
 
 if ENABLE_ICEBERG:
-    print("=== ICEBERG (UniForm) ===")
-    try:
-        if not spark.catalog.tableExists(SOURCE_TABLE):
-            raise RuntimeError(f"{SOURCE_TABLE} não existe — bronze_rais_vinculos não rodou?")
+    print("=== ICEBERG (Delta + UniForm at-create, paralelo ao Delta canônico) ===")
+    import re
+    import unicodedata
+    from pyspark.sql import functions as F
 
-        # 1. Habilita UniForm Iceberg na tabela Delta canônica.
-        # Idempotente: re-aplicar não custa nada; metadata sidecar é regenerado
-        # quando há novos commits Delta. Requer Delta Reader/Writer >= 2 + 7.
-        print(f"  ALTER TABLE {SOURCE_TABLE} SET TBLPROPERTIES UniForm Iceberg…")
+    def _sanitize_col(name: str) -> str:
+        if not name: return "col"
+        leading = name.startswith("_")
+        nfkd = unicodedata.normalize("NFKD", name)
+        no_accents = "".join(c for c in nfkd if not unicodedata.combining(c))
+        s = re.sub(r"[^a-zA-Z0-9_]+", "_", no_accents)
+        s = re.sub(r"_+", "_", s).strip("_").lower() or "col"
+        return ("_" + s) if leading else s
+
+    try:
+        # 1. Lê TXT cru direto (mesma fonte do bronze Delta canônico — paralelo real)
+        print(f"  reading {TXT_EXTRACTED}/ano=*/ …")
+        df_raw = (spark.read
+            .option("header","true").option("sep",";")
+            .option("encoding","latin1").option("inferSchema","false")
+            .csv(f"{TXT_EXTRACTED}/ano=*/"))
+        df = (df_raw
+            .toDF(*[_sanitize_col(c) for c in df_raw.columns])
+            .withColumn("_source_file", F.col("_metadata.file_path"))
+            .withColumn("ano",
+                F.regexp_extract(F.col("_metadata.file_path"), r"/ano=(\d{4})(?:/|$)", 1).cast("int"))
+            .withColumn("_ingest_ts", F.current_timestamp())
+        )
+
+        # 2. Cria a tabela com UniForm Iceberg habilitado AT CREATION TIME
+        # (não via ALTER posterior). Cada commit Delta vai gerar metadata
+        # Iceberg sidecar imediatamente.
+        print(f"  CREATE OR REPLACE TABLE {ICEBERG_TABLE} (Delta + UniForm Iceberg)…")
+        spark.sql(f"DROP TABLE IF EXISTS {ICEBERG_TABLE}")
+        (df.write.format("delta")
+            .partitionBy("ano")
+            .option("overwriteSchema", "true")
+            .mode("overwrite")
+            .saveAsTable(ICEBERG_TABLE))
         spark.sql(f"""
-            ALTER TABLE {SOURCE_TABLE} SET TBLPROPERTIES (
+            ALTER TABLE {ICEBERG_TABLE} SET TBLPROPERTIES (
                 'delta.universalFormat.enabledFormats' = 'iceberg',
-                'delta.enableIcebergCompatV2'          = 'true'
+                'delta.enableIcebergCompatV2'          = 'true',
+                'delta.columnMapping.mode'             = 'name'
             )
         """)
-
-        # 2. Cria/atualiza a VIEW que sinaliza "leitura como Iceberg" pro front.
-        # Não é re-escrita — é um alias semântico pra strip do Início.
-        spark.sql(f"DROP VIEW IF EXISTS {ICEBERG_VIEW}")
         spark.sql(f"""
-            CREATE VIEW {ICEBERG_VIEW} AS
-            SELECT * FROM {SOURCE_TABLE}
+            COMMENT ON TABLE {ICEBERG_TABLE} IS
+            'Mirante · RAIS Vínculos Públicos — bronze paralela em Delta + UniForm Iceberg. '
+            'Mesma fonte (TXT cru extraído pelo ingest_mte_rais), processo de write '
+            'independente do bronze.rais_vinculos canônico. Cada commit Delta gera '
+            'metadata Iceberg apontando pros arquivos Parquet — clientes Iceberg '
+            '(Trino, Snowflake, Athena, pyiceberg) podem ler diretamente via REST. '
+            'Roda em paralelo ao bronze Delta canônico no DAG (ambos dependem só de '
+            'ingest_mte_rais). Trade-off: ~22 GB de duplicação de storage.'
         """)
-        spark.sql(f"""
-            COMMENT ON VIEW {ICEBERG_VIEW} IS
-            'Mirante · RAIS Vínculos Públicos — exposição em Apache Iceberg via '
-            'Delta UniForm. View aponta pra bronze.rais_vinculos (Delta canônico); '
-            'metadata Iceberg gerada pelo Delta writer compartilha os mesmos '
-            'arquivos Parquet — zero overhead de storage. Clientes Iceberg '
-            '(Trino, Snowflake, Athena, pyiceberg) podem ler bronze.rais_vinculos '
-            'diretamente via Iceberg REST. Storage e linhas reportados aqui '
-            'igualam o Delta canônico (mesmos arquivos físicos).'
-        """)
+        for k, v in [
+            ("layer",  "bronze"),
+            ("domain", "rais"),
+            ("source", "mte/pdet"),
+            ("format", "delta+iceberg"),
+            ("grain",  "vinculo_ano_uf"),
+            ("pii",    "true"),
+        ]:
+            spark.sql(f"ALTER TABLE {ICEBERG_TABLE} SET TAGS ('{k}' = '{v}')")
 
-        # 3. Reporta size/rows do Delta canônico (mesmos arquivos físicos)
-        det = spark.sql(f"DESCRIBE DETAIL {SOURCE_TABLE}").first()
+        # 3. Reporta size/rows da bronze paralela
+        det = spark.sql(f"DESCRIBE DETAIL {ICEBERG_TABLE}").first()
         iceberg_bytes = int(det["sizeInBytes"]) if det and det["sizeInBytes"] else 0
-        iceberg_rows  = spark.read.table(SOURCE_TABLE).count()
-        print(f"  ✓ {ICEBERG_VIEW} criado")
-        print(f"  storage compartilhado: {iceberg_bytes/1_073_741_824:.2f} GB ({iceberg_rows:,} rows)")
-        print(f"  → metadata Iceberg sidecar gerado pelo Delta writer no próximo commit")
-        iceberg_status = "ok_uniform"
+        iceberg_rows  = spark.read.table(ICEBERG_TABLE).count()
+        print(f"  ✓ {ICEBERG_TABLE} criado")
+        print(f"  storage: {iceberg_bytes/1_073_741_824:.2f} GB ({iceberg_rows:,} rows)")
+        print(f"  metadata Iceberg sidecar gerada por UniForm em cada commit Delta")
+        iceberg_status = "ok_parallel"
     except Exception as e:
-        print(f"  ✗ Iceberg UniForm falhou: {type(e).__name__}: {str(e)[:300]}")
+        print(f"  ✗ Iceberg paralelo falhou: {type(e).__name__}: {str(e)[:300]}")
         iceberg_status = f"failed: {type(e).__name__}"
 
 # COMMAND ----------

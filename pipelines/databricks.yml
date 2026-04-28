@@ -393,17 +393,20 @@ resources:
               force_reconvert:     "false"
               revalidate_content:  "false"
 
-        # ─── Iceberg via Delta UniForm (Hudi deferido em serverless) ──────
-        # Faz ALTER TABLE habilitando Iceberg metadata sidecar sobre o Delta
-        # canônico — zero storage overhead. Hudi requer JAR Maven, ausente
-        # em serverless workspace; ENABLE_HUDI=false até classic compute.
+        # ─── Bronze paralela em Iceberg (Hudi deferido em serverless) ─────
+        # Roda em PARALELO com bronze_rais_vinculos (Delta canônico) — ambos
+        # dependem só do ingest_mte_rais. Lê o mesmo TXT cru e escreve uma
+        # tabela Delta separada com UniForm Iceberg habilitado at-create.
+        # Trade-off: ~22 GB de duplicação de storage; ganho: paralelismo real
+        # + demonstração de open lakehouse com 2 formatos sobre mesmo input.
+        # Hudi requer JAR Maven, ausente em serverless workspace; ENABLE_HUDI=
+        # false até classic compute estar disponível.
         - task_key: bronze_rais_vinculos_open_formats
-          depends_on: [{ task_key: bronze_rais_vinculos }]
+          depends_on: [{ task_key: ingest_mte_rais }]
           notebook_task:
             notebook_path: ./notebooks/bronze/rais_vinculos_open_formats.py
             base_parameters:
               catalog:           "${var.catalog}"
-              source_table:      "${var.catalog}.bronze.rais_vinculos"
               txt_extracted:     "/Volumes/${var.catalog}/bronze/raw/mte/rais_txt_extracted"
               open_formats_root: "/Volumes/${var.catalog}/bronze/raw/_open_formats"
               enable_iceberg:    "true"
