@@ -663,12 +663,12 @@ export const PARECER_WP_RAIS = {
   vertical: 'rais',
   nivel: 'lato_sensu',
   scoreType: 'numeric',
-  scoreNumeric: 7.3,
+  scoreNumeric: 7.7,
   scoreOriginal: 8.0,
   originalLabel: 'Monografia UFRJ MBA, 2023 — régua lato sensu, avaliação IA',
   originalUrl: 'https://github.com/leonardochalhoub/CodingMBA_UFRJ/blob/main/Monografia_LeonardoChalhoub.pdf',
-  ultimaAtualizacao: `${HOJE}T21:10 BRT`,
-  versao: '0.7 — extração Hive-partitioned <TXT_EXTRACTED>/ano=YYYY/ corrige colisão silenciosa entre .7z de anos diferentes (banca reprovou; sem nota atribuída)',
+  ultimaAtualizacao: `${HOJE}T23:50 BRT`,
+  versao: '0.8 — bronze open-formats: cópias paralelas do RAIS em Apache Iceberg + Apache Hudi, lendo o mesmo TXT do Delta canônico (benchmark apples-to-apples sobre 2,2bi linhas; era TODO da v0.7)',
   resumoCalibragem:
     'CONTEXTO HISTÓRICO: o autor foi REPROVADO pela banca da UFRJ ' +
     '(MBA Engenharia de Dados, set/2023). A banca não atribuiu nota ' +
@@ -693,6 +693,9 @@ export const PARECER_WP_RAIS = {
     'Bronze auto-recovery: detecta .7z corrompido (Bad7zFile), deleta + re-baixa do FTP PDET, quarenta após 1 retry — não trava por single bad file',
     'Pré-validação por arquivo (py7zr.is_7zfile + getnames): detecta TODOS os .7z corrompidos antes do loop de extração, não só os que falham na ordem do glob',
     'Extração Hive-partitioned em <TXT_EXTRACTED>/ano=YYYY/ — corrige bug silencioso de colisão entre .7z de anos diferentes (PDET 2019+ usa nomes de .txt sem ano, sobrescrevia em dir flat); ano derivado via regex em _metadata.file_path',
+    'Open formats benchmark APPLES-TO-APPLES — três bronzes do mesmo TXT: Delta canônico + Apache Iceberg + Apache Hudi (CoW). Mesmo input cru, mesmo schema STRING-ONLY, mesma partição (ano), três writers — o que muda é só o formato de saída. Permite comparação justa de write throughput, storage footprint e leitura cross-format que a monografia original prometia mas não tinha (aluno chegou só a Delta vs Parquet)',
+    'Bronze fast-path idempotente: re-runs sem novos .7z pulam re-validação de markers .done + quality check (gates por revalidate_content widget). Auto Loader checkpoint + .done markers garantem idempotência sem custo de I/O em runs rotineiras',
+    'Silver column resolver defensivo: bronze RAIS muda nome de colunas entre eras PDET (1985-2018 per-UF vs 2019+ per-região). silver/rais_uf_ano resolve cada coluna lógica contra alias list (ex.: mun_trab → municipio_trabalho|mun_trab|municipio|cod_municipio); aborta só quando município é ausente (UF deriva dele); demais degradam graciosamente',
   ],
   problemasParaNotaPlena: [
     'Pipeline em execução pela primeira vez 2026-04-27 — alguns arquivos PDET estão chegando corrompidos (ex.: BR_2009..2013 a 237KB), auto-recovery acionado',
@@ -702,16 +705,15 @@ export const PARECER_WP_RAIS = {
   problemasParaSubirNivel: [
     'Replicação literal não constitui contribuição original — peso 15% da nota não está sendo atendido',
     'Sem desenho experimental controlado: número de execuções, variância, IC 95%, teste de hipótese',
-    'Sem comparação com formatos não-Delta (Iceberg, Hudi)',
     'FAIR scoring promete usar RDA Maturity Model mas não tem implementação sequer em planejamento detalhado',
     'Análise when-not-to-use Lakehouse não tem nem outline',
   ],
   proximosPassos: [
-    'Confirmar URL PDET (FTP corrigido pra ftp.mtps.gov.br) e rodar ingest pra ter pelo menos 1 ano de RAIS no Volume',
-    'Rodar pipeline end-to-end pra ter pelo menos um silver/gold com dados',
+    'Rodar silver_rais_uf_ano com fix de column resolution (substituir mun_trab → municipio_trabalho|municipio) e ter pelo menos um silver/gold com dados',
     'Escrever a Seção 4 (Resultados) do .tex com números reais e tratamento estatístico desde o início',
-    'Implementar comparação com Iceberg E Hudi (não apenas mencionar)',
+    'Migrar articles/benchmark_lakehouse_formats.py de dados sintéticos para reais usando bronze.rais_vinculos × bronze.rais_vinculos_iceberg × bronze.rais_vinculos_hudi (mesmo TXT, três outputs)',
     'Implementar FAIR scoring via algum dos frameworks consagrados (RDA, FAIRplus)',
+    'Adicionar Hudi MoR como quarta variante (CoW já está; MoR seria 4º vértice do benchmark)',
   ],
 };
 

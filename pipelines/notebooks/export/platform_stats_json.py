@@ -179,6 +179,83 @@ def _silver_r(vk): return silver_by_v.get(vk, {}).get("rows", 0)
 def _gold_b(vk):   return gold_by_v.get(vk, {}).get("bytes", 0)
 def _gold_r(vk):   return gold_by_v.get(vk, {}).get("rows", 0)
 
+
+def _build_rais_vertical(raw, bronze, silver_b, silver_r, gold_b, gold_r, raw_root):
+    """Monta o dict da vertical `rais` com 3 cards na strip:
+    Delta canônico + Iceberg (via UniForm, storage compartilhado) + Hudi
+    (escrito local, subido pro Volume — folder walk em
+    /Volumes/.../bronze/raw/_open_formats/rais_vinculos_hudi/).
+
+    Hudi pode estar:
+    - **Ausente** (folder vazio ou inexistente): card renderiza como `deferred`
+      com nota "deferido (serverless)" — usuário vê o slot mas sabe que precisa
+      rodar o pipeline local.
+    - **Presente**: bytes/rows reais via folder_stats; nota indica "amostra
+      ano=YYYY · escrito local" pra ser honesto sobre o subset.
+    """
+    delta_bytes = next((t["bytes"] for t in bronze if t["table"] == "rais_vinculos"), 0)
+    delta_rows  = next((t["rows"]  for t in bronze if t["table"] == "rais_vinculos"), 0)
+
+    iceberg_card = {
+        "label":       "Iceberg bronze",
+        "format":      "iceberg",
+        "bytes":       delta_bytes,
+        "rows":        delta_rows,
+        "shared_with": "rais_vinculos",
+        "note":        "UniForm — mesmos arquivos do Delta",
+    }
+
+    # Hudi: walk do folder no Volume. Se vazio/ausente → deferred.
+    hudi_dir = f"{raw_root}/_open_formats/rais_vinculos_hudi"
+    hudi_walk = folder_stats(hudi_dir, "**/*")
+    if hudi_walk["bytes"] > 0:
+        # Tenta inferir as partições (ano=YYYY) presentes pra rotular honestamente
+        hudi_path_p = Path(hudi_dir)
+        years_found = sorted(
+            int(d.name.split("=")[1])
+            for d in hudi_path_p.iterdir()
+            if d.is_dir() and d.name.startswith("ano=")
+        ) if hudi_path_p.exists() else []
+        if not years_found:
+            note = "escrito local · subido via CLI"
+        elif len(years_found) == 1:
+            note = f"amostra ano={years_found[0]} · escrito local"
+        else:
+            note = f"amostra anos {years_found[0]}-{years_found[-1]} ({len(years_found)}) · escrito local"
+        # Rows não temos sem reader Hudi; deixamos 0 e front mostra só bytes
+        hudi_card = {
+            "label":  "Hudi bronze",
+            "format": "hudi",
+            "bytes":  hudi_walk["bytes"],
+            "rows":   0,
+            "note":   note,
+        }
+    else:
+        hudi_card = {
+            "label":   "Hudi bronze",
+            "format":  "hudi",
+            "bytes":   0,
+            "rows":    0,
+            "note":    "deferido (serverless) — rode build_rais_hudi_local.py",
+            "deferred": True,
+        }
+
+    return {
+        "raw_compressed_files": raw["mte_rais_7z"]["files"],
+        "raw_compressed_bytes": raw["mte_rais_7z"]["bytes"],
+        "raw_compressed_label": "7Z",
+        "intermediate_files":   raw["mte_rais_txt"]["files"],
+        "intermediate_bytes":   raw["mte_rais_txt"]["bytes"],
+        "intermediate_label":   "TXT",
+        "delta_bronze_bytes":   delta_bytes,
+        "delta_bronze_rows":    delta_rows,
+        "bronze_alt_formats":   [iceberg_card, hudi_card],
+        "silver_bytes":         silver_b("rais"),
+        "silver_rows":          silver_r("rais"),
+        "gold_bytes":           gold_b("rais"),
+        "gold_rows":            gold_r("rais"),
+    }
+
 # Compression-pipeline summaries (raw upstream → intermediate → Delta) per vertical
 verticals = {
     "pbf": {
@@ -237,20 +314,7 @@ verticals = {
         "gold_bytes":           _gold_b("uropro"),
         "gold_rows":            _gold_r("uropro"),
     },
-    "rais": {
-        "raw_compressed_files": raw["mte_rais_7z"]["files"],
-        "raw_compressed_bytes": raw["mte_rais_7z"]["bytes"],
-        "raw_compressed_label": "7Z",
-        "intermediate_files":   raw["mte_rais_txt"]["files"],
-        "intermediate_bytes":   raw["mte_rais_txt"]["bytes"],
-        "intermediate_label":   "TXT",
-        "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "rais_vinculos"), 0),
-        "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "rais_vinculos"), 0),
-        "silver_bytes":         _silver_b("rais"),
-        "silver_rows":          _silver_r("rais"),
-        "gold_bytes":           _gold_b("rais"),
-        "gold_rows":            _gold_r("rais"),
-    },
+    "rais": _build_rais_vertical(raw, bronze, _silver_b, _silver_r, _gold_b, _gold_r, RAW_ROOT),
     # Reuso do bronze.pbf_pagamentos com nova agregação Município × Ano (WP#7).
     # Não tem raw próprio — é uma re-agregação da mesma fonte CGU. O "intermediate"
     # aqui é a IBGE/SIDRA pop municipal (5.571 munis × 11 anos) que viabiliza o gold

@@ -915,6 +915,77 @@ enrich(
     },
 )
 
+# ---- bronze.rais_vinculos_iceberg (open-format benchmark) ----
+TBL = f"{CATALOG}.bronze.rais_vinculos_iceberg"
+enrich(
+    TBL,
+    """
+    RAIS Vínculos Públicos — cópia em **Apache Iceberg** dos mesmos
+    arquivos TXT que alimentam `bronze.rais_vinculos` (Delta canônico).
+    External table apontando pra `/Volumes/<catalog>/bronze/raw/_open_formats/
+    rais_vinculos_iceberg/`. Particionada por `ano`. STRING-ONLY.
+
+    Propósito: benchmark apples-to-apples Delta × Iceberg × Hudi sobre
+    o mesmo input cru (~624 GB de TXT, 2,2 bi linhas). Alimenta o card
+    "Iceberg bronze" da strip "Big Data público" no Início e o artigo
+    `articles/benchmark_lakehouse_formats.py` (que sai de dados sintéticos
+    para dados reais via essa tabela).
+    """,
+    {
+        "ano": "Ano-base RAIS. Particionamento Iceberg (Hive-style).",
+        **PLATFORM_COLS,
+    },
+    {
+        "layer": "bronze",
+        "domain": "rais",
+        "source": "mte_pdet",
+        "pii": "true",
+        "pii_columns": "cpf,pis,nome_trabalhador",
+        "grain": "vinculo_ano",
+        "format": "iceberg",
+        "purpose": "format_benchmark",
+        "partition_keys": "ano",
+    },
+)
+
+# ---- bronze.rais_vinculos_hudi (open-format benchmark) ----
+TBL = f"{CATALOG}.bronze.rais_vinculos_hudi"
+enrich(
+    TBL,
+    """
+    RAIS Vínculos Públicos — cópia em **Apache Hudi (Copy-on-Write)** dos
+    mesmos arquivos TXT que alimentam `bronze.rais_vinculos` (Delta canônico).
+    External table apontando pra `/Volumes/<catalog>/bronze/raw/_open_formats/
+    rais_vinculos_hudi/`. Particionada por `ano`. STRING-ONLY.
+
+    Recordkey: `_hudi_rowid` = SHA-256(_source_file || monotonic_id).
+    Estável dentro de cada arquivo .txt — suficiente pra benchmark de
+    write throughput (não há upserts).
+
+    Propósito: terceiro vértice do triângulo Delta × Iceberg × Hudi.
+    Alimenta o card "Hudi bronze" da strip "Big Data público" no Início.
+    """,
+    {
+        "ano": "Ano-base RAIS. Partitionpath Hudi (hive_style).",
+        "_hudi_rowid":
+            "Record key Hudi: SHA-256(_source_file || monotonic_id). "
+            "Estável dentro do mesmo arquivo .txt.",
+        **PLATFORM_COLS,
+    },
+    {
+        "layer": "bronze",
+        "domain": "rais",
+        "source": "mte_pdet",
+        "pii": "true",
+        "pii_columns": "cpf,pis,nome_trabalhador",
+        "grain": "vinculo_ano",
+        "format": "hudi",
+        "hudi_table_type": "COPY_ON_WRITE",
+        "purpose": "format_benchmark",
+        "partition_keys": "ano",
+    },
+)
+
 # ---- bronze.emendas_pagamentos ----
 TBL = f"{CATALOG}.bronze.emendas_pagamentos"
 enrich(

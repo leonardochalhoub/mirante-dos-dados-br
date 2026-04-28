@@ -304,8 +304,16 @@ function BigDataStrip({ stats }) {
               bytes: v.delta_bronze_bytes,
               rows: v.delta_bronze_rows,
               highlight: true,
+              format: 'delta',
             },
           ].filter((s) => (s.bytes ?? 0) > 0 || (s.files ?? 0) > 0 || (s.rows ?? 0) > 0);
+
+          // Branches paralelas: formatos lakehouse abertos alternativos ao Delta
+          // (Iceberg via UniForm, Hudi). Renderizam o que vier no payload —
+          // formatos `deferred` aparecem como card mudo com badge "deferido".
+          const altFormats = (v.bronze_alt_formats || []).filter(
+            (a) => a.deferred || (a.bytes ?? 0) > 0 || (a.rows ?? 0) > 0,
+          );
           return (
             <div key={k} className="bigdata-pipeline">
               <div className="bigdata-pipeline-head">
@@ -315,7 +323,27 @@ function BigDataStrip({ stats }) {
                 {steps.map((s, i) => (
                   <Fragment key={s.label}>
                     {i > 0 && <Arrow />}
-                    <Step {...s} />
+                    {i === steps.length - 1 && altFormats.length > 0 ? (
+                      <div className="bigdata-fork">
+                        <Step {...s} />
+                        {altFormats.map((a) => (
+                          <div key={a.label} className="bigdata-fork-branch">
+                            <Arrow />
+                            <Step
+                              label={a.label}
+                              bytes={a.bytes}
+                              rows={a.rows}
+                              highlight={!a.deferred}
+                              format={a.format}
+                              note={a.note}
+                              deferred={a.deferred}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <Step {...s} />
+                    )}
                   </Fragment>
                 ))}
               </div>
@@ -327,22 +355,29 @@ function BigDataStrip({ stats }) {
   );
 }
 
-function Step({ label, files, bytes, rows, highlight, tier }) {
+function Step({ label, files, bytes, rows, highlight, tier, format, note, deferred }) {
   // Valor principal: bytes se houver, senão rows (caso FinOps system tables
   // — delta-shared, sem bytes mensuráveis). Sub mostra o que sobra.
+  // `deferred` cards (formato bloqueado por workspace constraint) renderizam
+  // só com label + note + traço, sem número (não temos bytes ainda).
   const hasBytes = bytes != null && bytes > 0;
   const hasRows  = rows != null && rows > 0;
   const hasFiles = files != null && files > 0;
-  const mainValue = hasBytes
-    ? fmtBytes(bytes)
-    : (hasRows ? `${fmtCompact(rows)} linhas` : (hasFiles ? `${fmtCompact(files)} arquivos` : '—'));
+  const mainValue = deferred
+    ? '—'
+    : hasBytes
+      ? fmtBytes(bytes)
+      : (hasRows ? `${fmtCompact(rows)} linhas` : (hasFiles ? `${fmtCompact(files)} arquivos` : '—'));
   const subParts = [];
   if (hasBytes && hasFiles) subParts.push(`${fmtCompact(files)} arquivos`);
   if (hasBytes && hasRows)  subParts.push(`${fmtCompact(rows)} linhas`);
   if (!hasBytes && hasFiles && hasRows) subParts.push(`${fmtCompact(files)} tabelas`);
-  const tierClass = tier ? ` is-tier-${tier}` : '';
+  if (note) subParts.push(note);
+  const tierClass    = tier      ? ` is-tier-${tier}`     : '';
+  const formatClass  = format    ? ` is-format-${format}` : '';
+  const deferredClass = deferred ? ' is-deferred'         : '';
   return (
-    <div className={`bigdata-step${highlight ? ' is-highlight' : ''}${tierClass}`}>
+    <div className={`bigdata-step${highlight ? ' is-highlight' : ''}${tierClass}${formatClass}${deferredClass}`}>
       <div className="bigdata-step-label">{label}</div>
       <div className="bigdata-step-value">{mainValue}</div>
       <div className="bigdata-step-sub">{subParts.join(' · ')}</div>

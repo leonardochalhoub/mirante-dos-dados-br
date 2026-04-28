@@ -363,6 +363,9 @@ resources:
         source: mte_pdet
         vertical: rais
       max_concurrent_runs: 1
+      # Workspace é serverless-only — `bronze_rais_vinculos_open_formats` roda
+      # em serverless e usa Delta UniForm pra expor Iceberg (zero overhead);
+      # Hudi fica deferido (requer JAR Maven, indisponível em serverless).
       tasks:
         - task_key: ingest_mte_rais
           notebook_task:
@@ -384,10 +387,27 @@ resources:
           notebook_task:
             notebook_path: ./notebooks/bronze/rais_vinculos.py
             base_parameters:
-              catalog:          "${var.catalog}"
-              zips_dir:         "/Volumes/${var.catalog}/bronze/raw/mte/rais"
-              txt_extracted:    "/Volumes/${var.catalog}/bronze/raw/mte/rais_txt_extracted"
-              force_reconvert:  "false"
+              catalog:             "${var.catalog}"
+              zips_dir:            "/Volumes/${var.catalog}/bronze/raw/mte/rais"
+              txt_extracted:       "/Volumes/${var.catalog}/bronze/raw/mte/rais_txt_extracted"
+              force_reconvert:     "false"
+              revalidate_content:  "false"
+
+        # ─── Iceberg via Delta UniForm (Hudi deferido em serverless) ──────
+        # Faz ALTER TABLE habilitando Iceberg metadata sidecar sobre o Delta
+        # canônico — zero storage overhead. Hudi requer JAR Maven, ausente
+        # em serverless workspace; ENABLE_HUDI=false até classic compute.
+        - task_key: bronze_rais_vinculos_open_formats
+          depends_on: [{ task_key: bronze_rais_vinculos }]
+          notebook_task:
+            notebook_path: ./notebooks/bronze/rais_vinculos_open_formats.py
+            base_parameters:
+              catalog:           "${var.catalog}"
+              source_table:      "${var.catalog}.bronze.rais_vinculos"
+              txt_extracted:     "/Volumes/${var.catalog}/bronze/raw/mte/rais_txt_extracted"
+              open_formats_root: "/Volumes/${var.catalog}/bronze/raw/_open_formats"
+              enable_iceberg:    "true"
+              enable_hudi:       "false"
 
         - task_key: silver_rais_uf_ano
           depends_on: [{ task_key: bronze_rais_vinculos }]
@@ -415,6 +435,34 @@ resources:
         quartz_cron_expression: "0 0 6 26 * ?"  # monthly: dia 26 6h UTC
         timezone_id: UTC
         pause_status: PAUSED
+
+    # ─── Standalone: open formats (Iceberg via UniForm) sem re-ingest ─────
+    # Aplica ALTER TABLE Iceberg-UniForm sobre bronze.rais_vinculos e cria
+    # a view `bronze.rais_vinculos_iceberg`. Não toca em ingest/bronze.
+    # Dispara ad-hoc; serverless-friendly. Hudi fica deferido até workspace
+    # admitir classic compute (toggle enable_hudi=true depois).
+    job_rais_open_formats:
+      name: refresh RAIS open formats (Iceberg UniForm, Hudi deferido)
+      tags:
+        team: mirante
+        domain: rais
+        layer: bronze
+        pattern: format_benchmark
+        cadence: ad_hoc
+        source: bronze_delta
+        vertical: rais
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: bronze_rais_vinculos_open_formats
+          notebook_task:
+            notebook_path: ./notebooks/bronze/rais_vinculos_open_formats.py
+            base_parameters:
+              catalog:           "${var.catalog}"
+              source_table:      "${var.catalog}.bronze.rais_vinculos"
+              txt_extracted:     "/Volumes/${var.catalog}/bronze/raw/mte/rais_txt_extracted"
+              open_formats_root: "/Volumes/${var.catalog}/bronze/raw/_open_formats"
+              enable_iceberg:    "true"
+              enable_hudi:       "false"
 
     # ─── Diagnóstico standalone: pente-fino RAIS fonte→volume→txt→bronze ──
     job_rais_integrity:
