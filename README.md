@@ -2,18 +2,18 @@
 
 # Mirante dos Dados
 
-**Open Lakehouse for Brazilian public microdata.**
+**Lakehouse aberta para microdados públicos brasileiros.**
 **Apache Spark · Delta Lake · Databricks Asset Bundles · React · LaTeX · GitHub Actions.**
 
 [![Deploy](https://github.com/leonardochalhoub/mirante-dos-dados-br/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/leonardochalhoub/mirante-dos-dados-br/actions/workflows/deploy-pages.yml)
 [![Refresh](https://github.com/leonardochalhoub/mirante-dos-dados-br/actions/workflows/refresh-pipelines.yml/badge.svg)](https://github.com/leonardochalhoub/mirante-dos-dados-br/actions/workflows/refresh-pipelines.yml)
-[![Tests](https://img.shields.io/badge/pytest-13%20passing-success)](tests/)
+[![Tests](https://img.shields.io/badge/pytest-13%20passando-success)](tests/)
 [![Working Papers](https://img.shields.io/badge/working%20papers-7-blueviolet)](articles/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
-[![Cost](https://img.shields.io/badge/lifetime%20cost-US%24%2070-success)](#-finops--cost-discipline)
+[![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-black.svg)](LICENSE)
+[![Custo](https://img.shields.io/badge/custo%20lifetime-US%24%2070-success)](#-finops--disciplina-de-custo)
 
-[**Live platform →**](https://leonardochalhoub.github.io/mirante-dos-dados-br/) ·
-[**Architecture**](docs/ARCHITECTURE.md) ·
+[**Plataforma ao vivo →**](https://leonardochalhoub.github.io/mirante-dos-dados-br/) ·
+[**Arquitetura**](docs/ARCHITECTURE.md) ·
 [**Working Papers**](articles/) ·
 [**ADRs**](docs/ARCHITECTURE.md#adrs)
 
@@ -21,227 +21,227 @@
 
 ---
 
-## What this is
+## O que é
 
-A **production-grade open lakehouse** that ingests heterogeneous Brazilian public microdata (CGU, DATASUS, IBGE, BCB, MTE/PDET), normalises it through a **Bronze → Silver → Gold medallion** on Delta Lake, and publishes versioned `.json` artefacts consumed by:
+Uma **lakehouse aberta de produção** que ingere microdados públicos brasileiros heterogêneos (CGU, DATASUS, IBGE, BCB, MTE/PDET), normaliza tudo numa **arquitetura medallion Bronze → Silver → Gold** sobre Delta Lake, e publica artefatos `.json` versionados consumidos por:
 
-1. an **interactive web platform** (React + Vite, deployed to GitHub Pages), and
-2. **peer-reviewable Working Papers** in LaTeX (ABNT), compiled by CI.
+1. uma **plataforma web interativa** (React + Vite, deploy em GitHub Pages), e
+2. **Working Papers** revisáveis em LaTeX (padrão ABNT), compilados na CI.
 
-Everything is **open-source, reproducible, FinOps-instrumented, and deployed via Asset Bundles + GitHub Actions** — no manual steps, no proprietary glue code.
+Tudo é **open-source, reproduzível, instrumentado em FinOps, e implantado via Asset Bundles + GitHub Actions** — sem passos manuais, sem cola proprietária.
 
-| Metric (Apr 2026) | Value |
+| Métrica (Abr 2026) | Valor |
 |---|---|
-| Raw files ingested | **18.8 K** (375 GB compressed/decompressed across 9 sources) |
-| Largest Delta table | `bronze.pbf_pagamentos` — **2.53 B rows · 40 GB** |
-| Active verticals | **5** data + **1** FinOps observability |
-| Working Papers | **7** (peer-review framework w/ 4 internal reviewer chairs) |
-| Lifetime compute cost | **US$ 70** over 322 days (≈ US$ 0.40 / job run, 91 runs) |
-| Tests | **13 pytest invariants** running in CI in 0.3 s |
+| Arquivos brutos ingeridos | **18,8 mil** (375 GB comprimidos/expandidos em 9 fontes) |
+| Maior tabela Delta | `bronze.pbf_pagamentos` — **2,53 bi linhas · 40 GB** |
+| Verticais ativas | **5** de dados + **1** de observabilidade (FinOps) |
+| Working Papers | **7** (framework de peer-review com 4 cadeiras simuladas) |
+| Custo lifetime | **US$ 70** em 322 dias (≈ US$ 0,40 / job run, 91 runs) |
+| Testes | **13 invariantes pytest** rodando na CI em 0,3 s |
 
 ---
 
-## 🏗 Architecture
+## 🏗 Arquitetura
 
-Standard medallion lakehouse, fully declarative, Asset-Bundles-deployed.
+Medallion lakehouse padrão, totalmente declarativa, deployada via Asset Bundles.
 
 ```
                                                   ┌────────────────────────┐
    ┌──────────────────┐                            │  GitHub Actions        │
-   │ Public sources   │                            │  - deploy-pages.yml    │
+   │ Fontes públicas  │                            │  - deploy-pages.yml    │
    │ ───────────────  │                            │  - refresh-pipelines   │
    │ FTP DATASUS      │                            │  - auto-sync-gold      │
-   │ CGU portal       │                            └─────────┬──────────────┘
+   │ Portal CGU       │                            └─────────┬──────────────┘
    │ IBGE/SIDRA       │                                      │ trigger
-   │ MTE PDET FTP     │                                      ▼
+   │ FTP PDET/MTE     │                                      ▼
    │ BCB SGS          │              ┌──────────────────────────────────────┐
    └────────┬─────────┘              │  Databricks Asset Bundles            │
             │                        │  ───────────────────────────         │
             │ Auto Loader            │  pipelines/databricks.yml            │
-            │ + idempotent ingest    │  10 jobs · serverless compute        │
+            │ + ingest idempotente   │  10 jobs · compute serverless        │
             ▼                        │  Unity Catalog: mirante_prd          │
    ┌──────────────────────────────────────────────────────────────────────┐
-   │  🥉  BRONZE   Delta Lake · STRING-ONLY · partitioned · UC metadata    │
-   │              No type inference, no coercion (auditable replay)        │
-   │              `pbf_pagamentos` · `cnes_equipamentos` · `rais_vinculos` │
-   │              `emendas_pagamentos` · `sih_aih_rd_uropro` + 2 dims      │
+   │  🥉  BRONZE   Delta Lake · STRING-ONLY · particionado · UC metadata  │
+   │              Sem inferência de tipo, sem coerção (replay auditável)  │
+   │              `pbf_pagamentos` · `cnes_equipamentos` · `rais_vinculos`│
+   │              `emendas_pagamentos` · `sih_aih_rd_uropro` + 2 dims     │
    └──────────────────────────────┬────────────────────────────────────────┘
                                   │ Spark batch / streaming
                                   ▼
    ┌──────────────────────────────────────────────────────────────────────┐
-   │  🥈  SILVER   Typed casts · joins (population, IPCA deflator)         │
-   │              UF×Year and Município×Year aggregation grain             │
-   │              7 tables · partitioned · 100% UC-tagged                  │
+   │  🥈  SILVER   Casts tipados · joins (população, deflator IPCA)       │
+   │              Granularidade UF×Ano e Município×Ano                    │
+   │              7 tabelas · particionadas · 100% taggeadas no UC        │
    └──────────────────────────────┬────────────────────────────────────────┘
                                   │
                                   ▼
    ┌──────────────────────────────────────────────────────────────────────┐
-   │  🥇  GOLD     Stable schema · column-level COMMENTs · zero drift      │
-   │              Materialised in Delta + exported to JSON for the web    │
-   │              4 tables → 7 JSONs in `data/gold/` (versioned in Git)   │
+   │  🥇  GOLD     Schema estável · COMMENTs por coluna · zero drift      │
+   │              Materializado em Delta + exportado JSON pra web         │
+   │              4 tabelas → 7 JSONs em `data/gold/` (versionados)       │
    └────────┬───────────────────────────────────────────┬─────────────────┘
             │                                           │
-            │ JSON sync (CI)                            │ matplotlib + LaTeX
+            │ sync JSON (CI)                            │ matplotlib + LaTeX
             ▼                                           ▼
    ┌──────────────────────────┐              ┌──────────────────────────┐
-   │  Web platform            │              │  Working Papers          │
+   │  Plataforma web          │              │  Working Papers          │
    │  React 19 + Vite         │              │  ABNT LaTeX · 7 papers   │
-   │  Recharts · d3-geo       │              │  Compiled in CI          │
-   │  GitHub Pages CDN        │              │  Auto-versioned in /app  │
+   │  Recharts · d3-geo       │              │  Compilados na CI        │
+   │  CDN GitHub Pages        │              │  Versionados em /app     │
    └──────────────────────────┘              └──────────────────────────┘
 ```
 
-**Full design**: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 11 ADRs covering Delta vs Iceberg, Auto Loader vs batch overwrite, dedup strategy, Unity Catalog metadata convention, dictionaries-as-code, and Bronze STRING-ONLY rationale.
+**Design completo**: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 11 ADRs cobrindo Delta vs Iceberg, Auto Loader vs batch overwrite, estratégia de dedup, convenção de metadata Unity Catalog, dicionários como código, e racional do Bronze STRING-ONLY.
 
 ---
 
-## 🧰 Stack — open source, scalable, no lock-in
+## 🧰 Stack — open source, escalável, sem lock-in
 
-Every component is open-source, replaceable, and runs on commodity cloud compute.
+Todo componente é open-source, substituível, e roda em compute de nuvem comum.
 
-### Compute & storage
-| Layer | Tech | Why |
+### Compute & armazenamento
+| Camada | Tecnologia | Por quê |
 |---|---|---|
-| Distributed compute | **Apache Spark 3.5+** | Industry-standard for petabyte-scale batch + streaming |
-| Open table format | **Delta Lake 3.x** | ACID, time travel, schema evolution, OSS protocol (Linux Foundation) |
-| Catalog | **Unity Catalog** (Databricks) | Lineage, fine-grained access, column-level metadata + tags |
-| Streaming ingest | **Databricks Auto Loader** | Schema-evolving file detection at scale |
-| Orchestration | **Databricks Asset Bundles** (`databricks.yml`) | Declarative jobs-as-code, multi-target (dev / prd) |
-| Cluster runtime | **Serverless / Photon** | Pay-per-second, no idle cost (see FinOps below) |
+| Compute distribuído | **Apache Spark 3.5+** | Padrão da indústria pra batch + streaming em escala petabyte |
+| Formato de tabela aberto | **Delta Lake 3.x** | ACID, time travel, schema evolution, protocolo OSS (Linux Foundation) |
+| Catálogo | **Unity Catalog** (Databricks) | Linhagem, controle de acesso fino, metadata e tags por coluna |
+| Ingest streaming | **Databricks Auto Loader** | Detecção schema-evolving de arquivos em escala |
+| Orquestração | **Databricks Asset Bundles** (`databricks.yml`) | Jobs como código declarativo, multi-target (dev / prd) |
+| Runtime do cluster | **Serverless / Photon** | Cobrança por segundo, zero custo ocioso (ver FinOps abaixo) |
 
 ### Frontend & docs
-| Layer | Tech | Why |
+| Camada | Tecnologia | Por quê |
 |---|---|---|
-| Web platform | **React 19 + Vite 5** | Sub-200 KB gzipped JS, instant HMR |
-| Charts & maps | **Recharts** + **d3-scale-chromatic** + **d3-geo** | Pure SVG, accessible, theme-aware |
-| Static hosting | **GitHub Pages** | Free, CDN-backed, single-tenant simple |
-| Working Papers | **LaTeX (lmodern · newtx · SciencePlots)** | ABNT-compliant, reproducible PDF compilation |
-| Figures | **matplotlib 3 + geopandas + adjustText** | Editorial-grade charts shared across `.tex` + web |
+| Plataforma web | **React 19 + Vite 5** | Sub-200 KB JS gzip, HMR instantâneo |
+| Charts e mapas | **Recharts** + **d3-scale-chromatic** + **d3-geo** | SVG puro, acessível, theme-aware |
+| Hospedagem estática | **GitHub Pages** | Grátis, atrás de CDN, single-tenant simples |
+| Working Papers | **LaTeX (lmodern · newtx · SciencePlots)** | Compatível com ABNT, compilação reproduzível |
+| Figuras | **matplotlib 3 + geopandas + adjustText** | Charts editorial-grade compartilhados entre `.tex` e web |
 
-### Engineering & ops
-| Layer | Tech | Why |
+### Engenharia & ops
+| Camada | Tecnologia | Por quê |
 |---|---|---|
 | CI/CD | **GitHub Actions** | 3 workflows: deploy, refresh, auto-sync |
-| Tests | **pytest** over gold JSON (no Spark needed) | 0.3 s feedback loop, validates published artefact |
-| IaC / config | **YAML Asset Bundles** + repo-local notebooks | Single source of truth, no UI drift |
-| Versioning | **Git + GitHub Releases** | Code, dictionaries, gold JSONs all in version control |
+| Testes | **pytest** sobre o gold JSON (sem precisar Spark) | Loop de feedback de 0,3 s, valida o artefato publicado |
+| IaC / config | **YAML Asset Bundles** + notebooks no repo | Fonte única de verdade, sem drift de UI |
+| Versionamento | **Git + GitHub Releases** | Código, dicionários, gold JSONs todos sob controle de versão |
 
-> **Vendor footprint**: Databricks (compute) + GitHub (hosting + CI). Both replaceable — Spark + Delta run on EMR / Synapse / on-prem; Pages can move to Vercel / Cloudflare / S3 + CloudFront.
+> **Pegada de fornecedor**: Databricks (compute) + GitHub (hospedagem + CI). Ambos substituíveis — Spark + Delta rodam em EMR / Synapse / on-prem; Pages pode migrar pra Vercel / Cloudflare / S3 + CloudFront.
 
 ---
 
-## 💰 FinOps — cost discipline as a first-class citizen
+## 💰 FinOps — disciplina de custo como cidadão de primeira classe
 
-Mirante is a **public-facing platform run by one person** — cost visibility isn't optional, it's existential. The platform observes itself via Databricks `system.*` tables and exposes everything on a dedicated vertical.
+Mirante é uma **plataforma pública mantida por uma única pessoa** — visibilidade de custo não é opcional, é existencial. A plataforma se observa via tabelas `system.*` do Databricks e expõe tudo numa vertical dedicada.
 
-### Lifetime spend (Jun 2025 – Apr 2026, 322 days)
+### Gasto lifetime (Jun 2025 – Abr 2026, 322 dias)
 
 ```
-Total cost                US$ 69.99
-DBUs consumed                504
-Job runs                      91
-Avg cost / run            US$ 0.40
-P95 cost / run            US$ 1.49
-Storage run-rate          US$ 8 / month
-Wasted compute %             53.9 %  ← ERROR runs + idle session overhead
-Chargeable share             82.0 %  ← productive jobs
-Most expensive run        US$ 3.01  (PBF refresh, ERROR state)
+Custo total                US$ 69,99
+DBUs consumidos                504
+Job runs                        91
+Custo médio / run          US$ 0,40
+P95 custo / run            US$ 1,49
+Run-rate de storage        US$ 8 / mês
+% de compute desperdiçado     53,9 %  ← runs ERROR + overhead de sessão
+% chargeable                  82,0 %  ← jobs produtivos
+Run mais cara              US$ 3,01  (refresh PBF, estado ERROR)
 ```
 
-The **53.9 % "wasted" line** is intentional and visible — it forces accountability. Failed runs, idle warehouse sessions, retries: all surfaced at `/finops` with daily granularity and per-job rollups.
+A linha **53,9% "wasted"** é intencional e visível — força responsabilização. Runs falhas, sessões warehouse ociosas, retries: tudo aparece em `/finops` com granularidade diária e rollup por job.
 
-### How it's built
+### Como é construído
 
-| Layer | Tables |
+| Camada | Tabelas |
 |---|---|
-| **Source** (Delta-shared, read-only) | `system.billing.usage` · `system.compute.warehouses` · `system.lakeflow.jobs` · `system.lakeflow.job_run_timeline` |
-| **Silver** (ours) | `silver.finops_daily_spend` · `silver.finops_run_costs` |
-| **Gold** (ours, → JSON) | `gold.finops_daily_spend` · `gold.finops_run_costs` |
+| **Bronze** (system tables, delta-shared, read-only) | `system.billing.usage` · `system.compute.warehouses` · `system.lakeflow.jobs` · `system.lakeflow.job_run_timeline` |
+| **Silver** (nossas) | `silver.finops_daily_spend` · `silver.finops_run_costs` |
+| **Gold** (nossas, → JSON) | `gold.finops_daily_spend` · `gold.finops_run_costs` |
 | **Export** | `data/gold/finops_summary.json` |
-| **Web** | `/finops` route — daily timeseries, per-run rollup, wasted-compute KPI |
+| **Web** | rota `/finops` — timeseries diário, rollup por run, KPI de wasted |
 
-### FinOps practices baked in
+### Práticas FinOps integradas
 
-- **Serverless-first**: no idle cluster cost. Compute spins up per job, terminates on completion.
-- **Wasted-compute alarm**: any run that ERRORs or exceeds P95 budget is flagged at `/finops`.
-- **Asset Bundles per env**: dev/prd share the same notebooks, different catalogs (`mirante_dev` vs `mirante_prd`) — no accidental prod runs from local dev.
-- **Cold path for stale data**: ingest jobs are `runs.submit` style (single-shot), not always-on streaming. Cheaper than DLT continuous mode for monthly-refresh use cases.
-- **Storage tiering**: gold JSON exports replace Delta-table reads on the web layer — no SQL warehouse charged for end-user traffic.
+- **Serverless-first**: zero custo ocioso. Compute sobe por job, encerra ao terminar.
+- **Alarme de wasted compute**: qualquer run que ERROR ou exceda o budget P95 é flagged em `/finops`.
+- **Asset Bundles por env**: dev/prd compartilham notebooks, catálogos diferentes (`mirante_dev` vs `mirante_prd`) — sem rodar prod acidentalmente do dev.
+- **Cold path pra dado estável**: jobs ingest são `runs.submit` (one-shot), não streaming sempre-ligado. Mais barato que DLT contínuo pra refresh mensal.
+- **Tiering de storage**: gold JSONs estáticos servem o web — sem warehouse SQL cobrado por tráfego de usuário.
 
-> Goal: keep total annual run-rate **under US$ 100** while serving 5 verticals, 7 Working Papers, and a public web platform. Currently tracking **US$ 79 / year** projected.
+> Meta: manter run-rate anual **abaixo de US$ 100** servindo 5 verticais, 7 Working Papers e plataforma web pública. Atualmente projetado em **US$ 79 / ano**.
 
 ---
 
-## 📦 Data verticals (live)
+## 📦 Verticais de dados (publicadas)
 
-| # | Vertical | Route | Sources | Coverage | Working Paper |
+| # | Vertical | Rota | Fontes | Cobertura | Working Paper |
 |---|---|---|---|---|---|
 | 1 | **Bolsa Família** | [/bolsa-familia](https://leonardochalhoub.github.io/mirante-dos-dados-br/#/bolsa-familia) | CGU · IBGE · BCB | 2013 – 2025 | [WP #2](articles/bolsa-familia.tex) · [WP #7 (municipal)](articles/bolsa-familia-municipios.tex) |
 | 2 | **Equipamentos médicos (CNES)** | [/equipamentos](https://leonardochalhoub.github.io/mirante-dos-dados-br/#/equipamentos) | DATASUS/CNES · IBGE | 2005 – 2025 | [WP #4](articles/equipamentos-rm-parkinson.tex) · [WP #6](articles/equipamentos-panorama-cnes.tex) |
 | 3 | **Emendas Parlamentares** | [/emendas](https://leonardochalhoub.github.io/mirante-dos-dados-br/#/emendas) | CGU · IBGE · BCB | 2014 – 2025 | [WP #1](articles/emendas-parlamentares.tex) |
 | 4 | **UroPro (SIH-AIH-RD)** | [/incontinencia-urinaria](https://leonardochalhoub.github.io/mirante-dos-dados-br/#/incontinencia-urinaria) | DATASUS/SIH · IBGE · BCB | 2008 – 2025 | [WP #3](articles/uropro-serie-2008-2025.tex) · [WP #5](articles/uropro-saude-publica-2008-2025.tex) |
-| 5 | **RAIS — Public Sector** | [/rais](https://leonardochalhoub.github.io/mirante-dos-dados-br/#/rais) | PDET/MTE · IBGE · BCB | 1985 – 2025 | [draft](articles/rais-fair-lakehouse.tex) |
-| ✦ | **FinOps** | [/finops](https://leonardochalhoub.github.io/mirante-dos-dados-br/#/finops) | `system.billing.*` · `system.lakeflow.*` | 2025 – ongoing | observability layer |
+| 5 | **RAIS — Vínculos Públicos** | [/rais](https://leonardochalhoub.github.io/mirante-dos-dados-br/#/rais) | PDET/MTE · IBGE · BCB | 1985 – 2025 | [draft](articles/rais-fair-lakehouse.tex) |
+| ✦ | **FinOps** | [/finops](https://leonardochalhoub.github.io/mirante-dos-dados-br/#/finops) | `system.billing.*` · `system.lakeflow.*` | 2025 – em diante | camada de observabilidade |
 
-Each vertical: **Bronze → Silver → Gold → JSON export → React route → LaTeX article** — same shape, single mental model.
-
----
-
-## 📚 Working Papers + peer-review framework
-
-7 papers in ABNT format, each with a **simulated 4-chair peer-review board** (Finance, Software Engineering, Design, Strategy). Reviewers' formal opinions are persisted in `app/src/data/atas-conselho.js` and rendered alongside each paper as auditable critique.
-
-Every paper page exposes the **same 4-button toolbar**:
-
-```
-📖 Read PDF        ⤓ Download PDF (ABNT)        ⤓ Download .tex source        ↗ Open in Overleaf
-```
-
-Compilation is part of CI (`deploy-pages.yml`). No paper merges without a clean build.
+Cada vertical: **Bronze → Silver → Gold → exportação JSON → rota React → artigo LaTeX** — mesmo formato, modelo mental único.
 
 ---
 
-## 🧪 Tests — contract over the published artefact
+## 📚 Working Papers + framework de peer-review
+
+7 papers em formato ABNT, cada um com **board simulado de peer-review com 4 cadeiras** (Finanças, Engenharia de Software, Design, Estratégia). Os pareceres formais dos revisores são persistidos em `app/src/data/atas-conselho.js` e renderizados ao lado de cada paper como crítica auditável.
+
+Toda página de paper expõe a **mesma toolbar de 4 botões**:
+
+```
+📖 Ler PDF        ⤓ Baixar PDF (ABNT)        ⤓ Baixar fonte .tex        ↗ Abrir no Overleaf
+```
+
+Compilação faz parte do CI (`deploy-pages.yml`). Nenhum paper merge sem build limpo.
+
+---
+
+## 🧪 Testes — contrato sobre o artefato publicado
 
 ```bash
 $ python3 -m pytest tests/ -v
 ============================== 13 passed in 0.30s ==============================
 ```
 
-Tests run **directly against the published gold JSONs** — no Spark, no Databricks credentials, no fixtures. If a number on the website changes unexpectedly, CI breaks. See [ADR-010](docs/ARCHITECTURE.md#adr-010).
+Os testes rodam **direto contra os gold JSONs publicados** — sem Spark, sem credenciais Databricks, sem fixtures. Se um número no site mudar inesperadamente, a CI quebra. Ver [ADR-010](docs/ARCHITECTURE.md#adr-010).
 
-Examples of what's enforced:
+Exemplos do que é validado:
 
-- All 27 UFs present in every annual snapshot
-- Equipment density matches OECD median order-of-magnitude
-- `cnes_count ≤ total_avg` invariant (no dual-flag double-counting)
-- Schema fields stable across refreshes (no drift)
+- Todas as 27 UFs presentes em todo snapshot anual
+- Densidade de equipamentos bate com a mediana OECD em ordem de grandeza
+- Invariante `cnes_count ≤ total_avg` (sem double-count via dual-flag)
+- Campos do schema estáveis entre refreshes (sem drift)
 
 ---
 
-## 🚀 Quick start
+## 🚀 Início rápido
 
-### Run the web platform locally
+### Rodar a plataforma web local
 ```bash
 git clone https://github.com/leonardochalhoub/mirante-dos-dados-br
 cd mirante-dos-dados-br/app
 npm install && npm run dev          # http://localhost:5173
 ```
 
-### Run the test suite
+### Rodar a suite de testes
 ```bash
 pip install pytest
 python3 -m pytest tests/ -v
 ```
 
-### Deploy / re-run a pipeline (Databricks)
+### Deployar / re-rodar pipeline (Databricks)
 ```bash
 cd pipelines
 databricks bundle deploy --target dev
 databricks bundle run job_pbf_municipios_pipeline --target dev
 ```
 
-### Compile a Working Paper locally
+### Compilar um Working Paper localmente
 ```bash
 cd articles
 latexmk -pdf -interaction=nonstopmode equipamentos-rm-parkinson.tex
@@ -249,74 +249,74 @@ latexmk -pdf -interaction=nonstopmode equipamentos-rm-parkinson.tex
 
 ---
 
-## 🎯 Engineering principles
+## 🎯 Princípios de engenharia
 
-1. **Everything in Git, everything reproducible.** Code, dictionaries, gold artefacts, papers (`.tex` + `.pdf`). No "magic state" lives anywhere else.
-2. **Bronze STRING-ONLY.** No type inference, no silent coercion. All casts land in Silver+. Audit trail stays faithful to source ([ADR-003](docs/ARCHITECTURE.md#adr-003)).
-3. **Documentation as code.** Architecture Decision Records in `docs/`, `COMMENT ON TABLE` + Unity Catalog tags on every table, docstrings in every notebook.
-4. **Tests as contract.** `tests/` validates the *published artefact* (gold JSON), not the implementation. Refactor freely as long as numbers don't drift.
-5. **Cost is a feature.** Every job has a budget. Idle cost is failure. FinOps vertical is self-monitored and public.
-6. **Open by construction.** No proprietary serialisation, no closed dictionaries, no walled APIs. Anyone can fork and run.
+1. **Tudo no Git, tudo reproduzível.** Código, dicionários, gold artefacts, papers (`.tex` + `.pdf`). Nenhum "estado mágico" mora em outro lugar.
+2. **Bronze STRING-ONLY.** Sem inferência de tipo, sem coerção silenciosa. Todo cast aterrissa em Silver+. Audit trail fiel à fonte ([ADR-003](docs/ARCHITECTURE.md#adr-003)).
+3. **Documentação como código.** Architecture Decision Records em `docs/`, `COMMENT ON TABLE` + Unity Catalog tags em toda tabela, docstrings em todo notebook.
+4. **Testes como contrato.** `tests/` valida o *artefato publicado* (gold JSON), não a implementação. Refatore à vontade enquanto os números não mudarem.
+5. **Custo é uma feature.** Todo job tem budget. Custo ocioso é falha. A vertical FinOps é self-monitored e pública.
+6. **Aberto por construção.** Sem serialização proprietária, sem dicionários fechados, sem APIs com muros. Qualquer um pode forkar e rodar.
 
 ---
 
-## 📁 Repository layout
+## 📁 Layout do repositório
 
 ```
 mirante-dos-dados-br/
-├── app/                       # React + Vite web platform
+├── app/                       # plataforma web React + Vite
 │   ├── src/
-│   │   ├── routes/            # one file per vertical (BolsaFamilia, Equipamentos, FinOps, ...)
-│   │   ├── components/        # BrazilMap, BrazilMuniMap, KpiCard, ScoreCard, ...
-│   │   ├── data/              # pareceres.js, atas-conselho.js (peer-review opinions)
+│   │   ├── routes/            # um arquivo por vertical (BolsaFamilia, Equipamentos, FinOps, ...)
+│   │   ├── components/        # BrazilMap, KpiCard, ScoreCard, AtaConselho, ...
+│   │   ├── data/              # pareceres.js, atas-conselho.js (pareceres do peer-review)
 │   │   └── lib/               # data loaders, format helpers, color scales
 │   └── public/
-│       ├── data/              # gold JSONs synced from /data/gold
-│       └── articles/          # compiled PDFs + .tex sources
+│       ├── data/              # gold JSONs sincados de /data/gold
+│       └── articles/          # PDFs compilados + fontes .tex
 ├── pipelines/
-│   ├── databricks.yml         # Asset Bundle config (10 jobs, 2 targets)
+│   ├── databricks.yml         # config Asset Bundle (10 jobs, 2 targets)
 │   └── notebooks/
-│       ├── ingest/            # public-source downloaders (idempotent)
-│       ├── bronze/            # STRING-ONLY landing
-│       ├── silver/            # typed + enriched
+│       ├── ingest/            # downloaders de fonte pública (idempotentes)
+│       ├── bronze/            # landing STRING-ONLY
+│       ├── silver/            # tipado + enriquecido
 │       ├── gold/              # publication-ready
-│       └── export/            # gold → JSON for the web
-├── articles/                  # 7 Working Papers (.tex) + figures + Python builders
-├── tests/                     # pytest invariants over gold JSON
+│       └── export/            # gold → JSON pro web
+├── articles/                  # 7 Working Papers (.tex) + figuras + builders Python
+├── tests/                     # invariantes pytest sobre gold JSON
 ├── docs/
 │   └── ARCHITECTURE.md        # 11 ADRs
 ├── data/
-│   ├── gold/                  # versioned gold JSONs
+│   ├── gold/                  # gold JSONs versionados
 │   ├── stats/                 # platform_stats.json
-│   └── reference/             # canonical dictionaries (CNES, geobr, etc.)
+│   └── reference/             # dicionários canônicos (CNES, geobr, etc.)
 └── .github/workflows/
-    ├── deploy-pages.yml       # build site + compile PDFs + deploy
-    ├── refresh-pipelines.yml  # nightly Databricks job runs
-    └── auto-sync-gold.yml     # pull gold artefacts back into Git
+    ├── deploy-pages.yml       # build site + compila PDFs + deploy
+    ├── refresh-pipelines.yml  # cron Databricks
+    └── auto-sync-gold.yml     # puxa gold artefacts de volta pro Git
 ```
 
 ---
 
-## 📜 License
+## 📜 Licença
 
-- **Code** (pipelines, web app, scripts): [MIT](LICENSE)
-- **Curated data** (gold JSONs, canonical CNES dictionary): [MIT](LICENSE)
-- **Texts** (Working Papers, README): [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Código** (pipelines, web app, scripts): [MIT](LICENSE)
+- **Dados curados** (gold JSONs, dicionário canônico CNES): [MIT](LICENSE)
+- **Textos** (Working Papers, README): [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.pt-br)
 
-> Cite as: CHALHOUB, L. *Mirante dos Dados — open lakehouse for Brazilian public microdata*. GitHub repository, 2026. <https://github.com/leonardochalhoub/mirante-dos-dados-br>
+> Citar como: CHALHOUB, L. *Mirante dos Dados — lakehouse aberta para microdados públicos brasileiros*. Repositório GitHub, 2026. <https://github.com/leonardochalhoub/mirante-dos-dados-br>
 
 ---
 
-## 👤 Author
+## 👤 Autor
 
-**Leonardo Chalhoub** — Data Engineer, platform creator.
+**Leonardo Chalhoub** — Engenheiro de Dados, criador da plataforma.
 [github.com/leonardochalhoub](https://github.com/leonardochalhoub) · leonardochalhoub@gmail.com
 
 ---
 
 <div align="center">
 <sub>
-Built on Apache Spark · Delta Lake · Unity Catalog · React · LaTeX · GitHub Actions ·
-<strong>open lakehouse · open data · open papers</strong>
+Construído sobre Apache Spark · Delta Lake · Unity Catalog · React · LaTeX · GitHub Actions ·
+<strong>lakehouse aberta · dado aberto · paper aberto</strong>
 </sub>
 </div>

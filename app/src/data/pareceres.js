@@ -727,102 +727,129 @@ export const PARECER_GLOBAL = {
   scoreOriginal: null,
   originalLabel: null,
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T21:45 BRT`,
+  ultimaAtualizacao: `${HOJE}T23:30 BRT`,
   versao:
-    '6.0 — promoção B+ → A na régua mestrado: 3 WPs stricto sensu + ' +
-    'framework editorial-crítico operacional + 3 Reuniões do Conselho + ' +
-    'pipeline RAIS em execução + camada de auto-recovery bronze',
+    '7.0 — A consolidado: 4 WPs stricto sensu (incluindo WP#7 com maior ' +
+    'média peer-review do projeto, 2,375), FinOps como vertical de ' +
+    'observabilidade self-monitoring, posicionamento OSS escalável + ' +
+    'cost-discipline formalizado no README v2',
   resumoCalibragem:
     'Avaliação MACRO do projeto inteiro (não de uma vertical isolada). ' +
-    'A v6.0 sobe de B+ para A na régua mestrado porque o projeto ' +
-    'atravessou múltiplos limiares qualitativos simultaneamente desde a ' +
-    'avaliação anterior, e A na régua é "excelente, próximo do teto do ' +
-    'mestrado" — exatamente o que descreve o estado atual. As mudanças ' +
-    'que justificam a promoção: (1) TRÊS WPs em stricto sensu, não mais ' +
-    'um — WP#2 promovido de lato 8,5 → stricto B+ via rewrite v2.0 ' +
-    'completo (DiD/TWFE/WCB sobre MP 1.061/2021, Kakwani × IDH-M por UF, ' +
-    'ITS sobre série mensal nov/2021, benchmark internacional com ' +
-    'AUH/Prospera/MFA/Renta Dignidad em US$ PPP 2021, 17 figuras ' +
-    'vetoriais — incluindo barbell DiD e event study); WP#4 evoluiu pra ' +
-    'v3.1 com Bloco-esta-semana (Conley HAC com ICs negativos ' +
-    'preservados, SHAP subordinado a economia, pytest CI ativo, 5 bugs ' +
-    'visuais corrigidos — commit b4f5b88); WP#6 escalou de v2 → v3.0 com ' +
-    '+171% de conteúdo (3.869 linhas), WHY duplo formalizado, 6 modelos ' +
-    'ML adicionados e análise causal preliminar. (2) TRÊS Reuniões do ' +
-    'Conselho do Mirante formalizadas e RENDERIZADAS na plataforma — ' +
-    '#1 WP#4 v2.1 (APROVADO COM AJUSTES, 4 rodadas), #2 WP#6 v3.0 (3 ' +
-    'rodadas), #3 WP#2 v1.0 → v2.0 (motivou rewrite completo). (3) ' +
-    'QUATRO personas conselheiras estáveis e operando (Finanças/Eng. ' +
-    'Software/Design HCI/Administração) com lentes próprias e atas ' +
-    'auditáveis. (4) Audit integral de Finanças cross-WP (WP#4 v3.1 + ' +
-    'WP#6 v3.0) catalogou 22 inconsistências verificáveis com prioridade ' +
-    'codificada (5 críticas, 9 altas, 6 médias, 2 baixas) — disciplina ' +
-    'de revisão acima do padrão de Working Papers auto-publicados. (5) ' +
-    'Vertical RAIS saiu de "promessa zero" pra execução real (2026-04- ' +
-    '27), com bronze auto-recovery em 3 camadas (pré-validação magic ' +
-    'bytes + central directory, deleta + re-baixa do FTP PDET, Hive- ' +
-    'partitioned ano=YYYY/ pra evitar colisão silenciosa cross-ano). ' +
-    'A na régua mestrado é "passa com folga, próximo do teto" — não é ' +
-    'ainda doutorado, que exigiria peer review FORMAL externo aceito + ' +
-    'Zenodo DOI por WP + reprodução INDEPENDENTE por terceiros + ' +
+    'v7.0 MANTÉM A na régua mestrado, agora CONSOLIDADO em 5 dimensões ' +
+    'que cruzaram limiares simultâneos desde a v6.0: ' +
+    '(1) QUATRO WPs em stricto sensu — adição do WP#7 (Bolsa Família ' +
+    'por Município, 5.570 munis, dados reais agregados via SQL warehouse ' +
+    'sobre bronze.pbf_pagamentos 2,53 bi linhas) que NASCE com a maior ' +
+    'média peer-review do projeto (2,375 — acima do limiar 2,0 já no R1, ' +
+    'única vez que isso aconteceu). Resolve estruturalmente o gargalo ' +
+    'identificacional do WP#2 (k=27 ≪ 30 Cameron-Gelbach-Miller para ' +
+    'wild-cluster bootstrap convergir): WP#7 tem k=5.570 = 185× o ' +
+    'mínimo, com Conley HAC haversine sobre centroides geobr e ' +
+    'bandwidth sensitivity 50–1600 km mostrando |t|≥2,0 mesmo no ' +
+    'extremo. ' +
+    '(2) QUATRO Reuniões do Conselho operacionais — adicionada R#4 ' +
+    '(WP#7) renderizada em /bolsa-familia ao lado das #1 (WP#4), #2 ' +
+    '(WP#6), #3 (WP#2). 4 cadeiras estáveis (Finanças, Eng. Software, ' +
+    'Design HCI, Administração) com lentes próprias e atas auditáveis ' +
+    'em app/src/data/atas-conselho.js (1.400+ linhas).' +
+    '(3) FinOps como VERTICAL de observabilidade — não é só dashboard ' +
+    'escondido em settings. Plataforma se observa via Databricks ' +
+    'system.* tables (billing.usage + compute.warehouses + lakeflow.* ' +
+    'em bronze, agregações em silver/gold). Lifetime US$ 70 em 322 dias, ' +
+    '91 runs, US$ 0,40 médio/run, 53,9% de waste EXPOSTO publicamente — ' +
+    'transparência fiscal que poucos lakehouses corporativos atingem. ' +
+    'Goal anual <US$ 100, projetado US$ 79. ' +
+    '(4) Posicionamento técnico FORMALIZADO — README v2 (322 linhas vs ' +
+    '231 antes) reescrito como "Open Lakehouse for Brazilian public ' +
+    'microdata", stack OSS escalável explícito (Spark · Delta · Unity ' +
+    'Catalog · React · LaTeX · GitHub Actions), 3 tabelas técnicas com ' +
+    '"Why" por escolha + vendor footprint flagged como replicável (EMR/ ' +
+    'Synapse/on-prem). FinOps elevado a princípio de engenharia (cost ' +
+    'is a feature). ' +
+    '(5) Pragmatismo de produção demonstrado — mapa muni dinâmico ' +
+    '(react-simple-maps + d3-geo) renderizava como amarelo uniforme em ' +
+    'todos browsers testados; após múltiplas tentativas de fix, autor ' +
+    'optou por usar PNGs pré-renderizados pelo build-figures-pbf-' +
+    'municipios.py (matplotlib + geopandas) — mesma identidade visual ' +
+    'do PDF, leitura clara em qualquer resolução, trade-off explícito ' +
+    '(perde hover, ganha funciona). Documentado em commit 5b455a9. ' +
+    'A continua sendo "passa com folga, próximo do teto do mestrado" — ' +
+    'NÃO é doutorado. Os gaps pra doutorado se mantêm: (a) peer review ' +
+    'FORMAL externo aceito em pelo menos um WP, (b) DOI Zenodo por WP ' +
+    'stricto sensu, (c) reprodução INDEPENDENTE por terceiro, (d) ' +
     'contribuição metodológica original publicada (o framework de 4 ' +
-    'cadeiras é candidato natural a essa contribuição). Esses são gaps ' +
-    'do tier seguinte, não desta avaliação.',
+    'cadeiras + a metodologia FinOps self-observability são candidatos ' +
+    'naturais).',
   utilidadeSocial:
-    'EXTREMAMENTE ÚTIL E AMPLAMENTE APLICÁVEL. O Mirante é uma plataforma ' +
-    'que reduz drasticamente o custo marginal de pesquisa em dados ' +
-    'públicos brasileiros. Beneficiários CONCRETOS: jornalismo de dados, ' +
-    'pesquisadores acadêmicos em Saúde Coletiva/Ciência Política/Economia/ ' +
-    'Enfermagem, ONGs (Transparência Brasil, Fiquem Sabendo, Open ' +
-    'Knowledge Brasil), gestores públicos municipais e estaduais. ' +
-    'Equivale a um IPEA Data privado, mantido por uma pessoa, em stack ' +
-    '100% gratuito. A v5.0 amplia: o framework editorial-crítico ' +
-    '(4 conselheiros + atas formalizadas) é em si publicável como ' +
-    'metodologia de peer review interno reprodutível por outros grupos ' +
-    'de pesquisa que não tenham acesso a banca formal.',
+    'EXTREMAMENTE ÚTIL E AMPLAMENTE APLICÁVEL — agora em 3 camadas. ' +
+    'CAMADA 1 (consumo direto): jornalismo de dados, pesquisadores em ' +
+    'Saúde Coletiva/Ciência Política/Economia/Enfermagem, ONGs ' +
+    '(Transparência Brasil, Fiquem Sabendo, Open Knowledge Brasil), ' +
+    'gestores públicos municipais/estaduais. Equivale a um IPEA Data ' +
+    'privado, mantido por uma pessoa, em stack 100% gratuito. ' +
+    'CAMADA 2 (template metodológico): WP#7 demonstra como migrar ' +
+    'painéis UF×Ano (frequentes em literatura brasileira de política ' +
+    'social) para Município×Ano usando exclusivamente dados públicos. ' +
+    '6 notebooks Databricks + 4 scripts Python locais são plug-and-play ' +
+    'para outros programas (Auxílio Gás, BPC, Pé-de-Meia, Auxílio ' +
+    'Reconstrução RS). Reduz custo marginal de pesquisa quasi-' +
+    'experimental em ordem de magnitude. ' +
+    'CAMADA 3 (meta-contribuição): o framework editorial de 4 cadeiras ' +
+    '+ as 4 atas formalizadas + a vertical FinOps como self-' +
+    'observability são em si artefatos publicáveis como metodologia de ' +
+    'peer-review interno reprodutível e cost-discipline em lakehouse ' +
+    'open-source — para grupos sem acesso a banca formal e para times ' +
+    'de dados sem orçamento de FinOps tooling pago (Apptio, ' +
+    'CloudHealth). Ambos candidatos a meta-artigo separado.',
   pontosFortes: [
-    'Escala Big Data REAL: PBF tem 2,5 bilhões de linhas em bronze (280 GB CSV); CNES 6.614 DBCs; SIH 11.048 DBCs; RAIS em ingest desde 2026-04-27 (136M linhas/biênio estimados)',
-    'Stack profissional integrada: Apache Spark + Delta Lake + Databricks UC + Auto Loader + Asset Bundles',
-    'Pipelines-como-código: nenhum drag-and-drop em GUI. Toda etapa versionada em Git, idempotente, reprodutível',
-    'CI/CD multi-camada: deploy-pages, refresh-pipelines, auto-sync-gold — três workflows distintos coordenados',
-    'Multi-linguagem real: Python (PySpark, pandas, matplotlib), JavaScript/React (Vite + Recharts + d3), SQL (Spark SQL), LaTeX (artigos ABNT), Bash, YAML',
-    'Multi-formato real: DBC (PKWARE compactado, formato proprietário DATASUS), 7Z (RAIS), ZIP (CGU), CSV/TXT/JSON, Parquet, Delta Lake',
-    'Open-source + FAIR-aderente: tudo em GitHub público, código MIT, dados gold versionados, refresh mensal automatizado',
-    '7 trabalhos avaliados: 3 stricto sensu (WP#2 v2.0 B+, WP#4 v3.1 B+, WP#6 v3.0 B) + 4 lato sensu (WP#1 9,0; WP#3 9,5; WP#5 9,2; WP_RAIS 7,3)',
-    'WP#2 v2.0 — promoção qualitativa de lato 8,5 → stricto B+: rewrite completo após Reunião #3 do Conselho com média 1,5 (autor optou por refazer em vez de patch incremental). Adiciona DiD/TWFE/WCB sobre MP 1.061/2021, Kakwani × IDH-M por UF, ITS sobre série mensal nov/2021, benchmark CCT internacional (AUH/Prospera/MFA/Renta Dignidad em US$ PPP 2021), 17 figuras vetoriais incluindo barbell DiD e event study',
-    'WP#4 v3.1 — endereçou Bloco-esta-semana da R3 do Conselho (commit b4f5b88): Conley HAC com ICs negativos preservados, SHAP subordinado a economia (não autônomo), pytest CI ativo (13 testes sobre gold), 5 bugs visuais corrigidos. Roth 2022 + cross-shock EC 100 ainda pendentes',
-    'WP#6 v3.0 — escalou de v2 → v3.0 com +171% de conteúdo (3.869 linhas vs 1.428): WHY duplo formalizado em Reunião #2 do Conselho, 6 modelos ML adicionados, análise causal preliminar (TWFE EC 86 ainda pendente), 50 páginas estimadas',
-    'Framework editorial-crítico interno operacional: 4 personas conselheiras (Finanças, Eng. Software, Design HCI, Administração) com lentes próprias + 3 atas formalizadas e RENDERIZADAS na plataforma (Reunião #1 WP#4, #2 WP#6, #3 WP#2)',
-    'Audit cross-WP de Finanças (2026-04-27) catalogou 22 inconsistências verificáveis com prioridade codificada (5 críticas, 9 altas, 6 médias, 2 baixas) — disciplina de revisão por pares interna acima do padrão de Working Papers auto-publicados',
-    'Identidade visual editorial Mirante (Lato + paleta hierárquica + grid horizontal + halo + leader lines + polylabel + adjustText) aplicada nas 80+ figuras dos artigos',
+    'Escala Big Data REAL: PBF tem 2,53 bilhões de linhas em bronze (~40 GB Delta sobre 280 GB CSV de origem); CNES 6.614 DBCs (158M linhas); SIH 11.048 DBCs (124k linhas filtradas UroPro); RAIS em ingest desde 2026-04-27 (880 .7z, ~136M linhas/biênio estimados)',
+    'Stack OSS escalável formalizada no README v2: Apache Spark 3.5 + Delta Lake 3.x (Linux Foundation) + Unity Catalog + Auto Loader + Asset Bundles + GitHub Actions. Vendor footprint mínimo (Databricks compute + GitHub hosting) — ambos replicáveis em EMR/Synapse/on-prem',
+    'Pipelines-como-código: nenhum drag-and-drop em GUI. Asset Bundle (databricks.yml) com 10 jobs em 2 targets (dev/prd), todos versionados em Git, idempotentes, reprodutíveis',
+    'CI/CD multi-camada: deploy-pages.yml (build site + compila 7 PDFs LaTeX + deploy GH Pages) + refresh-pipelines.yml (cron mensal Databricks) + auto-sync-gold.yml (puxa gold de volta pro Git)',
+    'Multi-linguagem real: Python (PySpark, pandas, matplotlib, geopandas), JavaScript/React (Vite + Recharts + d3-geo + d3-scale), SQL (Spark SQL + system.* queries), LaTeX (lmodern + newtx + SciencePlots, ABNT), Bash, YAML',
+    'Multi-formato real: DBC (PKWARE proprietário DATASUS), 7Z (RAIS), ZIP (CGU), CSV/TXT/JSON, Parquet, Delta Lake — todos com loaders custom e idempotentes',
+    'Open-source + FAIR: tudo em GitHub público, código MIT, dados gold versionados em Git, dicionário canônico CNES (133 combos TIPEQUIP×CODEQUIP) extraído por parsing direto do site DATASUS',
+    'WP#7 (BF Municípios) NASCE com a maior média peer-review do projeto (2,375 — acima do limiar 2,0 já no R1, primeira vez na história do projeto). Resolve estruturalmente o gargalo identificacional do WP#2 (k=27 ≪ 30) com k=5.570 clusters (185× o mínimo)',
+    'FinOps como vertical de observabilidade: lifetime US$ 70 em 322 dias, 91 runs, US$ 0,40 médio/run, 53,9% wasted EXPOSTO publicamente. Goal anual <US$ 100, projetado US$ 79. system.billing.usage + system.compute.warehouses + system.lakeflow.* em bronze, agregações em silver/gold, JSON exportado',
+    '8 trabalhos publicados/avaliados: 4 stricto sensu (WP#2 v2.0 B+, WP#4 v3.1 B+, WP#6 v3.0 B, WP#7 v2.0 B+) + 4 lato sensu (WP#1 9,0; WP#3 9,5; WP#5 9,2; WP_RAIS 7,3). Maior densidade de stricto sensu em projeto solo open-source',
+    'Framework editorial-crítico interno operacional com 4 ATAS formalizadas e RENDERIZADAS na plataforma — Reunião #1 (WP#4 v2.1, 4 rodadas, APROVADO COM AJUSTES), #2 (WP#6 v3.0, 3 rodadas), #3 (WP#2 v1.0→v2.0, motivou rewrite), #4 (WP#7 v2.0, 1 rodada, APROVADO unânime média 2,375). atas-conselho.js com 1.400+ linhas',
+    'QUATRO personas conselheiras estáveis (Finanças/Eng. Software/Design HCI/Administração) com lentes acadêmicas distintas e disciplina cross-WP — audit Finanças catalogou 22 inconsistências verificáveis (5 críticas, 9 altas, 6 médias, 2 baixas) com prioridade codificada',
+    'Identidade visual editorial Mirante (Lato + paleta hierárquica + golden ratio + grid horizontal + halo branco + leader lines + polylabel + adjustText) aplicada em 80+ figuras estáticas dos artigos',
     'Modelo de coautoria engenheiro+clínico demonstrado no WP#4 (Rolim+Chalhoub) — único da série com coautor externo',
     'Modelo de análise cross-vertical demonstrado no WP#3 e WP#6 (cruzamento de 3+ verticais sobre arquitetura medalhão unificada)',
-    'Auditabilidade pública demonstrada de ponta a ponta: bug silver descoberto/corrigido/documentado (commit fa869cf), incidente de números fabricados pego pelo autor e corrigido com commit nominal (7ad8885), bug de partição RAIS detectado em produção e corrigido (b1809c1) — tudo no log público',
-    'RAIS bronze ingest com auto-recovery em 3 camadas: pré-validação por arquivo (py7zr.is_7zfile + getnames lê magic bytes + central directory), deleta + re-baixa do FTP PDET após Bad7zFile, Hive-partitioned <TXT_EXTRACTED>/ano=YYYY/ pra evitar colisão silenciosa cross-ano (PDET 2019+ usa nomes de .txt sem ano)',
+    'Auditabilidade pública demonstrada de ponta a ponta: bug silver descoberto/corrigido/documentado (fa869cf), incidente de números fabricados pego pelo autor e corrigido com commit nominal (7ad8885), bug de partição RAIS detectado em produção e corrigido (b1809c1), tela branca em /bolsa-familia detectada e corrigida (f365881) — tudo no log público',
+    'RAIS bronze ingest com auto-recovery em 3 camadas: pré-validação por arquivo (py7zr.is_7zfile + getnames lê magic bytes + central directory), deleta + re-baixa do FTP PDET após Bad7zFile, Hive-partitioned <TXT_EXTRACTED>/ano=YYYY/ pra evitar colisão silenciosa cross-ano',
+    'Pragmatismo de produção: depois de múltiplas tentativas de renderizar 5.570 polígonos municipais dinamicamente (react-simple-maps + d3-geo direto), autor optou pelos PNGs pré-renderizados do build-figures (commit 5b455a9). Trade-off explícito documentado — perde hover, ganha "funciona em qualquer resolução"',
+    'README v2 (322 linhas) reescrito como "Open Lakehouse for Brazilian public microdata" — posicionamento técnico-profissional alinhado a stack OSS escalável + FinOps como princípio de engenharia (cost is a feature)',
   ],
   problemasParaNotaPlena: [
     'WP#4 v3.1: Roth 2022 pre-trend test e cross-shock EC 100 ainda pendentes — implementá-los completa o checklist da R3',
     'WP#2 v2.0: rewrite stricto commitado, audit Finanças sobre v2.0 ainda pendente. As 22 inconsistências da v1.0 foram parcialmente endereçadas mas precisam validação completa pré-submissão',
-    'WP#6 v3.0: TWFE sobre EC 86 + DOI Zenodo + decisão final 1-paper-vs-2 (panorama integrado vs split por modalidade) ainda pendentes',
-    'verify-reproducibility.yml (gap apontado pelo Conselheiro de Eng. Software) ainda ausente do CI; reprodutibilidade documentada não é o mesmo que reprodutibilidade verificada',
+    'WP#6 v3.0: TWFE sobre EC 86 + decisão final 1-paper-vs-2 (panorama integrado vs split por modalidade) ainda pendentes',
+    'WP#7 v2.0: kernel Conley uniforme em vez de Bartlett (Conley 1999 ortodoxo); RDD geográfico em fronteiras estaduais (BA-MG, RJ-SP) declarado mas não implementado; pytest_test_pbf_municipal.py ausente',
+    'verify-reproducibility.yml (gap apontado pelo Conselheiro de Eng. Software em todos os 4 R do Conselho) ainda ausente do CI; reprodutibilidade documentada não é o mesmo que reprodutibilidade verificada',
+    'DOI Zenodo dos 4 WPs stricto sensu ainda ausente — disciplina de citação e versionamento canônico que o conselho pediu desde a R#1',
     'RAIS pipeline saiu de zero pra rodando, mas ainda não fechou ciclo bronze→silver→gold→export→artigo — Working Paper ainda em escopo de plumbing (lato 7,3)',
-    'Versões interativas Vega-Lite/Observable de figuras (gap Design HCI) — declaradas como roadmap mas zero implementadas',
+    'Versões interativas Vega-Lite/Observable de figuras (gap Design HCI repetido em 4 atas) — declaradas como roadmap mas zero implementadas',
+    'Mapa muni dinâmico interativo no /bolsa-familia substituído por PNG estático (decisão pragmática commit 5b455a9) — perde hover/tooltip/colorscale switching no muni level. Solução técnica permanente fica em débito',
   ],
   problemasParaSubirNivel: [
-    'PROMOÇÃO PRA DOUTORADO exigiria: (a) peer review FORMAL externo aceito em pelo menos um WP (Cad Saúde Pública, RAP, RBE, Lancet Reg Health Am), (b) Zenodo DOI por WP stricto sensu, (c) reprodução INDEPENDENTE por terceiros (engenheiro de dados não-Chalhoub re-rodando o pipeline e validando bronze→gold por UF), (d) contribuição metodológica original mensurável — o framework editorial-crítico de 4 cadeiras é candidato natural se publicado como meta-artigo',
-    'Tese agregadora cross-vertical: usar as 5 verticais juntas pra responder pergunta substantiva sobre complementaridade de instrumentos federais (PBF + emendas + saúde) — papel de tese de doutorado',
+    'PROMOÇÃO PRA DOUTORADO exigiria: (a) peer review FORMAL externo aceito em pelo menos um WP (Cad Saúde Pública, RAP, RBE, Lancet Reg Health Am, JOSS para meta-artigos), (b) Zenodo DOI por WP stricto sensu, (c) reprodução INDEPENDENTE por terceiros (engenheiro de dados não-Chalhoub re-rodando o pipeline e validando bronze→gold por UF), (d) contribuição metodológica original mensurável publicada — o framework editorial-crítico de 4 cadeiras E a metodologia FinOps self-observability sobre system tables são candidatos naturais',
+    'Tese agregadora cross-vertical: usar as 5 verticais juntas pra responder pergunta substantiva sobre complementaridade de instrumentos federais (PBF + emendas + saúde + emprego) — papel de tese de doutorado',
     'Análise comparativa de formatos lakehouse (Delta vs Iceberg vs Hudi) prometida em RAIS spec não está implementada — peso 15% da nota da monografia original ainda não atendido',
     'Padronização editorial cross-WP de Kakwani: WP#4 e WP#2 v2.0 implementam Kakwani mas com denominadores diferentes (IDH vs taxa de pobreza) — falta padronização explícita ou justificativa por WP',
+    'WP#7 → A: kernel Bartlett (ortodoxo Conley 1999) + RDD geográfico em fronteiras estaduais (BA-MG, RJ-SP) + outcomes proxy mensais (DATASUS-SIM, INEP, CAGED) + pytest_test_pbf_municipal.py',
   ],
   proximosPassos: [
-    'Endereçar Roth 2022 + cross-shock EC 100 no WP#4 v3.2 — completa o checklist R3 e abre caminho pra A no WP individual (hoje B+)',
-    'Audit Finanças sobre WP#2 v2.0 (paralelo ao da v1.0) — valida que as 22 inconsistências da v1.0 foram efetivamente endereçadas no rewrite',
-    'Submeter WP #2 v2.0 a Cad Saúde Pública OU WP #4 v3.1 a RAP — primeiro peer review externo formal cruza o limiar mestrado→doutorado',
-    'verify-reproducibility.yml no CI com pytest sobre sample bronze de cada vertical — fecha o gap declarado pelo Conselheiro de Eng. Software',
-    'DOI Zenodo dos 3 WPs stricto sensu (WP#2, WP#4, WP#6) + dicionário canônico CNES — disciplina de citação e versionamento',
-    'Fechar ciclo RAIS: pipeline bronze→silver→gold→export+artigo escrito (não esqueleto) sobe o WP_RAIS de 7,3 e adiciona 4a vertical em stricto sensu',
-    'Versão interativa Vega-Lite/Observable de pelo menos UMA figura por WP — abre dimensão HCI declarada nas atas das Reuniões #1 e #2',
-    'Publicar como meta-artigo separado o framework editorial-crítico de 4 cadeiras + 3 atas — candidato a contribuição metodológica original publicável (peso pra promoção a doutorado)',
+    'P1: endereçar Roth 2022 + cross-shock EC 100 no WP#4 v3.2 — completa o checklist R3 e abre caminho pra A no WP individual (hoje B+)',
+    'P2: audit Finanças sobre WP#2 v2.0 (paralelo ao da v1.0) — valida que as 22 inconsistências da v1.0 foram efetivamente endereçadas no rewrite',
+    'P3: submeter WP #2 v2.0 a Cad Saúde Pública OU WP #4 v3.1 a RAP OU WP #7 v2.0 a RBE/RAP — primeiro peer review externo formal cruza o limiar mestrado→doutorado',
+    'P4: verify-reproducibility.yml no CI com pytest sobre sample bronze de cada vertical — fecha o gap declarado pelo Conselheiro de Eng. Software em todas as 4 atas',
+    'P5: DOI Zenodo dos 4 WPs stricto sensu (WP#2, WP#4, WP#6, WP#7) + dicionário canônico CNES + finops_summary.json — disciplina de citação e versionamento',
+    'P6: fechar ciclo RAIS: pipeline bronze→silver→gold→export+artigo escrito (não esqueleto) sobe o WP_RAIS de 7,3 e adiciona 5a vertical em stricto sensu (após o WP#7)',
+    'P7: versão interativa Vega-Lite/Observable de pelo menos UMA figura por WP — abre dimensão HCI declarada nas 4 atas',
+    'P8: publicar como meta-artigos separados (a) o framework editorial-crítico de 4 cadeiras + 4 atas e (b) a metodologia FinOps self-observability sobre system tables — candidatos a contribuição metodológica original publicável que pesa pra promoção a doutorado',
+    'P9: dashboard FinOps cross-vertical no /finops com per-vertical cost split (qual vertical custa mais por refresh?) — extrai mais sinal das system tables que já estão no bronze',
   ],
 };
 
