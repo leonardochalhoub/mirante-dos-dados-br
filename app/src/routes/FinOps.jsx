@@ -65,13 +65,13 @@ function chartStyles(theme) {
 }
 
 // ── Formatters ──────────────────────────────────────────────────────────────
-// USD usa locale en-US (ponto decimal) pra evitar ambiguidade com pt-BR onde
-// "US$ 2,601" pareceria $2.601 em vez de $2.60. Currency é estrangeiro;
-// notação inglesa é universal pra dólar.
+// USD com locale pt-BR (vírgula decimal, ponto milhar) — pra leitor brasileiro
+// "US$ 7,184" é decimal (= $7,18), ao passo que en-US "$7.184" parece $7.184
+// (notação BR de milhar). Currency code USD garante o prefixo "US$".
 const fmtUSD = (v, opts = {}) => {
   if (v == null || Number.isNaN(v)) return '—';
   const { compact = false, dp = 2 } = opts;
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'USD',
     notation: compact ? 'compact' : 'standard',
