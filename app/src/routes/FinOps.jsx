@@ -816,9 +816,21 @@ function PerVerticalSizeBars({ verticals, labelOf, theme }) {
           <Bar dataKey="silver" stackId="s" fill={COLORS.silver} />
           <Bar dataKey="gold"   stackId="s" fill={COLORS.gold}
                radius={[0, 4, 4, 0]}
-               label={{ position: 'right',
-                        formatter: (_v, _n, e) => fmtBytes((e?.payload || {}).total || 0),
-                        fontSize: 10, fill: s.tickColor }} />
+               label={(props) => {
+                 // Recharts passa o `value` da DataKey atual (gold), que costuma
+                 // ser 0/MB pequeno — não dá pra usar pra rotular o total. Aqui
+                 // usamos `index` pra puxar `total` do array `data` fechado pelo escopo.
+                 const { x, y, width, height, index } = props;
+                 const total = data[index]?.total ?? 0;
+                 if (!total) return null;
+                 return (
+                   <text x={x + width + 6} y={y + height / 2}
+                         fill={s.tickColor} fontSize={10}
+                         dominantBaseline="middle">
+                     {fmtBytes(total)}
+                   </text>
+                 );
+               }} />
         </BarChart>
       </ResponsiveContainer>
 
