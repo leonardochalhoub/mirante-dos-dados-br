@@ -1065,27 +1065,41 @@ CK_COMT = f"{CHECKPOINT_LOC}/comt_comma"
 SC_TXT  = f"{SCHEMA_LOC}/txt_semicolon"
 SC_COMT = f"{SCHEMA_LOC}/comt_comma"
 
-# Migração one-shot: layout legacy tinha _checkpoint/ e _schema/ flat (single-stream
-# com sep=';'). Se detectado, move pra subdir txt_semicolon/ pra preservar offsets
-# já processados de .txt. Schema legacy também vira o de .txt.
-def _migrate_legacy_checkpoint():
-    legacy_offset = f"{CHECKPOINT_LOC}/offsets"
+# Detecção de checkpoint legacy/corrompido — wipe limpo se necessário.
+#
+# Histórico: a versão anterior dessa pipeline tinha um único stream sep=';' com
+# `_checkpoint/` flat (sem subdir). Quando passamos pra dual-stream (txt;/COMT,)
+# precisamos de subdirs. A primeira tentativa de migração (`dbutils.fs.mv` do
+# pai pra um filho de si mesmo) deixou estrutura aninhada vazia inutilizável.
+#
+# Solução robusta: se detectar QUALQUER um destes sintomas, wipe `_checkpoint/`
+# + `_schema/` inteiros e deixa as streams recriarem do zero:
+#   1. _checkpoint/offsets/ existe (layout legacy single-stream)
+#   2. _checkpoint/txt_semicolon/txt_semicolon/ existe (artefato bug migração)
+#
+# Streams com `cloudFiles.includeExistingFiles=false` registram os .txt/.COMT
+# já no Volume como "antes do start", não regravam, só criam o checkpoint.
+def _wipe_if_corrupted_checkpoints():
+    bad = False
     try:
-        # Sinal de checkpoint legacy: arquivo offsets/0 no root do _checkpoint
-        for f in dbutils.fs.ls(legacy_offset):
-            if f.name.startswith("0") or f.name.isdigit():
-                print(f"⚠ Detectado checkpoint legacy single-stream em {CHECKPOINT_LOC}/")
-                print(f"  movendo {CHECKPOINT_LOC}/ → {CK_TXT}/  (era todo .txt; sep=';')")
-                # Se subdir já existe, não migra (run nova já populou)
-                try: dbutils.fs.ls(CK_TXT)
-                except Exception:
-                    dbutils.fs.mv(CHECKPOINT_LOC, CK_TXT, recurse=True)
-                    dbutils.fs.mv(SCHEMA_LOC,     SC_TXT, recurse=True)
-                break
+        # Sinal 1: layout legacy
+        for f in dbutils.fs.ls(f"{CHECKPOINT_LOC}/offsets"):
+            bad = True; break
     except Exception:
-        pass  # checkpoint novo (subdir) ou ainda não existe
+        pass
+    try:
+        # Sinal 2: nesting da migração que deu errado
+        for f in dbutils.fs.ls(f"{CK_TXT}/txt_semicolon"):
+            bad = True; break
+    except Exception:
+        pass
+    if bad:
+        print(f"⚠ checkpoint state corrompido em {CHECKPOINT_LOC}/  → wipe limpo")
+        for p in (CHECKPOINT_LOC, SCHEMA_LOC):
+            try: dbutils.fs.rm(p, True)
+            except Exception: pass
 
-_migrate_legacy_checkpoint()
+_wipe_if_corrupted_checkpoints()
 
 
 def _ck_initialized(path: str) -> bool:
@@ -1117,12 +1131,18 @@ print(f"  dual-format probe: .txt|.TXT={has_legacy_txt_any}  .COMT={has_comt}")
 
 ck_txt_init  = _ck_initialized(CK_TXT)
 ck_comt_init = _ck_initialized(CK_COMT)
+print(f"  checkpoint state: CK_TXT init={ck_txt_init}  CK_COMT init={ck_comt_init}")
 
+# use_batch decide entre (a) reconstruir bronze do zero via batch overwrite e
+# (b) só registrar arquivos no Auto Loader sem reescrever a bronze.
+# Bronze é a fonte canônica — só re-overwrite quando ela está vazia/inexistente
+# OU quando o autor explicitamente pede `force_reconvert=true`. Checkpoints
+# corrompidos NÃO devem disparar overwrite (custa 1h+ em 62GB CSV); preferimos
+# resetar checkpoints e re-criar via streams com includeExistingFiles=false
+# (que registra os arquivos já lá no offset sem regravar dados).
 use_batch = (
     (not table_exists)
     or (existing_rows == 0)
-    or (has_legacy_txt_any and not ck_txt_init)
-    or (has_comt           and not ck_comt_init)
     or FORCE_RECONVERT
 )
 
@@ -1157,12 +1177,19 @@ def _read_batch(glob: str, sep: str):
 
 
 def _stream_cf(glob: str, sep: str, schema_loc: str, include_existing: bool, evolution: bool):
-    """Lê em stream Auto Loader os arquivos casando `glob` com separador `sep`."""
+    """Lê em stream Auto Loader os arquivos casando `glob` com separador `sep`.
+
+    NOTA: o filtro de path em cloudFiles é `pathGlobFilter` (sem o prefixo
+    `cloudFiles.`). Usar `cloudFiles.pathGlobFilter` dispara
+    [CF_UNKNOWN_OPTION_KEYS_ERROR] — só keys da família cloudFiles. são
+    validadas, e essa não está na lista canônica. `pathGlobFilter` é uma
+    opção genérica do file source do Spark e funciona perfeitamente sob
+    cloudFiles."""
     rdr = (spark.readStream.format("cloudFiles")
         .option("cloudFiles.format", "csv")
         .option("cloudFiles.schemaLocation", schema_loc)
         .option("cloudFiles.includeExistingFiles", "true" if include_existing else "false")
-        .option("cloudFiles.pathGlobFilter", glob)
+        .option("pathGlobFilter", glob)                  # <- sem prefixo cloudFiles.
         .option("ignoreMissingFiles", "true")
         .option("header", "true")
         .option("sep", sep)
@@ -1490,6 +1517,40 @@ print(f"  ✓ TAGs aplicadas: {list(_tags.keys())}")
 # COMMAND ----------
 
 print(f"▸ Habilitando UniForm Iceberg em {BRONZE_TABLE}…")
+# IcebergCompatV2 tem 2 pré-requisitos que se chocam com defaults Delta modernos:
+#
+#   (1) `delta.columnMapping.mode='name'` — Iceberg referencia colunas por nome,
+#       não por posição. Em CREATE/OVERWRITE com `overwriteSchema=true`, Delta
+#       reseta a mode pra 'NoMapping'. Setamos antes em ALTER próprio.
+#
+#   (2) Deletion Vectors DESABILITADO + REORG PURGE — formato Iceberg não
+#       suporta DV (Delta marca rows como deletadas em sidecar; Iceberg quer
+#       arquivos físicos consistentes). Default Delta ≥ DBR 16 vem com DV=on.
+#
+# Ambos exigem ALTER em transações separadas (Delta não permite mudar mode +
+# habilitar Iceberg na mesma SET TBLPROPERTIES; idem pra desabilitar DV +
+# enable Iceberg).
+
+# (1) Column mapping = 'name' + reader/writer versions compatíveis
+spark.sql(f"""
+    ALTER TABLE {BRONZE_TABLE} SET TBLPROPERTIES (
+        'delta.columnMapping.mode' = 'name',
+        'delta.minReaderVersion'   = '2',
+        'delta.minWriterVersion'   = '5'
+    )
+""")
+
+# (2) Disable Deletion Vectors + REORG PURGE pra remover DVs já materializados
+# (idempotente: se nunca houve DELETE/UPDATE com DV, REORG é no-op leve)
+spark.sql(f"ALTER TABLE {BRONZE_TABLE} SET TBLPROPERTIES ('delta.enableDeletionVectors' = 'false')")
+try:
+    spark.sql(f"REORG TABLE {BRONZE_TABLE} APPLY (PURGE)")
+    print(f"  ✓ deletion vectors desabilitados + REORG PURGE aplicado")
+except Exception as e:
+    # Se a tabela nunca teve DV materializado, REORG pode reclamar; tudo bem
+    print(f"  ⊘ REORG PURGE: {type(e).__name__}: {str(e)[:160]}")
+
+# (3) Habilita UniForm Iceberg sobre a Delta canônica
 spark.sql(f"""
     ALTER TABLE {BRONZE_TABLE} SET TBLPROPERTIES (
         'delta.universalFormat.enabledFormats' = 'iceberg',
