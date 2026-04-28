@@ -148,6 +148,37 @@ bronze_bytes = sum(t["bytes"] for t in bronze)
 silver_bytes = sum(t["bytes"] for t in silver)
 gold_bytes   = sum(t["bytes"] for t in gold)
 
+# ─── Atribuição silver/gold por vertical (mapping table-name → vertical key) ──
+# Bronze/silver/gold são SEMPRE Delta. Tabelas dimensionais compartilhadas
+# (ipca_*, populacao_*, geobr_*) ficam em "shared" e não somam pra nenhuma
+# vertical específica.
+def _vertical_of(table_name):
+    n = (table_name or "").lower()
+    if n.startswith("pbf_"):                                  return "pbf"
+    if n.startswith("emendas_"):                              return "emendas"
+    if n.startswith("equipamentos_"):                         return "equipamentos"
+    if n.startswith(("sih_uropro_", "uropro_")):              return "uropro"
+    if n.startswith("rais_"):                                 return "rais"
+    if n.startswith("finops_"):                               return "finops"
+    return "shared"
+
+def _agg_by_vertical(tables):
+    out = {}
+    for t in tables or []:
+        v = _vertical_of(t.get("table"))
+        out.setdefault(v, {"bytes": 0, "rows": 0})
+        out[v]["bytes"] += t.get("bytes", 0) or 0
+        out[v]["rows"]  += t.get("rows", 0)  or 0
+    return out
+
+silver_by_v = _agg_by_vertical(silver)
+gold_by_v   = _agg_by_vertical(gold)
+
+def _silver_b(vk): return silver_by_v.get(vk, {}).get("bytes", 0)
+def _silver_r(vk): return silver_by_v.get(vk, {}).get("rows", 0)
+def _gold_b(vk):   return gold_by_v.get(vk, {}).get("bytes", 0)
+def _gold_r(vk):   return gold_by_v.get(vk, {}).get("rows", 0)
+
 # Compression-pipeline summaries (raw upstream → intermediate → Delta) per vertical
 verticals = {
     "pbf": {
@@ -159,6 +190,10 @@ verticals = {
         "intermediate_label":   "CSV",
         "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "pbf_pagamentos"), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "pbf_pagamentos"), 0),
+        "silver_bytes":         _silver_b("pbf"),
+        "silver_rows":          _silver_r("pbf"),
+        "gold_bytes":           _gold_b("pbf"),
+        "gold_rows":            _gold_r("pbf"),
     },
     "equipamentos": {
         "raw_compressed_files": raw["datasus_cnes_eq_dbc"]["files"],
@@ -169,6 +204,10 @@ verticals = {
         "intermediate_label":   "Parquet",
         "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] in ("cnes_equipamentos", "datasus_cnes_eq_raw")), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] in ("cnes_equipamentos", "datasus_cnes_eq_raw")), 0),
+        "silver_bytes":         _silver_b("equipamentos"),
+        "silver_rows":          _silver_r("equipamentos"),
+        "gold_bytes":           _gold_b("equipamentos"),
+        "gold_rows":            _gold_r("equipamentos"),
     },
     "emendas": {
         "raw_compressed_files": raw["cgu_emendas_zips"]["files"],
@@ -179,6 +218,10 @@ verticals = {
         "intermediate_label":   "CSV",
         "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "emendas_pagamentos"), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "emendas_pagamentos"), 0),
+        "silver_bytes":         _silver_b("emendas"),
+        "silver_rows":          _silver_r("emendas"),
+        "gold_bytes":           _gold_b("emendas"),
+        "gold_rows":            _gold_r("emendas"),
     },
     "uropro": {
         "raw_compressed_files": raw["datasus_sih_rd_dbc"]["files"],
@@ -189,6 +232,10 @@ verticals = {
         "intermediate_label":   "Parquet",
         "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "sih_aih_rd_uropro"), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "sih_aih_rd_uropro"), 0),
+        "silver_bytes":         _silver_b("uropro"),
+        "silver_rows":          _silver_r("uropro"),
+        "gold_bytes":           _gold_b("uropro"),
+        "gold_rows":            _gold_r("uropro"),
     },
     "rais": {
         "raw_compressed_files": raw["mte_rais_7z"]["files"],
@@ -199,6 +246,10 @@ verticals = {
         "intermediate_label":   "TXT",
         "delta_bronze_bytes":   next((t["bytes"] for t in bronze if t["table"] == "rais_vinculos"), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in bronze if t["table"] == "rais_vinculos"), 0),
+        "silver_bytes":         _silver_b("rais"),
+        "silver_rows":          _silver_r("rais"),
+        "gold_bytes":           _gold_b("rais"),
+        "gold_rows":            _gold_r("rais"),
     },
     # Reuso do bronze.pbf_pagamentos com nova agregação Município × Ano (WP#7).
     # Não tem raw próprio — é uma re-agregação da mesma fonte CGU. O "intermediate"

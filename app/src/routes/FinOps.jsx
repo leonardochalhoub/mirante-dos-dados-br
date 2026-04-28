@@ -535,18 +535,42 @@ function StorageSection({ storage, stats, theme }) {
   const verticals = stats?.verticals;
   const tables    = stats?.tables;
 
-  // Per-vertical attribution: pro-rate the *current* monthly storage rate by
-  // each vertical's bronze bytes share. This gives a back-of-envelope answer
-  // to "how much does vertical X cost me to keep stored every month?"
+  // Per-vertical attribution sobre as 5 camadas de storage:
+  //   raw_compressed (7Z/ZIP/DBC) + intermediate (TXT/CSV/Parquet)
+  //   + delta_bronze + silver + gold
+  // Tudo cai em /Volumes (Databricks) ou managed Delta e contribui pro
+  // DEFAULT_STORAGE bill. Pro-rata pelo total de bytes (todos os 5).
   const verticalsList = useMemo(() => {
     if (!verticals) return null;
     const entries = Object.entries(verticals)
-      .filter(([k, v]) => v && v.kind !== 'finops' && (v.delta_bronze_bytes || 0) > 0)
-      .map(([k, v]) => ({
-        key: k,
-        bytes: v.delta_bronze_bytes || 0,
-        rows:  v.delta_bronze_rows  || 0,
-      }));
+      .filter(([k, v]) => {
+        if (!v || v.kind === 'finops') return false;
+        const total = (v.raw_compressed_bytes || 0)
+                    + (v.intermediate_bytes   || 0)
+                    + (v.delta_bronze_bytes   || 0)
+                    + (v.silver_bytes         || 0)
+                    + (v.gold_bytes           || 0);
+        return total > 0;
+      })
+      .map(([k, v]) => {
+        const raw   = v.raw_compressed_bytes || 0;
+        const inter = v.intermediate_bytes   || 0;
+        const bronze= v.delta_bronze_bytes   || 0;
+        const silver= v.silver_bytes         || 0;
+        const gold  = v.gold_bytes           || 0;
+        return {
+          key: k,
+          raw_bytes:    raw,
+          inter_bytes:  inter,
+          bronze_bytes: bronze,
+          silver_bytes: silver,
+          gold_bytes:   gold,
+          bytes:        raw + inter + bronze + silver + gold,
+          rows:         v.delta_bronze_rows || 0,
+          raw_label:    v.raw_compressed_label || 'Raw',
+          inter_label:  v.intermediate_label   || 'Intermediate',
+        };
+      });
     const totalBytes = entries.reduce((s, e) => s + e.bytes, 0);
     return entries
       .map((e) => ({
@@ -558,7 +582,13 @@ function StorageSection({ storage, stats, theme }) {
       .sort((a, b) => b.bytes - a.bytes);
   }, [verticals, storage]);
 
-  // Total bronze bytes across the lakehouse (for headline)
+  // Total storage do lakehouse — soma das 3 camadas por vertical
+  const totalAllBytes = useMemo(() => {
+    if (!verticalsList) return null;
+    return verticalsList.reduce((s, v) => s + v.bytes, 0);
+  }, [verticalsList]);
+
+  // Total apenas bronze (tabela secundária)
   const totalBronzeBytes = useMemo(() => {
     if (!tables?.bronze) return null;
     return tables.bronze.reduce((s, t) => s + (t.bytes || 0), 0);
@@ -600,13 +630,16 @@ function StorageSection({ storage, stats, theme }) {
           <div className="finops-section-rule" />
           <div className="finops-storage-attr-head">
             <div>
-              <div className="finops-section-eyebrow">Tamanho de cada vertical</div>
+              <div className="finops-section-eyebrow">Tamanho de cada vertical · 5 camadas (raw → gold)</div>
               <div className="finops-section-title">
-                Bronze do lakehouse: <b>{fmtBytes(totalBronzeBytes)}</b> totais
+                Storage total da plataforma: <b>{fmtBytes(totalAllBytes)}</b>
               </div>
               <div className="finops-section-sub">
-                Storage cost rateado proporcionalmente por bytes em bronze.
-                Útil para responder "quanto custa por mês manter X armazenado?"
+                Stack completo, do <b style={{ color: '#94a3b8' }}>raw comprimido</b> (7Z/ZIP/DBC) ao{' '}
+                <b style={{ color: '#fde68a' }}>gold</b> publicado. Tudo cai em{' '}
+                <code>/Volumes</code> (raw/intermediate) ou managed Delta (bronze/silver/gold) e
+                contribui pro <code>DEFAULT_STORAGE</code> bill. Pro-rata mensal pelo total empilhado.
+                Silver e gold são quase invisíveis no eixo (KB-MB) — é assim mesmo: a curadoria comprime os dados em ordens de magnitude.
               </div>
             </div>
           </div>
@@ -618,8 +651,12 @@ function StorageSection({ storage, stats, theme }) {
               <thead>
                 <tr>
                   <th>Vertical</th>
-                  <th className="ar">Bronze (bytes)</th>
-                  <th className="ar">Linhas</th>
+                  <th className="ar">Raw</th>
+                  <th className="ar">Intermediate</th>
+                  <th className="ar">Bronze</th>
+                  <th className="ar">Silver</th>
+                  <th className="ar">Gold</th>
+                  <th className="ar strong">Total</th>
                   <th className="ar">Share</th>
                   <th className="ar">USD/mês*</th>
                   <th className="ar">USD/ano*</th>
@@ -629,8 +666,12 @@ function StorageSection({ storage, stats, theme }) {
                 {verticalsList.map((v) => (
                   <tr key={v.key}>
                     <td>{labelOf(v.key)}</td>
+                    <td className="ar">{v.raw_bytes    ? fmtBytes(v.raw_bytes)    : '—'}</td>
+                    <td className="ar">{v.inter_bytes  ? fmtBytes(v.inter_bytes)  : '—'}</td>
+                    <td className="ar">{v.bronze_bytes ? fmtBytes(v.bronze_bytes) : '—'}</td>
+                    <td className="ar">{v.silver_bytes ? fmtBytes(v.silver_bytes) : '—'}</td>
+                    <td className="ar">{v.gold_bytes   ? fmtBytes(v.gold_bytes)   : '—'}</td>
                     <td className="ar strong">{fmtBytes(v.bytes)}</td>
-                    <td className="ar">{fmtInt(v.rows)}</td>
                     <td className="ar">{fmtDec1(v.share * 100)}%</td>
                     <td className="ar">{fmtUSD(v.usd_per_month, { dp: 3 })}</td>
                     <td className="ar">{fmtUSD(v.usd_per_year, { dp: 2 })}</td>
@@ -669,46 +710,133 @@ function StorageSection({ storage, stats, theme }) {
   );
 }
 
-// Horizontal bar chart of per-vertical bronze size (mobile-friendly)
+// Horizontal STACKED bar chart of per-vertical storage size — 5 layers.
+// Cores: 5-step gradient mapeando raw → intermediate → medallion bronze/silver/gold.
+// Bronze/silver/gold são SEMPRE Delta. Raw e intermediate variam por vertical
+// (7Z/ZIP/DBC e TXT/CSV/Parquet) — formato vem do platform_stats por vertical.
 function PerVerticalSizeBars({ verticals, labelOf, theme }) {
   const data = verticals.map((v) => ({
     name: labelOf(v.key),
-    bytes: v.bytes,
+    key: v.key,
+    raw:    v.raw_bytes    || 0,
+    inter:  v.inter_bytes  || 0,
+    bronze: v.bronze_bytes || 0,
+    silver: v.silver_bytes || 0,
+    gold:   v.gold_bytes   || 0,
+    raw_label:   v.raw_label   || 'Raw',
+    inter_label: v.inter_label || 'Intermediate',
+    total:  v.bytes,
     usd_per_month: v.usd_per_month,
     share: v.share * 100,
   }));
-  const s    = chartStyles(theme);
-  const cBar = pick('teal', theme);
+  const s = chartStyles(theme);
+
+  const COLORS = {
+    raw:    '#94a3b8',  // slate light
+    inter:  '#475569',  // slate dark
+    bronze: '#b45309',  // bronze
+    silver: '#cbd5e1',  // prata
+    gold:   '#facc15',  // dourado
+  };
+
+  // Tooltip rico: mostra TODAS as 5 camadas + formato + share + custo.
+  // Recharts default mostra apenas o segmento sob o cursor — aqui sobrescrevo
+  // pra trazer o stack inteiro pro hover.
+  const RichTooltip = ({ active, payload, label }) => {
+    if (!active || !payload || !payload.length) return null;
+    const r = payload[0].payload;
+    const rows = [
+      { k: 'raw',    label: r.raw_label,         bytes: r.raw,    color: COLORS.raw },
+      { k: 'inter',  label: r.inter_label,       bytes: r.inter,  color: COLORS.inter },
+      { k: 'bronze', label: 'Delta · bronze',    bytes: r.bronze, color: COLORS.bronze },
+      { k: 'silver', label: 'Delta · silver',    bytes: r.silver, color: COLORS.silver },
+      { k: 'gold',   label: 'Delta · gold',      bytes: r.gold,   color: COLORS.gold },
+    ];
+    return (
+      <div style={{
+        background: s.tooltipContent.background || (theme === 'dark' ? '#0f172a' : '#fff'),
+        border: s.tooltipContent.border || '1px solid rgba(0,0,0,0.15)',
+        borderRadius: 6,
+        padding: '10px 12px',
+        fontSize: 11.5,
+        minWidth: 280,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      }}>
+        <div style={{ fontWeight: 700, fontSize: 12.5, marginBottom: 2 }}>{label}</div>
+        <div style={{ color: s.tickColor, marginBottom: 8, fontVariantNumeric: 'tabular-nums' }}>
+          Total <b>{fmtBytes(r.total)}</b> · {fmtDec1(r.share)}% da plataforma · {fmtUSD(r.usd_per_month, { dp: 3 })}/mês
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontVariantNumeric: 'tabular-nums' }}>
+          <tbody>
+            {rows.map((row) => {
+              const pct = r.total > 0 ? (row.bytes / r.total * 100) : 0;
+              const isEmpty = row.bytes === 0;
+              return (
+                <tr key={row.k} style={{ opacity: isEmpty ? 0.35 : 1 }}>
+                  <td style={{ paddingRight: 6, verticalAlign: 'middle' }}>
+                    <span style={{ display: 'inline-block', width: 10, height: 10,
+                                   background: row.color, borderRadius: 2,
+                                   border: '1px solid rgba(0,0,0,0.2)' }} />
+                  </td>
+                  <td style={{ paddingRight: 8, color: s.tickColor }}>{row.label}</td>
+                  <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                    {isEmpty ? '—' : fmtBytes(row.bytes)}
+                  </td>
+                  <td style={{ textAlign: 'right', paddingLeft: 6, color: s.tickColor, fontSize: 10 }}>
+                    {isEmpty ? '' : `${fmtDec1(pct)}%`}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   return (
-    <div className="finops-chart-vertbars" style={{ height: Math.max(180, 36 * data.length + 60) }}>
+    <div className="finops-chart-vertbars" style={{ height: Math.max(220, 44 * data.length + 80) }}>
       <ResponsiveContainer>
         <BarChart data={data} layout="vertical"
-                  margin={{ top: 8, right: 80, bottom: 16, left: 8 }}>
+                  margin={{ top: 8, right: 110, bottom: 16, left: 8 }}>
           <CartesianGrid stroke={s.grid} horizontal={false} />
           <XAxis type="number" stroke={s.tickColor} fontSize={10}
                  tickLine={false} axisLine={false}
                  tickFormatter={(v) => fmtBytes(v)} />
           <YAxis type="category" dataKey="name" stroke={s.tickColor} fontSize={11}
-                 tickLine={false} axisLine={false} width={140}
+                 tickLine={false} axisLine={false} width={150}
                  interval={0} />
-          <Tooltip
-            formatter={(value, name, ctx) => {
-              const r = ctx.payload;
-              return [
-                `${fmtBytes(value)} · ${fmtDec1(r.share)}% · ${fmtUSD(r.usd_per_month, { dp: 3 })}/mês`,
-                'Bronze',
-              ];
-            }}
-            contentStyle={s.tooltipContent}
-            labelStyle={s.tooltipLabel}
-            itemStyle={s.tooltipItem}
-          />
-          <Bar dataKey="bytes" fill={cBar} radius={[0, 4, 4, 0]}
-               label={{ position: 'right', formatter: (v) => fmtBytes(v),
+          <Tooltip content={<RichTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+          <Bar dataKey="raw"    stackId="s" fill={COLORS.raw}    />
+          <Bar dataKey="inter"  stackId="s" fill={COLORS.inter}  />
+          <Bar dataKey="bronze" stackId="s" fill={COLORS.bronze} />
+          <Bar dataKey="silver" stackId="s" fill={COLORS.silver} />
+          <Bar dataKey="gold"   stackId="s" fill={COLORS.gold}
+               radius={[0, 4, 4, 0]}
+               label={{ position: 'right',
+                        formatter: (_v, _n, e) => fmtBytes((e?.payload || {}).total || 0),
                         fontSize: 10, fill: s.tickColor }} />
         </BarChart>
       </ResponsiveContainer>
+
+      {/* Legenda — bronze/silver/gold sempre Delta */}
+      <div style={{ display: 'flex', gap: 14, fontSize: 11, marginTop: 6,
+                    flexWrap: 'wrap', justifyContent: 'center',
+                    color: s.tickColor }}>
+        {[
+          { k: 'raw',    text: 'Raw (7Z/ZIP/DBC)' },
+          { k: 'inter',  text: 'Intermediate (TXT/CSV/Parquet)' },
+          { k: 'bronze', text: 'Delta · bronze' },
+          { k: 'silver', text: 'Delta · silver' },
+          { k: 'gold',   text: 'Delta · gold' },
+        ].map((item) => (
+          <span key={item.k} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 12, height: 12, background: COLORS[item.k], borderRadius: 2,
+                           display: 'inline-block', border: '1px solid rgba(0,0,0,0.15)' }} />
+            {item.text}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
