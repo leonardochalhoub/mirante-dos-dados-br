@@ -1,13 +1,21 @@
 // Choropleth map of Brazil at MUNICIPALITY level (5,570 polygons).
-// Stack: react-simple-maps + d3-scale (same primitives as BrazilMap).
+// Stack: d3-geo + d3-scale (NO react-simple-maps — direct SVG render).
 // Lookup: geojson `properties.codarea` (IBGE 7-digit) ↔ data `cod_municipio`.
 // UF borders are overlaid (transparent fill, dark stroke) so the map reads
 // nationally without hiding the muni mosaic.
+//
+// HISTÓRICO: react-simple-maps@3 envolve <Geography> em React.memo e o
+// style.default sobrepõe a prop fill em algumas combinações de versão —
+// resultado: 5569 munis renderizavam com fill ausente/idêntico, só Brasília
+// ficava colorida. Render direto resolve sem depender de internals da lib.
 
 import { useEffect, useMemo, useState } from 'react';
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import { geoMercator, geoPath } from 'd3-geo';
 import { loadGeo } from '../lib/data';
 import { buildColorScale } from '../lib/scales';
+
+const WIDTH = 680;
+const HEIGHT = 620;
 
 export default function BrazilMuniMap({
   data,                 // [{ cod_municipio, value, municipio, uf }, ...]
@@ -17,9 +25,9 @@ export default function BrazilMuniMap({
   unit = '',
   emptyColor,
 }) {
-  const [geo, setGeo]       = useState(null);
+  const [geo, setGeo]           = useState(null);
   const [stateGeo, setStateGeo] = useState(null);
-  const [hover, setHover]   = useState(null);
+  const [hover, setHover]       = useState(null);
 
   useEffect(() => {
     loadGeo('brazil-municipios.geojson').then(setGeo).catch((e) => {
@@ -42,10 +50,10 @@ export default function BrazilMuniMap({
   }, [data]);
 
   // Choropleth com 5.570 polígonos: domain linear [min, max] colapsa visualmente
-  // porque a distribuição de pbfPerCapita é heavy-tailed (max ~5× mediana). Usamos
-  // [p2, p98] como domain do scale (com clamp). Mediana cai no meio da paleta e a
-  // variação local é visível. min/max reais ainda aparecem na legenda. Mesma
-  // ideia dos mapas matplotlib do PDF onde vmin/vmax = percentis.
+  // porque a distribuição é heavy-tailed (max ~5× mediana). Usamos [p2, p98]
+  // como domain do scale (com clamp). Mediana cai no meio da paleta e variação
+  // local fica visível. min/max reais aparecem na legenda. Padrão dos mapas
+  // matplotlib do PDF (vmin/vmax = percentis).
   const [min, max, domainLo, domainHi] = useMemo(() => {
     const vals = (data || []).map((d) => d.value).filter((v) => Number.isFinite(v));
     if (vals.length === 0) return [0, 1, 0, 1];
@@ -64,7 +72,36 @@ export default function BrazilMuniMap({
     return s;
   }, [colorscale, domainLo, domainHi]);
 
-  const fallbackBg  = theme === 'dark' ? '#1f2937' : '#e2e8f0';
+  // d3 projection — mesma do antigo react-simple-maps (geoMercator scale 750
+  // center [-54, -15] em viewport 680×620, com offset pra centrar Brasil)
+  const projection = useMemo(() => {
+    return geoMercator()
+      .scale(750)
+      .center([-54, -15])
+      .translate([WIDTH / 2, HEIGHT / 2]);
+  }, []);
+
+  const path = useMemo(() => geoPath(projection), [projection]);
+
+  // Pré-computa svgPath e fill por feature pra evitar trabalho em cada render
+  const muniPaths = useMemo(() => {
+    if (!geo) return [];
+    return geo.features.map((f) => {
+      const code = String(f.properties.codarea);
+      const v = valByCode.get(code);
+      const fill = Number.isFinite(v) ? scale(v) : (emptyColor || fallbackBg(theme));
+      return { code, d: path(f.geometry), fill, value: v };
+    });
+  }, [geo, valByCode, scale, emptyColor, theme]);
+
+  const ufPaths = useMemo(() => {
+    if (!stateGeo) return [];
+    return stateGeo.features.map((f) => ({
+      key: f.properties.sigla || f.properties.UF || f.id,
+      d: path(f.geometry),
+    }));
+  }, [stateGeo, path]);
+
   const muniStroke  = theme === 'dark' ? '#0d1117' : '#ffffff';
   const stateStroke = theme === 'dark' ? '#e2e8f0' : '#1f2937';
 
@@ -73,74 +110,51 @@ export default function BrazilMuniMap({
 
   return (
     <div className="brazil-map-wrap">
-      <ComposableMap
-        projection="geoMercator"
-        projectionConfig={{ scale: 750, center: [-54, -15] }}
-        width={680}
-        height={620}
-        style={{ width: '100%', height: 'auto' }}
+      <svg
+        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+        width="100%"
+        height="auto"
+        style={{ display: 'block' }}
       >
-        <Geographies geography={geo}>
-          {({ geographies }) =>
-            geographies.map((g) => {
-              const code = String(g.properties.codarea);
-              const v    = valByCode.get(code);
-              const fill = Number.isFinite(v) ? scale(v) : (emptyColor || fallbackBg);
-              // CRÍTICO: rsm@3 envolve Geography em React.memo. Passar fill como
-              // prop top-level vai pra restProps que é spread depois do style —
-              // dependendo da versão do React/rsm o style.default sobrepõe e
-              // como style.default não tinha fill antes, alguns munis ficavam
-              // com `fill: undefined` (transparente sobre o background da Panel
-              // = parecia "tudo amarelo"). Solução: passar fill DENTRO do
-              // style.default + stroke também. memo faz shallow compare por
-              // prop, novo objeto literal por render quebra o cache, garantindo
-              // re-render por muni quando data/scale muda.
-              return (
-                <Geography
-                  key={code}
-                  geography={g}
-                  style={{
-                    default: { fill, stroke: muniStroke, strokeWidth: 0.15, outline: 'none' },
-                    hover:   { fill, stroke: muniStroke, strokeWidth: 0.15, outline: 'none', filter: 'brightness(1.25)', cursor: 'pointer' },
-                    pressed: { fill, stroke: muniStroke, strokeWidth: 0.15, outline: 'none' },
-                  }}
-                  onMouseEnter={(e) => {
-                    const meta = metaByCode.get(code);
-                    setHover({ code, value: v, x: e.clientX, y: e.clientY,
-                               municipio: meta?.municipio, uf: meta?.uf });
-                  }}
-                  onMouseMove={(e) =>
-                    setHover((h) => h && { ...h, x: e.clientX, y: e.clientY })
-                  }
-                  onMouseLeave={() => setHover(null)}
-                />
-              );
-            })
-          }
-        </Geographies>
+        {/* Camada 1 — 5.570 munis, fill por valor */}
+        <g>
+          {muniPaths.map((p) => (
+            <path
+              key={p.code}
+              d={p.d}
+              fill={p.fill}
+              stroke={muniStroke}
+              strokeWidth={0.15}
+              onMouseEnter={(e) => {
+                const meta = metaByCode.get(p.code);
+                setHover({
+                  code: p.code, value: p.value,
+                  x: e.clientX, y: e.clientY,
+                  municipio: meta?.municipio, uf: meta?.uf,
+                });
+              }}
+              onMouseMove={(e) =>
+                setHover((h) => h && { ...h, x: e.clientX, y: e.clientY })
+              }
+              onMouseLeave={() => setHover(null)}
+              style={{ cursor: 'pointer', outline: 'none' }}
+            />
+          ))}
+        </g>
 
-        {/* UF borders overlay — gives the eye a national grid over the muni mosaic */}
-        {stateGeo && (
-          <Geographies geography={stateGeo}>
-            {({ geographies }) =>
-              geographies.map((g) => (
-                <Geography
-                  key={`uf-${g.rsmKey || g.properties.sigla}`}
-                  geography={g}
-                  fill="transparent"
-                  stroke={stateStroke}
-                  strokeWidth={0.7}
-                  style={{
-                    default: { outline: 'none', pointerEvents: 'none' },
-                    hover:   { outline: 'none', pointerEvents: 'none' },
-                    pressed: { outline: 'none', pointerEvents: 'none' },
-                  }}
-                />
-              ))
-            }
-          </Geographies>
-        )}
-      </ComposableMap>
+        {/* Camada 2 — bordas de UF (overlay grosso, visível) */}
+        <g style={{ pointerEvents: 'none' }}>
+          {ufPaths.map((p) => (
+            <path
+              key={`uf-${p.key}`}
+              d={p.d}
+              fill="none"
+              stroke={stateStroke}
+              strokeWidth={0.7}
+            />
+          ))}
+        </g>
+      </svg>
 
       <ColorLegend
         scale={scale}
@@ -173,6 +187,10 @@ export default function BrazilMuniMap({
   );
 }
 
+function fallbackBg(theme) {
+  return theme === 'dark' ? '#1f2937' : '#e2e8f0';
+}
+
 function ColorLegend({ scale, min, max, actualMin, actualMax, unit, format }) {
   const stops = useMemo(() => {
     const n = 24;
@@ -182,7 +200,6 @@ function ColorLegend({ scale, min, max, actualMin, actualMax, unit, format }) {
     });
   }, [scale, min, max]);
 
-  // Mostrar min/max real apenas se ficaram fora do domain (p2/p98).
   const hasClipping = Number.isFinite(actualMin) && Number.isFinite(actualMax)
     && (actualMin < min - 1e-6 || actualMax > max + 1e-6);
 
