@@ -260,14 +260,16 @@ function BigDataStrip({ stats }) {
             const finopsSteps = [
               { label: v.source_label,
                 files: v.source_tables,
-                rows:  v.source_rows },
+                rows:  v.source_rows,
+                tier:  'bronze' },
               { label: v.silver_label,
                 bytes: v.silver_bytes,
-                rows:  v.silver_rows },
+                rows:  v.silver_rows,
+                tier:  'silver' },
               { label: v.gold_label,
                 bytes: v.gold_bytes,
                 rows:  v.gold_rows,
-                highlight: true },
+                tier:  'gold' },
             ];
             return (
               <div key={k} className="bigdata-pipeline">
@@ -325,7 +327,7 @@ function BigDataStrip({ stats }) {
   );
 }
 
-function Step({ label, files, bytes, rows, highlight }) {
+function Step({ label, files, bytes, rows, highlight, tier }) {
   // Valor principal: bytes se houver, senão rows (caso FinOps system tables
   // — delta-shared, sem bytes mensuráveis). Sub mostra o que sobra.
   const hasBytes = bytes != null && bytes > 0;
@@ -338,8 +340,9 @@ function Step({ label, files, bytes, rows, highlight }) {
   if (hasBytes && hasFiles) subParts.push(`${fmtCompact(files)} arquivos`);
   if (hasBytes && hasRows)  subParts.push(`${fmtCompact(rows)} linhas`);
   if (!hasBytes && hasFiles && hasRows) subParts.push(`${fmtCompact(files)} tabelas`);
+  const tierClass = tier ? ` is-tier-${tier}` : '';
   return (
-    <div className={`bigdata-step${highlight ? ' is-highlight' : ''}`}>
+    <div className={`bigdata-step${highlight ? ' is-highlight' : ''}${tierClass}`}>
       <div className="bigdata-step-label">{label}</div>
       <div className="bigdata-step-value">{mainValue}</div>
       <div className="bigdata-step-sub">{subParts.join(' · ')}</div>

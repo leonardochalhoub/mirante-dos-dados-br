@@ -261,13 +261,13 @@ gold_r_rows, gold_r_bytes = _table_size(CATALOG, "gold", "finops_run_costs")
 if src_total_rows + silv_d_rows + silv_r_rows + gold_d_rows + gold_r_rows > 0:
     verticals["finops"] = {
         "kind":           "finops",
-        "source_label":   "Delta · system tables",
+        "source_label":   "Bronze · system tables",
         "source_tables":  len(SYSTEM_TABLES_USED),
         "source_rows":    src_total_rows,
-        "silver_label":   "Delta · silver",
+        "silver_label":   "Silver · daily + runs",
         "silver_bytes":   silv_d_bytes + silv_r_bytes,
         "silver_rows":    silv_d_rows  + silv_r_rows,
-        "gold_label":     "Delta · gold",
+        "gold_label":     "Gold · daily + runs",
         "gold_bytes":     gold_d_bytes + gold_r_bytes,
         "gold_rows":      gold_d_rows  + gold_r_rows,
     }
