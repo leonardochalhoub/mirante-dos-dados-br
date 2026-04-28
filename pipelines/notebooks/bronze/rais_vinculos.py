@@ -920,14 +920,39 @@ def _sanitize_col(name: str) -> str:
 
 def _sanitize_columns(df):
     """Renomeia TODAS as colunas pra snake_case ASCII. Idempotente (já-clean
-    permanece clean). Imprime um sample dos renames pra auditoria."""
-    renames = [(c, _sanitize_col(c)) for c in df.columns]
+    permanece clean). Imprime um sample dos renames pra auditoria.
+
+    Colisões: a RAIS PDET tem variações cross-year do mesmo header (ex.: 'Município'
+    em alguns anos, 'MUNICIPIO' em outros — Auto Loader guarda os dois como colunas
+    distintas no schema location, e ambas sanitizam pra 'municipio'). Delta rejeita
+    duplicatas (`DELTA_DUPLICATE_COLUMNS_FOUND`). Bronze é STRING-ONLY: NÃO podemos
+    coalescer/dropar valores aqui — preservamos ambas com sufixo `_dup2`, `_dup3`
+    e deixamos pro silver decidir como reconciliar."""
+    sanitized = [_sanitize_col(c) for c in df.columns]
+    seen: dict[str, int] = {}
+    final: list[str] = []
+    collisions: list[tuple[str, str, str]] = []
+    for orig, san in zip(df.columns, sanitized):
+        seen[san] = seen.get(san, 0) + 1
+        if seen[san] == 1:
+            final.append(san)
+        else:
+            new = f"{san}_dup{seen[san]}"
+            final.append(new)
+            collisions.append((orig, san, new))
+    renames = list(zip(df.columns, final))
     changed = [(orig, new) for orig, new in renames if orig != new]
     if changed:
         print(f"  sanitizando {len(changed)} colunas; sample: "
               f"{', '.join(f'{a!r}→{b!r}' for a, b in changed[:5])}"
               + (f" (+{len(changed)-5})" if len(changed) > 5 else ""))
-    return df.toDF(*[new for _, new in renames])
+    if collisions:
+        print(f"  ⚠ {len(collisions)} colisão(ões) de sanitização — preservando com sufixo _dupN:")
+        for orig, san, new in collisions[:10]:
+            print(f"    {orig!r} colidiu com {san!r} → {new!r}")
+        if len(collisions) > 10:
+            print(f"    ... +{len(collisions)-10}")
+    return df.toDF(*final)
 
 # Path de leitura: glob explícito pelas partições ano=YYYY/ pra evitar
 # pegar arquivos órfãos no root de TXT_EXTRACTED (markers .done/.bad ou
