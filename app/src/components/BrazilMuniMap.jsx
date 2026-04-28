@@ -41,13 +41,28 @@ export default function BrazilMuniMap({
     return m;
   }, [data]);
 
-  const [min, max] = useMemo(() => {
+  // Choropleth com 5.570 polígonos: domain linear [min, max] colapsa visualmente
+  // porque a distribuição de pbfPerCapita é heavy-tailed (max ~5× mediana). Usamos
+  // [p2, p98] como domain do scale (com clamp). Mediana cai no meio da paleta e a
+  // variação local é visível. min/max reais ainda aparecem na legenda. Mesma
+  // ideia dos mapas matplotlib do PDF onde vmin/vmax = percentis.
+  const [min, max, domainLo, domainHi] = useMemo(() => {
     const vals = (data || []).map((d) => d.value).filter((v) => Number.isFinite(v));
-    if (vals.length === 0) return [0, 1];
-    return [Math.min(...vals), Math.max(...vals)];
+    if (vals.length === 0) return [0, 1, 0, 1];
+    const sorted = [...vals].sort((a, b) => a - b);
+    const pctile = (p) => sorted[Math.max(0, Math.min(sorted.length - 1, Math.floor(sorted.length * p)))];
+    const lo = pctile(0.02);
+    const hi = pctile(0.98);
+    const safeLo = lo === hi ? sorted[0] : lo;
+    const safeHi = lo === hi ? sorted[sorted.length - 1] : hi;
+    return [sorted[0], sorted[sorted.length - 1], safeLo, safeHi];
   }, [data]);
 
-  const scale       = useMemo(() => buildColorScale(colorscale, [min, max]), [colorscale, min, max]);
+  const scale = useMemo(() => {
+    const s = buildColorScale(colorscale, [domainLo, domainHi]);
+    if (typeof s.clamp === 'function') s.clamp(true);
+    return s;
+  }, [colorscale, domainLo, domainHi]);
   const fallbackBg  = theme === 'dark' ? '#1f2937' : '#e2e8f0';
   const muniStroke  = theme === 'dark' ? '#0d1117' : '#ffffff';
   const stateStroke = theme === 'dark' ? '#e2e8f0' : '#1f2937';
@@ -122,8 +137,10 @@ export default function BrazilMuniMap({
 
       <ColorLegend
         scale={scale}
-        min={min}
-        max={max}
+        min={domainLo}
+        max={domainHi}
+        actualMin={min}
+        actualMax={max}
         unit={unit}
         format={hoverFmt}
       />
@@ -149,7 +166,7 @@ export default function BrazilMuniMap({
   );
 }
 
-function ColorLegend({ scale, min, max, unit, format }) {
+function ColorLegend({ scale, min, max, actualMin, actualMax, unit, format }) {
   const stops = useMemo(() => {
     const n = 24;
     return Array.from({ length: n }, (_, i) => {
@@ -157,6 +174,10 @@ function ColorLegend({ scale, min, max, unit, format }) {
       return scale(min + t * (max - min));
     });
   }, [scale, min, max]);
+
+  // Mostrar min/max real apenas se ficaram fora do domain (p2/p98).
+  const hasClipping = Number.isFinite(actualMin) && Number.isFinite(actualMax)
+    && (actualMin < min - 1e-6 || actualMax > max + 1e-6);
 
   return (
     <div className="map-legend">
@@ -170,6 +191,13 @@ function ColorLegend({ scale, min, max, unit, format }) {
         <span className="muted">{unit}</span>
         <span>{format(max)}</span>
       </div>
+      {hasClipping && (
+        <div className="map-legend-axis" style={{ fontSize: 10, marginTop: 2, opacity: 0.7 }}>
+          <span>min real: {format(actualMin)}</span>
+          <span className="muted">escala: percentis 2–98</span>
+          <span>max real: {format(actualMax)}</span>
+        </div>
+      )}
     </div>
   );
 }

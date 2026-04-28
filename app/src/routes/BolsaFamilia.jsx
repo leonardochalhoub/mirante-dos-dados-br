@@ -1337,26 +1337,36 @@ export default function BolsaFamilia() {
     });
   }, [muniRows, year, metricKey, muniYears]);
 
-  // KPIs municipais — cobertura de Brasil pro ano selecionado
+  // KPIs municipais Brasil-level: USA O GOLD DE UF (rows) pra garantir
+  // consistência exata com a tab Estadual. Diferenças entre os dois golds
+  // (n_benef countDistinct UF vs Município, populacao IBGE UF-projeção vs
+  // municipal-estimativa) NÃO devem aparecer como inconsistência na UI —
+  // ambas as tabs mostram a MESMA base CGU pelos mesmos totais Brasil.
+  // O gold muni é usado APENAS para granularidade (rankings, mapa, figuras).
+  // Apenas `nMunis` (cardinalidade) vem do gold muni.
   const muniKpis = useMemo(() => {
-    if (!muniRows || muniRows.length === 0) {
+    if (!rows || rows.length === 0) {
       return { y: null, nMunis: 0, totalBenef: 0, totalValor: 0, perBenef: 0, perCapita: 0, totalPop: 0 };
     }
-    const y = year === 'AGG' ? muniMaxYear : Number(year);
-    const yearRows = muniRows.filter((r) => r.Ano === y);
-    const totalBenef = yearRows.reduce((s, r) => s + (r.n_benef || 0), 0);
-    const totalValor = yearRows.reduce((s, r) => s + (r.valor_2021 || 0), 0);  // R$ mi
-    const totalPop   = yearRows.reduce((s, r) => s + (r.populacao || 0), 0);
+    const y = year === 'AGG' ? maxYear : Number(year);
+    const yearRowsUF = rows.filter((r) => r.Ano === y);
+    const totalBenef = yearRowsUF.reduce((s, r) => s + (r.n_benef || 0), 0);
+    const totalValorBi = yearRowsUF.reduce((s, r) => s + (r.valor_2021 || 0), 0);   // R$ bi
+    const totalPop   = yearRowsUF.reduce((s, r) => s + (r.populacao || 0), 0);
+    const totalValorMi = totalValorBi * 1000;                                       // converte pra mi (UI muni usa mi)
+    const nMunis = (muniRows && muniRows.length > 0)
+      ? muniRows.filter((r) => r.Ano === y).length
+      : 0;
     return {
       y,
-      nMunis: yearRows.length,
+      nMunis,
       totalBenef,
-      totalValor,                                                  // mi
+      totalValor: totalValorMi,                                       // mi (compat com KpiCard que multiplica por 1e6)
       totalPop,
-      perCapita: totalPop ? (totalValor * 1e6) / totalPop : 0,
-      perBenef:  totalBenef ? (totalValor * 1e6) / totalBenef : 0,
+      perCapita: totalPop ? (totalValorMi * 1e6) / totalPop : 0,
+      perBenef:  totalBenef ? (totalValorMi * 1e6) / totalBenef : 0,
     };
-  }, [muniRows, year, muniMaxYear]);
+  }, [rows, muniRows, year, maxYear]);
 
   // Evolução municipal Brasil-wide pra EvolutionBar (usa mesma métrica selecionada)
   const muniEvolution = useMemo(() => {
