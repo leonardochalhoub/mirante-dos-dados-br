@@ -12,7 +12,6 @@ import PageHeader      from '../components/PageHeader';
 import Panel           from '../components/Panel';
 import KpiCard         from '../components/KpiCard';
 import BrazilMap       from '../components/BrazilMap';
-import BrazilMuniMap   from '../components/BrazilMuniMap';
 import StateRanking    from '../components/StateRanking';
 import EvolutionBar    from '../components/charts/EvolutionBar';
 import DownloadActions from '../components/DownloadActions';
@@ -600,11 +599,9 @@ function MunicipalDashboard({
                           accentColor={theme === 'dark' ? '#fb923c' : '#b45309'} />
           </Panel>
           <Panel label="Distribuição geográfica (5.570 municípios)"
-                 sub="malha IBGE · borda preta = UF"
-                 exportId="pbf-mapa-municipal"
-                 right={<MapColorscaleSelect value={colorscale} onChange={setColorscale} />}>
-            <BrazilMuniMap data={muniMapData} colorscale={colorscale} theme={theme}
-                           hoverFmt={metric.fmtRich} unit={metric.short} />
+                 sub={muniMapStaticMeta(metricKey)}
+                 exportId="pbf-mapa-municipal-estatico">
+            <MunicipalStaticMap metricKey={metricKey} />
           </Panel>
         </div>
       </div>
@@ -613,6 +610,40 @@ function MunicipalDashboard({
       <MunicipalCausalTable />
       <MunicipalFigures />
     </>
+  );
+}
+
+// ─── Mapa municipal ESTÁTICO — pré-renderizado pelo build-figures ──────────
+// Render dinâmico no browser de 5570 polígonos virou problema visual irresolúvel
+// (mesmo com d3-geo direto, fills do path não diferenciavam visualmente). Os
+// PNGs são gerados pelo articles/build-figures-pbf-municipios.py com matplotlib
+// + geopandas + paletas tunadas. Mesma identidade visual do PDF.
+const MAP_BY_METRIC = {
+  pbfPerCapita:  { png: 'map02-pbf-per-capita.png',     sub: 'PBF per capita 2025 · YlOrRd · matplotlib' },
+  pbfPerBenef:   { png: 'map02-pbf-per-capita.png',     sub: 'PBF per capita 2025 · YlOrRd · proxy de pbfPerBenef' },
+  valor_2021:    { png: 'map04-valor-absoluto.png',     sub: 'Valor absoluto PBF 2025 · Greys log' },
+  valor_nominal: { png: 'map04-valor-absoluto.png',     sub: 'Valor absoluto PBF 2025 · Greys log' },
+  n_benef:       { png: 'map03-cobertura-pbf.png',      sub: 'Cobertura PBF 2025 · cividis_r · % população' },
+};
+
+function muniMapStaticMeta(metricKey) {
+  const cfg = MAP_BY_METRIC[metricKey] || MAP_BY_METRIC.pbfPerCapita;
+  return cfg.sub;
+}
+
+function MunicipalStaticMap({ metricKey }) {
+  const cfg = MAP_BY_METRIC[metricKey] || MAP_BY_METRIC.pbfPerCapita;
+  const base = `${import.meta.env.BASE_URL || '/'}articles/figures-pbf-municipios-v2`.replace(/\/{2,}/g, '/');
+  const src = `${base}/${cfg.png}`;
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <img
+        src={src}
+        alt={cfg.sub}
+        loading="lazy"
+        style={{ maxWidth: '100%', height: 'auto', display: 'block' }}
+      />
+    </div>
   );
 }
 
