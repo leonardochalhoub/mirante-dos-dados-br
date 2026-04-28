@@ -5,7 +5,9 @@
 % (junho/2025 a abril/2026)
 %
 % Autor: Leonardo Chalhoub
-% Versão: 1.0 — Abril de 2026
+% Versão: 1.1 — Abril de 2026 (pós-conclusão bronze RAIS, re-equilibra
+%                              storage attribution PBF↔RAIS, adiciona
+%                              caso patológico refresh RAIS 99,3% wasted)
 % Compilação: pdflatex articles/finops-plataforma-dados-publicos.tex (2x)
 % =====================================================================
 
@@ -65,7 +67,7 @@
   \begin{center}
     \vspace*{1.5cm}
     {\small\textsc{Working Paper n. 8}}\\
-    {\small Versão 1.0 \textemdash{} Abril de 2026}\\[2pt]
+    {\small Versão 1.1 \textemdash{} Abril de 2026}\\[2pt]
     {\footnotesize Compilada em \COMPILESTAMP\ \textbullet\ \texttt{\COMPILESHA}}
 
     \vfill
@@ -628,7 +630,7 @@ caros do \textit{lifetime}, agrupando \textit{dev}/\textit{prod}
 \midrule
 refresh PBF                             & 8             & 9,68                 & 1,21                  & 4,75                  & 49,1 \\
 \textit{manual silver}\(\to\)\textit{gold equipamentos} & 8 & 8,70    & 1,09                  & \textemdash{}          & \textemdash{} \\
-refresh RAIS                            & 30            & 6,57                 & 0,22                  & \textemdash{}          & \textemdash{} \\
+refresh RAIS                            & 30            & 7,23                 & 0,24                  & 7,18                  & 99,3 \\
 refresh Equipamentos                    & 13            & 5,01                 & 0,39                  & \textemdash{}          & \textemdash{} \\
 refresh UroPro                          & \phantom{0}5   & 2,69                & 0,54                  & \textemdash{}          & \textemdash{} \\
 \bottomrule
@@ -637,12 +639,38 @@ refresh UroPro                          & \phantom{0}5   & 2,69                &
 
 O \textit{job} \texttt{refresh PBF} concentra simultaneamente o
 maior custo \textit{lifetime} (\us 9{,}68), o maior custo médio por
-\textit{run} (\us 1{,}21) e o maior custo absoluto desperdiçado
-(\us 4{,}75 em três \textit{runs} \texttt{ERROR}). Esse padrão
-reflete a arquitetura específica do \textit{vertical} Bolsa Família
-\textemdash{} o \textit{bronze} concentra 2,5 bilhões de linhas e
-\(\sim\)42 GB de Delta storage; cada execução do DAG completo
-re-processa essa massa.
+\textit{run} (\us 1{,}21) e o maior custo absoluto desperdiçado em
+três \textit{runs} \texttt{ERROR} (\us 4{,}75; 49,1\,\% do custo do
+próprio \textit{job}). Esse padrão reflete a arquitetura específica
+do \textit{vertical} Bolsa Família \textemdash{} o \textit{bronze}
+concentra 2,5 bilhões de linhas e \(\sim\)42,7 GB de Delta storage;
+cada execução do DAG completo re-processa essa massa.
+
+\textbf{Caso patológico do \texttt{refresh RAIS}}. O \textit{job}
+\texttt{refresh RAIS} é o segundo mais caro do \textit{lifetime}
+(\us 7{,}23) e exibe a métrica de \textit{wasted} mais extrema do
+painel inteiro: 99,3\,\% do gasto recai em \textit{runs} sem
+desfecho \texttt{SUCCEEDED} (3 falharam, 23 foram canceladas, apenas
+4 concluíram). A taxa de sucesso de 13,3\,\% (4/30) é uma ordem de
+magnitude pior que a média da plataforma. A explicação é
+arquitetural: a ingestão RAIS é dominada por extração e validação
+de 976 arquivos \texttt{.7z} do FTP/PDET (52,6 GB comprimidos
+\textemdash{} 41 anos $\times$ 27 UFs), com decompressão pra texto
+ASCII gerando 669,7 GB de \textit{intermediate} antes do \textit{bronze}
+Delta consolidar 2,24 bilhões de linhas em 22,0 GB. \textit{Runs}
+travavam por arquivos corrompidos no FTP, codificações divergentes
+(latin-1 versus utf-8 dependendo do ano), e estouro de tempo no
+SQL warehouse \textit{serverless} (timeout em decompressões longas).
+A versão estabilizada do \textit{job} \textemdash{} com auto-recovery
+em três camadas (pré-validação magic bytes + redownload no FTP +
+particionamento Hive \texttt{ano=YYYY}) \textemdash{} só convergiu
+nas últimas \textit{runs} da janela. As 23 \textit{cancelled} e 3
+\texttt{ERROR} formam o histórico iterativo dessa convergência.
+\textbf{Lição operacional}: pipelines com forte dependência de fonte
+externa instável precisam ser orçados não pelo custo do
+\textit{run}-feliz, mas pelo custo \textit{lifetime} esperado
+incluindo a curva de estabilização \textemdash{} no caso da RAIS,
+\(\sim\)\us 7{,}18 só pra chegar ao primeiro \textit{run} verde.
 
 \subsection{\textit{Top runs} mais caras}
 
@@ -685,10 +713,11 @@ Share de \textit{storage} no total \textit{lifetime} & 7,3\,\% \\
 
 Pro-rateando esse \textit{storage} pela participação em
 \textit{bytes} de cada \textit{vertical} em \textit{bronze}
-(Tabela~\ref{tab:storagepervert}), a maior parcela imputada recai
-sobre Bolsa Família (98,9\,\% dos bytes; \(\sim\)\us 7{,}92/mês),
-seguida por Incontinência Urinária (1,1\,\%, \(\sim\)\us 0{,}09/mês)
-e os demais com fração inferior a 0,1\,\%. A pro-rate é
+(Tabela~\ref{tab:storagepervert}), a fatura mensal se divide entre
+duas \textit{verticals} dominantes: Bolsa Família (65,5\,\% dos
+bytes; \(\sim\)\us 5{,}25/mês) e RAIS, recém-consolidado em
+\textit{bronze} (33,8\,\%; \(\sim\)\us 2{,}71/mês). Os demais
+verticais somam menos de 0,8\,\%. A pro-rate é
 aproximação \textemdash{} a Databricks não imputa
 \texttt{DEFAULT\_STORAGE} por \textit{schema} no \textit{billing};
 trata-se de proxy razoável para responder ``\textit{quanto pesa cada
@@ -697,25 +726,45 @@ vertical na fatura mensal de storage}''.
 \begin{table}[H]
 \centering
 \caption{\textbf{Custo \textit{storage} pro-rateado por \textit{vertical}},
-        baseado na participação em \textit{bytes} de \textit{bronze}.}
+        baseado na participação em \textit{bytes} de \textit{bronze}.
+        \textit{Snapshot} pós-conclusão do \textit{bronze} RAIS
+        (Apr/2026): 65,1 GB totais.}
 \label{tab:storagepervert}
 \begin{tabular}{lrrr}
 \toprule
 \textbf{Vertical}    & \textbf{Bronze (bytes)} & \textbf{Share \%} & \textbf{USD/mês} \\
 \midrule
-Bolsa Família        & 42,7 GB                 & 98,9              & 7,92 \\
-Incontinência U.     & \phantom{0}488 MB       & \phantom{0}1,1    & 0,09 \\
-Equipamentos médicos & \phantom{0}454 MB       & \phantom{0}1,0    & 0,08 \\
-Emendas              & \phantom{00}3,7 MB      & \phantom{0}0,01   & 0,001 \\
+Bolsa Família        & 42,7 GB                 & 65,5              & 5,25 \\
+RAIS                 & 22,0 GB                 & 33,8              & 2,71 \\
+Equipamentos médicos & \phantom{0}454 MB       & \phantom{0}0,70   & 0,06 \\
+Incontinência U.     & \phantom{0}\phantom{0}4,9 MB & \phantom{0}0,008 & 0,001 \\
+Emendas              & \phantom{0}\phantom{0}3,7 MB & \phantom{0}0,006 & 0,0005 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 A leitura é evidente: \textbf{a fatura mensal de \textit{storage}
-desta plataforma é, em essência, a fatura do \textit{vertical}
-Bolsa Família}. Isso reflete a granularidade da fonte (CGU publica
-microdados de pagamento mensal a beneficiário): manter histórico
-2013\textendash 2025 íntegro custa \(\sim\)\us 7{,}92/mês.
+desta plataforma se concentra em duas fontes federais que publicam
+microdados em granularidade fina ao longo de décadas}. Bolsa Família
+publica pagamento mensal a beneficiário (CGU, 2013\textendash 2025);
+RAIS publica vínculo trabalhista a CPF (PDET, 1985\textendash 2025).
+Manter ambos os históricos íntegros e replayable custa
+\(\sim\)\us 7{,}96/mês ($\approx\)\us 95/ano em \textit{run rate}
+projetado. Os outros três verticais (Equipamentos, Incontinência U.,
+Emendas) somados rateiam \(\sim\)\us 0{,}06/mês \textemdash{} são
+gratuitos, na prática, em escala de \textit{storage}.
+
+\textbf{Implicação operacional do crescimento RAIS}. Antes da
+conclusão do \textit{bronze} RAIS, a plataforma exibia uma fatura
+de \textit{storage} qualitativamente concentrada em uma única
+\textit{vertical} (PBF, 98,9\,\% dos bytes). A entrada da RAIS
+re-equilibrou o painel: a métrica de \textit{share}, antes
+inutilizável como sinal (a única não-PBF era ruído de arredondamento),
+agora discrimina dois domínios distintos de microdados federais
+brasileiros, com naturezas diferentes (transferência de renda
+\textit{vs} cadastro de vínculos), com volumes próximos
+em \textit{bronze} apesar da PBF processar 2,53 bi linhas e a RAIS
+processar 2,24 bi.
 
 % ---------- 4. DISCUSSÃO ------------------------------------------------
 \section{Discussão}\label{sec:discussion}
