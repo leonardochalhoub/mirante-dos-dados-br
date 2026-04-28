@@ -65,10 +65,13 @@ function chartStyles(theme) {
 }
 
 // ── Formatters ──────────────────────────────────────────────────────────────
+// USD usa locale en-US (ponto decimal) pra evitar ambiguidade com pt-BR onde
+// "US$ 2,601" pareceria $2.601 em vez de $2.60. Currency é estrangeiro;
+// notação inglesa é universal pra dólar.
 const fmtUSD = (v, opts = {}) => {
   if (v == null || Number.isNaN(v)) return '—';
   const { compact = false, dp = 2 } = opts;
-  return new Intl.NumberFormat('pt-BR', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     notation: compact ? 'compact' : 'standard',
@@ -764,7 +767,7 @@ function PerVerticalSizeBars({ verticals, labelOf, theme }) {
       }}>
         <div style={{ fontWeight: 700, fontSize: 12.5, marginBottom: 2 }}>{label}</div>
         <div style={{ color: s.tickColor, marginBottom: 8, fontVariantNumeric: 'tabular-nums' }}>
-          Total <b>{fmtBytes(r.total)}</b> · {fmtDec1(r.share)}% da plataforma · {fmtUSD(r.usd_per_month, { dp: 3 })}/mês
+          Total <b>{fmtBytes(r.total)}</b> · {fmtDec1(r.share)}% da plataforma · {fmtUSD(r.usd_per_month)}/mês
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontVariantNumeric: 'tabular-nums' }}>
           <tbody>
