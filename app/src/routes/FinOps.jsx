@@ -19,7 +19,7 @@ import Panel from '../components/Panel';
 import ArticleTimestamp from '../components/ArticleTimestamp';
 import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
 import { useTheme } from '../hooks/useTheme';
-import { fmtInt, fmtDec1, fmtDec2 } from '../lib/format';
+import { fmtInt, fmtDec1, fmtDec2, fmtBRL } from '../lib/format';
 import { pick } from '../lib/colors';
 import { loadStats } from '../lib/data';
 import '../styles/finops.css';
@@ -136,11 +136,58 @@ const OUTCOME_LABEL = {
 };
 
 // ── Page ────────────────────────────────────────────────────────────────────
+// ── BCB USD→BRL FX rate ─────────────────────────────────────────────────────
+// Fonte oficial: BCB SGS série 1 ("Taxa de câmbio - Livre - Dólar americano
+// compra"). API pública, CORS aberto, sem autenticação. Retorna o último valor
+// disponível (D-1 em dias úteis; o BCB não publica cotação em fim de semana
+// nem feriado, então a "última disponível" pode ser de até 3 dias atrás).
+//
+// Fallback: se a chamada falhar (rede, CORS, BCB fora do ar), usa um valor
+// padrão recente para que o display nunca quebre.
+const BCB_SGS_USD_COMPRA = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/1?formato=json';
+const FX_FALLBACK = { rate: 5.85, date: null, source: 'fallback' };
+
+function useUsdBrlRate() {
+  const [fx, setFx] = useState(null);  // null = loading; {rate, date, source} = ready
+  useEffect(() => {
+    let cancelled = false;
+    fetch(BCB_SGS_USD_COMPRA, { cache: 'no-cache' })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((rows) => {
+        if (cancelled) return;
+        const last = rows && rows[rows.length - 1];
+        const rate = last && Number(String(last.valor).replace(',', '.'));
+        if (Number.isFinite(rate) && rate > 0) {
+          setFx({ rate, date: last.data, source: 'bcb' });
+        } else {
+          setFx(FX_FALLBACK);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setFx(FX_FALLBACK);
+      });
+    return () => { cancelled = true; };
+  }, []);
+  return fx;
+}
+
+// Convert "DD/MM/YYYY" (BCB format) to "DD/MMM/YYYY" pt-BR display.
+function fmtBcbDate(brDate) {
+  if (!brDate) return null;
+  const [d, m, y] = brDate.split('/').map(Number);
+  if (!d || !m || !y) return brDate;
+  return `${String(d).padStart(2, '0')}/${MONTHS_PT[m - 1]}/${y}`;
+}
+
 export default function FinOps() {
   const { theme } = useTheme();
   const [data, setData] = useState(null);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
+  const fx = useUsdBrlRate();
 
   useEffect(() => {
     const base = import.meta.env.BASE_URL || '/';
@@ -168,7 +215,7 @@ export default function FinOps() {
         eyebrow="FinOps · governança de custo · 100% do histórico"
         title="Quanto custou rodar o Mirante"
         subtitle={
-          `Cada DBU consumida e cada centavo em USD desde o primeiro dia da plataforma — ` +
+          `Cada DBU consumida e cada centavo desde o primeiro dia da plataforma — ` +
           `${fmtDayFull(data.window.first_day)} a ${fmtDayFull(data.window.last_day)} ` +
           `(${fmtInt(data.window.n_days)} dias, sem lacunas). ` +
           `Bronze: system.billing + system.lakeflow. ` +
@@ -176,19 +223,46 @@ export default function FinOps() {
         }
       />
 
+      {/* ── Currency declaration banner ──────────────────────────────────── */}
+      <CurrencyBanner fx={fx} totalUsd={k.total_cost_usd_lifetime} />
+
       {/* ── Headline hero: the wasted-spend story ─────────────────────────── */}
       <section className="finops-hero">
         <div className="finops-hero-card finops-hero-primary">
-          <div className="finops-hero-eyebrow">Custo total · lifetime</div>
+          <div className="finops-hero-eyebrow">
+            Custo total · lifetime
+            <span className="finops-hero-unit">USD</span>
+          </div>
           <div className="finops-hero-value">{fmtUSD(k.total_cost_usd_lifetime)}</div>
+          {fx && (
+            <div className="finops-hero-brl">
+              ≈ <b>{fmtBRL(k.total_cost_usd_lifetime * fx.rate)}</b>
+              <span className="finops-hero-fxnote">
+                {' '}· cotação BCB {fx.date ? fmtBcbDate(fx.date) : '(fallback)'}{' '}
+                · US$ 1 = R$ {fx.rate.toFixed(4).replace('.', ',')}
+              </span>
+            </div>
+          )}
           <div className="finops-hero-sub">
             {fmtInt(data.window.n_days)} dias contínuos · {fmtDec1(k.total_dbus_lifetime)} DBUs
             consumidas · {fmtInt(k.n_runs_lifetime)} job runs registradas
           </div>
         </div>
         <div className="finops-hero-card finops-hero-warn">
-          <div className="finops-hero-eyebrow">Spend desperdiçado · ERROR + CANCELLED</div>
+          <div className="finops-hero-eyebrow">
+            Spend desperdiçado · ERROR + CANCELLED
+            <span className="finops-hero-unit">USD</span>
+          </div>
           <div className="finops-hero-value">{fmtDec1(k.wasted_pct_lifetime)}%</div>
+          {fx && (
+            <div className="finops-hero-brl">
+              ≈ <b>{fmtBRL(k.wasted_cost_usd_lifetime * fx.rate)}</b>
+              <span className="finops-hero-fxnote">
+                {' '}· {fmtUSD(k.wasted_cost_usd_lifetime)} ao câmbio
+                {' '}{fx.date ? fmtBcbDate(fx.date) : '(fallback)'}
+              </span>
+            </div>
+          )}
           <div className="finops-hero-sub">
             <b>{fmtUSD(k.wasted_cost_usd_lifetime)}</b> em runs que não entregaram resultado.
             DBUs consumidas até o crash ou cancelamento manual.
@@ -301,6 +375,44 @@ export default function FinOps() {
         pipeline <code>job_finops_refresh</code> (diário 6h UTC)
       </footer>
     </div>
+  );
+}
+
+// ── Currency declaration banner (USD source + live BCB FX) ─────────────────
+function CurrencyBanner({ fx, totalUsd }) {
+  return (
+    <section className="finops-currency-banner" role="note"
+             aria-label="Declaração de moeda e taxa de câmbio">
+      <div className="finops-currency-icon" aria-hidden="true">$</div>
+      <div className="finops-currency-body">
+        <div className="finops-currency-head">
+          <span className="finops-currency-pill primary">USD</span>
+          <span className="finops-currency-arrow">→</span>
+          <span className="finops-currency-pill secondary">BRL</span>
+        </div>
+        <div className="finops-currency-text">
+          Todos os valores faturados pela Databricks são em <b>dólar americano (USD)</b>{' '}
+          — verificado em <code>system.billing.list_prices.currency_code</code>.
+          Conversão para reais usa cotação <b>BCB SGS série 1</b> (PTAX compra, fonte
+          oficial do Banco Central).
+        </div>
+        {fx && (
+          <div className="finops-currency-fx">
+            <span className="finops-currency-fx-rate">
+              US$ 1 = <b>R$ {fx.rate.toFixed(4).replace('.', ',')}</b>
+            </span>
+            <span className="finops-currency-fx-date">
+              {fx.source === 'bcb' && fx.date
+                ? `Cotação de ${fmtBcbDate(fx.date)}`
+                : 'Cotação de referência (offline)'}
+            </span>
+            <span className="finops-currency-fx-total">
+              Lifetime: {fmtUSD(totalUsd)} ≈ <b>{fmtBRL(totalUsd * fx.rate)}</b>
+            </span>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 

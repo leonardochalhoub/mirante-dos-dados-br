@@ -23,6 +23,144 @@
 }
 .finops-error { color: #b91c1c; }
 
+/* ── Currency banner (USD source + live BCB FX rate) ────────────────────── */
+.finops-currency-banner {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 16px;
+  margin: 14px 0 22px;
+  background: linear-gradient(135deg,
+              color-mix(in srgb, var(--accent, #2b6cb0) 6%, var(--panel)),
+              var(--panel) 70%);
+  border: 1px solid var(--border, rgba(15,23,42,0.08));
+  border-left: 3px solid #059669;  /* USD green accent */
+  border-radius: 10px;
+}
+
+[data-theme="dark"] .finops-currency-banner {
+  background: linear-gradient(135deg,
+              rgba(16, 185, 129, 0.10),
+              var(--panel) 70%);
+  border-left-color: #34d399;
+}
+
+.finops-currency-icon {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #059669;
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Lato', system-ui, sans-serif;
+  letter-spacing: -1px;
+}
+
+[data-theme="dark"] .finops-currency-icon { background: #34d399; color: #052e23; }
+
+.finops-currency-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.finops-currency-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.finops-currency-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  letter-spacing: 0.6px;
+  font-weight: 700;
+}
+
+.finops-currency-pill.primary {
+  background: #059669; color: #fff;
+}
+.finops-currency-pill.secondary {
+  background: var(--bg-soft, rgba(15,23,42,0.06));
+  color: var(--fg);
+  border: 1px solid var(--border, rgba(15,23,42,0.1));
+}
+
+[data-theme="dark"] .finops-currency-pill.primary { background: #10b981; color: #052e23; }
+[data-theme="dark"] .finops-currency-pill.secondary {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--fg);
+}
+
+.finops-currency-arrow {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.finops-currency-text {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.finops-currency-text b { color: var(--fg); }
+.finops-currency-text code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  padding: 1px 4px;
+  background: var(--bg-soft, rgba(15,23,42,0.04));
+  border-radius: 3px;
+  color: var(--fg);
+}
+
+.finops-currency-fx {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border-subtle, rgba(15,23,42,0.06));
+}
+
+[data-theme="dark"] .finops-currency-fx {
+  border-top-color: rgba(255,255,255,0.06);
+}
+
+.finops-currency-fx-rate {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.finops-currency-fx-date {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.finops-currency-fx-total {
+  margin-left: auto;
+  color: var(--fg);
+}
+.finops-currency-fx-total b { font-weight: 700; }
+
+@media (max-width: 600px) {
+  .finops-currency-banner { padding: 10px 12px; gap: 10px; }
+  .finops-currency-icon { width: 28px; height: 28px; font-size: 14px; flex: 0 0 28px; }
+  .finops-currency-fx-total { margin-left: 0; width: 100%; }
+}
+
 /* ── Hero (the headline pair) ────────────────────────────────────────────── */
 .finops-hero {
   display: grid;
@@ -63,7 +201,25 @@
   color: var(--muted);
   font-weight: 600;
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
+
+.finops-hero-unit {
+  display: inline-block;
+  padding: 1px 6px;
+  background: #059669;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 9.5px;
+  letter-spacing: 0.7px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+[data-theme="dark"] .finops-hero-unit { background: #10b981; color: #052e23; }
 
 .finops-hero-value {
   font-size: clamp(34px, 8vw, 56px);
@@ -85,6 +241,34 @@
   color: var(--muted);
 }
 .finops-hero-sub b { color: var(--fg); }
+
+.finops-hero-brl {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.finops-hero-brl b {
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.finops-hero-fxnote {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+  display: inline;
+}
+
+@media (max-width: 600px) {
+  .finops-hero-fxnote {
+    display: block;
+    margin-top: 2px;
+  }
+}
 
 /* ── KPI strip (4 mini stats) ────────────────────────────────────────────── */
 .finops-kpi-strip {
