@@ -35,6 +35,35 @@ function fmtBytes(b) {
   return `${v < 10 ? v.toFixed(1) : Math.round(v)} ${u[i]}`;
 }
 
+// ── Shared chart styling (theme-aware) ──────────────────────────────────────
+// Recharts defaults to dark text on Tooltip/Legend regardless of theme — that's
+// why dark mode looks unreadable. This helper produces all the inline styles
+// each chart needs so we never forget one site.
+function chartStyles(theme) {
+  const dark = theme === 'dark';
+  const grid       = dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)';
+  const tickColor  = dark ? '#cbd5e1' : '#475569';
+  const fg         = dark ? '#e2e8f0' : '#0f172a';
+  const muted      = dark ? '#94a3b8' : '#64748b';
+  const panel      = dark ? '#0f172a' : '#fff';
+  return {
+    grid,
+    tickColor,
+    fg,
+    muted,
+    tooltipContent: {
+      background: panel,
+      border: `1px solid ${grid}`,
+      fontSize: 11,
+      borderRadius: 6,
+      color: fg,
+    },
+    tooltipLabel: { color: muted, fontWeight: 600, marginBottom: 2 },
+    tooltipItem:  { color: fg },
+    legendWrapper: { fontSize: 11, paddingBottom: 4, color: fg },
+  };
+}
+
 // ── Formatters ──────────────────────────────────────────────────────────────
 const fmtUSD = (v, opts = {}) => {
   if (v == null || Number.isNaN(v)) return '—';
@@ -355,9 +384,8 @@ function CumulativeSpendChart({ daily, theme }) {
     return idx >= 0 ? daily.slice(idx) : daily;
   }, [daily]);
 
-  const grid       = theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)';
-  const tickColor  = theme === 'dark' ? '#94a3b8' : '#475569';
-  const cLine      = pick('primary', theme);
+  const s = chartStyles(theme);
+  const cLine = pick('primary', theme);
 
   return (
     <div className="finops-chart-tall">
@@ -369,19 +397,18 @@ function CumulativeSpendChart({ daily, theme }) {
               <stop offset="95%" stopColor={cLine} stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke={grid} vertical={false} />
+          <CartesianGrid stroke={s.grid} vertical={false} />
           <XAxis dataKey="usage_date" tickFormatter={fmtDayShort}
-                 stroke={tickColor} fontSize={10} tickLine={false}
-                 axisLine={{ stroke: grid }} interval="preserveStartEnd" minTickGap={36} />
-          <YAxis stroke={tickColor} fontSize={11} tickLine={false} axisLine={false}
+                 stroke={s.tickColor} fontSize={10} tickLine={false}
+                 axisLine={{ stroke: s.grid }} interval="preserveStartEnd" minTickGap={36} />
+          <YAxis stroke={s.tickColor} fontSize={11} tickLine={false} axisLine={false}
                  width={56} tickFormatter={(v) => fmtUSDCompact(v)} />
           <Tooltip
             labelFormatter={fmtDayFull}
             formatter={(value) => [fmtUSD(value), 'Acumulado']}
-            contentStyle={{
-              background: theme === 'dark' ? '#0f172a' : '#fff',
-              border: `1px solid ${grid}`, fontSize: 11, borderRadius: 6,
-            }}
+            contentStyle={s.tooltipContent}
+            labelStyle={s.tooltipLabel}
+            itemStyle={s.tooltipItem}
           />
           <Area type="monotone" dataKey="cost_total_cumulative"
                 stroke={cLine} strokeWidth={2.5} fill="url(#finops-cum)" />
@@ -538,20 +565,19 @@ function PerVerticalSizeBars({ verticals, labelOf, theme }) {
     usd_per_month: v.usd_per_month,
     share: v.share * 100,
   }));
-  const grid       = theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)';
-  const tickColor  = theme === 'dark' ? '#94a3b8' : '#475569';
-  const cBar       = pick('teal', theme);
+  const s    = chartStyles(theme);
+  const cBar = pick('teal', theme);
 
   return (
     <div className="finops-chart-vertbars" style={{ height: Math.max(180, 36 * data.length + 60) }}>
       <ResponsiveContainer>
         <BarChart data={data} layout="vertical"
                   margin={{ top: 8, right: 80, bottom: 16, left: 8 }}>
-          <CartesianGrid stroke={grid} horizontal={false} />
-          <XAxis type="number" stroke={tickColor} fontSize={10}
+          <CartesianGrid stroke={s.grid} horizontal={false} />
+          <XAxis type="number" stroke={s.tickColor} fontSize={10}
                  tickLine={false} axisLine={false}
                  tickFormatter={(v) => fmtBytes(v)} />
-          <YAxis type="category" dataKey="name" stroke={tickColor} fontSize={11}
+          <YAxis type="category" dataKey="name" stroke={s.tickColor} fontSize={11}
                  tickLine={false} axisLine={false} width={140}
                  interval={0} />
           <Tooltip
@@ -562,14 +588,13 @@ function PerVerticalSizeBars({ verticals, labelOf, theme }) {
                 'Bronze',
               ];
             }}
-            contentStyle={{
-              background: theme === 'dark' ? '#0f172a' : '#fff',
-              border: `1px solid ${grid}`, fontSize: 11, borderRadius: 6,
-            }}
+            contentStyle={s.tooltipContent}
+            labelStyle={s.tooltipLabel}
+            itemStyle={s.tooltipItem}
           />
           <Bar dataKey="bytes" fill={cBar} radius={[0, 4, 4, 0]}
                label={{ position: 'right', formatter: (v) => fmtBytes(v),
-                        fontSize: 10, fill: tickColor }} />
+                        fontSize: 10, fill: s.tickColor }} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -583,8 +608,7 @@ function DailySpendArea({ daily, theme }) {
     return idx >= 0 ? daily.slice(idx) : daily;
   }, [daily]);
 
-  const grid       = theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)';
-  const tickColor  = theme === 'dark' ? '#94a3b8' : '#475569';
+  const s = chartStyles(theme);
   const cChargeable = pick('primary', theme);
   const cOverhead   = pick('amber',   theme);
 
@@ -602,11 +626,11 @@ function DailySpendArea({ daily, theme }) {
               <stop offset="95%" stopColor={cOverhead} stopOpacity={0.08} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke={grid} vertical={false} />
+          <CartesianGrid stroke={s.grid} vertical={false} />
           <XAxis dataKey="usage_date" tickFormatter={fmtDayShort}
-                 stroke={tickColor} fontSize={10} tickLine={false}
-                 axisLine={{ stroke: grid }} interval="preserveStartEnd" minTickGap={36} />
-          <YAxis stroke={tickColor} fontSize={11} tickLine={false} axisLine={false}
+                 stroke={s.tickColor} fontSize={10} tickLine={false}
+                 axisLine={{ stroke: s.grid }} interval="preserveStartEnd" minTickGap={36} />
+          <YAxis stroke={s.tickColor} fontSize={11} tickLine={false} axisLine={false}
                  width={52} tickFormatter={(v) => fmtUSDCompact(v)} />
           <Tooltip
             labelFormatter={fmtDayFull}
@@ -617,20 +641,20 @@ function DailySpendArea({ daily, theme }) {
               };
               return [fmtUSD(value), labels[name] || name];
             }}
-            contentStyle={{
-              background: theme === 'dark' ? '#0f172a' : '#fff',
-              border: `1px solid ${grid}`, fontSize: 11, borderRadius: 6,
-            }}
+            contentStyle={s.tooltipContent}
+            labelStyle={s.tooltipLabel}
+            itemStyle={s.tooltipItem}
           />
           <Legend
             verticalAlign="top" height={28} iconType="circle"
-            wrapperStyle={{ fontSize: 11, paddingBottom: 4 }}
+            wrapperStyle={s.legendWrapper}
             formatter={(value) => {
               const labels = {
                 cost_chargeable_total: 'Chargeable',
                 cost_overhead_total:   'Overhead',
               };
-              return labels[value] || value;
+              // Wrap in a span so recharts doesn't override our color.
+              return <span style={{ color: s.fg }}>{labels[value] || value}</span>;
             }}
           />
           <Area type="monotone" dataKey="cost_chargeable_total" stackId="1"
@@ -650,6 +674,7 @@ function ProductDonut({ byProduct, theme }) {
     value: r.cost_usd,
     raw: r,
   }));
+  const s = chartStyles(theme);
   return (
     <div className="finops-chart-medium">
       <ResponsiveContainer>
@@ -668,11 +693,9 @@ function ProductDonut({ byProduct, theme }) {
               `${fmtUSD(value)} (${fmtDec1(ctx.payload.raw.share_pct)}%)`,
               name,
             ]}
-            contentStyle={{
-              background: theme === 'dark' ? '#0f172a' : '#fff',
-              border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
-              fontSize: 11, borderRadius: 6,
-            }}
+            contentStyle={s.tooltipContent}
+            labelStyle={s.tooltipLabel}
+            itemStyle={s.tooltipItem}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -714,16 +737,15 @@ function OutcomeBars({ byOutcome, theme }) {
     minutes: r.avg_minutes,
     share: r.share_pct,
   }));
-  const grid       = theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)';
-  const tickColor  = theme === 'dark' ? '#94a3b8' : '#475569';
+  const s = chartStyles(theme);
   return (
     <div className="finops-chart-medium">
       <ResponsiveContainer>
         <BarChart data={data} margin={{ top: 16, right: 16, bottom: 24, left: 4 }}>
-          <CartesianGrid stroke={grid} vertical={false} />
-          <XAxis dataKey="state" stroke={tickColor} fontSize={11}
-                 tickLine={false} axisLine={{ stroke: grid }} />
-          <YAxis stroke={tickColor} fontSize={11} tickLine={false} axisLine={false}
+          <CartesianGrid stroke={s.grid} vertical={false} />
+          <XAxis dataKey="state" stroke={s.tickColor} fontSize={11}
+                 tickLine={false} axisLine={{ stroke: s.grid }} />
+          <YAxis stroke={s.tickColor} fontSize={11} tickLine={false} axisLine={false}
                  tickFormatter={(v) => fmtUSDCompact(v)} width={52} />
           <Tooltip
             formatter={(value, name, ctx) => {
@@ -736,10 +758,9 @@ function OutcomeBars({ byOutcome, theme }) {
               }
               return [value, name];
             }}
-            contentStyle={{
-              background: theme === 'dark' ? '#0f172a' : '#fff',
-              border: `1px solid ${grid}`, fontSize: 11, borderRadius: 6,
-            }}
+            contentStyle={s.tooltipContent}
+            labelStyle={s.tooltipLabel}
+            itemStyle={s.tooltipItem}
           />
           <Bar dataKey="cost" radius={[6, 6, 0, 0]}>
             {data.map((d) => (

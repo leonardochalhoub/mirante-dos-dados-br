@@ -198,12 +198,17 @@
   .finops-chart-medium { height: 260px; }
 }
 
-/* ── Legends (used by donut + outcome) ───────────────────────────────────── */
+/* ── Legends (used by donut + outcome) ─────────────────────────────────────
+ *
+ * Explicit colors via CSS vars so dark mode flips automatically. Without
+ * this, recharts/legend text was unreadable in dark mode (black-on-dark).
+ */
 .finops-legend {
   list-style: none;
   padding: 0;
   margin: 12px 0 0 0;
   font-size: 12px;
+  color: var(--fg);
 }
 
 .finops-legend li {
@@ -213,6 +218,11 @@
   gap: 8px;
   padding: 7px 0;
   border-bottom: 1px solid var(--border-subtle, rgba(15,23,42,0.05));
+  color: var(--fg);
+}
+
+[data-theme="dark"] .finops-legend li {
+  border-bottom-color: rgba(255,255,255,0.06);
 }
 
 .finops-legend li:last-child { border-bottom: 0; }
@@ -236,6 +246,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--fg);
 }
 
 .finops-legend-tag {
@@ -247,11 +258,16 @@
   white-space: nowrap;
 }
 
+[data-theme="dark"] .finops-legend-tag {
+  border-color: rgba(255,255,255,0.15);
+}
+
 .finops-legend-value {
   font-variant-numeric: tabular-nums;
   flex: 0 0 auto;
   text-align: right;
   font-weight: 600;
+  color: var(--fg);
 }
 
 .finops-legend-pct {
