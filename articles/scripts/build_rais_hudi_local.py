@@ -59,7 +59,12 @@ def parse_args() -> argparse.Namespace:
                    help="Lista de anos a processar (ex.: '2023' ou '2021,2022,2023'). "
                         "Se omitido, processa todas as partições ano= encontradas.")
     p.add_argument("--clean", action="store_true",
-                   help="Apaga <output-dir>/rais_vinculos_hudi/ antes de escrever.")
+                   help="Apaga <output-dir>/rais_vinculos_hudi/ antes de escrever. "
+                        "Mutuamente exclusivo com --append.")
+    p.add_argument("--append", action="store_true",
+                   help="Append mode: adiciona partições novas ao Hudi existente "
+                        "(usa operation=insert em vez de bulk_insert). Necessário "
+                        "quando rodando ano-a-ano em loop (run_rais_hudi_all_years.sh).")
     p.add_argument("--master", default="local[*]",
                    help="Spark master (default: local[*]).")
     p.add_argument("--driver-memory", default="6g",
@@ -165,6 +170,22 @@ def main() -> int:
         print("✗ DataFrame vazio — nada a escrever", file=sys.stderr)
         return 1
 
+    if args.clean and args.append:
+        print("✗ --clean e --append são mutuamente exclusivos", file=sys.stderr)
+        return 1
+
+    # Append: detecta se já existe um Hudi escrito previamente. Se existir,
+    # usa operation=insert (não bulk_insert — bulk só roda no primeiro batch
+    # pra setup do timeline). Se não existir, faz overwrite + bulk_insert
+    # como o primeiro ano do loop.
+    is_first_write = not (out_dir / ".hoodie").exists()
+    if args.append and is_first_write:
+        print(f"  --append mas {out_dir}/.hoodie ainda não existe → tratando como primeiro write")
+
+    write_mode = "overwrite" if (not args.append or is_first_write) else "append"
+    operation  = "bulk_insert" if (not args.append or is_first_write) else "insert"
+    print(f"  mode={write_mode}  operation={operation}")
+
     print(f"\n▸ escrevendo Hudi CoW em {out_dir}…")
     t0 = time.time()
     hudi_options = {
@@ -172,17 +193,21 @@ def main() -> int:
         "hoodie.datasource.write.recordkey.field":        "_hudi_rowid",
         "hoodie.datasource.write.partitionpath.field":    "ano",
         "hoodie.datasource.write.table.name":             "rais_vinculos_hudi",
-        "hoodie.datasource.write.operation":              "bulk_insert",
+        "hoodie.datasource.write.operation":              operation,
         "hoodie.datasource.write.table.type":             "COPY_ON_WRITE",
         "hoodie.datasource.write.precombine.field":       "_ingest_ts",
         "hoodie.datasource.write.hive_style_partitioning":"true",
         "hoodie.parquet.compression.codec":               "snappy",
+        # Append/insert mode: cada ano é uma partição nova; sem clustering
+        # automático pra não pagar custo de re-organização entre runs.
+        "hoodie.combine.before.insert":                   "false",
+        "hoodie.datasource.write.insert.drop.duplicates": "false",
     }
 
     out_dir.parent.mkdir(parents=True, exist_ok=True)
     (df.write.format("hudi")
         .options(**hudi_options)
-        .mode("overwrite")
+        .mode(write_mode)
         .save(str(out_dir)))
 
     elapsed = time.time() - t0
