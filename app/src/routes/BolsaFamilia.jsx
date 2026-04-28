@@ -1149,20 +1149,6 @@ export default function BolsaFamilia() {
   // renderiza. Ambos compartilham KpiCard/BrazilMap/StateRanking/EvolutionBar.
   const [scope, setScope] = useState('estadual');
 
-  // Quando trocar pra Municipal e estiver em AGG, força último ano —
-  // a média plurianual nivela demais o mapa muni (5570 polígonos com
-  // valores de 13 anos somados ficam todos numa cor próxima da mediana).
-  // Único ano dá range muito mais legível pro choropleth.
-  useEffect(() => {
-    if (scope === 'municipal' && year === 'AGG') {
-      // Ler últimos anos disponíveis sem causar loop infinito —
-      // muniRows pode vir depois, então usa estado atual como fallback.
-      const ys = (muniRows && muniRows.length > 0)
-        ? Array.from(new Set(muniRows.map(r => r.Ano))).sort()
-        : [];
-      if (ys.length > 0) setYear(String(ys[ys.length - 1]));
-    }
-  }, [scope, muniRows]); // eslint-disable-line react-hooks/exhaustive-deps
   // WP#7 — gold municipal carregado em paralelo. Optional: se faltar, a tab
   // Municipal mostra placeholder. Não bloqueia a tela principal.
   const [muniRows, setMuniRows] = useState(null);
@@ -1175,6 +1161,21 @@ export default function BolsaFamilia() {
       .then(setMuniRows)
       .catch(() => setMuniRows([]));   // gold municipal opcional — não bloqueia
   }, []);
+
+  // Quando trocar pra Municipal e estiver em AGG, força último ano —
+  // a média plurianual nivela demais o mapa muni (5570 polígonos com
+  // valores de 13 anos somados ficam todos numa cor próxima da mediana).
+  // Único ano dá range muito mais legível pro choropleth.
+  // IMPORTANTE: este effect roda DEPOIS da declaração de muniRows pra
+  // evitar TDZ ReferenceError (Cannot access 'muniRows' before init).
+  useEffect(() => {
+    if (scope === 'municipal' && year === 'AGG') {
+      const ys = (muniRows && muniRows.length > 0)
+        ? Array.from(new Set(muniRows.map(r => r.Ano))).sort()
+        : [];
+      if (ys.length > 0) setYear(String(ys[ys.length - 1]));
+    }
+  }, [scope, muniRows]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const metric = METRICS[metricKey];
 
