@@ -111,7 +111,17 @@ jobs:
           pull gold_emendas_estados_df.json       data/gold/gold_emendas_estados_df.json
           pull gold_uropro_estados_ano.json       data/gold/gold_uropro_estados_ano.json
           pull gold_rais_estados_ano.json         data/gold/gold_rais_estados_ano.json
-          pull platform_stats.json                data/stats/platform_stats.json
+
+          # platform_stats.json — pull num arquivo TEMP e compara com local.
+          # Se o JSON do Volume estiver STALE (faltando campos que o local já
+          # tem — ex.: verticals.finops, RAIS bronze>0, silver_bytes per
+          # vertical), preserva o local. Evita o ciclo "patch local → auto-sync
+          # sobrescreve com Volume velho". Só dropa quando export pipeline
+          # rodar com código novo e gravar JSON mais completo.
+          pull platform_stats.json /tmp/platform_stats_volume.json
+          python3 scripts/sync-merge-platform-stats.py \
+            /tmp/platform_stats_volume.json \
+            data/stats/platform_stats.json || true
 
           echo "---"
           ls -la data/gold/ data/stats/
