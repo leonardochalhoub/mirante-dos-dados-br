@@ -94,9 +94,16 @@ if ENABLE_ICEBERG:
             )
         """)
 
-        # 2. Cria/atualiza a VIEW que sinaliza "leitura como Iceberg" pro front.
+        # 2. Cleanup defensivo: se um deploy ANTERIOR criou
+        # bronze.rais_vinculos_iceberg como TABELA (versão "paralela" que foi
+        # revertida), o CREATE VIEW abaixo falharia por colisão de nome.
+        # DROP TABLE/VIEW IF EXISTS cobre os dois casos sem efeito colateral
+        # se o objeto não existir.
+        spark.sql(f"DROP VIEW  IF EXISTS {ICEBERG_VIEW}")
+        spark.sql(f"DROP TABLE IF EXISTS {ICEBERG_VIEW}")
+
+        # 3. Cria a VIEW que sinaliza "leitura como Iceberg" pro front.
         # Não é re-escrita — é um alias semântico pro card "Iceberg" no strip.
-        spark.sql(f"DROP VIEW IF EXISTS {ICEBERG_VIEW}")
         spark.sql(f"""
             CREATE VIEW {ICEBERG_VIEW} AS
             SELECT * FROM {SOURCE_TABLE}
