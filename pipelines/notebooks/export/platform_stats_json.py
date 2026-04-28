@@ -216,6 +216,34 @@ verticals = {
     },
 }
 
+# ─── FinOps vertical — special shape (não byte-progression, é spend-progression) ──
+# Bronze são system tables do Databricks (não temos arquivos raw). Os "steps"
+# aqui no strip viram: dias observados → runs registradas → USD gastos.
+# Front (BigDataStrip) detecta `kind: "finops"` e renderiza com Step próprio.
+import os as _os
+finops_path = f"/Volumes/{CATALOG}/gold/exports/finops_summary.json"
+if _os.path.exists(finops_path):
+    try:
+        with open(finops_path, "r", encoding="utf-8") as fh:
+            _fo = json.load(fh)
+        verticals["finops"] = {
+            "kind":            "finops",  # marker pro front renderizar diferente
+            "n_days":          _fo["window"]["n_days"],
+            "first_day":       _fo["window"]["first_day"],
+            "last_day":        _fo["window"]["last_day"],
+            "n_runs":          _fo["kpis"]["n_runs_lifetime"],
+            "total_dbus":      _fo["kpis"]["total_dbus_lifetime"],
+            "total_cost_usd":  _fo["kpis"]["total_cost_usd_lifetime"],
+            "wasted_pct":      _fo["kpis"]["wasted_pct_lifetime"],
+        }
+        print(f"  ✓ verticals.finops adicionado: {verticals['finops']['n_days']} dias, "
+              f"{verticals['finops']['n_runs']} runs, "
+              f"USD {verticals['finops']['total_cost_usd']:.2f}")
+    except Exception as e:
+        print(f"  ⚠ FinOps summary disponível mas não pôde ser lido: {e}")
+else:
+    print(f"  ⚠ {finops_path} não existe — verticals.finops será omitida")
+
 stats = {
     "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     "catalog":          CATALOG,

@@ -1,9 +1,9 @@
 {
-  "manifest_built_at": "2026-04-27T21:47:58.649Z",
+  "manifest_built_at": "2026-04-28T04:06:04.484Z",
   "articles": {
     "bolsa-familia-municipios": {
-      "tex_last_edited": "2026-04-27T17:50:34-03:00",
-      "tex_last_sha": "431b01f"
+      "tex_last_edited": "2026-04-28T00:31:49-03:00",
+      "tex_last_sha": "8aa1edf"
     },
     "bolsa-familia": {
       "tex_last_edited": "2026-04-27T09:57:34-03:00",
@@ -24,6 +24,10 @@
     "equipamentos-rm-parkinson": {
       "tex_last_edited": "2026-04-27T09:45:37-03:00",
       "tex_last_sha": "b710632"
+    },
+    "finops-plataforma-dados-publicos": {
+      "tex_last_edited": null,
+      "tex_last_sha": null
     },
     "rais-fair-lakehouse": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",

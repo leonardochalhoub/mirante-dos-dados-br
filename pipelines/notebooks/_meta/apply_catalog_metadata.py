@@ -2009,6 +2009,239 @@ enrich(
 
 
 # =====================================================================
+# FinOps vertical (silver + gold)
+# =====================================================================
+# "Bronze" desta vertical são tabelas system.* gerenciadas pelo Databricks
+# (system.billing.usage, system.billing.list_prices, system.lakeflow.*).
+# Não criamos bronze próprio — silver lê direto.
+#
+# Algoritmo de custo:
+#   cost(record) = usage_quantity_DBU × list_price_USD_per_DBU
+#   list_price é versionado no tempo — joinamos no intervalo
+#   [price_start_time, price_end_time) que contém usage_start_time,
+#   casando (sku_name, cloud, usage_unit).
+
+enrich(
+    f"{CATALOG}.silver.finops_run_costs",
+    """
+    Mirante FinOps · ledger granular por job-run.
+
+    Grão: 1 linha por (job_id, run_id). O custo USD é a soma dos billing records
+    do `system.billing.usage` joinados com a list price `system.billing.list_prices`
+    versionada no tempo. Apenas records com `usage_metadata.job_run_id IS NOT NULL`
+    entram aqui (i.e., apenas custo de workloads tagueados a uma execução de job).
+
+    Como ler:
+    - `cost_usd` é o valor faturado real (USD) — não estimativa.
+    - `result_state` vem do `system.lakeflow.job_run_timeline`. Pode ser SUCCEEDED,
+      ERROR, CANCELLED ou UNKNOWN (quando billing existe mas timeline não chegou).
+    - `is_serverless`/`is_photon` são TRUE se ao menos um record do bucket usou
+      esse modo. Mistura é rara mas possível em jobs multi-task.
+    - `billed_minutes` prefere o intervalo do timeline (`started_at`/`ended_at`);
+      cai pra janela do billing apenas se o timeline estiver indisponível.
+
+    Cuidado:
+    - `system.billing.usage` tem ~1h de latência. Runs muito recentes podem não
+      aparecer ainda — re-rode o silver no dia seguinte.
+    - Job runs sem billing (puramente filhas, ou que terminaram em <1min) podem
+      ficar sem entrada aqui mesmo aparecendo no timeline.
+
+    Fonte (bronze): system.billing.usage + system.billing.list_prices +
+    system.lakeflow.job_run_timeline (managed pelo Databricks).
+    """,
+    {
+        "job_id":         "Databricks job_id (FK lógica → system.lakeflow.jobs)",
+        "run_id":         "Databricks job_run_id (FK lógica → system.lakeflow.job_run_timeline)",
+        "job_name":       "Display name do job no momento da execução. "
+                          "Mantém prefixo `[dev <user>]` quando rodado em modo dev.",
+        "run_name":       "Nome da run específica (preenchido apenas em submits via "
+                          "run-now com run_name explícito)",
+        "result_state":   "Desfecho final ∈ {SUCCEEDED, ERROR, CANCELLED, UNKNOWN}. "
+                          "UNKNOWN indica record de billing sem timeline correspondente "
+                          "(latência ou run muito antiga).",
+        "started_at":     "Início real da run (timeline). Fallback: primeiro "
+                          "usage_start_time dos billing records.",
+        "ended_at":       "Fim real (timeline). Fallback: último usage_end_time.",
+        "billed_minutes": "Duração faturada (ended_at - started_at) em minutos. "
+                          "Cuidado: runs canceladas mantêm billed_minutes até o cancelamento.",
+        "dbus":           "DBUs consumidas — soma sobre todos os records.",
+        "cost_usd":       "Custo USD = Σ DBU × list_price_USD_per_DBU (time-versioned). "
+                          "MÉTRICA-CHAVE: usar este campo para alocação direta de custo a runs.",
+        "primary_sku":    "SKU mais frequente nos records desta run (ex.: "
+                          "PREMIUM_JOBS_SERVERLESS_COMPUTE_US_EAST_OHIO).",
+        "is_serverless":  "TRUE se compute serverless (cobrança por DBU)",
+        "is_photon":      "TRUE se Photon ativado (DBU rate ~2× regular)",
+        "day":            "Data UTC do primeiro billing record desta run "
+                          "(útil para rollups diários sem precisar de window function).",
+    },
+    {
+        "layer":           "silver",
+        "domain":          "finops",
+        "source":          "system.billing+lakeflow",
+        "grain":           "job_run",
+        "pk_grain":        "job_id,run_id",
+        "pii":             "false",
+        "refresh_cadence": "diaria",
+        "currency":        "USD",
+        "wp_referenced":   "WP8",
+        "consumer":        "front_end_jsonexport,gold.finops_run_costs",
+    },
+)
+
+enrich(
+    f"{CATALOG}.silver.finops_daily_spend",
+    """
+    Mirante FinOps · spend diário por (data × produto × workload-class).
+
+    Inclui **todos os custos** da plataforma — não apenas os tagueados a job runs.
+    Cobre SQL warehouses, NETWORKING (egress de compute serverless), DEFAULT_STORAGE
+    (managed storage da Free Edition), INTERACTIVE clusters, DLT, e PREDICTIVE_OPTIMIZATION.
+
+    `workload_class` divide o spend em duas categorias FinOps clássicas:
+    - **chargeable**: workloads que rodam código do usuário
+      (JOBS, SQL, INTERACTIVE, DLT). Diretamente atribuível a um time/projeto.
+    - **overhead**: custo de plataforma sem run_id direto
+      (NETWORKING, DEFAULT_STORAGE, PREDICTIVE_OPTIMIZATION). Geralmente rateado
+      proporcionalmente entre consumidores.
+
+    Grão: 1 linha por (usage_date, product, workload_class, is_serverless).
+
+    Fonte (bronze): system.billing.usage + system.billing.list_prices.
+    """,
+    {
+        "usage_date":     "Data UTC do uso (partição natural de system.billing.usage)",
+        "product":        "billing_origin_product ∈ {JOBS, SQL, INTERACTIVE, DLT, "
+                          "NETWORKING, DEFAULT_STORAGE, PREDICTIVE_OPTIMIZATION, ...}",
+        "workload_class": "chargeable | overhead — divide custo de execução de "
+                          "código (JOBS/SQL/INTERACTIVE/DLT) vs custo de plataforma "
+                          "(NETWORKING/STORAGE/PRED_OPT).",
+        "is_serverless":  "TRUE se compute serverless (cobrança por DBU consumido).",
+        "is_photon_any":  "TRUE se ao menos um record do bucket usou Photon. "
+                          "Photon dobra ~2× a DBU rate efetiva.",
+        "n_records":      "Contagem de billing records agregados neste bucket.",
+        "n_runs":         "Contagem distinta de job_run_id (NULL inclusive). "
+                          "Cardinalidade de runs distintas neste bucket.",
+        "dbus":           "DBUs consumidas no bucket.",
+        "cost_usd":       "Custo USD = Σ DBU × list_price.",
+    },
+    {
+        "layer":           "silver",
+        "domain":          "finops",
+        "source":          "system.billing",
+        "grain":           "day_product_class",
+        "pk_grain":        "usage_date,product,workload_class,is_serverless",
+        "pii":             "false",
+        "refresh_cadence": "diaria",
+        "currency":        "USD",
+        "wp_referenced":   "WP8",
+        "consumer":        "gold.finops_daily_spend,front_end_jsonexport",
+    },
+)
+
+enrich(
+    f"{CATALOG}.gold.finops_run_costs",
+    """
+    Mirante FinOps · gold per-run costs com flags derivados.
+
+    Cópia enriquecida de silver.finops_run_costs:
+    - `job_name_canonical` remove o prefixo `[dev <user>]` para agrupar dev/prod
+      runs do mesmo job.
+    - `is_wasted` é TRUE quando `result_state ∈ {ERROR, CANCELLED}`. KPI-CHAVE
+      desta vertical: agregue `SUM(cost_usd) WHERE is_wasted` para spend desperdiçado.
+    - `cost_bucket` categoriza o valor: micro (<$0.10), small (<$0.50),
+      medium (<$2), large (≥$2). Útil para histogramas e alertas
+      ("alerte se uma run cair em 'large'").
+
+    Achado-chave (lifetime ~322 dias): ~54% do custo de jobs foi gasto em runs
+    que não entregaram resultado (ERROR + CANCELLED) — DBUs queimam até o crash.
+    Esse é o spend que o ciclo FinOps clássico (visibility → allocation →
+    optimization) ataca primeiro.
+
+    Fonte: silver.finops_run_costs.
+    """,
+    {
+        "job_id":             "Databricks job_id",
+        "run_id":             "Databricks job_run_id",
+        "job_name":           "Display name original do job",
+        "job_name_canonical": "Job name SEM prefixo `[dev <user>]` — agrupa "
+                              "dev/prod do mesmo job para ranking lifetime.",
+        "result_state":       "Desfecho ∈ {SUCCEEDED, ERROR, CANCELLED, UNKNOWN}",
+        "is_wasted":          "TRUE se result_state ∈ {ERROR, CANCELLED}. "
+                              "MÉTRICA-CHAVE: spend não-produtivo.",
+        "cost_bucket":        "Faixa: micro<$0.10, small<$0.50, medium<$2, large≥$2",
+        "billed_minutes":     "Duração faturada",
+        "dbus":               "DBUs consumidas",
+        "cost_usd":           "Custo USD",
+        "is_serverless":      "Compute serverless",
+        "is_photon":          "Photon habilitado",
+        "day":                "Data do primeiro billing record",
+    },
+    {
+        "layer":           "gold",
+        "domain":          "finops",
+        "grain":           "job_run",
+        "pk_grain":        "job_id,run_id",
+        "pii":             "false",
+        "refresh_cadence": "diaria",
+        "currency":        "USD",
+        "wp_referenced":   "WP8",
+        "consumer":        "front_end_jsonexport",
+    },
+)
+
+enrich(
+    f"{CATALOG}.gold.finops_daily_spend",
+    """
+    Mirante FinOps · série diária pivoteada por produto, com totais agregados
+    e cumulativo lifetime.
+
+    Schema (1 linha por usage_date):
+    - `cost_jobs`, `cost_sql`, `cost_interactive`, `cost_dlt` (chargeable)
+    - `cost_networking`, `cost_storage`, `cost_pred_opt` (overhead)
+    - `cost_chargeable_total`, `cost_overhead_total`, `cost_total`
+    - `dbus_total` (DBUs do dia, qualquer produto)
+    - `cost_total_cumulative` (soma running de cost_total ao longo do histórico)
+
+    Útil para:
+    - Charts temporais (área empilhada chargeable/overhead)
+    - Cálculo de run-rate de storage ($/dia × 30 = mensal)
+    - Identificação de spike days (cost_total >> p95)
+
+    Fonte: silver.finops_daily_spend (pivoteado).
+    """,
+    {
+        "usage_date":             "Data UTC",
+        "cost_jobs":              "USD em JOBS (workloads tagueados a job_run_id)",
+        "cost_sql":               "USD em SQL warehouses",
+        "cost_interactive":       "USD em clusters interativos (notebooks ad-hoc)",
+        "cost_dlt":               "USD em DLT pipelines",
+        "cost_networking":        "USD em networking de compute serverless (egress) — overhead",
+        "cost_storage":           "USD em DEFAULT_STORAGE (managed storage da Free Edition) — overhead. "
+                                  "MÉTRICA-CHAVE: storage cobra continuamente — é o único produto "
+                                  "que acumula custo mesmo sem o usuário rodar nada.",
+        "cost_pred_opt":          "USD em PREDICTIVE_OPTIMIZATION (auto-vacuum/optimize) — overhead",
+        "cost_chargeable_total":  "Σ cost_jobs + cost_sql + cost_interactive + cost_dlt",
+        "cost_overhead_total":    "Σ cost_networking + cost_storage + cost_pred_opt",
+        "cost_total":             "cost_chargeable_total + cost_overhead_total",
+        "dbus_total":             "DBUs consumidas no dia (qualquer produto)",
+        "cost_total_cumulative":  "Soma running de cost_total ao longo do histórico — "
+                                  "resposta direta a 'quanto gastei desde sempre?'",
+    },
+    {
+        "layer":           "gold",
+        "domain":          "finops",
+        "grain":           "day",
+        "pk_grain":        "usage_date",
+        "pii":             "false",
+        "refresh_cadence": "diaria",
+        "currency":        "USD",
+        "wp_referenced":   "WP8",
+        "consumer":        "front_end_jsonexport",
+    },
+)
+
+
+# =====================================================================
 # Done
 # =====================================================================
 print("\n✔ Catalog metadata applied.")

@@ -1,0 +1,1007 @@
+% =====================================================================
+% Mirante dos Dados — Working Paper #8
+% Custo real de operar uma plataforma de dados públicos no Databricks
+% Free Edition: visibilidade fim-a-fim a partir de system tables
+% (junho/2025 a abril/2026)
+%
+% Autor: Leonardo Chalhoub
+% Versão: 1.0 — Abril de 2026
+% Compilação: pdflatex articles/finops-plataforma-dados-publicos.tex (2x)
+% =====================================================================
+
+\documentclass[12pt,a4paper,oneside]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazilian]{babel}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[section]{placeins}
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,
+            urlcolor=blue!60!black,
+            linkcolor=black,
+            citecolor=black,
+            breaklinks=true]{hyperref}
+\usepackage{url}
+\usepackage{xurl}
+\Urlmuskip=0mu plus 1mu\relax
+\usepackage{float}
+\usepackage{tcolorbox}
+
+\graphicspath{{figures-finops/}}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+\titleformat{\section}{\normalfont\bfseries\large\uppercase}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+
+\captionsetup[table]{labelfont=bf,name=Tabela,labelsep=endash,
+                     position=above,justification=centering,font=small}
+\captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
+                      position=below,justification=centering,font=small}
+\captionsetup{skip=6pt}
+
+\newcommand{\us}{US\$\,}
+
+\input{compile-stamp}
+
+\begin{document}
+
+% ---------- CAPA ---------------------------------------------------------
+\begin{titlepage}
+  \begin{center}
+    \vspace*{1.5cm}
+    {\small\textsc{Working Paper n. 8}}\\
+    {\small Versão 1.0 \textemdash{} Abril de 2026}\\[2pt]
+    {\footnotesize Compilada em \COMPILESTAMP\ \textbullet\ \texttt{\COMPILESHA}}
+
+    \vfill
+
+    {\LARGE\bfseries
+     CUSTO REAL DE OPERAR UMA PLATAFORMA
+
+     DE DADOS PÚBLICOS NO
+
+     DATABRICKS FREE EDITION:
+
+     VISIBILIDADE FIM-A-FIM A PARTIR DE
+
+     \textit{SYSTEM TABLES} (JUNHO/2025\textendash ABRIL/2026)}
+
+    \vspace{1cm}
+    {\large\itshape
+     Real cost of operating a public-data platform on Databricks
+     Free Edition: end-to-end visibility from system tables
+     (June 2025\textendash April 2026)}
+
+    \vfill
+
+    {\large\textbf{Leonardo Chalhoub}}\\[4pt]
+    {\small Pesquisador independente \textemdash{} engenharia de dados,
+     governança de custo (\textit{FinOps}), arquitetura
+     \textit{lakehouse} e instrumentação de \textit{pipelines}.}\\[2pt]
+    {\small\href{mailto:leonardochalhoub@gmail.com}{leonardochalhoub@gmail.com}}\\
+    {\small\href{https://github.com/leonardochalhoub/mirante-dos-dados-br}{github.com/leonardochalhoub/mirante-dos-dados-br}}
+
+    \vfill
+
+    {\small Brasil \\ Abril de 2026}
+  \end{center}
+\end{titlepage}
+
+% ---------- RESUMO -------------------------------------------------------
+\section*{Resumo}
+\addcontentsline{toc}{section}{Resumo}
+\begin{singlespace}\small\noindent
+A literatura sobre arquiteturas \textit{lakehouse} e plataformas
+\textit{cloud-native} concentra-se em desempenho e governança;
+estudos do \textit{custo real} de operar uma plataforma pequena, em
+nível indivíduo \textit{single-developer}, são escassos. Este
+\textit{working paper} apresenta auditoria fim-a-fim do gasto de
+uma plataforma de dados públicos brasileiros, autônoma e
+\textit{open-source}, hospedada no Databricks Free Edition,
+abrangendo a janela completa entre 11 de junho de 2025 e 28 de
+abril de 2026 (\textbf{322 dias contínuos, sem lacunas}).
+\textbf{Materiais e métodos.} A fonte primária é constituída pelas
+\textit{system tables} gerenciadas pelo Databricks
+(\texttt{system.billing.usage}, \texttt{system.billing.list\_prices},
+\texttt{system.lakeflow.job\_run\_timeline}). O custo de cada
+registro de \textit{billing} é calculado como
+\(\text{cost} = \text{usage\_quantity}_{\mathrm{DBU}} \times
+\text{list\_price}_{\mathrm{USD/DBU}}\), onde \texttt{list\_price} é
+versionado no tempo: para cada \textit{record} de uso, recupera-se a
+linha de preço cuja janela
+\([\text{price\_start\_time}, \text{price\_end\_time})\) contém
+\texttt{usage\_start\_time}, casando \((\text{sku\_name},
+\text{cloud}, \text{usage\_unit})\). O \textit{ledger} resultante
+é materializado como duas tabelas Delta em camada \textit{silver}
+(\texttt{finops\_run\_costs}, granularidade
+\(\langle\text{job\_id, run\_id}\rangle\); \texttt{finops\_daily\_spend},
+granularidade \(\langle\text{usage\_date, product, workload\_class}\rangle\))
+e um par \textit{gold} agregado para consumo por \textit{front-end}.
+\textbf{Achados.} O custo total da janela é \us 69{,}99,
+distribuídos em 504,00 DBUs e 91 \textit{job runs} registradas. A
+divisão por produto da Databricks revela \us 36{,}03 (51,5\,\%) em
+\texttt{JOBS}, \us 16{,}33 (23,3\,\%) em \texttt{SQL warehouses},
+\us 6{,}66 (9,5\,\%) em \texttt{NETWORKING}, \us 5{,}09 (7,3\,\%) em
+\texttt{DEFAULT\_STORAGE}, \us 4{,}92 (7,0\,\%) em
+clusters interativos, \us 0{,}82 (1,2\,\%) em \textit{predictive
+optimization} e \us 0{,}14 (0,2\,\%) em DLT.
+\textbf{O achado-chave é a fração de \textit{wasted spend}}: do
+gasto atribuível a \textit{job runs} (\us 36{,}03), apenas
+\us 16{,}62 (46,1\,\%) corresponde a execuções bem-sucedidas; os
+demais \textbf{\us 19{,}41 (53,9\,\%)} foram consumidos em
+\textit{runs} que falharam (30 execuções, \us 11{,}72) ou foram
+canceladas (30 execuções, \us 7{,}69). DBUs continuam sendo
+faturadas até o crash ou o cancelamento manual. O \textit{run rate}
+mensal de \textit{storage} (\texttt{DEFAULT\_STORAGE}), pro-rateado
+pelos 19 dias com cobrança ativa, é \us 8{,}01/mês
+(\us 0{,}267/dia), com projeção anual de \us 97{,}40. Pro-rateando
+esse \textit{storage} pela participação em \textit{bytes} de cada
+\textit{vertical} em \textit{bronze}, a maior fatia recai sobre o
+\textit{vertical} \textit{Bolsa Família} (~99\,\% dos \textit{bytes}
+de \textit{bronze}, \(\sim\)\us 7{,}90/mês de \textit{storage}
+imputado). \textbf{Discussão e contribuição.} O \textit{paper}
+documenta um padrão arquitetural simples (\textit{system tables}
+como \textit{bronze} para a vertical FinOps, derivada por
+\textit{batch overwrite} \textit{silver}/\textit{gold}, exposta via
+JSON estático ao \textit{front-end}) que torna a auditoria de custo
+ao nível indivíduo um subproduto do \textit{lakehouse}, não uma
+ferramenta separada. A magnitude do \textit{wasted spend}
+(\(>\!50\,\%\) do gasto em \textit{jobs}) reproduz, em escala
+individual, padrões reportados pela literatura cinza FinOps em
+ambientes empresariais maiores, sugerindo que o ciclo
+\textit{visibility \textrightarrow{} allocation \textrightarrow{}
+optimization} é estruturalmente independente de escala. O
+\textit{pipeline} é \textit{open-source} e o \textit{ledger}
+versionado é publicado junto com este \textit{working paper}.
+
+\vspace{0.4cm}\noindent\textbf{Palavras-chave:}
+governança de custo em nuvem; \textit{FinOps}; \textit{lakehouse};
+Databricks; \textit{system tables}; \textit{wasted spend};
+arquitetura \textit{medallion}; observabilidade de \textit{pipelines};
+Delta Lake; \textit{billing-driven engineering}.
+\end{singlespace}
+
+% ---------- ABSTRACT -----------------------------------------------------
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\begin{singlespace}\small\noindent
+The literature on \textit{lakehouse} architectures and cloud-native
+data platforms focuses on performance and governance; studies of the
+\textit{actual cost} of operating a small, single-developer platform
+are scarce. This \textit{working paper} presents an end-to-end audit
+of the spend of an open-source Brazilian public-data platform
+hosted on Databricks Free Edition, covering the full window between
+11 June 2025 and 28 April 2026 (\textbf{322 contiguous days,
+no gaps}). \textbf{Methods.} The primary data source is the
+Databricks-managed \textit{system tables}
+(\texttt{system.billing.usage}, \texttt{system.billing.list\_prices},
+\texttt{system.lakeflow.job\_run\_timeline}). Per-record cost is
+\(\text{cost} = \text{usage\_quantity}_{\mathrm{DBU}} \times
+\text{list\_price}_{\mathrm{USD/DBU}}\) with time-versioned price
+joined on the interval that contains \texttt{usage\_start\_time}
+(matching SKU, cloud and unit). The resulting ledger is materialized
+in two Delta \textit{silver} tables and two \textit{gold}
+aggregates feeding a static JSON consumed by the front-end.
+\textbf{Findings.} Total window spend is \us 69.99 over 504.00 DBUs
+and 91 job runs. Product split: \us 36.03 \texttt{JOBS} (51.5\,\%),
+\us 16.33 \texttt{SQL} warehouses, \us 6.66 \texttt{NETWORKING},
+\us 5.09 \texttt{DEFAULT\_STORAGE}, \us 4.92 interactive clusters,
+\us 0.82 \textit{predictive optimization}, \us 0.14 DLT. Headline
+finding: of the \textit{job} spend (\us 36.03), only \us 16.62
+(46.1\,\%) corresponds to successful runs; \textbf{\us 19.41
+(53.9\,\%)} was consumed by failed (30 runs, \us 11.72) or cancelled
+(30 runs, \us 7.69) executions, since DBUs are billed until the
+crash or manual cancellation. Storage run rate is \us 8.01/month
+(\us 0.267/day; \us 97.40/year projection). Pro-rating storage by
+each vertical's share of \textit{bronze bytes}, the
+\textit{Bolsa Família} vertical absorbs almost the entire share
+($\sim$99\,\%, $\sim$\us 7.90/month). \textbf{Discussion.} The
+paper documents a simple architectural pattern (system tables as
+bronze for a FinOps vertical, batch-overwritten silver/gold, served
+via static JSON to the front) that makes individual-level cost
+auditing a byproduct of the lakehouse rather than a separate tool.
+The magnitude of wasted spend ($>$50\,\% of job spend) mirrors,
+at individual scale, FinOps grey-literature findings in larger
+enterprise contexts, suggesting that the
+\textit{visibility \textrightarrow{} allocation \textrightarrow{}
+optimization} cycle is structurally scale-invariant. The pipeline
+is open-source and the versioned ledger is published with this
+paper.
+
+\vspace{0.4cm}\noindent\textbf{Keywords:}
+cloud cost governance; FinOps; lakehouse; Databricks; system tables;
+wasted spend; medallion architecture; pipeline observability;
+Delta Lake; billing-driven engineering.
+\end{singlespace}
+
+\newpage
+
+% ---------- 1. INTRODUÇÃO ------------------------------------------------
+\section{Introdução}
+
+A literatura técnica sobre arquiteturas \textit{lakehouse} é
+abundante em três frentes: \textit{benchmarks} de desempenho entre
+formatos abertos como Delta Lake, Apache Iceberg e Apache Hudi
+(ARMBRUST et al., 2021); padrões de governança via Unity Catalog,
+\textit{table-level RBAC} e \textit{data contracts}
+(DATABRICKS, 2024); e padrões arquiteturais como o \textit{medallion}
+(\textit{bronze} \textrightarrow{} \textit{silver}
+\textrightarrow{} \textit{gold}) e \textit{data mesh}. Entretanto,
+o estudo do \textit{custo monetário real} de operar uma plataforma
+de pequeno porte permanece sub-documentado, especialmente em
+ambientes de desenvolvimento individual ou de pesquisa
+\textit{single-developer}.
+
+A literatura cinza de \textit{FinOps} \textemdash{} originada na
+prática profissional do FinOps Foundation (FINOPS FOUNDATION, 2023)
+\textemdash{} reporta sistematicamente que organizações que adotam
+plataformas \textit{cloud-native} sem governança específica de
+custo desperdiçam entre 30\,\% e 35\,\% do gasto total
+(FLEXERA, 2024). Esses números são produzidos em ambientes
+empresariais com dezenas a milhares de \textit{users}, e geralmente
+são derivados de pesquisas auto-reportadas ou de auditorias internas
+não-públicas. Resta em aberto: o mesmo padrão emerge em escala
+individual? Um \textit{single developer} responsável pela ingestão,
+transformação e \textit{export} de microdados públicos brasileiros
+gera \textit{wasted spend} similar?
+
+Este \textit{working paper} responde com auditoria fim-a-fim de
+uma plataforma específica: o conjunto de \textit{pipelines}
+\textit{open-source} responsável pela transformação reproduzível
+de microdados públicos brasileiros (Bolsa Família via Portal da
+Transparência da CGU; equipamentos médicos via DATASUS/CNES;
+emendas parlamentares via CGU; vínculos formais via PDET/MTE; AIH
+hospitalares via DATASUS/SIH-RD) hospedados no plano gratuito do
+Databricks (\textit{Free Edition}). A janela de observação cobre
+\textbf{322 dias contínuos, sem lacunas} \textemdash{} 100\,\% do
+histórico operacional desde a primeira execução de \textit{job}
+(11 de junho de 2025) até a data de compilação deste artigo
+(28 de abril de 2026).
+
+A contribuição metodológica é a demonstração de que o
+\textit{Single Source of Truth} de custo \textemdash{} as
+\textit{system tables} mantidas pelo próprio provedor cloud
+\textemdash{} pode ser materializado como \textit{vertical}
+adicional dentro da mesma arquitetura \textit{medallion} já
+operacional, com \textit{bronze} ``virtual'' (referência direta à
+\texttt{system.billing.usage}), \textit{silver} de granularidade
+fina (uma linha por \textit{job run}) e \textit{gold} pivotada para
+consumo via \textit{front-end} estático. A auditoria de custo
+torna-se subproduto natural da \textit{platform engineering},
+não ferramenta externa requerendo \textit{agents},
+\textit{exporters} ou \textit{scrape-and-store} de APIs proprietárias.
+
+A contribuição empírica é o relato detalhado, em granularidade de
+\textit{job-run} individual, do gasto desta plataforma específica.
+O resultado-chave \textemdash{} \textbf{53,9\,\% do gasto em
+\textit{jobs} foi consumido por \textit{runs} que falharam ou foram
+canceladas} \textemdash{} é a primeira contribuição quantitativa
+deste \textit{paper}.
+
+\subsection*{Estrutura do artigo}
+
+A Seção~\ref{sec:methods} descreve a fonte de dados (\textit{system
+tables}), o algoritmo de \textit{pricing} versionado no tempo, a
+arquitetura \textit{silver}/\textit{gold} e o processo de
+\textit{export} JSON. A Seção~\ref{sec:results} apresenta os
+achados em sete subseções: panorama agregado, série temporal
+diária, \textit{breakdown} por produto, análise de
+\textit{wasted spend}, custo por \textit{job}, perfil das
+\textit{runs} mais caras, e \textit{run rate} de \textit{storage}
+com pro-rate por \textit{vertical}. A Seção~\ref{sec:discussion}
+discute o padrão arquitetural emergente
+(\textit{billing-driven engineering}), as limitações da auditoria
+e a implicação geral. A Seção~\ref{sec:limits} consolida limitações
+metodológicas. A Seção~\ref{sec:reproducibility} fecha com a
+\textit{checklist} de reprodutibilidade. A bibliografia adota o
+padrão ABNT NBR~6023, estendido com URLs absolutas e \textit{access
+timestamps} para todas as fontes \textit{web}.
+
+% ---------- 2. MATERIAIS E MÉTODOS --------------------------------------
+\section{Materiais e métodos}\label{sec:methods}
+
+\subsection{Fonte de dados: \textit{system tables} do Databricks}
+
+A Databricks expõe, no esquema \texttt{system}, três famílias de
+\textit{system tables} relevantes a esta auditoria:
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item \texttt{system.billing.usage} \textemdash{} um \textit{record}
+        por par \(\langle\text{recurso, hora}\rangle\), com colunas
+        \texttt{usage\_quantity} (em DBUs), \texttt{usage\_unit},
+        \texttt{usage\_start\_time}, \texttt{usage\_end\_time},
+        \texttt{sku\_name}, \texttt{cloud},
+        \texttt{usage\_metadata} (\textit{struct} com
+        \texttt{job\_id}, \texttt{job\_run\_id}, \texttt{job\_name},
+        \texttt{cluster\_id}, etc.) e
+        \texttt{product\_features} (\textit{struct} com
+        \texttt{is\_serverless}, \texttt{is\_photon}, etc.).
+  \item \texttt{system.billing.list\_prices} \textemdash{} preços
+        unitários (USD por DBU) versionados no tempo, com
+        \texttt{price\_start\_time} e \texttt{price\_end\_time}
+        (este último \texttt{NULL} para o preço corrente);
+  \item \texttt{system.lakeflow.job\_run\_timeline} \textemdash{}
+        uma linha por \textit{job run} (incluindo \textit{state
+        transitions}), com \texttt{result\_state}
+        (\texttt{SUCCEEDED}, \texttt{FAILED} \textemdash{} aliás
+        \texttt{ERROR} no \textit{billing} \textemdash{},
+        \texttt{CANCELLED}, etc.) e \texttt{period\_start\_time} /
+        \texttt{period\_end\_time}.
+\end{itemize}
+
+Estas tabelas são gerenciadas pelo provedor: novas linhas são
+inseridas continuamente com latência aproximada de uma hora para
+\texttt{system.billing.usage}; \texttt{job\_run\_timeline} é
+quase em tempo real após a \textit{run} terminar. O acesso é
+\textit{read-only}.
+
+\subsection{Algoritmo de \textit{pricing} versionado no tempo}
+
+Para cada registro \(r\) de \texttt{system.billing.usage}, o custo
+em USD é calculado como
+\[
+  \text{cost}(r)
+  \;=\;
+  \text{usage\_quantity}(r) \;\times\; \pi\!\bigl(\text{sku\_name}(r),
+  \text{cloud}(r), \text{usage\_unit}(r),
+  \text{usage\_start\_time}(r)\bigr),
+\]
+onde \(\pi(\cdot)\) é a função que recupera o preço unitário válido
+no instante \texttt{usage\_start\_time}(r) a partir de
+\texttt{system.billing.list\_prices}, condicionado a igualdade dos
+três identificadores de SKU. Operacionalmente, isso corresponde ao
+\textit{join} relacional
+\begin{tcolorbox}[colback=gray!5,colframe=gray!40,boxrule=0.4pt,
+                  arc=2pt,left=8pt,right=8pt,top=4pt,bottom=4pt]
+\small\ttfamily
+LEFT JOIN system.billing.list\_prices lp \\
+\hspace*{1.5em}ON \ lp.sku\_name \ = u.sku\_name \\
+\hspace*{2.5em}AND lp.cloud \ \ = u.cloud \\
+\hspace*{2.5em}AND lp.usage\_unit = u.usage\_unit \\
+\hspace*{2.5em}AND u.usage\_start\_time \(\geq\) lp.price\_start\_time \\
+\hspace*{2.5em}AND (lp.price\_end\_time IS NULL \\
+\hspace*{4em}OR \ u.usage\_start\_time \(<\) lp.price\_end\_time)
+\end{tcolorbox}
+
+\noindent A semântica de intervalo é \([\text{start}, \text{end})\):
+o limite superior é exclusivo. O preço \texttt{NULL} no extremo
+superior indica preço corrente sem revisão posterior; o predicado
+\(\text{is null} \;\text{OR}\; r.\text{start} < \text{end}\) cobre
+ambos os casos.
+
+\subsection{Arquitetura \textit{silver}/\textit{gold}}
+
+A vertical FinOps materializa quatro tabelas Delta no
+\textit{catálogo} \texttt{mirante\_prd}:
+
+\begin{itemize}\setlength{\itemsep}{4pt}
+  \item \texttt{silver.finops\_run\_costs} \textemdash{} grão
+        \(\langle\text{job\_id, run\_id}\rangle\). Agrega \textit{records}
+        de \texttt{system.billing.usage} filtrados por
+        \texttt{job\_run\_id} \texttt{IS NOT NULL}, junta com
+        \texttt{system.lakeflow.job\_run\_timeline} para recuperar
+        \texttt{result\_state}, \texttt{period\_start\_time} e
+        \texttt{period\_end\_time}. Colunas: \texttt{job\_id},
+        \texttt{run\_id}, \texttt{job\_name}, \texttt{run\_name},
+        \texttt{result\_state}, \texttt{started\_at},
+        \texttt{ended\_at}, \texttt{billed\_minutes},
+        \texttt{dbus}, \texttt{cost\_usd}, \texttt{primary\_sku},
+        \texttt{is\_serverless}, \texttt{is\_photon}, \texttt{day}.
+
+  \item \texttt{silver.finops\_daily\_spend} \textemdash{} grão
+        \(\langle\text{usage\_date, product, workload\_class,
+        is\_serverless}\rangle\). Inclui \textbf{todos} os
+        \textit{records} de \textit{billing} (não apenas os
+        tagueados a \textit{job runs}), classificando cada produto
+        em \textit{chargeable} (\texttt{JOBS}, \texttt{SQL},
+        \texttt{INTERACTIVE}, \texttt{DLT}) ou \textit{overhead}
+        (\texttt{NETWORKING}, \texttt{DEFAULT\_STORAGE},
+        \texttt{PREDICTIVE\_OPTIMIZATION}). A distinção é
+        operacional: \textit{chargeable} é diretamente atribuível
+        a um \textit{job} ou \textit{warehouse}; \textit{overhead}
+        é custo de plataforma sem \texttt{run\_id}, geralmente
+        rateado proporcionalmente entre consumidores.
+
+  \item \texttt{gold.finops\_run\_costs} \textemdash{} cópia
+        enriquecida do \textit{silver} de mesmo nome. Adiciona
+        \texttt{job\_name\_canonical} (com remoção do prefixo
+        \texttt{[dev <user>]} para agrupar \textit{dev}/\textit{prod}
+        \textit{runs} do mesmo \textit{job}), \texttt{is\_wasted}
+        (\texttt{TRUE} se \texttt{result\_state} \(\in\)
+        \(\{\texttt{ERROR}, \texttt{CANCELLED}\}\)) e
+        \texttt{cost\_bucket} (categoriza em
+        \texttt{micro} \(<\) \us 0{,}10, \texttt{small} \(<\)
+        \us 0{,}50, \texttt{medium} \(<\) \us 2{,}00,
+        \texttt{large} \(\geq\) \us 2{,}00).
+
+  \item \texttt{gold.finops\_daily\_spend} \textemdash{} série
+        diária pivoteada por produto, com colunas
+        \texttt{cost\_jobs}, \texttt{cost\_sql},
+        \texttt{cost\_interactive}, \texttt{cost\_dlt},
+        \texttt{cost\_networking}, \texttt{cost\_storage},
+        \texttt{cost\_pred\_opt}; agrega
+        \texttt{cost\_chargeable\_total},
+        \texttt{cost\_overhead\_total}, \texttt{cost\_total}; e
+        deriva \texttt{cost\_total\_cumulative} (soma
+        \textit{running} ao longo do histórico, via \textit{window
+        function} \texttt{ROWS BETWEEN UNBOUNDED PRECEDING AND
+        CURRENT ROW}).
+\end{itemize}
+
+A política de escrita é \texttt{overwrite} idempotente: cada
+execução do \textit{job} \texttt{job\_finops\_refresh} reconstrói
+as quatro tabelas a partir do estado corrente das \textit{system
+tables}. Não há \textit{state} acumulado entre execuções; a única
+informação histórica é o próprio \texttt{system.billing.usage},
+mantido pelo provedor.
+
+\subsection{\textit{Export} JSON e consumo \textit{front-end}}
+
+Um \textit{notebook} de \textit{export}
+(\texttt{export.finops\_summary\_json}) lê as duas tabelas
+\textit{gold}, computa KPIs derivados em \textit{pandas}
+(\textit{wasted spend} por desfecho, \textit{run rate} de
+\textit{storage}, distribuição por produto, \textit{top-N} \textit{jobs}
+e \textit{runs}, percentil 95 do custo por \textit{run}) e grava um
+único objeto JSON em volume gerenciado, copiado para o repositório
+\textit{open-source} via \textit{job} de sincronização. O
+\textit{front-end} estático (React + Vite) renderiza a página
+FinOps consumindo apenas esse JSON; nenhum acesso ao Databricks
+ocorre em tempo de leitura pelo público.
+
+\subsection{Janela de observação e completude}
+
+A janela de observação cobre 11 de junho de 2025 a 28 de abril de
+2026 \textemdash{} \(\mathbf{n = 322}\) dias contínuos. O dia
+inicial (\(d_0 = 11/06/2025\)) corresponde ao primeiro registro
+em \texttt{system.billing.usage} para o \textit{workspace} desta
+plataforma, registrando custo em \texttt{DEFAULT\_STORAGE}. A
+plataforma só passou a ter execuções de \textit{job} a partir de
+abril de 2026, o que explica a concentração temporal extrema
+discutida na Seção~\ref{sec:results}.
+
+% ---------- 3. RESULTADOS -----------------------------------------------
+\section{Resultados}\label{sec:results}
+
+\subsection{Panorama agregado}
+
+Na janela completa de 322 dias, foram registradas 91 execuções de
+\textit{job} consumindo 503,99 DBUs, totalizando \us 69{,}99
+em custo lifetime (Tabela~\ref{tab:overview}). A concentração
+temporal é extrema: a quase totalidade do gasto ocorreu nos
+\(\sim\)20 dias do mês de abril de 2026 (\us 69{,}48 nos últimos
+30 dias; \us 64{,}15 nos últimos 7 dias \textemdash{} 91,7\,\% e
+84,7\,\% do total \textit{lifetime}, respectivamente). A janela
+completa antes desse pico observa apenas custos contínuos de
+\textit{storage} e tráfego ocasional de \textit{warehouses}.
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Panorama agregado da plataforma}, 11/06/2025
+        \textendash{} 28/04/2026 (\(n = 322\) dias).}
+\label{tab:overview}
+\begin{tabular}{lr}
+\toprule
+\textbf{Métrica} & \textbf{Valor} \\
+\midrule
+Custo total \textit{lifetime}                         & \us 69{,}99 \\
+Custo últimos 30 dias                                 & \us 69{,}48 \\
+Custo últimos 7 dias                                  & \us 64{,}15 \\
+DBUs consumidas (\textit{lifetime})                   & 503,99 \\
+Job \textit{runs} registradas                         & 91 \\
+Custo médio por \textit{run}                          & \us 0{,}40 \\
+Percentil 95 do custo por \textit{run}                & \us 1{,}49 \\
+\textit{Run} mais cara registrada                     & \us 3{,}01 \\
+Participação \textit{chargeable} no total             & 82,0\,\% \\
+Participação \textit{overhead} no total               & 18,0\,\% \\
+\textit{Wasted spend} (\textit{ERROR + CANCELLED})    & \us 19{,}41 \\
+\textit{Wasted} \% do gasto em \textit{jobs}          & 53,9\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{\textit{Breakdown} por produto}
+
+A Tabela~\ref{tab:byproduct} apresenta a decomposição por produto
+da Databricks. Quatro padrões emergem.
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Custo \textit{lifetime} por produto Databricks}.
+        \textit{Workload-class} divide custo em
+        \textit{chargeable} (código do usuário) vs.\ \textit{overhead}
+        (plataforma).}
+\label{tab:byproduct}
+\begin{tabular}{lcrr}
+\toprule
+\textbf{Produto} & \textbf{Classe} & \textbf{Custo (USD)} & \textbf{Share} \\
+\midrule
+\texttt{JOBS}                       & \textit{chargeable} & 36,03 & 51,5\,\% \\
+\texttt{SQL}                        & \textit{chargeable} & 16,33 & 23,3\,\% \\
+\texttt{NETWORKING}                 & \textit{overhead}   & \phantom{0}6,66 & \phantom{0}9,5\,\% \\
+\texttt{DEFAULT\_STORAGE}           & \textit{overhead}   & \phantom{0}5,09 & \phantom{0}7,3\,\% \\
+\texttt{INTERACTIVE}                & \textit{chargeable} & \phantom{0}4,92 & \phantom{0}7,0\,\% \\
+\texttt{PREDICTIVE\_OPTIMIZATION}   & \textit{overhead}   & \phantom{0}0,82 & \phantom{0}1,2\,\% \\
+\texttt{DLT}                        & \textit{chargeable} & \phantom{0}0,14 & \phantom{0}0,2\,\% \\
+\midrule
+\textbf{Total}                      & \textemdash{}       & \textbf{69,99} & \textbf{100,0\,\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Primeiro, \texttt{JOBS} domina o gasto (51,5\,\%), refletindo a
+arquitetura \textit{batch overwrite} adotada nos cinco
+\textit{verticais} de microdados públicos. Segundo, \texttt{SQL
+warehouses} contribui 23,3\,\% mesmo com uso ad-hoc, indicando que
+operações de exploração (\texttt{DESCRIBE DETAIL},
+\texttt{SHOW HISTORY}, \textit{queries} de validação) acumulam
+custo não-trivial mesmo com \textit{auto-stop} agressivo (10
+minutos). Terceiro, \texttt{INTERACTIVE} (\textit{notebooks}
+ad-hoc fora de \textit{jobs}) responde por 7,0\,\%
+\textemdash{} explorações manuais para investigar \textit{jobs}
+quebrados. Quarto, a soma de \textit{overhead}
+(\texttt{NETWORKING} \(+\) \texttt{DEFAULT\_STORAGE} \(+\)
+\texttt{PREDICTIVE\_OPTIMIZATION}) atinge 18,0\,\% do total,
+caracterizando custo estrutural da plataforma independente da
+intensidade de uso.
+
+\subsection{Análise do desfecho das \textit{runs}: \textit{wasted spend}}
+
+A Tabela~\ref{tab:byoutcome} é a contribuição central deste
+\textit{paper}. Das 91 \textit{job runs} registradas, 31 (34,1\,\%)
+foram bem-sucedidas, 30 (33,0\,\%) falharam (\texttt{ERROR}) e 30
+(33,0\,\%) foram canceladas (\texttt{CANCELLED}). A divisão de custo
+não respeita essa proporção: \textit{runs} bem-sucedidas
+consumiram apenas 46,1\,\% do gasto em \textit{jobs}, enquanto
+\textit{runs} falhas e canceladas consumiram 32,5\,\% e 21,3\,\%,
+respectivamente \textemdash{} \textbf{53,9\,\% de \textit{wasted
+spend}}.
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Custo \textit{lifetime} por desfecho de \textit{run}}.
+        Custo médio por \textit{run} e duração média também listados.
+        Total de \textit{job} \textit{runs}: 91.}
+\label{tab:byoutcome}
+\begin{tabular}{lcrrrr}
+\toprule
+\textbf{Desfecho}        & \textbf{N} & \textbf{Custo (USD)} & \textbf{Share \%} & \textbf{Médio (USD)} & \textbf{Min/run} \\
+\midrule
+\texttt{SUCCEEDED}       & 31         & 16,62                & 46,1              & 0,54                 & 21,8 \\
+\texttt{ERROR}           & 30         & 11,72                & 32,5              & 0,39                 & 22,9 \\
+\texttt{CANCELLED}       & 30         & \phantom{0}7,69      & 21,3              & 0,26                 & 50,6 \\
+\midrule
+\textbf{Total}           & \textbf{91} & \textbf{36,03}      & \textbf{100,0}    & \textbf{0,40}        & \textbf{31,8} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A duração média da \textit{run} cancelada (50,6 minutos) é
+2,3$\times$ a da \textit{run} bem-sucedida (21,8 minutos), o que
+sugere que cancelamentos ocorreram em \textit{jobs} que travaram
+ou se tornaram intoleravelmente lentos, não em decisões precoces
+de abortar. \textit{Runs} falhas têm duração média próxima da
+mediana de execução com sucesso (22,9 vs.\ 21,8 minutos), o que é
+consistente com falhas em \textit{tasks} próximos do fim do DAG
+\textemdash{} um \textit{export} de JSON falhando após \textit{silver}
+e \textit{gold} terem rodado, por exemplo. Cada hipótese é
+verificável diretamente no \textit{ledger} \textit{silver}; este
+\textit{paper} se limita a documentar a magnitude do desperdício.
+
+A leitura econômica é direta: \textbf{quase 54\,\% de cada dólar
+gasto em \textit{jobs} resultou em DBUs queimadas sem entregar valor
+de \textit{output}}. Em escala individual, isso equivale a
+\us 19{,}41; em escala empresarial onde gasto em \textit{jobs}
+atinge dezenas de milhares de dólares ao mês, a magnitude do
+\textit{wasted spend} sob a mesma proporção seria substancial.
+
+\subsection{Custo por \textit{job}}
+
+A Tabela~\ref{tab:byjob} apresenta os cinco \textit{jobs} mais
+caros do \textit{lifetime}, agrupando \textit{dev}/\textit{prod}
+\textit{runs} via \texttt{job\_name\_canonical}.
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Top-5 \textit{jobs} por custo \textit{lifetime}}.
+        \textit{Wasted} \% é a fração do custo do próprio \textit{job}
+        que recai em \textit{runs} \texttt{ERROR}/\texttt{CANCELLED}.}
+\label{tab:byjob}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Job}                            & \textbf{Runs} & \textbf{Custo (USD)} & \textbf{Médio (USD)} & \textbf{Wasted (USD)} & \textbf{Wasted \%} \\
+\midrule
+refresh PBF                             & 8             & 9,68                 & 1,21                  & 4,75                  & 49,1 \\
+\textit{manual silver}\(\to\)\textit{gold equipamentos} & 8 & 8,70    & 1,09                  & \textemdash{}          & \textemdash{} \\
+refresh RAIS                            & 30            & 6,57                 & 0,22                  & \textemdash{}          & \textemdash{} \\
+refresh Equipamentos                    & 13            & 5,01                 & 0,39                  & \textemdash{}          & \textemdash{} \\
+refresh UroPro                          & \phantom{0}5   & 2,69                & 0,54                  & \textemdash{}          & \textemdash{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O \textit{job} \texttt{refresh PBF} concentra simultaneamente o
+maior custo \textit{lifetime} (\us 9{,}68), o maior custo médio por
+\textit{run} (\us 1{,}21) e o maior custo absoluto desperdiçado
+(\us 4{,}75 em três \textit{runs} \texttt{ERROR}). Esse padrão
+reflete a arquitetura específica do \textit{vertical} Bolsa Família
+\textemdash{} o \textit{bronze} concentra 2,5 bilhões de linhas e
+\(\sim\)42 GB de Delta storage; cada execução do DAG completo
+re-processa essa massa.
+
+\subsection{\textit{Top runs} mais caras}
+
+A \textit{run} mais cara do \textit{lifetime} consumiu \us 3{,}01
+em 65,9 minutos (8,59 DBUs), tendo desfecho \texttt{ERROR}, em
+24/04/2026, no \textit{job} \texttt{refresh PBF}. Esse caso
+isolado representa 4,3\,\% do gasto \textit{lifetime} da plataforma
+inteira em uma única \textit{run} fracassada. As demais 24 \textit{runs}
+do \textit{top-25} apresentam custos entre \us 0{,}63 e \us 1{,}77
+\textemdash{} a distribuição é fortemente assimétrica à direita,
+com cauda longa habitada por \textit{runs} grandes que falham.
+
+\subsection{\textit{Storage}: custo contínuo, atribuição por \textit{vertical}}
+
+A componente \texttt{DEFAULT\_STORAGE} é qualitativamente diferente
+das demais: cobra continuamente, mesmo na ausência de execução de
+\textit{jobs}. A Tabela~\ref{tab:storage} apresenta os indicadores
+de \textit{run rate}.
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Indicadores de \textit{run rate} de \textit{storage}}.
+        Pro-rate diário considera apenas dias com cobrança
+        ($n = 19$).}
+\label{tab:storage}
+\begin{tabular}{lr}
+\toprule
+\textbf{Métrica}                                   & \textbf{Valor} \\
+\midrule
+Total \textit{lifetime}                            & \us 5{,}09 \\
+Dias com cobrança                                  & 19 \\
+Custo médio por dia (lifetime)                     & \us 0{,}268 \\
+Custo médio por dia (últimos 30 dias)              & \us 0{,}267 \\
+Run rate mensal (\(\times 30\))                    & \us 8{,}01 \\
+Run rate anual (\(\times 365\))                    & \us 97{,}40 \\
+Share de \textit{storage} no total \textit{lifetime} & 7,3\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Pro-rateando esse \textit{storage} pela participação em
+\textit{bytes} de cada \textit{vertical} em \textit{bronze}
+(Tabela~\ref{tab:storagepervert}), a maior parcela imputada recai
+sobre Bolsa Família (98,9\,\% dos bytes; \(\sim\)\us 7{,}92/mês),
+seguida por Incontinência Urinária (1,1\,\%, \(\sim\)\us 0{,}09/mês)
+e os demais com fração inferior a 0,1\,\%. A pro-rate é
+aproximação \textemdash{} a Databricks não imputa
+\texttt{DEFAULT\_STORAGE} por \textit{schema} no \textit{billing};
+trata-se de proxy razoável para responder ``\textit{quanto pesa cada
+vertical na fatura mensal de storage}''.
+
+\begin{table}[H]
+\centering
+\caption{\textbf{Custo \textit{storage} pro-rateado por \textit{vertical}},
+        baseado na participação em \textit{bytes} de \textit{bronze}.}
+\label{tab:storagepervert}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Vertical}    & \textbf{Bronze (bytes)} & \textbf{Share \%} & \textbf{USD/mês} \\
+\midrule
+Bolsa Família        & 42,7 GB                 & 98,9              & 7,92 \\
+Incontinência U.     & \phantom{0}488 MB       & \phantom{0}1,1    & 0,09 \\
+Equipamentos médicos & \phantom{0}454 MB       & \phantom{0}1,0    & 0,08 \\
+Emendas              & \phantom{00}3,7 MB      & \phantom{0}0,01   & 0,001 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A leitura é evidente: \textbf{a fatura mensal de \textit{storage}
+desta plataforma é, em essência, a fatura do \textit{vertical}
+Bolsa Família}. Isso reflete a granularidade da fonte (CGU publica
+microdados de pagamento mensal a beneficiário): manter histórico
+2013\textendash 2025 íntegro custa \(\sim\)\us 7{,}92/mês.
+
+% ---------- 4. DISCUSSÃO ------------------------------------------------
+\section{Discussão}\label{sec:discussion}
+
+\subsection{O padrão arquitetural emergente}
+
+A vertical FinOps deste \textit{paper} adota um padrão simples e
+reproduzível: \textit{system tables} do provedor \textit{cloud}
+funcionam como \textit{bronze} ``virtual'' (não há \textit{ingest}
+de dados externos \textemdash{} a Databricks já mantém o histórico
+em sua própria infraestrutura), e os passos seguintes do
+\textit{medallion} são equivalentes aos de qualquer outra
+\textit{vertical}: \textit{silver} \textit{batch overwrite}
+diário, \textit{gold} pivotado por \textit{persona} de consumidor,
+\textit{export} JSON para \textit{front-end} estático.
+
+Esse padrão tem três propriedades atraentes:
+
+\begin{enumerate}\setlength{\itemsep}{4pt}
+  \item \textbf{Auditoria como subproduto}. Não é necessária
+        ferramenta externa de \textit{cost management}: a mesma
+        infraestrutura que processa microdados públicos processa
+        os \textit{records} de \textit{billing}. O custo marginal
+        de operar a \textit{vertical} FinOps tende a zero
+        \textemdash{} é mais um \textit{job} no \textit{bundle},
+        com cadência diária e DBU consumido próximo do mínimo
+        técnico.
+  \item \textbf{Granularidade fina sem instrumentação adicional}.
+        Cada \textit{job run} é registrado individualmente em
+        \texttt{system.lakeflow.job\_run\_timeline}, sem
+        necessidade de \textit{wrappers} de \textit{logging},
+        \textit{exporters} OpenTelemetry, ou \textit{agents}
+        proprietários instalados nos clusters.
+  \item \textbf{Reprodutibilidade independente de fornecedor}. Tanto
+        \textit{system tables} quanto \texttt{usage\_quantity} em
+        DBU são padrões publicados pela Databricks; o algoritmo de
+        \textit{pricing} versionado no tempo é trivialmente
+        portado para AWS, Azure ou GCP. A vertical em si depende
+        do fornecedor, mas o \textit{padrão} não.
+\end{enumerate}
+
+\subsection{Implicações da magnitude do \textit{wasted spend}}
+
+A descoberta de que 53,9\,\% do gasto em \textit{jobs} consumiu
+\textit{runs} fracassadas é desconfortavelmente próxima dos números
+reportados pela literatura cinza FinOps em ambientes empresariais
+de escala muito maior. FLEXERA (2024) reporta 32\,\% de
+\textit{wasted spend} médio em organizações sem governança de custo
+formalizada; o FinOps Foundation reporta entre 30\,\% e 35\,\% como
+\textit{baseline}; este \textit{paper} reporta 54\,\% em ambiente
+\textit{single-developer}.
+
+Várias hipóteses parciais são consistentes com a magnitude
+observada:
+
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item Em ambiente individual, há menos pressão de
+        \textit{accountability}: nenhum \textit{stakeholder}
+        cobra explicação por uma \textit{run} fracassada custando
+        \us 3{,}01;
+  \item O \textit{cost-per-run} desta plataforma (médio \us 0{,}40,
+        máximo \us 3{,}01) é ordem de magnitude inferior ao
+        \textit{cost-per-run} típico em produção empresarial,
+        reduzindo o atrito psicológico para abortar/recomeçar;
+  \item Erros de \textit{schema drift} em CSVs governamentais
+        (CGU/CSV de Emendas Parlamentares com renomeações de coluna
+        ano-a-ano; DATASUS \textit{layouts} variando entre
+        \textit{competências}) produzem falhas idiossincráticas
+        difíceis de antecipar em \textit{tests} sintéticos.
+\end{itemize}
+
+A \textbf{leitura geral} é que o ciclo
+\textit{visibility} \textrightarrow{} \textit{allocation}
+\textrightarrow{} \textit{optimization} parece estruturalmente
+escala-invariante: mesmo uma plataforma com gasto mensal de
+dezenas de dólares apresenta \textit{wasted spend} em proporção
+similar à de plataformas empresariais. A ferramenta para o
+combate \textemdash{} o \textit{ledger} desta auditoria
+\textemdash{} tem custo marginal próximo de zero.
+
+\subsection{Padrões aprendíveis para outros operadores}
+
+Sem entrar em prescrição normativa, os números deste
+\textit{paper} sugerem três focos para qualquer operador
+individual de plataforma \textit{cloud}:
+
+\begin{enumerate}\setlength{\itemsep}{2pt}
+  \item Materializar uma vertical FinOps \textit{também} é um
+        \textit{pipeline} \textit{open-source} reproduzível: ele
+        custa USD~marginal próximo de zero e produz, gratuitamente,
+        a contabilidade que de outro modo exigiria ferramentas
+        \textit{third-party};
+  \item As \textit{runs} \texttt{CANCELLED} de longa duração
+        (média 50,6 min na nossa amostra) são candidatas naturais
+        para \textit{circuit-breakers} (timeouts agressivos,
+        \textit{budget caps} por \textit{job});
+  \item \textit{Storage} domina a fatura recorrente para
+        \textit{verticais} de microdados governamentais (Bolsa
+        Família \(\sim\)99\,\% do nosso storage) \textemdash{}
+        merece política explícita de retenção (\textit{vacuum},
+        \textit{checkpoint} de tabelas históricas) antes que a
+        cauda contínua de custo se torne dominante.
+\end{enumerate}
+
+% ---------- 5. LIMITAÇÕES -----------------------------------------------
+\section{Limitações}\label{sec:limits}
+
+\subsection{Janela de observação não-estacionária}
+
+A janela \(d_0 = 11/06/2025\) a \(d_T = 28/04/2026\) é dominada
+pelos últimos 20 dias. Estimadores construídos sobre
+\(\bar{c}_{\text{lifetime}}\) (custo médio diário \textit{lifetime})
+estão fortemente influenciados por essa concentração temporal e
+não são bons preditores de gasto futuro. O \textit{run rate} de 30
+dias é o estimador mais defensável para projeção; estimativas
+\textit{lifetime} servem apenas como descrição histórica fiel.
+
+\subsection{Latência das \textit{system tables}}
+
+\texttt{system.billing.usage} apresenta latência aproximada de uma
+hora; \textit{records} muito recentes podem não aparecer.
+\texttt{job\_run\_timeline} pode demorar minutos a horas para
+consolidar \textit{result\_state} final em \textit{runs}
+canceladas. Resultado: o \textit{ledger} é eventualmente
+consistente, e \textit{snapshots} produzidos a poucos minutos do
+fim de uma \textit{run} podem subestimar o gasto correspondente.
+
+\subsection{Atribuição de \textit{storage} ao \textit{vertical}}
+
+A pro-rate de \texttt{DEFAULT\_STORAGE} pela participação em
+\textit{bytes} de \textit{bronze} é aproximação \textemdash{} a
+Databricks não emite \textit{records} de \textit{billing} com
+\texttt{schema}/\texttt{table} no \texttt{usage\_metadata}. A
+estimativa por \textit{vertical} é, portanto, contábil-gerencial,
+não auditável diretamente contra a fatura.
+
+\subsection{Free Edition vs.\ Standard/Premium}
+
+Os preços por DBU em \texttt{system.billing.list\_prices} no Free
+Edition refletem condições específicas do plano gratuito. Migração
+da plataforma para um \textit{tier} pago (Standard, Premium) ou
+para outro \textit{cloud} alteraria os \textit{list prices}, mas
+não a metodologia: o \textit{join} versionado no tempo continua
+válido com nova lista de preços. As magnitudes absolutas reportadas
+neste \textit{paper} não são generalizáveis a outros \textit{tiers};
+as \textit{proporções} (53,9\,\% \textit{wasted}, 7,3\,\%
+\textit{storage}) são candidatas a verificação empírica.
+
+\subsection{Plataforma \textit{single-developer}}
+
+Esta auditoria documenta uma plataforma operada por um único
+\textit{developer}. Plataformas com múltiplos
+\textit{contributors} apresentam padrões adicionais
+(\textit{cost-by-team}, \textit{chargeback}/\textit{showback})
+não cobertos aqui. A questão sobre se a magnitude do
+\textit{wasted spend} cresce, decresce ou permanece estável com
+o tamanho da equipe permanece em aberto.
+
+% ---------- 6. REPRODUTIBILIDADE ----------------------------------------
+\section{Reprodutibilidade}\label{sec:reproducibility}
+
+Este \textit{working paper} adota o seguinte protocolo de
+reprodutibilidade:
+
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item Código-fonte do \textit{pipeline} (cinco \textit{notebooks}
+        Python: 2 \textit{silver}, 2 \textit{gold}, 1 \textit{export};
+        \(\sim\)600 linhas) disponível em
+        \href{https://github.com/leonardochalhoub/mirante-dos-dados-br/tree/main/pipelines/notebooks}%
+        {\texttt{github.com/leonardochalhoub/mirante-dos-dados-br/tree/main/pipelines/notebooks}}
+        (acesso em 28/04/2026, 23h00 BRT).
+  \item Configuração do \textit{Databricks Asset Bundle} (DAB)
+        que orquestra o \textit{pipeline}, com \textit{schedule}
+        diário 06h00 UTC, em \texttt{pipelines/databricks.yml}
+        \texttt{job\_finops\_refresh}.
+  \item \textit{Ledger} versionado em
+        \texttt{data/gold/finops\_summary.json} no mesmo
+        repositório \textemdash{} \textit{snapshot} reproduzível
+        do estado das tabelas no momento da publicação.
+  \item Metadata Unity Catalog (comentários por tabela e por
+        coluna; \textit{tags} normalizadas com \texttt{layer},
+        \texttt{domain}, \texttt{grain}, \texttt{currency},
+        \texttt{refresh\_cadence}, \texttt{wp\_referenced}) aplicados
+        idempotentemente via \texttt{job\_apply\_catalog\_metadata}.
+  \item Algoritmo SQL canônico do \textit{pricing} versionado
+        no tempo, com semântica
+        \([\text{price\_start\_time}, \text{price\_end\_time})\),
+        documentado na Seção~\ref{sec:methods} desta
+        \textit{paper}.
+\end{itemize}
+
+A reprodução por terceiros em outro \textit{workspace} Databricks
+exige apenas: (i) acesso a \texttt{system.billing.*} e
+\texttt{system.lakeflow.*} (habilitados por padrão em Unity Catalog);
+(ii) clone do repositório; (iii) deploy via
+\texttt{databricks bundle deploy}. Não há \textit{secrets}, dados
+proprietários, ou dependências externas além das próprias
+\textit{system tables}.
+
+% ---------- 7. CONCLUSÃO ------------------------------------------------
+\section{Conclusão}
+
+Este \textit{working paper} apresentou auditoria fim-a-fim do gasto
+de uma plataforma de dados públicos brasileiros operada por um
+único \textit{developer} no Databricks Free Edition, abrangendo a
+janela completa de 322 dias entre 11 de junho de 2025 e 28 de
+abril de 2026. A contribuição metodológica é a demonstração de que
+\textit{system tables} podem servir como \textit{bronze} virtual
+para uma \textit{vertical} FinOps integrada à mesma arquitetura
+\textit{medallion} dos demais \textit{verticais} de microdados, com
+\textit{silver} de granularidade fina e \textit{gold} pivotado para
+consumo via \textit{front-end} estático. A contribuição empírica é
+a documentação de \textit{wasted spend} de 53,9\,\% do gasto em
+\textit{jobs}, magnitude próxima ou superior à reportada pela
+literatura FinOps em ambientes empresariais de escala muito maior.
+O ciclo
+\textit{visibility} \textrightarrow{} \textit{allocation}
+\textrightarrow{} \textit{optimization} parece estruturalmente
+escala-invariante; o \textit{ledger} construído neste \textit{paper}
+é a primeira metade desse ciclo, com custo marginal próximo de
+zero.
+
+% ---------- BIBLIOGRAFIA ------------------------------------------------
+\section*{Referências}
+\addcontentsline{toc}{section}{Referências}
+\begin{singlespace}\small
+
+\noindent ARMBRUST, M. et al. \textbf{Lakehouse: a new generation
+of open platforms that unify data warehousing and advanced
+analytics}. In: Conference on Innovative Data Systems Research
+(CIDR), 11., 2021. \textit{Proceedings\ldots}\
+2021. Disponível em:
+\href{https://www.cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf}%
+{\texttt{cidrdb.org/cidr2021/papers/cidr2021\_paper17.pdf}}.
+Acesso em: 28 abr.\ 2026, 23h00 BRT.
+
+\vspace{6pt}
+\noindent CHALHOUB, L. \textbf{Working Paper n.\ 2: Bolsa Família,
+Auxílio Brasil e Novo Bolsa Família (2013\textendash 2025)}.
+Brasil, 2026a. Disponível em:
+\href{https://github.com/leonardochalhoub/mirante-dos-dados-br/blob/main/articles/bolsa-familia.tex}%
+{\texttt{github.com/leonardochalhoub/mirante-dos-dados-br}}.
+Acesso em: 28 abr.\ 2026, 23h05 BRT.
+
+\vspace{6pt}
+\noindent CHALHOUB, L. \textbf{Working Paper n.\ 7: Bolsa Família
+ao nível municipal (5.570 unidades)}.
+Brasil, 2026b. Disponível em:
+\href{https://github.com/leonardochalhoub/mirante-dos-dados-br/blob/main/articles/bolsa-familia-municipios.tex}%
+{\texttt{github.com/leonardochalhoub/mirante-dos-dados-br}}.
+Acesso em: 28 abr.\ 2026, 23h05 BRT.
+
+\vspace{6pt}
+\noindent DATABRICKS. \textbf{System tables for billing,
+auditing and pipeline observability}. Documentação técnica.
+Disponível em:
+\href{https://docs.databricks.com/en/admin/system-tables/index.html}%
+{\texttt{docs.databricks.com/en/admin/system-tables}}.
+Acesso em: 28 abr.\ 2026, 23h10 BRT.
+
+\vspace{6pt}
+\noindent DATABRICKS. \textbf{Unity Catalog: governance for
+lakehouse}. Documentação técnica, 2024. Disponível em:
+\href{https://docs.databricks.com/en/data-governance/unity-catalog/index.html}%
+{\texttt{docs.databricks.com/en/data-governance/unity-catalog}}.
+Acesso em: 28 abr.\ 2026, 23h12 BRT.
+
+\vspace{6pt}
+\noindent FINOPS FOUNDATION. \textbf{FinOps Framework}.
+Documentação aberta, 2023. Disponível em:
+\href{https://www.finops.org/framework/}%
+{\texttt{finops.org/framework/}}.
+Acesso em: 28 abr.\ 2026, 23h15 BRT.
+
+\vspace{6pt}
+\noindent FLEXERA. \textbf{State of the Cloud Report 2024}.
+Itasca, IL: Flexera, 2024. Disponível em:
+\href{https://info.flexera.com/CM-REPORT-State-of-the-Cloud}%
+{\texttt{info.flexera.com/CM-REPORT-State-of-the-Cloud}}.
+Acesso em: 28 abr.\ 2026, 23h18 BRT.
+
+\vspace{6pt}
+\noindent KIMBALL, R.; ROSS, M. \textbf{The Data Warehouse Toolkit:
+the definitive guide to dimensional modeling}. 3.\ ed.\ Indianapolis:
+John Wiley \& Sons, 2013.
+
+\end{singlespace}
+
+\end{document}

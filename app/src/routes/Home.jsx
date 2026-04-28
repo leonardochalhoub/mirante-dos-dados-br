@@ -47,6 +47,14 @@ const VERTICAIS = [
     period: '1985 – 2025',
     available: true,
   },
+  {
+    to: '/finops',
+    eyebrow: 'FinOps · governança de custo',
+    title: 'FinOps — Custo da plataforma',
+    desc: 'Quanto custou rodar o Mirante? Histórico 100% completo de DBUs e USD desde o primeiro dia (jun/2025). Bronze: system tables do Databricks (system.billing + system.lakeflow). KPIs de wasted spend, breakdown por workload, ranking de jobs e runs.',
+    period: 'jun/2025 – hoje',
+    available: true,
+  },
 ];
 
 const MEDALLION = [
@@ -205,7 +213,7 @@ function BigDataStrip({ stats }) {
   const verticals = stats.verticals || {};
   // Ordem preferida; verticais não listadas aparecem no fim por ordem alfabética.
   // Default genérico pra que novas verticais apareçam automaticamente.
-  const PREFERRED_ORDER = ['pbf', 'equipamentos', 'equipamentos-sus', 'emendas', 'uropro', 'rais'];
+  const PREFERRED_ORDER = ['pbf', 'equipamentos', 'equipamentos-sus', 'emendas', 'uropro', 'rais', 'finops'];
   const orderedVerticals = [
     ...PREFERRED_ORDER.filter((k) => verticals[k]),
     ...Object.keys(verticals).filter((k) => !PREFERRED_ORDER.includes(k)).sort(),
@@ -219,6 +227,7 @@ function BigDataStrip({ stats }) {
     emendas:             'Emendas Parlamentares',
     uropro:              'Incontinência Urinária (SIH)',
     rais:                'RAIS — Vínculos Públicos',
+    finops:              'FinOps · custo da plataforma',
   };
   const labelOf = (k) => verticalLabel[k]
     || k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ');
@@ -243,6 +252,34 @@ function BigDataStrip({ stats }) {
       <div className="bigdata-pipelines">
         {orderedVerticals.map((k) => {
           const v = verticals[k];
+
+          // FinOps tem shape diferente: bronze são system tables (não há bytes
+          // de raw progredindo). Steps são: dias observados → runs → USD.
+          if (v.kind === 'finops') {
+            const finopsSteps = [
+              { label: 'Janela', rawValue: `${fmtCompact(v.n_days)} dias` },
+              { label: 'Job runs', rawValue: fmtCompact(v.n_runs) },
+              { label: 'Custo total', rawValue: `US$ ${(v.total_cost_usd ?? 0).toFixed(2)}`,
+                highlight: true,
+                sub: v.wasted_pct ? `${v.wasted_pct.toFixed(1)}% wasted` : null },
+            ];
+            return (
+              <div key={k} className="bigdata-pipeline">
+                <div className="bigdata-pipeline-head">
+                  <span className="kicker">{verticalLabel[k] || k}</span>
+                </div>
+                <div className="bigdata-pipeline-row">
+                  {finopsSteps.map((s, i) => (
+                    <Fragment key={s.label}>
+                      {i > 0 && <Arrow />}
+                      <FinOpsStep {...s} />
+                    </Fragment>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+
           const steps = [
             {
               label: v.raw_compressed_label,
@@ -297,4 +334,16 @@ function Step({ label, files, bytes, rows, highlight }) {
 
 function Arrow() {
   return <span className="bigdata-arrow">→</span>;
+}
+
+// FinOps step: usa string formatada direto (não bytes/files/rows). Mantém
+// o mesmo visual do Step original para uniformidade com o resto da strip.
+function FinOpsStep({ label, rawValue, sub, highlight }) {
+  return (
+    <div className={`bigdata-step${highlight ? ' is-highlight' : ''}`}>
+      <div className="bigdata-step-label">{label}</div>
+      <div className="bigdata-step-value">{rawValue}</div>
+      {sub && <div className="bigdata-step-sub">{sub}</div>}
+    </div>
+  );
 }
