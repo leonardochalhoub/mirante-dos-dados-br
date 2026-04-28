@@ -196,17 +196,18 @@ def _build_rais_vertical(raw, bronze, silver_b, silver_r, gold_b, gold_r, raw_ro
     delta_bytes = next((t["bytes"] for t in bronze if t["table"] == "rais_vinculos"), 0)
     delta_rows  = next((t["rows"]  for t in bronze if t["table"] == "rais_vinculos"), 0)
 
-    # Iceberg = UniForm sidecar sobre a Delta canônica + VIEW bronze.rais_
-    # vinculos_iceberg. Compartilha 100% dos arquivos físicos com o Delta —
-    # storage overhead = zero (~MB de metadata sidecar). bytes/rows reportados
-    # são os mesmos da canônica, deixando explícito no card que é exposição.
+    # Iceberg = UniForm sidecar habilitado NA tabela canônica (TAG iceberg_
+    # uniform=true). Sem objeto duplicado no UC — clientes Iceberg externos
+    # leem mirante_prd.bronze.rais_vinculos diretamente via UC Iceberg REST.
+    # Card aqui é signage do front, bytes/rows compartilhados com o Delta.
+    # `target` aponta pra QUAL tabela o cliente Iceberg consulta de fato.
     iceberg_card = {
         "label":       "Iceberg",
         "format":      "iceberg",
         "bytes":       delta_bytes,
         "rows":        delta_rows,
-        "shared_with": "rais_vinculos",
-        "note":        "UniForm sidecar — mesmos arquivos do Delta canônico",
+        "target":      f"{CATALOG}.bronze.rais_vinculos",
+        "note":        "UniForm sidecar na tabela canônica — clientes Iceberg leem rais_vinculos via UC REST",
     }
 
     # Hudi: walk do folder no Volume. Se vazio/ausente → deferred.

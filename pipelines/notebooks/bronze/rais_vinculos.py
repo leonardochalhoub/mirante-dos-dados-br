@@ -1093,3 +1093,48 @@ else:
 n = spark.read.table(BRONZE_TABLE).count()
 print(f"✔ {BRONZE_TABLE}: {n:,} rows total")
 spark.read.table(BRONZE_TABLE).groupBy("ano").count().orderBy("ano").show(30)
+
+# COMMAND ----------
+
+# MAGIC %md ## Iceberg via Delta UniForm (interop sem duplicação)
+# MAGIC
+# MAGIC Habilita Apache Iceberg como formato de leitura **na própria tabela
+# MAGIC canônica** — Delta writer gera metadata Iceberg sidecar a cada commit.
+# MAGIC Clientes Iceberg externos (Trino, Snowflake, Athena, pyiceberg) leem
+# MAGIC `bronze.rais_vinculos` diretamente via UC Iceberg REST endpoint.
+# MAGIC
+# MAGIC Sem objeto duplicado no UC, sem view, sem tabela paralela. Storage
+# MAGIC overhead = ~MB de metadata. Idempotente: re-aplicar não custa nada.
+# MAGIC Free Edition serverless não permite Iceberg writer nativo (Maven
+# MAGIC `org.apache.iceberg` ausente do classpath); UniForm é o caminho honesto.
+
+# COMMAND ----------
+
+print(f"▸ Habilitando UniForm Iceberg em {BRONZE_TABLE}…")
+spark.sql(f"""
+    ALTER TABLE {BRONZE_TABLE} SET TBLPROPERTIES (
+        'delta.universalFormat.enabledFormats' = 'iceberg',
+        'delta.enableIcebergCompatV2'          = 'true'
+    )
+""")
+
+# Tags de discoverability — clientes podem filtrar UC por iceberg_uniform=true
+for k, v in [
+    ("iceberg_uniform",  "true"),
+    ("iceberg_endpoint", "uc_rest"),
+]:
+    spark.sql(f"ALTER TABLE {BRONZE_TABLE} SET TAGS ('{k}' = '{v}')")
+
+spark.sql(f"""
+    COMMENT ON TABLE {BRONZE_TABLE} IS
+    'Mirante · RAIS Vínculos Públicos — bronze Delta canônica, também '
+    'exposta em Apache Iceberg via Delta UniForm (tag iceberg_uniform=true). '
+    'Clientes Iceberg (Trino, Snowflake, Athena, pyiceberg) podem ler esta '
+    'tabela via UC Iceberg REST endpoint — Delta writer gera metadata Iceberg '
+    'sidecar a cada commit, apontando pros mesmos arquivos Parquet (zero '
+    'overhead de storage). Free Edition serverless não permite Iceberg writer '
+    'nativo; UniForm é o caminho honesto pra interop sem fingir paralelismo.'
+""")
+
+print(f"  ✓ UniForm Iceberg habilitado · sidecar metadata gerada a cada commit Delta")
+print(f"  cliente Iceberg externo: leia {BRONZE_TABLE} via UC Iceberg REST")
