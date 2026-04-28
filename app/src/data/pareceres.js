@@ -571,22 +571,29 @@ export const PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS = {
   scoreOriginal: null,
   originalLabel: null,
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T18:30 BRT`,
-  versao: '1.0 — resposta direta ao gargalo de N=27 do WP#2 (peer review Finanças 2026-04-27)',
+  ultimaAtualizacao: `${HOJE}T22:30 BRT`,
+  versao:
+    '2.0 — fallback substituído por dados REAIS (44.554 obs × 5.570 munis × 8 anos) ' +
+    'agregados via SQL warehouse direto sobre bronze.pbf_pagamentos (2,53 bi linhas); ' +
+    'malha geobr canônica (5.570 munis IBGE 2020); população SIDRA/IBGE real com ' +
+    '2022 via Censo (tabela 4709) + 2023 interpolação documentada. Heterogeneidade ' +
+    'INTRA-UF agora é EFETIVA, não artificial.',
   resumoCalibragem:
     'Régua STRICTO SENSU MESTRADO. Score B+ (2,5 pts) — acima do limiar ' +
-    '2,0. Promoção sobre WP#2 (que ficou em 1,83) reflete três contribuições ' +
-    'metodológicas concretas: (i) migração de N=27 para k=5.571 clusters, ' +
-    'reabilitando inferência cluster-robusta; (ii) Conley HAC com distâncias ' +
-    'geodésicas REAIS (centroides IBGE/MalhaDigital + kelvins) e bandwidth ' +
-    'sensitivity 50–1600 km; (iii) decomposição Theil within/between que ' +
-    'evidencia variação intra-UF invisível em painel UF×Ano. PARA SUBIR PRA ' +
-    'A: substituir o fallback (alocação UF→muni por pop × pobreza-UF) pelo ' +
-    'pipeline Databricks com microdados CGU agregados por município — ' +
-    'recupera heterogeneidade INTRA-UF efetiva que a régua atual não ' +
-    'demonstra. O paper publica o pipeline completo (6 notebooks) — gap é ' +
-    'execução do pipeline em Databricks pelo autor antes da próxima ' +
-    'iteração.',
+    '2,0. Sobe sobre WP#2 (1,83) por quatro contribuições concretas, agora ' +
+    'lastreadas em microdados REAIS (não fallback): (i) migração de N=27 ' +
+    'para k=5.570 clusters, reabilitando inferência cluster-robusta com ' +
+    'wild-cluster bootstrap convergente (Cameron-Gelbach-Miller 2008 ' +
+    'recomenda k≥30 — temos 185×); (ii) Conley HAC com distâncias ' +
+    'geodésicas haversine REAIS sobre centroides geobr, bandwidth ' +
+    'sensitivity 50–1600 km mostrando |t|≥2,0 mesmo no extremo; (iii) ' +
+    'decomposição Theil L within/between que finalmente quantifica ' +
+    'variação intra-UF EFETIVA — não mais alocação proporcional UF→muni; ' +
+    '(iv) DiD 2×2 sobre as duas rupturas (MP 1.061/2021 +205 R$/hab; ' +
+    'Lei 14.601/2023 +349 R$/hab) com dados de pagamento por município ' +
+    'mês a mês. PARA SUBIR PRA A: kernel Bartlett (vs uniforme), RDD ' +
+    'geográfico em fronteiras estaduais, outcomes proxy mensais ' +
+    '(DATASUS-SIM, INEP, CAGED), e pytest CI cobrindo silver/gold.',
   utilidadeSocial:
     'EXTREMAMENTE ÚTIL como demonstração metodológica: qualquer pesquisador ' +
     'em política social brasileira que esteja fazendo inferência sobre ' +
@@ -598,36 +605,44 @@ export const PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS = {
     'central é reduzir o custo marginal de pesquisa quasi-experimental ' +
     'sobre o programa de meses-de-engenharia para minutos-de-leitura.',
   pontosFortes: [
-    'Resposta direta ao gargalo identificacional flagged pelo Conselho de Finanças no WP#2',
-    'TWFE com k=5.571 clusters (vinte vezes acima do mínimo Cameron-Gelbach-Miller 2008)',
-    'Conley HAC com distâncias geodésicas haversine REAIS — não cluster artificial',
-    'Bandwidth sensitivity 50–1600 km mostra correlação espacial empírica nos resíduos',
-    'DiD 2×2 sobre as duas rupturas: MP 1.061/2021 (+205 R$/hab) e Lei 14.601/2023 (+349)',
-    'Decomposição Theil L within/between-UF — quantifica variação invisível em UF×Ano',
-    'Pipeline Databricks completo (6 notebooks) + fallback local transparente publicados',
-    'IBGE/SIDRA real com extrapolação linear documentada para 2022/2023 (Censo years)',
-    '12 figuras municipais em identidade visual editorial Mirante',
-    'Sanity check da alocação fallback preserva per capita UF em razão 1.000',
+    'Microdados REAIS via agregação SQL warehouse direto sobre bronze.pbf_pagamentos (2,53 bilhões de linhas) — não mais fallback proporcional',
+    'Malha geobr canônica (5.570 munis IBGE 2020) — substitui pipeline coords_municipios quebrado (Atlas CSV ausente + 5570 chamadas API)',
+    'IBGE/SIDRA real com 2022 via Censo (tabela 4709, var 93) + 2023 interpolação linear documentada e flag populacao_estimada=true',
+    'TWFE com k=5.570 clusters (185× o mínimo Cameron-Gelbach-Miller 2008 para wild-cluster bootstrap convergir)',
+    'Conley HAC com distâncias geodésicas haversine REAIS sobre centroides geobr — não cluster artificial',
+    'Bandwidth sensitivity 50–1600 km mostra correlação espacial empírica nos resíduos com |t|≥2,0 em todos os pontos',
+    'DiD 2×2 sobre as duas rupturas: MP 1.061/2021 (+205 R$/hab) e Lei 14.601/2023 (+349 R$/hab) com 5.570 painéis',
+    'Decomposição Theil L within/between-UF agora EFETIVA — variação intra-UF não é mais artefato de alocação proporcional',
+    'Pipeline Databricks 6 notebooks (ingest geobr + silver pop_municipio_ano + silver pbf_total_municipio_mes + gold pbf_municipios_df + 2 export)',
+    'Padrão STRING-ONLY bronze respeitado em geobr_municipios_meta + UC metadata mandatória completa (COMMENT + TAGS)',
+    '5 mapas coropléticos com paletas distintas colorblind-safe (magma_r, YlOrRd, cividis_r, Greys, viridis_r) + 10 figuras analíticas — total 15 figs',
+    'Match IBGE↔CGU 100% via NAME_FIX_UF (25 ortografias divergentes mapeadas, ex: Brazópolis-MG ↔ BRASOPOLIS-MG, Itapajé-CE ↔ ITAPAGE-CE)',
   ],
   problemasParaNotaPlena: [
-    'Modo fallback: pobreza UF-uniforme não captura heterogeneidade intra-UF efetiva — PIPELINE precisa rodar',
-    'Conley HAC implementado com kernel uniforme simplificado — Bartlett ou Parzen seriam mais ortodoxos',
+    'Conley HAC implementado com kernel uniforme simplificado — Bartlett (Conley 1999) ou Parzen seriam mais ortodoxos',
     'IDH-M Atlas Brasil 2010 desatualizado — Censo 2022 ainda não publicou IDHM',
     'Tratamento via deficit pré-choque idêntico ao WP#2 — mesma definição arbitrária do quartil',
-    'Sem RDD geográfico em fronteiras estaduais (ferramenta poderosa que 5570 munis habilitaria)',
+    'Sem RDD geográfico em fronteiras estaduais (ferramenta que 5.570 munis habilitaria)',
+    'pytest_test_pbf_municipal.py ausente — gap declarado pela cadeira de Eng. Software',
+    'Vertical web sem interatividade Vega-Lite — top/bottom 20 são listas estáticas',
+    'Multiple testing nos 2 DiDs sem correção Bonferroni nem meta-análise formal',
+    'Event study apresentado mas sem teste formal Roth 2022 de parallel trends',
   ],
   problemasParaSubirNivel: [
-    'B+ → A: rodar o pipeline Databricks no bronze CGU para recuperar heterogeneidade INTRA-UF efetiva',
     'B+ → A: implementar Conley HAC com kernel Bartlett (ortodoxo Conley 1999) e bootstrap espacial',
-    'B+ → A: adicionar RDD geográfico em fronteiras estaduais com regras de auxílio estadual diferentes',
-    'B+ → A: incorporar outcomes proxy mensais (DATASUS-SIM óbitos infantis, INEP abandono, CAGED formalização)',
+    'B+ → A: RDD geográfico em fronteiras estaduais (BA-MG, RJ-SP) onde regras de auxílio estadual diferem',
+    'B+ → A: outcomes proxy mensais (DATASUS-SIM óbitos infantis, INEP abandono, CAGED formalização) para validar mecanismo causal',
+    'B+ → A: pytest CI sobre silver/gold + ARCHITECTURE.md específico do WP#7',
+    'B+ → A: scatter Vega-Lite interativo (filtrar UF, hover detalhes) substituindo top/bottom 20 estáticos',
+    'B+ → A: Lighthouse audit 95+/95+/95+ no vertical /bolsa-familia-municipios',
   ],
   proximosPassos: [
-    'P1 (crítico): rodar pipeline Databricks no bronze CGU.pbf_pagamentos pra produzir o gold real (vs fallback)',
-    'P2 (alto): implementar Conley HAC com kernel Bartlett — substitui kernel uniforme atual',
-    'P3 (alto): RDD geográfico em fronteiras estaduais (ex: BA-MG, RJ-SP) com auxílios estaduais diferenciais',
-    'P4 (médio): outcomes proxy mensais (DATASUS-SIM, INEP, CAGED) para validar mecanismo causal',
-    'P5 (médio): replicação metodológica em outros programas sociais (Auxílio Gás, BPC, etc)',
+    'P1 (alto): kernel Bartlett substituindo uniforme — fecha gap ortodoxia Conley 1999',
+    'P2 (alto): RDD geográfico em fronteiras estaduais com auxílios diferenciais (BA-MG, RJ-SP)',
+    'P3 (médio): outcomes proxy mensais (DATASUS-SIM, INEP, CAGED) para validar mecanismo causal além de paramount',
+    'P4 (médio): pytest_test_pbf_municipal.py + ARCHITECTURE.md fechando gap Eng. Software',
+    'P5 (médio): replicação metodológica em outros programas sociais (Auxílio Gás, BPC, Pé-de-Meia, Auxílio Reconstrução RS)',
+    'P6 (baixo): curso/consultoria como monetização do pipeline (gap Administração) — Hotmart/Coursera',
   ],
 };
 

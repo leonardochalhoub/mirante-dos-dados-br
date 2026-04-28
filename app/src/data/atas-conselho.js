@@ -1165,9 +1165,228 @@ export const ATA_WP2_REUNIAO_1 = {
   },
 };
 
+// ═══════════════════════════════════════════════════════════════════════
+// REUNIÃO #4 — WP#7 v2.0 (Bolsa Família por Município, 5.570 munis)
+// Data: 2026-04-27 · 4 pareceres iniciais paralelos · APROVADO
+// Histórico: WP#7 nasce como resposta direta ao gargalo identificacional
+// flagged pelo Conselho de Finanças no WP#2 (k=27 ≪ 30 Cameron-Gelbach-
+// Miller). v2.0 substitui o fallback proporcional UF→muni da v1.0 por
+// dados REAIS via SQL warehouse direto sobre bronze.pbf_pagamentos
+// (2,53 bi linhas) + malha geobr canônica (5.570 munis IBGE 2020).
+// Média (B+ + B+ + B+ + B) / 4 = 2,375 — APROVADO ACIMA DO LIMIAR 2,0.
+// É a maior média do projeto até hoje (WP#4: 1,83 → 2,5 em v3.1; WP#6:
+// 2,33; WP#2: 1,5 → B+ em v2.0; WP#7: 2,375 já no nascimento).
+// ═══════════════════════════════════════════════════════════════════════
+export const ATA_WP7_REUNIAO_1 = {
+  meta: {
+    reuniao: 4,
+    artigo: 'WP#7 v2.0 — Bolsa Família por Município (2013–2025, 5.570 munis)',
+    artigo_titulo_completo:
+      '5.570 pontos de decisão: microdados municipais do Bolsa Família, ' +
+      'identificação causal por variação cross-municipal e heterogeneidade ' +
+      'intra-UF (2013–2025)',
+    commit: '8aa1edf (fix LaTeX) + commits anteriores da pipeline real',
+    data: '2026-04-27',
+    coautoria: 'Leonardo Chalhoub (autor único)',
+    rodadas: 1,
+    status: 'APROVADO — maior média do projeto',
+    media_quants: 2.375, // (B+ 2,5 + B+ 2,5 + B+ 2,5 + B 2,0) / 4 = 2,375
+    limiar_aprovacao: 2.0,
+    nota_promocao:
+      'WP#7 nasce respondendo ao gargalo identificacional do WP#2 (k=27 ' +
+      '≪ 30 Cameron-Gelbach-Miller 2008). v2.0 substitui o fallback ' +
+      'proporcional UF→muni da v1.0 por dados REAIS agregados via SQL ' +
+      'warehouse direto sobre bronze.pbf_pagamentos (2,53 bi linhas) — ' +
+      'heterogeneidade intra-UF agora é EFETIVA, não artefato. Aprovação ' +
+      'unânime das 4 cadeiras com média 2,375 — primeira vez que o ' +
+      'projeto cruza o limiar 2,0 já no R1.',
+  },
+
+  pareceres_iniciais: [
+    {
+      cadeira: 'financas',
+      titulo: 'Conselheiro de Finanças & Métodos Quantitativos',
+      lente: 'Identificação causal · Conley HAC · cluster-robust inference',
+      score: { tipo: 'letra', letra: 'B+', pontos: 2.5 },
+      veredicto: 'APROVADO — sobe sobre WP#2',
+      epigrafe:
+        '"Este é o paper que o WP#2 precisava ter sido. Subi de C (1,0 no WP#2) ' +
+        'para B+ (2,5 no WP#7) por três contribuições metodológicas concretas. ' +
+        'O gargalo identificacional do WP#2 desaparece estruturalmente."',
+      argumento_central:
+        'Migração de N=27 para k=5.570 clusters (185× o mínimo Cameron-Gelbach-' +
+        'Miller 2008 para wild-cluster bootstrap convergir). Conley HAC com ' +
+        'distâncias geodésicas haversine REAIS sobre centroides geobr — não ' +
+        'cluster artificial. Bandwidth sensitivity 50–1600 km mostra ' +
+        'inflação MONOTÔNICA do SE com bandwidth (h=50: SE=10,9; h=200: SE=36,5; ' +
+        'h=800: SE=101,7; h=1600: SE=149,2) — diagnóstico empírico de correlação ' +
+        'espacial positiva nos resíduos. Mesmo no extremo (1.600 km), |t| ≥ 2,0 ' +
+        '— efeito sobrevive ao teste mais conservador. DiD 2×2 sobre as duas ' +
+        'rupturas: MP 1.061/2021 β̂=+205,3 R$/hab (IC 95% [201,2; 209,3]); ' +
+        'Lei 14.601/2023 β̂=+349,5 R$/hab (IC 95% [343,9; 355,2]). Magnitude ' +
+        'maior na Lei 14.601 é consistente com redesenho duplo (piso + ' +
+        'adicionais por composição). Definição de tratamento idêntica ao WP#2 ' +
+        '— cross-paper consistente.',
+      pendencias: [
+        'Kernel Conley uniforme em vez de Bartlett (ortodoxo Conley 1999) ou Parzen — kernel uniforme é menos conservador no decay',
+        'RDD geográfico em fronteiras estaduais ausente — com 5.570 munis e lat/lon real é trivialmente possível em pares vizinhos cruzando fronteira (BA-MG, RJ-SP)',
+        'Multiple testing nos 2 DiDs sem correção Bonferroni nem combinação por meta-análise (p_combined < 0,001 trivial mas formalmente ausente)',
+        'Event study apresentado mas sem teste estatístico formal Roth 2022 de parallel trends — Figura 13 mostra leads/lags visualmente apenas',
+        'Heterogeneidade intra-UF da v2.0 ainda precisa ser comparada quantitativamente contra a v1.0 (fallback) para mensurar quanto da variação era artefato',
+      ],
+      sugestao_para_subir_pra_a:
+        'Kernel Bartlett (Conley 1999 ortodoxo) + bootstrap espacial + RDD ' +
+        'geográfico em fronteiras BA-MG e RJ-SP onde regras de auxílio ' +
+        'estadual diferem. Outcomes proxy mensais (DATASUS-SIM óbitos ' +
+        'infantis, INEP abandono, CAGED formalização) validariam o ' +
+        'mecanismo causal além do paramount.',
+    },
+    {
+      cadeira: 'eng-software',
+      titulo: 'Conselheiro de Engenharia de Software & Plataforma de Dados',
+      lente: 'Reprodutibilidade · STRING-ONLY bronze · UC metadata · pytest',
+      score: { tipo: 'letra', letra: 'B+', pontos: 2.5 },
+      veredicto: 'APROVADO',
+      epigrafe:
+        '"Pipeline arquitetural completo. Padrões de plataforma respeitados ' +
+        'sem exceção. Sobe sobre o WP#2 (B em Eng. Software) por três motivos ' +
+        'estruturais. Falta apenas pytest sobre silver/gold pra cruzar o A."',
+      argumento_central:
+        'Pipeline Databricks 6 notebooks com responsabilidades bem separadas ' +
+        '(1 ingest geobr + 2 silver pop_municipio_ano + silver ' +
+        'pbf_total_municipio_mes + 1 gold pbf_municipios_df + 1 export). ' +
+        'STRING-ONLY bronze (regra de plataforma) preservada — todos os casts ' +
+        'em silver. UC metadata mandatória presente: COMMENT ON TABLE + ALTER ' +
+        'COLUMN COMMENT por coluna + SET TAGS layer/domain/source/pii/grain ' +
+        'em TODAS as tabelas novas. Particionamento Delta consistente ' +
+        '(partitionBy("Ano")). Match IBGE↔CGU 100% via NAME_FIX_UF (25 ' +
+        'ortografias divergentes mapeadas, ex: Brazópolis-MG ↔ ' +
+        'BRASOPOLIS-MG, Itapajé-CE ↔ ITAPAGE-CE) — UF-aware para evitar ' +
+        'colisões como "Santa Terezinha" em PE/SC/MT/BA. Substituição da ' +
+        'malha coords_municipios (Atlas CSV ausente + 5570 chamadas API ' +
+        'shapely) pela malha geobr canônica IBGE 2020 elimina dependência ' +
+        'externa frágil.',
+      pendencias: [
+        'pytest_test_pbf_municipal.py ausente — gap principal vs A: cobrir (a) silver muni mes (regra nov/2021 + Ano de competência), (b) gold muni df (joins dimensionais sem null-blow), (c) match IBGE↔CGU (regra UF-aware + NAME_FIX_UF cobrindo as 25 divergências catalogadas)',
+        'CI workflow específico do WP#7 ausente — pipelines/.databricks/bundle/dev/ existe mas job_pbf_municipios_pipeline ainda é manual (não roda em CI no push)',
+        'ARCHITECTURE.md específico do WP#7 ausente — manuscrito tem seção 2.2 ("Arquitetura medallion") mas falta documentação técnica auto-contida no repo, com ADRs Nygard ao estilo do WP#6',
+        'verify-reproducibility.yml não cobre WP#7 — gap declarado pelo Conselheiro de Eng. Software no audit cross-WP de 2026-04-27',
+      ],
+      sugestao_para_subir_pra_a:
+        'pytest sobre o silver/gold + ARCHITECTURE.md específico do WP#7 + ' +
+        'job_pbf_municipios_pipeline rodando em CI no push (não só manual). ' +
+        'Análoga à "única ação que muda o jogo" do WP#6 (Zenodo DOI), mas ' +
+        'no WP#7 a virada é teste automatizado da transformação, não ' +
+        'apenas do artefato.',
+    },
+    {
+      cadeira: 'design',
+      titulo: 'Conselheira de Design, Information Visualization & UX',
+      lente: 'Tufte (data-ink) · Norman (affordance) · Bostock (interatividade)',
+      score: { tipo: 'letra', letra: 'B', pontos: 2.0 },
+      veredicto: 'APROVADO no limiar — borderline',
+      epigrafe:
+        '"As figuras estáticas SÃO editorialmente sólidas. O vertical web É ' +
+        'FUNCIONAL. Mas há gaps específicos versus a régua mestrado: zero ' +
+        'interatividade Vega-Lite, audit Lighthouse não declarado, e ' +
+        'detalhes de polylabel/halo ausentes em algumas figs."',
+      argumento_central:
+        'Identidade visual editorial preservada — apply_mirante_style + ' +
+        'editorial_title + source_note usados em todas as 15 figuras. ' +
+        'Tipografia Lato + paleta hierárquica + golden_figsize. Nada de ' +
+        'chartjunk. 5 mapas coropléticos com paletas distintas colorblind-' +
+        'safe (magma_r densidade demográfica log; YlOrRd PBF per capita; ' +
+        'cividis_r cobertura PBF; Greys log valor absoluto; viridis_r ' +
+        'crescimento real) — escolha tecnicamente correta de paletas para ' +
+        'cada dimensão semântica. Mapa bivariado tratamento × IDH-M (fig08 ' +
+        'no WP#2 — replicado aqui em estrutura municipal) usa paleta Joshua ' +
+        'Stevens 3×3 — escolha certa pra duas dimensões simultâneas. ' +
+        'Decomposição Theil em painéis duais entrega a leitura em dois ' +
+        'níveis sem sobrecarregar. Vertical web responsivo usa Panel/' +
+        'KpiCard/PageHeader consistente com WP#2; ScopeToggle (Estadual/' +
+        'Municipal tabs) é UX claro.',
+      pendencias: [
+        'fig09 need-ratio sem adjustText — labels de munis sobrepõem-se em densidade alta. Aplicar adjust_text como no WP#2 fig10 penetracao',
+        'Figs sem halo branco em labels — path_effects.withStroke ausente em fig04 e fig05; pelo menos as 5 capitais com maior PBF/hab deveriam ter labels com halo',
+        'Sem polylabel em fig04 e fig09 — labels horizontais centralizados nas barras seriam mais legíveis com polylabel offset',
+        'Vertical web SEM Vega-Lite interativo — top/bottom 20 são listas estáticas. Para subir a B+, transformar em scatter Vega-Lite interativo (filtrar por UF, hover detalhes). É padrão das outras verticais (BrazilMap, EvolutionBar)',
+        'Sem audit Lighthouse/WCAG — não tem prova de Performance/Accessibility/SEO scores. Para A, rodar Lighthouse e mostrar 95+/95+/95+',
+        'Galeria de figuras com placeholders 📊 emoji em vez de PNGs reais — embed real seria afirmação de qualidade',
+      ],
+      sugestao_para_subir_pra_a:
+        '(a) polylabel + adjustText + halo nas figs 4, 5, 9 (1-2 dias); ' +
+        '(b) substituir top/bottom listas por scatter Vega-Lite interativo ' +
+        '(1 semana); (c) rodar Lighthouse e adicionar selo de score no ' +
+        'rodapé (1 dia); (d) embed PDF/PNG inline na Galeria substituindo ' +
+        'placeholder emoji (algumas horas).',
+    },
+    {
+      cadeira: 'administrador',
+      titulo: 'Conselheiro de Administração, Estratégia & Aplicação Prática',
+      lente: 'Sinek (WHY) · Harari (escala histórica) · Carrey (ousadia)',
+      score: { tipo: 'letra', letra: 'B+', pontos: 2.5 },
+      veredicto: 'APROVADO',
+      epigrafe:
+        '"Este paper passa o teste do \'isso aqui pode dar dinheiro?\' mais ' +
+        'claramente que o WP#2 — não pelo paper isolado, mas pelo que o ' +
+        'paper PROVA: a viabilidade de migração metodológica para ' +
+        'granularidade municipal usando exclusivamente dados públicos."',
+      argumento_central:
+        'WHY duplo bem formulado. Lente 1 (Robustez identificacional): o ' +
+        'paper se posiciona como resposta direta a uma falha técnica ' +
+        'nomeada do WP#2. Sinek puro (Golden Circle WHY-HOW-WHAT): ' +
+        '"existimos para resolver o gargalo de N=27 que invalida wild-' +
+        'cluster bootstrap em estudos brasileiros sobre programas sociais". ' +
+        'WHY com inimigo nomeado, não genérico. Lente 2 (Heterogeneidade ' +
+        'intra-UF revelada): a decomposição Theil within/between é o ' +
+        'argumento de venda concreto para gestores e jornalistas — "a ' +
+        'média estadual esconde 5–10× de variação interna" é uma frase que ' +
+        'pega. Aplicações que monetizam: (1) consultoria CGU/MDS — pipeline ' +
+        '+ manuscrito é template para auditorias municipais a baixíssimo ' +
+        'custo; (2) jornalismo de dados municipalista — vertical web ' +
+        'entrega top/bottom 20 munis filtrável por UF; (3) pesquisadores ' +
+        'em Saúde Coletiva e Ciência Política — os 5 cadernos Python locais ' +
+        'são plug-and-play, replicáveis em DEZENAS de outros programas ' +
+        '(Auxílio Gás, BPC, Pé-de-Meia, Auxílio Reconstrução RS); (4) ' +
+        'treinamento técnico — sequência ingest→silver→gold→export é ' +
+        'didática e tem valor pedagógico.',
+      perguntas_criticas: [
+        'Onde está a cobertura PR/Twitter? O paper resolve um problema técnico específico — quantos potenciais leitores SABEM que existe um problema chamado "few clusters bootstrap convergence"? Sem evangelização do CONTEXTO, o paper fica num nicho',
+        'A vertical web está sendo usada para gerar leads? DownloadActions tem PDF/tex/Overleaf, mas falta CTA forte tipo "Quer aplicar isso ao seu programa? leonardochalhoub@gmail.com" no rodapé. O paper é bom mas não converte',
+        'Por que isso não é um curso? Existe potencial de transformar pipeline + manuscrito em curso prático "Análise causal espacialmente robusta para programas sociais brasileiros" — Hotmart/Coursera. Receita recorrente',
+        'Qual SES estadual ou TCE municipal já está usando o pipeline? Sem caso de uso REAL com gestor público (não self-citation), continua demonstração — não impacto',
+      ],
+      sugestao_para_subir_pra_a:
+        '(a) caso de uso REAL com gestor público — relatório de auditoria ' +
+        'do TCE-MG ou CGU usando o pipeline; (b) monetização explícita: ' +
+        'curso/consultoria/paid newsletter sobre o tema (Hotmart/Coursera); ' +
+        '(c) plano de marketing técnico explícito no próximo trimestre — ' +
+        'thread no Twitter/LinkedIn cobrindo o WHY duplo + casos de uso.',
+    },
+  ],
+
+  resposta_do_autor: {
+    decisao: 'aprovado, próximas iterações em roadmap explícito',
+    data: '2026-04-27',
+    commit: '8aa1edf',
+    nota:
+      'Maior média do projeto até hoje (2,375). Nenhuma cadeira reprovou; ' +
+      'todas as 4 cruzaram o limiar 2,0. As pendências mais críticas serão ' +
+      'tratadas em iteração v2.1: kernel Bartlett (Finanças) + pytest sobre ' +
+      'silver/gold (Eng. Software) + scatter Vega-Lite interativo (Design) ' +
+      '+ caso de uso real com gestor público (Administração). RDD geográfico ' +
+      'em fronteiras estaduais e outcomes proxy mensais ficam para v2.2 — ' +
+      'são gaps de tier doutorado, não de aprovação mestrado. v2.0 está ' +
+      'liberada para circulação como demonstração metodológica completa.',
+    score_pos_aprovacao: 'B+ (2,5) na régua mestrado · média conselho 2,375',
+  },
+};
+
 // ─── Lookup helper ───────────────────────────────────────────────────────
 export const ATAS_BY_ARTIGO = {
-  'wp4-equipamentos-rm-parkinson': ATA_WP4_REUNIAO_1,
-  'wp6-equipamentos-panorama-cnes': ATA_WP6_REUNIAO_2,
-  'wp2-bolsa-familia':              ATA_WP2_REUNIAO_1,
+  'wp4-equipamentos-rm-parkinson':   ATA_WP4_REUNIAO_1,
+  'wp6-equipamentos-panorama-cnes':  ATA_WP6_REUNIAO_2,
+  'wp2-bolsa-familia':               ATA_WP2_REUNIAO_1,
+  'wp7-bolsa-familia-municipios':    ATA_WP7_REUNIAO_1,
+  'bolsa-familia-municipios':        ATA_WP7_REUNIAO_1,
 };
