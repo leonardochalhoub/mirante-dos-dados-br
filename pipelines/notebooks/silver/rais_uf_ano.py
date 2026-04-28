@@ -23,6 +23,15 @@ SILVER_TABLE = f"{CATALOG}.silver.rais_uf_ano"
 
 from pyspark.sql import functions as F, types as T
 
+# Spark 4 (DBR 18+) ativa ANSI mode por default → cast hard-fails com
+# CAST_INVALID_INPUT em strings com lixo (ex.: '{ñ' em vinculo_ativo de
+# arquivos PDET antigos com leftover latin-1, ou '  ' em campos vazios).
+# Bronze é STRING-ONLY e silver agrega por F.sum/F.coalesce(0) que já
+# tolera NULL — o comportamento desejado é NULL em cast inválido.
+# F.try_cast não existe em todas as versões PySpark; desabilitar ANSI é
+# o caminho mais portável.
+spark.conf.set("spark.sql.ansi.enabled", "false")
+
 # Defensivo: bronze pode não existir ainda se o ingest do PDET falhou
 # (URLs do MTE mudam frequentemente, ou o ano não tem .7z publicado).
 # Sai gracefully sem TABLE_OR_VIEW_NOT_FOUND cascade.
@@ -128,26 +137,21 @@ UF_BY_CODE = {
 }
 uf_map_expr = F.create_map(*[v for kv in UF_BY_CODE.items() for v in (F.lit(int(kv[0])), F.lit(kv[1]))])
 
-# BR numeric: "1234,56" → double. try_cast tolera lixo (latin-1 leftover, etc.).
+# BR numeric: "1234,56" → double. Com ANSI=false, cast retorna NULL em lixo.
 def br_num(col_expr):
-    cleaned = F.regexp_replace(F.regexp_replace(col_expr, r'\.', ''), ',', '.')
-    return F.try_cast(cleaned, T.DoubleType())
+    return F.regexp_replace(F.regexp_replace(col_expr, r'\.', ''), ',', '.').cast('double')
 
-# IMPORTANTE: TODAS as conversões de string → numeric usam `try_cast` em vez de
-# `cast`. Bronze é STRING-ONLY com encoding latin-1 e arquivos PDET pré-2002 têm
-# resíduos não-numéricos como "{ñ", "  ", "00.0,5" em campos que deveriam ser
-# inteiros. Spark 4 (DBR 18+) é mais estrito que DBR 16- e cast hard-fails com
-# CAST_INVALID_INPUT em vez de retornar NULL silenciosamente. try_cast retorna
-# NULL em vez de explodir — que é o comportamento esperado pra agregação.
+# Conversões string → numeric usam cast simples; com ANSI=false, lixo vira NULL
+# (em vez de explodir com CAST_INVALID_INPUT).
 df = (
     bronze
-    .withColumn("ano_int",         F.try_cast(F.col("ano"), T.IntegerType()))
-    .withColumn("uf_code",         F.try_cast(F.substring(EXPR_MUN.cast("string"), 1, 2), T.IntegerType()))
+    .withColumn("ano_int",         F.col("ano").cast("int"))
+    .withColumn("uf_code",         F.substring(EXPR_MUN.cast("string"), 1, 2).cast("int"))
     .withColumn("uf",              uf_map_expr.getItem(F.col("uf_code")))
-    .withColumn("vinculo_ativo",   F.try_cast(EXPR_VINC,    T.IntegerType()))
+    .withColumn("vinculo_ativo",   EXPR_VINC.cast("int"))
     .withColumn("vl_dez",          br_num(EXPR_VL_DEZ))
     .withColumn("vl_med",          br_num(EXPR_VL_MED))
-    .withColumn("ind_simples_int", F.try_cast(EXPR_SIMPLES, T.IntegerType()))
+    .withColumn("ind_simples_int", EXPR_SIMPLES.cast("int"))
     .where(F.col("uf").isNotNull() & F.col("ano_int").isNotNull())
 )
 
