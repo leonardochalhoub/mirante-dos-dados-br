@@ -40,6 +40,14 @@ BRONZE_TABLE   = f"{CATALOG}.bronze.rais_vinculos"
 CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/rais_vinculos/_checkpoint"
 SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/rais_vinculos/_schema"
 
+# Resiliência do Auto Loader contra TXT que sumiu entre notification e read.
+# Cenário: auto-recovery anterior deletou + re-extraiu ESTB1999.TXT (CrcError
+# / corrupt 7z), mas o checkpoint do streaming já tinha enfileirado o arquivo
+# original. Sem este flag, stream falha com CLOUD_FILE_SOURCE_FILE_NOT_FOUND
+# e exige reset manual do checkpoint. Com ele, arquivos sumidos são pulados
+# silenciosamente — o re-extraído já entra na próxima notification do diretório.
+spark.conf.set("spark.sql.files.ignoreMissingFiles", "true")
+
 print(f"zips_dir={ZIPS_DIR}  txt_extracted={TXT_EXTRACTED}  target={BRONZE_TABLE}")
 print(f"force_reconvert={FORCE_RECONVERT}  revalidate_content={REVALIDATE_CONTENT}")
 
