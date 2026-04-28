@@ -19,21 +19,29 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("catalog",        "mirante_prd")
-dbutils.widgets.text("zips_dir",       "/Volumes/mirante_prd/bronze/raw/mte/rais")
-dbutils.widgets.text("txt_extracted",  "/Volumes/mirante_prd/bronze/raw/mte/rais_txt_extracted")
-dbutils.widgets.text("force_reconvert","false")
+dbutils.widgets.text("catalog",            "mirante_prd")
+dbutils.widgets.text("zips_dir",           "/Volumes/mirante_prd/bronze/raw/mte/rais")
+dbutils.widgets.text("txt_extracted",      "/Volumes/mirante_prd/bronze/raw/mte/rais_txt_extracted")
+dbutils.widgets.text("force_reconvert",    "false")
+# revalidate_content: lê 128KB/.txt + abre cada .7z pra checar central directory.
+# Custa ~minutos em runs com muitos arquivos. NÃO é necessário se nada mudou
+# desde a última run (Auto Loader + .done markers já garantem idempotência).
+# Ligar quando suspeitar de corrupção silenciosa (ex.: PDET re-publicou um .7z
+# com mesmo nome mas conteúdo diferente, ou após upgrade de runtime).
+dbutils.widgets.text("revalidate_content", "false")
 
-CATALOG          = dbutils.widgets.get("catalog")
-ZIPS_DIR         = dbutils.widgets.get("zips_dir")
-TXT_EXTRACTED    = dbutils.widgets.get("txt_extracted")
-FORCE_RECONVERT  = dbutils.widgets.get("force_reconvert").lower() in ("true","1","yes")
+CATALOG            = dbutils.widgets.get("catalog")
+ZIPS_DIR           = dbutils.widgets.get("zips_dir")
+TXT_EXTRACTED      = dbutils.widgets.get("txt_extracted")
+FORCE_RECONVERT    = dbutils.widgets.get("force_reconvert").lower() in ("true","1","yes")
+REVALIDATE_CONTENT = dbutils.widgets.get("revalidate_content").lower() in ("true","1","yes")
 
 BRONZE_TABLE   = f"{CATALOG}.bronze.rais_vinculos"
 CHECKPOINT_LOC = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/rais_vinculos/_checkpoint"
 SCHEMA_LOC     = f"/Volumes/{CATALOG}/bronze/raw/_autoloader/rais_vinculos/_schema"
 
 print(f"zips_dir={ZIPS_DIR}  txt_extracted={TXT_EXTRACTED}  target={BRONZE_TABLE}")
+print(f"force_reconvert={FORCE_RECONVERT}  revalidate_content={REVALIDATE_CONTENT}")
 
 # COMMAND ----------
 
@@ -385,56 +393,67 @@ if not zips:
 # extraiu .COMT em vez de .txt, ou tail truncado), o conteúdo do bronze fica
 # corrompido. Aqui revalidamos cada .done existente; se falhar, REMOVEMOS o
 # marker pra forçar re-extração no loop principal (que tem auto-recovery).
-print("=== RE-VALIDAÇÃO DE MARKERS .done EXISTENTES ===")
+#
+# Custoso: abre cada .7z (central directory) + lê 128KB de cada .txt. Em runs
+# rotineiras (sem suspeita de corrupção), pular pra fast-path.
 revalidated_ok = 0
 revalidated_removed = 0
 revalidate_skipped = 0
-for zp in zips:
-    marker_ok = Path(TXT_EXTRACTED) / f"_{zp.stem}.done"
-    if not marker_ok.exists():
-        continue
-    year = _parse_year_from_local(zp.name)
-    if year is None:
-        revalidate_skipped += 1
-        continue
-    target_dir = Path(TXT_EXTRACTED) / f"ano={year}"
-    if not target_dir.exists():
-        # marker .done existe mas dir não existe — situação inconsistente;
-        # remove marker pra forçar re-extração
-        try: marker_ok.unlink()
-        except Exception: pass
-        revalidated_removed += 1
-        continue
 
-    expected = _list_archive_names(zp)
-    if not expected:
-        # arquivo .7z corrompido — central directory não retorna nada
-        revalidate_skipped += 1
-        continue
-
-    bad: list[str] = []
-    for name in expected:
-        f = target_dir / name
-        if not f.exists():
-            bad.append(f"{name}(missing)")
+if not REVALIDATE_CONTENT and not FORCE_RECONVERT:
+    n_done = sum(1 for zp in zips if (Path(TXT_EXTRACTED) / f"_{zp.stem}.done").exists())
+    print(f"⊘ FAST PATH: pulando re-validação de {n_done} markers .done "
+          f"(revalidate_content=false). Use revalidate_content=true se suspeitar "
+          f"de conteúdo corrompido.\n")
+    revalidated_ok = n_done
+else:
+    print("=== RE-VALIDAÇÃO DE MARKERS .done EXISTENTES ===")
+    for zp in zips:
+        marker_ok = Path(TXT_EXTRACTED) / f"_{zp.stem}.done"
+        if not marker_ok.exists():
             continue
-        ok_c, reason_c = _validate_txt_content(f)
-        if not ok_c:
-            bad.append(f"{name}({reason_c})")
+        year = _parse_year_from_local(zp.name)
+        if year is None:
+            revalidate_skipped += 1
+            continue
+        target_dir = Path(TXT_EXTRACTED) / f"ano={year}"
+        if not target_dir.exists():
+            # marker .done existe mas dir não existe — situação inconsistente;
+            # remove marker pra forçar re-extração
+            try: marker_ok.unlink()
+            except Exception: pass
+            revalidated_removed += 1
+            continue
 
-    if bad:
-        if revalidated_removed < 5:
-            print(f"  ⚠ {zp.name}: {bad[:2]} → removendo .done marker (será re-extraído)")
-        try: marker_ok.unlink()
-        except Exception: pass
-        revalidated_removed += 1
-    else:
-        revalidated_ok += 1
+        expected = _list_archive_names(zp)
+        if not expected:
+            # arquivo .7z corrompido — central directory não retorna nada
+            revalidate_skipped += 1
+            continue
 
-print(f"\n  ✓ {revalidated_ok} markers .done revalidados (conteúdo OK)")
-print(f"  ⚠ {revalidated_removed} markers .done REMOVIDOS (conteúdo inválido → re-extrair)")
-print(f"  ⊘ {revalidate_skipped} pulados (sem ano parseável ou .7z corrompido)")
-print("=== FIM RE-VALIDAÇÃO .done ===\n")
+        bad: list[str] = []
+        for name in expected:
+            f = target_dir / name
+            if not f.exists():
+                bad.append(f"{name}(missing)")
+                continue
+            ok_c, reason_c = _validate_txt_content(f)
+            if not ok_c:
+                bad.append(f"{name}({reason_c})")
+
+        if bad:
+            if revalidated_removed < 5:
+                print(f"  ⚠ {zp.name}: {bad[:2]} → removendo .done marker (será re-extraído)")
+            try: marker_ok.unlink()
+            except Exception: pass
+            revalidated_removed += 1
+        else:
+            revalidated_ok += 1
+
+    print(f"\n  ✓ {revalidated_ok} markers .done revalidados (conteúdo OK)")
+    print(f"  ⚠ {revalidated_removed} markers .done REMOVIDOS (conteúdo inválido → re-extrair)")
+    print(f"  ⊘ {revalidate_skipped} pulados (sem ano parseável ou .7z corrompido)")
+    print("=== FIM RE-VALIDAÇÃO .done ===\n")
 
 # ─── Reconciliação de markers — preserva extrações já feitas ────────────────
 # Quando markers .done foram limpos (force_reconvert=true em run anterior, ou
@@ -751,75 +770,83 @@ for d in year_dirs:
 print(f"  TOTAL: {total_files} arquivos em {len(year_dirs)} partições ano=YYYY/")
 
 # ─── Quality check pós-extração: ratio txt_total / 7z por arquivo .done ────
-print("\n=== QUALITY CHECK ===")
-print("Verificando se cada .7z extraído (.done marker) produziu .txt com tamanho consistente…")
-quality_issues: list[str] = []
-quality_ok = 0
-quality_skipped = 0
-for done_marker in sorted(Path(TXT_EXTRACTED).glob("_*.done")):
-    stem_with_underscore = done_marker.stem  # _RAIS_VINC_PUB_BR_2009 (no leading _ removed by stem)
-    # `.stem` of "_FOO.done" returns "_FOO" — keep the underscore prefix consistent
-    if not stem_with_underscore.startswith("_"):
-        continue
-    file_stem = stem_with_underscore[1:]  # strip leading _
-    zp = Path(ZIPS_DIR) / f"{file_stem}.7z"
-    if not zp.exists():
-        # .7z pode ter ido pra _bad/ ou foi deletado — marker .done sem .7z é orphan
-        quality_skipped += 1
-        continue
-    year = _parse_year_from_local(zp.name)
-    if year is None:
-        quality_skipped += 1
-        continue
-    target_dir = Path(TXT_EXTRACTED) / f"ano={year}"
-    if not target_dir.exists():
-        quality_issues.append(f"  ✗ {zp.name}: marker .done existe mas ano={year}/ não")
-        continue
-
-    expected = _list_archive_names(zp)
-    if not expected:
-        quality_skipped += 1
-        continue
-
-    txt_total = 0
-    missing = []
-    invalid_content: list[str] = []
-    for name in expected:
-        f = target_dir / name
-        if not f.exists():
-            missing.append(name)
-            continue
-        txt_total += f.stat().st_size
-        # Content check (header CSV + linha de dados + truncamento)
-        ok_c, reason_c = _validate_txt_content(f)
-        if not ok_c:
-            invalid_content.append(f"{name}({reason_c})")
-
-    zp_size = zp.stat().st_size
-    ratio = (txt_total / zp_size) if zp_size > 0 else 0
-
-    if missing:
-        quality_issues.append(f"  ✗ {zp.name}: {len(missing)} .txt esperados MISSING: {missing[:3]}")
-    elif invalid_content:
-        quality_issues.append(f"  ✗ {zp.name}: conteúdo inválido em {len(invalid_content)} arquivo(s): "
-                              f"{invalid_content[:2]}")
-    elif ratio < 1.5:
-        quality_issues.append(f"  ⚠ {zp.name}: ratio txt/7z={ratio:.2f} (suspeito; "
-                              f"txt_total={txt_total/1_048_576:.1f}MB / 7z={zp_size/1_048_576:.1f}MB)")
-    else:
-        quality_ok += 1
-
-print(f"  ✓ {quality_ok} arquivos com tamanhos consistentes")
-print(f"  ⊘ {quality_skipped} pulados (sem .7z source ou metadata)")
-if quality_issues:
-    print(f"  ⚠ {len(quality_issues)} arquivos com issues:")
-    for issue in quality_issues[:30]:
-        print(issue)
-    if len(quality_issues) > 30:
-        print(f"  ... +{len(quality_issues) - 30}")
+# Custoso: abre cada .7z + lê 128KB de cada .txt. Mesmo gate que re-validação:
+# pula no fast path e só roda quando explicitamente pedido OU quando algo novo
+# foi extraído nesta run (validar o que acabou de chegar).
+should_quality_check = REVALIDATE_CONTENT or FORCE_RECONVERT or extracted > 0 or redownloaded > 0
+if not should_quality_check:
+    print(f"\n⊘ FAST PATH: pulando quality check ({skipped} arquivos já com .done, "
+          f"nada novo extraído). Use revalidate_content=true pra forçar.\n")
 else:
-    print(f"  ✓ nenhum issue detectado")
-print("=== FIM QUALITY CHECK ===\n")
+    print("\n=== QUALITY CHECK ===")
+    print("Verificando se cada .7z extraído (.done marker) produziu .txt com tamanho consistente…")
+    quality_issues: list[str] = []
+    quality_ok = 0
+    quality_skipped = 0
+    for done_marker in sorted(Path(TXT_EXTRACTED).glob("_*.done")):
+        stem_with_underscore = done_marker.stem  # _RAIS_VINC_PUB_BR_2009 (no leading _ removed by stem)
+        # `.stem` of "_FOO.done" returns "_FOO" — keep the underscore prefix consistent
+        if not stem_with_underscore.startswith("_"):
+            continue
+        file_stem = stem_with_underscore[1:]  # strip leading _
+        zp = Path(ZIPS_DIR) / f"{file_stem}.7z"
+        if not zp.exists():
+            # .7z pode ter ido pra _bad/ ou foi deletado — marker .done sem .7z é orphan
+            quality_skipped += 1
+            continue
+        year = _parse_year_from_local(zp.name)
+        if year is None:
+            quality_skipped += 1
+            continue
+        target_dir = Path(TXT_EXTRACTED) / f"ano={year}"
+        if not target_dir.exists():
+            quality_issues.append(f"  ✗ {zp.name}: marker .done existe mas ano={year}/ não")
+            continue
+
+        expected = _list_archive_names(zp)
+        if not expected:
+            quality_skipped += 1
+            continue
+
+        txt_total = 0
+        missing = []
+        invalid_content: list[str] = []
+        for name in expected:
+            f = target_dir / name
+            if not f.exists():
+                missing.append(name)
+                continue
+            txt_total += f.stat().st_size
+            # Content check (header CSV + linha de dados + truncamento)
+            ok_c, reason_c = _validate_txt_content(f)
+            if not ok_c:
+                invalid_content.append(f"{name}({reason_c})")
+
+        zp_size = zp.stat().st_size
+        ratio = (txt_total / zp_size) if zp_size > 0 else 0
+
+        if missing:
+            quality_issues.append(f"  ✗ {zp.name}: {len(missing)} .txt esperados MISSING: {missing[:3]}")
+        elif invalid_content:
+            quality_issues.append(f"  ✗ {zp.name}: conteúdo inválido em {len(invalid_content)} arquivo(s): "
+                                  f"{invalid_content[:2]}")
+        elif ratio < 1.5:
+            quality_issues.append(f"  ⚠ {zp.name}: ratio txt/7z={ratio:.2f} (suspeito; "
+                                  f"txt_total={txt_total/1_048_576:.1f}MB / 7z={zp_size/1_048_576:.1f}MB)")
+        else:
+            quality_ok += 1
+
+    print(f"  ✓ {quality_ok} arquivos com tamanhos consistentes")
+    print(f"  ⊘ {quality_skipped} pulados (sem .7z source ou metadata)")
+    if quality_issues:
+        print(f"  ⚠ {len(quality_issues)} arquivos com issues:")
+        for issue in quality_issues[:30]:
+            print(issue)
+        if len(quality_issues) > 30:
+            print(f"  ... +{len(quality_issues) - 30}")
+    else:
+        print(f"  ✓ nenhum issue detectado")
+    print("=== FIM QUALITY CHECK ===\n")
 
 # Glob recursivo pelas partições — picks up .txt + .TXT + .csv etc dentro de ano=YYYY/
 txts = sorted(Path(TXT_EXTRACTED).glob("ano=*/*.txt")) + sorted(Path(TXT_EXTRACTED).glob("ano=*/*.TXT"))

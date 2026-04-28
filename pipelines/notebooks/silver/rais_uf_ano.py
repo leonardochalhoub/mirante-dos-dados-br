@@ -36,9 +36,49 @@ if not spark.catalog.tableExists(BRONZE_TABLE):
 bronze = spark.read.table(BRONZE_TABLE)
 n_bronze = bronze.count()
 print(f"bronze rows: {n_bronze:,}")
+print(f"bronze columns ({len(bronze.columns)}): {bronze.columns}")
 if n_bronze == 0:
     print(f"⚠ {BRONZE_TABLE} existe mas está vazia.")
     dbutils.notebook.exit(f"SKIPPED: {BRONZE_TABLE} is empty")
+
+# RAIS PDET muda nomes de colunas entre eras (1985-2018 per-UF vs 2019+ per-região,
+# e dentro de cada era há variações). Resolvemos cada coluna lógica contra uma
+# lista de aliases conhecidos (já em snake_case, pois bronze sanitiza o header).
+def _resolve_col(df, *candidates):
+    cols = {c.lower(): c for c in df.columns}
+    for c in candidates:
+        if c.lower() in cols:
+            return cols[c.lower()]
+    return None
+
+LOGICAL_COLS = {
+    # Município de TRABALHO (IBGE 6-7 dig). Em vários anos vem só como "Município".
+    "mun_trab":      ("municipio_trabalho", "mun_trab", "municipio", "munic_trab", "cod_municipio"),
+    "cnae_classe":   ("cnae_2_0_classe", "cnae_2_0", "cnae_95_classe", "cnae_classe", "cnae20_classe", "cnae"),
+    "vinculo_ativo": ("vinculo_ativo_31_12", "vinc_ativo_31_12", "vinculo_ativo", "vinc_ativo"),
+    "vl_dez":        ("vl_remun_dezembro_nom", "vl_remun_dezembro", "vl_remun_dezembro_sm", "vlr_remun_dezembro_nom"),
+    "vl_med":        ("vl_remun_media_nom", "vl_remun_media", "vl_remun_media_sm", "vlr_remun_media_nom"),
+    "ind_simples":   ("ind_simples", "simples", "ind_simples_nacional"),
+}
+resolved = {logical: _resolve_col(bronze, *aliases) for logical, aliases in LOGICAL_COLS.items()}
+print(f"colunas RAIS resolvidas: {resolved}")
+
+missing = [k for k, v in resolved.items() if v is None]
+# `mun_trab` é obrigatório (UF deriva dele). Sem ele, abortamos.
+if resolved["mun_trab"] is None:
+    raise RuntimeError(
+        f"Coluna de município de trabalho ausente na bronze. Tentei: "
+        f"{LOGICAL_COLS['mun_trab']}. Schema atual: {bronze.columns}"
+    )
+if missing:
+    print(f"⚠ Colunas opcionais ausentes (vão virar null/0 nas agregações): {missing}")
+
+C_MUN     = resolved["mun_trab"]
+C_CNAE    = resolved["cnae_classe"]
+C_VINC    = resolved["vinculo_ativo"]
+C_VL_DEZ  = resolved["vl_dez"]
+C_VL_MED  = resolved["vl_med"]
+C_SIMPLES = resolved["ind_simples"]
 
 # Mapping IBGE 2-digit code → UF sigla
 UF_BY_CODE = {
@@ -56,14 +96,21 @@ def br_num(c):
 
 df = (
     bronze
-    .withColumn("ano_int", F.col("ano").cast("int"))
-    .withColumn("uf_code", F.substring(F.col("mun_trab").cast("string"), 1, 2).cast("int"))
-    .withColumn("uf", uf_map_expr.getItem(F.col("uf_code")))
-    .withColumn("vinculo_ativo", F.col("vinculo_ativo_31_12").cast("int"))
-    .withColumn("vl_dez", br_num(F.col("vl_remun_dezembro_nom")))
-    .withColumn("vl_med", br_num(F.col("vl_remun_media_nom")))
-    .withColumn("ind_simples_int", F.col("ind_simples").cast("int"))
+    .withColumn("ano_int",         F.col("ano").cast("int"))
+    .withColumn("uf_code",         F.substring(F.col(C_MUN).cast("string"), 1, 2).cast("int"))
+    .withColumn("uf",              uf_map_expr.getItem(F.col("uf_code")))
+    .withColumn("vinculo_ativo",   F.col(C_VINC).cast("int")    if C_VINC    else F.lit(None).cast("int"))
+    .withColumn("vl_dez",          br_num(F.col(C_VL_DEZ))      if C_VL_DEZ  else F.lit(None).cast("double"))
+    .withColumn("vl_med",          br_num(F.col(C_VL_MED))      if C_VL_MED  else F.lit(None).cast("double"))
+    .withColumn("ind_simples_int", F.col(C_SIMPLES).cast("int") if C_SIMPLES else F.lit(None).cast("int"))
     .where(F.col("uf").isNotNull() & F.col("ano_int").isNotNull())
+)
+
+# n_estabelecimentos_proxy só é confiável se temos ambos mun_trab + cnae_classe;
+# senão cai pra countDistinct(mun_trab) — ainda é um proxy, só mais grosseiro.
+estab_expr = (
+    F.countDistinct(F.concat_ws("_", F.col(C_MUN), F.col(C_CNAE))) if C_CNAE
+    else F.countDistinct(F.col(C_MUN))
 )
 
 silver_df = (
@@ -72,7 +119,7 @@ silver_df = (
         F.sum(F.when(F.col("vinculo_ativo")==1, 1).otherwise(0)).cast("long").alias("n_vinculos_ativos"),
         F.sum(F.coalesce(F.col("vl_dez"), F.lit(0.0))).alias("massa_salarial_dezembro"),
         F.avg(F.col("vl_med")).alias("remun_media_mes"),
-        F.countDistinct(F.concat_ws("_", F.col("mun_trab"), F.col("cnae_2_0_classe"))).cast("long").alias("n_estabelecimentos_proxy"),
+        estab_expr.cast("long").alias("n_estabelecimentos_proxy"),
         F.avg(F.coalesce(F.col("ind_simples_int"), F.lit(0))).alias("share_simples"),
     )
     .withColumnRenamed("ano_int", "Ano")
