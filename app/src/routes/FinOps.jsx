@@ -65,12 +65,14 @@ function chartStyles(theme) {
 }
 
 // ── Formatters ──────────────────────────────────────────────────────────────
-// USD com locale pt-BR (vírgula decimal, ponto milhar) — pra leitor brasileiro
-// "US$ 7,184" é decimal (= $7,18), ao passo que en-US "$7.184" parece $7.184
-// (notação BR de milhar). Currency code USD garante o prefixo "US$".
+// USD com locale pt-BR (vírgula decimal, ponto milhar) — pra leitor brasileiro.
+// Sempre 2 dp pra evitar leitura ambígua: "US$ 7,184" parece milhar (sete mil),
+// quando o valor real é US$ 7,18. Pra valores < 0,01 (sub-centavo), retorna
+// "< US$ 0,01" em vez de arredondar pra zero.
 const fmtUSD = (v, opts = {}) => {
   if (v == null || Number.isNaN(v)) return '—';
   const { compact = false, dp = 2 } = opts;
+  if (!compact && v > 0 && v < 0.01) return '< US$ 0,01';
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'USD',
@@ -696,8 +698,8 @@ function StorageSection({ storage, stats, theme }) {
                     <td className="ar">{v.gold_bytes   ? fmtBytes(v.gold_bytes)   : '—'}</td>
                     <td className="ar strong">{fmtBytes(v.bytes)}</td>
                     <td className="ar">{fmtDec1(v.share * 100)}%</td>
-                    <td className="ar">{fmtUSD(v.usd_per_month, { dp: 3 })}</td>
-                    <td className="ar">{fmtUSD(v.usd_per_year, { dp: 2 })}</td>
+                    <td className="ar">{fmtUSD(v.usd_per_month)}</td>
+                    <td className="ar">{fmtUSD(v.usd_per_year)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -721,8 +723,8 @@ function StorageSection({ storage, stats, theme }) {
                   <span className="finops-card-runs">{fmtDec1(v.share * 100)}% · {fmtInt(v.rows)} linhas</span>
                 </div>
                 <div className="finops-card-outcome">
-                  <span>{fmtUSD(v.usd_per_month, { dp: 3 })} / mês</span>
-                  <span>{fmtUSD(v.usd_per_year, { dp: 2 })} / ano</span>
+                  <span>{fmtUSD(v.usd_per_month)} / mês</span>
+                  <span>{fmtUSD(v.usd_per_year)} / ano</span>
                 </div>
               </li>
             ))}
