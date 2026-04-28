@@ -63,6 +63,7 @@ export default function BrazilMuniMap({
     if (typeof s.clamp === 'function') s.clamp(true);
     return s;
   }, [colorscale, domainLo, domainHi]);
+
   const fallbackBg  = theme === 'dark' ? '#1f2937' : '#e2e8f0';
   const muniStroke  = theme === 'dark' ? '#0d1117' : '#ffffff';
   const stateStroke = theme === 'dark' ? '#e2e8f0' : '#1f2937';
@@ -85,17 +86,23 @@ export default function BrazilMuniMap({
               const code = String(g.properties.codarea);
               const v    = valByCode.get(code);
               const fill = Number.isFinite(v) ? scale(v) : (emptyColor || fallbackBg);
+              // CRÍTICO: rsm@3 envolve Geography em React.memo. Passar fill como
+              // prop top-level vai pra restProps que é spread depois do style —
+              // dependendo da versão do React/rsm o style.default sobrepõe e
+              // como style.default não tinha fill antes, alguns munis ficavam
+              // com `fill: undefined` (transparente sobre o background da Panel
+              // = parecia "tudo amarelo"). Solução: passar fill DENTRO do
+              // style.default + stroke também. memo faz shallow compare por
+              // prop, novo objeto literal por render quebra o cache, garantindo
+              // re-render por muni quando data/scale muda.
               return (
                 <Geography
-                  key={g.rsmKey || code}
+                  key={code}
                   geography={g}
-                  fill={fill}
-                  stroke={muniStroke}
-                  strokeWidth={0.15}
                   style={{
-                    default: { outline: 'none' },
-                    hover:   { outline: 'none', filter: 'brightness(1.25)', cursor: 'pointer' },
-                    pressed: { outline: 'none' },
+                    default: { fill, stroke: muniStroke, strokeWidth: 0.15, outline: 'none' },
+                    hover:   { fill, stroke: muniStroke, strokeWidth: 0.15, outline: 'none', filter: 'brightness(1.25)', cursor: 'pointer' },
+                    pressed: { fill, stroke: muniStroke, strokeWidth: 0.15, outline: 'none' },
                   }}
                   onMouseEnter={(e) => {
                     const meta = metaByCode.get(code);
