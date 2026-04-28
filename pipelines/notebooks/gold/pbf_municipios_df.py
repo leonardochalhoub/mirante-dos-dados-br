@@ -23,7 +23,7 @@ CATALOG = dbutils.widgets.get("catalog")
 
 SILVER_PBF       = f"{CATALOG}.silver.pbf_total_municipio_mes"
 SILVER_POPULACAO = f"{CATALOG}.silver.populacao_municipio_ano"
-SILVER_COORDS    = f"{CATALOG}.silver.coords_municipios"
+DIM_GEOBR        = f"{CATALOG}.bronze.geobr_municipios_meta"   # canônico IPEA
 SILVER_DEFLATORS = f"{CATALOG}.silver.ipca_deflators_2021"
 GOLD_TABLE       = f"{CATALOG}.gold.pbf_municipios_df"
 
@@ -32,10 +32,17 @@ GOLD_TABLE       = f"{CATALOG}.gold.pbf_municipios_df"
 from pyspark.sql import functions as F
 
 silver = spark.read.table(SILVER_PBF)
-pop    = spark.read.table(SILVER_POPULACAO).select("Ano", "cod_municipio", "populacao",
-                                                    F.col("municipio_nome").alias("municipio"))
-coords = spark.read.table(SILVER_COORDS).select(
-    "cod_municipio", "lat", "lon", "regiao", "idhm_2010"
+pop    = spark.read.table(SILVER_POPULACAO).select(
+    "Ano", "cod_municipio",
+    F.col("populacao").alias("populacao"),
+    F.col("populacao_estimada").alias("populacao_estimada"),
+)
+# Dimensão geobr: nome canônico + UF + região via code_muni IBGE
+geo_dim = spark.read.table(DIM_GEOBR).select(
+    F.col("code_muni").alias("cod_municipio"),
+    F.col("name_muni").alias("municipio"),
+    F.col("abbrev_state").alias("uf_dim"),
+    F.col("name_region").alias("regiao"),
 )
 defl   = spark.read.table(SILVER_DEFLATORS).select("Ano", "deflator_to_2021")
 
@@ -70,10 +77,10 @@ benef = (
 )
 
 df = (
-    valores.join(benef,  on=["Ano", "cod_municipio"], how="left")
-           .join(pop,    on=["Ano", "cod_municipio"], how="left")
-           .join(coords, on=["cod_municipio"],        how="left")
-           .join(defl,   on=["Ano"],                  how="left")
+    valores.join(benef,   on=["Ano", "cod_municipio"], how="left")
+           .join(pop,     on=["Ano", "cod_municipio"], how="left")
+           .join(geo_dim, on=["cod_municipio"],        how="left")
+           .join(defl,    on=["Ano"],                  how="left")
 )
 
 df = df.withColumn("valor_2021",   F.col("valor_nominal") * F.col("deflator_to_2021"))
@@ -86,15 +93,13 @@ gold_df = df.select(
     F.col("municipio").cast("string"),
     F.col("uf").cast("string"),
     F.col("regiao").cast("string"),
-    F.col("lat").cast("double"),
-    F.col("lon").cast("double"),
     F.col("populacao").cast("long"),
+    F.col("populacao_estimada").cast("boolean"),
     F.col("n_benef").cast("long"),
     F.col("valor_nominal").cast("double"),
     F.col("valor_2021").cast("double"),
     F.col("pbfPerBenef").cast("double"),
     F.col("pbfPerCapita").cast("double"),
-    F.col("idhm_2010").cast("double"),
 ).withColumn("_gold_built_ts", F.current_timestamp()).orderBy("Ano", "cod_municipio")
 
 # COMMAND ----------
@@ -106,7 +111,7 @@ n_anos  = gold_df.select("Ano").distinct().count()
 bad_filter = (
     F.col("valor_nominal").isNull() | F.col("valor_2021").isNull()
     | F.col("populacao").isNull() | F.col("n_benef").isNull()
-    | F.col("lat").isNull() | F.col("lon").isNull()
+    | F.col("municipio").isNull()  | F.col("uf").isNull()
 )
 n_bad = gold_df.where(bad_filter).count()
 print(f"gold rows={n:,}  ({n_munis} munis × {n_anos} anos)")
@@ -114,7 +119,7 @@ print(f"rows com NULL críticos: {n_bad}")
 
 if n_bad > 0:
     gold_df.where(bad_filter).select(
-        "Ano", "cod_municipio", "uf", "n_benef", "valor_nominal", "populacao", "lat"
+        "Ano", "cod_municipio", "uf", "n_benef", "valor_nominal", "populacao", "municipio"
     ).show(20, truncate=False)
     gold_df = gold_df.where(~bad_filter)
     n_after = gold_df.count()
@@ -150,24 +155,25 @@ spark.sql(f"COMMENT ON TABLE {GOLD_TABLE} IS "
           f"Schema do JSON consumido pela vertical /bolsa-familia-municipios.'")
 
 for col, comment in [
-    ("Ano",           "Ano de competência completo (12 meses)."),
-    ("cod_municipio", "Código IBGE 7 dígitos com DV."),
-    ("municipio",     "Nome IBGE/SIDRA."),
-    ("uf",            "Sigla 2-letter."),
-    ("regiao",        "Norte/Nordeste/Centro-Oeste/Sudeste/Sul."),
-    ("lat",           "Latitude do centroide (graus, IBGE/MalhaDigital)."),
-    ("lon",           "Longitude do centroide (graus)."),
-    ("populacao",     "IBGE/SIDRA 6579 (estimativa anual)."),
-    ("n_benef",       "Beneficiários distintos por NIS no ano."),
-    ("valor_nominal", "R$ milhões nominais."),
-    ("valor_2021",    "R$ milhões deflacionados IPCA dez/2021."),
-    ("pbfPerBenef",   "R$ 2021 por beneficiário-ano."),
-    ("pbfPerCapita",  "R$ 2021 per capita-ano."),
-    ("idhm_2010",     "IDH-M Atlas Brasil 2010 (PNUD/IPEA/FJP) — usado em Kakwani."),
+    ("Ano",                "Ano de competência completo (12 meses)."),
+    ("cod_municipio",      "Código IBGE 7 dígitos com DV (chave canônica geobr)."),
+    ("municipio",          "Nome IBGE oficial via geobr (canônico do IPEA)."),
+    ("uf",                 "Sigla 2-letter (geobr.abbrev_state)."),
+    ("regiao",             "Norte/Nordeste/Centro-Oeste/Sudeste/Sul (geobr.name_region)."),
+    ("populacao",          "IBGE/SIDRA 6579 ou Censo 2022 ou interpolado (estimativa anual)."),
+    ("populacao_estimada", "True quando populacao foi interpolada linearmente entre Censo e Estimativa (ex.: 2023)."),
+    ("n_benef",            "Beneficiários distintos por NIS no ano."),
+    ("valor_nominal",      "R$ milhões nominais."),
+    ("valor_2021",         "R$ milhões deflacionados IPCA dez/2021."),
+    ("pbfPerBenef",        "R$ 2021 por beneficiário-ano."),
+    ("pbfPerCapita",       "R$ 2021 per capita-ano."),
 ]:
-    spark.sql(
-        f"ALTER TABLE {GOLD_TABLE} ALTER COLUMN {col} COMMENT '{comment.replace(chr(39), chr(39)*2)}'"
-    )
+    try:
+        spark.sql(
+            f"ALTER TABLE {GOLD_TABLE} ALTER COLUMN `{col}` COMMENT '{comment.replace(chr(39), chr(39)*2)}'"
+        )
+    except Exception as e:
+        print(f"  ⚠ comment {col}: {e}")
 
 spark.sql(f"ALTER TABLE {GOLD_TABLE} SET TAGS ("
           f"'layer' = 'gold', 'domain' = 'social_protection', "
