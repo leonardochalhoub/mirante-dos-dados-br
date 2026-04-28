@@ -186,24 +186,37 @@ extract_year() {
         return 1
     fi
 
+    # PDET empacota VINC + ESTAB no mesmo .7z. Hudi target rais_vinculos_hudi
+    # é VINC-only — pula ESTB<YYYY>.* (1985-2018) e RAIS_ESTAB_PUB.* (2019+).
+    # Filtramos na extração: economiza disco + alinha com bronze Delta.
     while IFS= read -r zp; do
         local zname=$(basename "${zp}")
-        echo "    extraindo ${zname}…"
+        echo "    extraindo ${zname} (filtrando ESTAB)…"
         if [[ "${EXTRACTOR}" == "system_7z" ]]; then
-            7z x -o"${target_dir}" -y "${zp}" >/dev/null 2>&1 || {
+            # -ssc-  → case-insensitive matching (cobre ESTB/estb, .TXT/.txt)
+            # -xr!… → exclude recursive pelo padrão
+            7z x -o"${target_dir}" -y -ssc- "-xr!estb*" "-xr!rais_estab*" "${zp}" >/dev/null 2>&1 || {
                 echo "      ⚠ system 7z falhou em ${zname}, tentando py7zr"
                 python3 -c "
-import py7zr, sys
+import py7zr, re, sys
+RE = re.compile(r'(?i)(?:^|/)(estb|rais_estab)')
 with py7zr.SevenZipFile('${zp}', 'r') as z:
-    z.extractall('${target_dir}')
+    wanted = [n for n in (z.getnames() or []) if RE.search(n) is None]
+    if wanted:
+        z.reset()
+        z.extract(path='${target_dir}', targets=wanted)
 " || return 1
             }
         else
             python3 -c "
-import py7zr, sys
+import py7zr, re, sys
+RE = re.compile(r'(?i)(?:^|/)(estb|rais_estab)')
 try:
     with py7zr.SevenZipFile('${zp}', 'r') as z:
-        z.extractall('${target_dir}')
+        wanted = [n for n in (z.getnames() or []) if RE.search(n) is None]
+        if wanted:
+            z.reset()
+            z.extract(path='${target_dir}', targets=wanted)
 except Exception as e:
     print(f'  py7zr error: {type(e).__name__}: {e}', file=sys.stderr)
     sys.exit(1)

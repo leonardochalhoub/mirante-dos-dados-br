@@ -58,7 +58,24 @@ import unicodedata
 from pathlib import Path
 import py7zr
 
+# Esta tabela é VINC-only (vínculos = grain contrato de trabalho). PDET empacota
+# VINC + ESTB (estabelecimentos) no mesmo .7z; ESTB tem schema diferente e contamina
+# bronze.rais_vinculos com colunas como BAIRRO FORT/BAIRRO RJ/IND PAT/NAT JURID/
+# TIPO ESTBL etc. Filtramos no nome do arquivo:
+#   1985–2018 : ESTB<YYYY>.7z/.txt
+#   2019+     : RAIS_ESTAB_PUB*.7z/.txt
+# Regex casa em qualquer ponto do path (no início ou após /).
+RAIS_ESTAB_RE = re.compile(r"(?i)(?:^|/)(estb|rais_estab)")
+
+
+def _is_vinculo_filename(name: str) -> bool:
+    """True se o filename pertence ao dataset VINC (vínculos), False se ESTB."""
+    return RAIS_ESTAB_RE.search(name) is None
+
+
 extracted = 0; skipped = 0; redownloaded = 0; quarantined = 0
+# Cleanup uma vez por run de eventuais ESTB que escaparam de runs antigas.
+purged_estb_legacy = 0
 Path(TXT_EXTRACTED).mkdir(parents=True, exist_ok=True)
 
 # Quarentena: arquivos que continuam corrompidos mesmo após re-download
@@ -150,7 +167,22 @@ def _try_extract(zp: Path, year: int) -> tuple[bool, str]:
     target.mkdir(parents=True, exist_ok=True)
     try:
         with py7zr.SevenZipFile(zp, mode='r') as z:
-            z.extractall(path=target)
+            all_names = list(z.getnames() or [])
+            wanted = [n for n in all_names if _is_vinculo_filename(n)]
+            skipped_estab = [n for n in all_names if not _is_vinculo_filename(n)]
+            if skipped_estab:
+                print(f"    ⊘ pulando {len(skipped_estab)} arquivo(s) ESTAB "
+                      f"(grain estabelecimento, não pertence a rais_vinculos): "
+                      f"{skipped_estab[:3]}{'...' if len(skipped_estab) > 3 else ''}")
+            if not wanted:
+                # Tudo no .7z é ESTAB → marca como ok mas nada extraído.
+                # Downstream validators só recebem `wanted` via _list_archive_names,
+                # então target_dir vazio não dispara false-positive.
+                return True, ""
+            # py7zr's reset() é necessário ao reusar o mesmo handle após getnames();
+            # `targets=` filtra a extração ao subset desejado.
+            z.reset()
+            z.extract(path=target, targets=wanted)
         return True, ""
     except Exception as e:
         kind = type(e).__name__
@@ -169,10 +201,15 @@ def _try_extract(zp: Path, year: int) -> tuple[bool, str]:
 
 def _list_archive_names(zp: Path) -> list[str]:
     """Lê apenas o central directory pra obter nomes dos arquivos contidos.
-    Falha silenciosamente em arquivos com magic bytes inválidos (retorna [])."""
+    Falha silenciosamente em arquivos com magic bytes inválidos (retorna []).
+
+    Filtra ESTAB-named entries — bronze.rais_vinculos é VINC-only (ver
+    `_is_vinculo_filename`). Se _try_extract pula ESTAB, validators downstream
+    (reconciliação, cleanup parcial, quality check) também não devem esperá-los."""
     try:
         with py7zr.SevenZipFile(zp, mode='r') as z:
-            return list(z.getnames() or [])
+            names = list(z.getnames() or [])
+        return [n for n in names if _is_vinculo_filename(n)]
     except Exception:
         return []
 
@@ -320,6 +357,40 @@ try:
 except Exception as e:
     print(f"  (vazio ou erro: {e})")
 print(f"=== FIM DIAGNÓSTICO ===\n")
+
+# ─── Cleanup: ESTB/ESTAB já extraídos por runs antigas ─────────────────────
+# Antes do fix VINC-only, _try_extract chamava extractall(); ESTB<YYYY>.txt
+# (1985-2018) e RAIS_ESTAB_PUB*.txt (2019+) ficavam misturados nos dirs
+# ano=YYYY/. Step 2 lia eles como CSV junto com VINC, contaminando bronze
+# com schema mismatch (BAIRRO FORT, NAT JURID, TIPO ESTBL etc).
+#
+# IMPORTANTE: deletar arquivos do disco NÃO limpa bronze.rais_vinculos —
+# rode com force_reconvert=true pra reconstruir a tabela depois.
+print("=== CLEANUP ESTAB FILES JÁ EXTRAÍDOS ===")
+estab_purged = 0; estab_purged_bytes = 0
+year_partitions = [d for d in Path(TXT_EXTRACTED).iterdir() if d.is_dir() and d.name.startswith("ano=")]
+for ydir in year_partitions:
+    for f in ydir.iterdir():
+        if not f.is_file():
+            continue
+        if RAIS_ESTAB_RE.search(f.name):
+            try:
+                sz = f.stat().st_size
+                f.unlink()
+                estab_purged += 1
+                estab_purged_bytes += sz
+                if estab_purged <= 5:
+                    print(f"  ✗ removido {ydir.name}/{f.name}  ({sz/1_048_576:.1f} MB)")
+            except Exception as e:
+                print(f"  ⚠ falha ao deletar {f}: {type(e).__name__}: {e}")
+purged_estb_legacy = estab_purged
+if estab_purged > 0:
+    print(f"\n  ✓ {estab_purged} arquivos ESTAB removidos · {estab_purged_bytes/1_048_576:,.0f} MB liberado")
+    print(f"  ⚠ bronze.rais_vinculos pode ainda ter linhas dessas extrações antigas;")
+    print(f"    rode UMA vez com force_reconvert=true pra reconstruir limpo.")
+else:
+    print(f"  ⊘ nenhum arquivo ESTAB encontrado (já filtrado ou primeira run pós-fix)")
+print("=== FIM CLEANUP ESTAB ===\n")
 
 # ─── Migração: detecta .txt FLAT de extrações pré ano=YYYY/ ─────────────────
 # Versões antigas extraíam tudo plano em TXT_EXTRACTED. Se Step 2 ler esses

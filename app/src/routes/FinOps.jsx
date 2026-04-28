@@ -538,43 +538,48 @@ function StorageSection({ storage, stats, theme }) {
   const verticals = stats?.verticals;
   const tables    = stats?.tables;
 
-  // Per-vertical attribution sobre as 6 camadas de storage:
+  // Per-vertical attribution sobre as 5 camadas de storage:
   //   raw_compressed (7Z/ZIP/DBC) + intermediate (TXT/CSV/Parquet)
-  //   + delta_bronze + iceberg_parallel (RAIS only) + silver + gold
-  // Tudo cai em /Volumes (Databricks) ou managed Delta e contribui pro
-  // DEFAULT_STORAGE bill. Pro-rata pelo total de bytes (todos os 6).
+  //   + delta_bronze + silver + gold
+  // Iceberg via UniForm NÃO entra como camada própria — compartilha arquivos
+  // com a Delta canônica (sidecar de metadata, ~MB). Contar como camada
+  // separada inflaria bytes artificialmente. Iceberg fica visível no strip
+  // do Início como exposição (card "Iceberg") e no notes da tabela aqui.
   const verticalsList = useMemo(() => {
     if (!verticals) return null;
     const entries = Object.entries(verticals)
       .filter(([k, v]) => {
         if (!v || v.kind === 'finops') return false;
-        const total = (v.raw_compressed_bytes        || 0)
-                    + (v.intermediate_bytes          || 0)
-                    + (v.delta_bronze_bytes          || 0)
-                    + (v.delta_iceberg_parallel_bytes|| 0)
-                    + (v.silver_bytes                || 0)
-                    + (v.gold_bytes                  || 0);
+        const total = (v.raw_compressed_bytes || 0)
+                    + (v.intermediate_bytes   || 0)
+                    + (v.delta_bronze_bytes   || 0)
+                    + (v.silver_bytes         || 0)
+                    + (v.gold_bytes           || 0);
         return total > 0;
       })
       .map(([k, v]) => {
-        const raw    = v.raw_compressed_bytes         || 0;
-        const inter  = v.intermediate_bytes           || 0;
-        const bronze = v.delta_bronze_bytes           || 0;
-        const iceberg= v.delta_iceberg_parallel_bytes || 0;
-        const silver = v.silver_bytes                 || 0;
-        const gold   = v.gold_bytes                   || 0;
+        const raw   = v.raw_compressed_bytes || 0;
+        const inter = v.intermediate_bytes   || 0;
+        const bronze= v.delta_bronze_bytes   || 0;
+        const silver= v.silver_bytes         || 0;
+        const gold  = v.gold_bytes           || 0;
+        // bronze_alt_formats[]: iceberg=UniForm sidecar (não duplica bytes),
+        // hudi=external (deferido). Renderizamos como label/badge no front
+        // mas não somamos no total.
+        const altFormats = v.bronze_alt_formats || [];
+        const icebergAlt = altFormats.find((a) => a.format === 'iceberg' && !a.deferred);
         return {
           key: k,
-          raw_bytes:     raw,
-          inter_bytes:   inter,
-          bronze_bytes:  bronze,
-          iceberg_bytes: iceberg,
-          silver_bytes:  silver,
-          gold_bytes:    gold,
-          bytes:         raw + inter + bronze + iceberg + silver + gold,
-          rows:          v.delta_bronze_rows || 0,
-          raw_label:     v.raw_compressed_label || 'Raw',
-          inter_label:   v.intermediate_label   || 'Intermediate',
+          raw_bytes:    raw,
+          inter_bytes:  inter,
+          bronze_bytes: bronze,
+          silver_bytes: silver,
+          gold_bytes:   gold,
+          bytes:        raw + inter + bronze + silver + gold,
+          rows:         v.delta_bronze_rows || 0,
+          raw_label:    v.raw_compressed_label || 'Raw',
+          inter_label:  v.intermediate_label   || 'Intermediate',
+          iceberg_uniform: !!icebergAlt,  // boolean badge, não bytes
         };
       });
     const totalBytes = entries.reduce((s, e) => s + e.bytes, 0);
@@ -660,7 +665,6 @@ function StorageSection({ storage, stats, theme }) {
                   <th className="ar">Raw</th>
                   <th className="ar">Intermediate</th>
                   <th className="ar">Bronze</th>
-                  <th className="ar">Iceberg</th>
                   <th className="ar">Silver</th>
                   <th className="ar">Gold</th>
                   <th className="ar strong">Total</th>
@@ -672,13 +676,23 @@ function StorageSection({ storage, stats, theme }) {
               <tbody>
                 {verticalsList.map((v) => (
                   <tr key={v.key}>
-                    <td>{labelOf(v.key)}</td>
-                    <td className="ar">{v.raw_bytes     ? fmtBytes(v.raw_bytes)     : '—'}</td>
-                    <td className="ar">{v.inter_bytes   ? fmtBytes(v.inter_bytes)   : '—'}</td>
-                    <td className="ar">{v.bronze_bytes  ? fmtBytes(v.bronze_bytes)  : '—'}</td>
-                    <td className="ar">{v.iceberg_bytes ? fmtBytes(v.iceberg_bytes) : '—'}</td>
-                    <td className="ar">{v.silver_bytes  ? fmtBytes(v.silver_bytes)  : '—'}</td>
-                    <td className="ar">{v.gold_bytes    ? fmtBytes(v.gold_bytes)    : '—'}</td>
+                    <td>
+                      {labelOf(v.key)}
+                      {v.iceberg_uniform && (
+                        <span style={{ marginLeft: 6, fontSize: 9, padding: '1px 5px',
+                                       background: 'rgba(8, 145, 178, 0.15)',
+                                       color: '#0891b2', borderRadius: 3,
+                                       fontWeight: 700, letterSpacing: 0.4 }}
+                              title="Bronze também exposta como Iceberg via UniForm (mesmos arquivos)">
+                          ICEBERG
+                        </span>
+                      )}
+                    </td>
+                    <td className="ar">{v.raw_bytes    ? fmtBytes(v.raw_bytes)    : '—'}</td>
+                    <td className="ar">{v.inter_bytes  ? fmtBytes(v.inter_bytes)  : '—'}</td>
+                    <td className="ar">{v.bronze_bytes ? fmtBytes(v.bronze_bytes) : '—'}</td>
+                    <td className="ar">{v.silver_bytes ? fmtBytes(v.silver_bytes) : '—'}</td>
+                    <td className="ar">{v.gold_bytes   ? fmtBytes(v.gold_bytes)   : '—'}</td>
                     <td className="ar strong">{fmtBytes(v.bytes)}</td>
                     <td className="ar">{fmtDec1(v.share * 100)}%</td>
                     <td className="ar">{fmtUSD(v.usd_per_month, { dp: 3 })}</td>
@@ -718,22 +732,22 @@ function StorageSection({ storage, stats, theme }) {
   );
 }
 
-// Horizontal STACKED bar chart of per-vertical storage size — 6 layers.
-// Cores: gradient mapeando raw → intermediate → bronze → iceberg → silver → gold.
-// Bronze/silver/gold são SEMPRE Delta. Iceberg só aparece no RAIS por enquanto
-// (bronze paralela escrita pelo bronze_rais_vinculos_open_formats com UniForm).
+// Horizontal STACKED bar chart of per-vertical storage size — 5 layers.
+// Cores: gradient mapeando raw → intermediate → medallion bronze/silver/gold.
+// Iceberg via UniForm não vira camada (compartilha bytes com Delta canônico)
+// — aparece como badge `🧊 Iceberg` quando a vertical tem UniForm habilitado.
 function PerVerticalSizeBars({ verticals, labelOf, theme }) {
   const data = verticals.map((v) => ({
     name: labelOf(v.key),
     key: v.key,
-    raw:     v.raw_bytes     || 0,
-    inter:   v.inter_bytes   || 0,
-    bronze:  v.bronze_bytes  || 0,
-    iceberg: v.iceberg_bytes || 0,
-    silver:  v.silver_bytes  || 0,
-    gold:    v.gold_bytes    || 0,
+    raw:    v.raw_bytes    || 0,
+    inter:  v.inter_bytes  || 0,
+    bronze: v.bronze_bytes || 0,
+    silver: v.silver_bytes || 0,
+    gold:   v.gold_bytes   || 0,
     raw_label:   v.raw_label   || 'Raw',
     inter_label: v.inter_label || 'Intermediate',
+    iceberg_uniform: !!v.iceberg_uniform,
     total:  v.bytes,
     usd_per_month: v.usd_per_month,
     share: v.share * 100,
@@ -741,27 +755,27 @@ function PerVerticalSizeBars({ verticals, labelOf, theme }) {
   const s = chartStyles(theme);
 
   const COLORS = {
-    raw:     '#94a3b8',  // slate light
-    inter:   '#475569',  // slate dark
-    bronze:  '#b45309',  // bronze
-    iceberg: '#0891b2',  // cyan (Iceberg branding)
-    silver:  '#cbd5e1',  // prata
-    gold:    '#facc15',  // dourado
+    raw:    '#94a3b8',  // slate light
+    inter:  '#475569',  // slate dark
+    bronze: '#b45309',  // bronze
+    silver: '#cbd5e1',  // prata
+    gold:   '#facc15',  // dourado
   };
+  const ICEBERG_BADGE = '#0891b2';
 
-  // Tooltip rico: mostra TODAS as 6 camadas + formato + share + custo.
+  // Tooltip rico: mostra TODAS as 5 camadas + formato + share + custo.
   // Recharts default mostra apenas o segmento sob o cursor — aqui sobrescrevo
   // pra trazer o stack inteiro pro hover.
   const RichTooltip = ({ active, payload, label }) => {
     if (!active || !payload || !payload.length) return null;
     const r = payload[0].payload;
     const rows = [
-      { k: 'raw',     label: r.raw_label,         bytes: r.raw,     color: COLORS.raw },
-      { k: 'inter',   label: r.inter_label,       bytes: r.inter,   color: COLORS.inter },
-      { k: 'bronze',  label: 'Delta · bronze',    bytes: r.bronze,  color: COLORS.bronze },
-      { k: 'iceberg', label: 'Iceberg',           bytes: r.iceberg, color: COLORS.iceberg },
-      { k: 'silver',  label: 'Delta · silver',    bytes: r.silver,  color: COLORS.silver },
-      { k: 'gold',    label: 'Delta · gold',      bytes: r.gold,    color: COLORS.gold },
+      { k: 'raw',    label: r.raw_label,         bytes: r.raw,    color: COLORS.raw },
+      { k: 'inter',  label: r.inter_label,       bytes: r.inter,  color: COLORS.inter },
+      { k: 'bronze', label: 'Delta · bronze',    bytes: r.bronze, color: COLORS.bronze,
+        sublabel: r.iceberg_uniform ? '+ Iceberg via UniForm (mesmos arquivos)' : null },
+      { k: 'silver', label: 'Delta · silver',    bytes: r.silver, color: COLORS.silver },
+      { k: 'gold',   label: 'Delta · gold',      bytes: r.gold,   color: COLORS.gold },
     ];
     return (
       <div style={{
@@ -789,7 +803,14 @@ function PerVerticalSizeBars({ verticals, labelOf, theme }) {
                                    background: row.color, borderRadius: 2,
                                    border: '1px solid rgba(0,0,0,0.2)' }} />
                   </td>
-                  <td style={{ paddingRight: 8, color: s.tickColor }}>{row.label}</td>
+                  <td style={{ paddingRight: 8, color: s.tickColor }}>
+                    {row.label}
+                    {row.sublabel && (
+                      <div style={{ fontSize: 10, color: ICEBERG_BADGE, marginTop: 1 }}>
+                        {row.sublabel}
+                      </div>
+                    )}
+                  </td>
                   <td style={{ textAlign: 'right', fontWeight: 600 }}>
                     {isEmpty ? '—' : fmtBytes(row.bytes)}
                   </td>
@@ -807,13 +828,15 @@ function PerVerticalSizeBars({ verticals, labelOf, theme }) {
 
   // Itens da legenda — ordem do stack
   const legendItems = [
-    { k: 'raw',     text: 'Raw (7Z/ZIP/DBC)' },
-    { k: 'inter',   text: 'Intermediate (TXT/CSV/Parquet)' },
-    { k: 'bronze',  text: 'Delta · bronze' },
-    { k: 'iceberg', text: 'Iceberg' },
-    { k: 'silver',  text: 'Delta · silver' },
-    { k: 'gold',    text: 'Delta · gold' },
+    { k: 'raw',    text: 'Raw (7Z/ZIP/DBC)' },
+    { k: 'inter',  text: 'Intermediate (TXT/CSV/Parquet)' },
+    { k: 'bronze', text: 'Delta · bronze' },
+    { k: 'silver', text: 'Delta · silver' },
+    { k: 'gold',   text: 'Delta · gold' },
   ];
+
+  // Verticais com Iceberg via UniForm habilitado — badge separado, fora do stack
+  const icebergUniformVerticals = data.filter((d) => d.iceberg_uniform).map((d) => d.name);
 
   return (
     <div>
@@ -843,12 +866,11 @@ function PerVerticalSizeBars({ verticals, labelOf, theme }) {
                    tickLine={false} axisLine={false} width={150}
                    interval={0} />
             <Tooltip content={<RichTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-            <Bar dataKey="raw"     stackId="s" fill={COLORS.raw}     />
-            <Bar dataKey="inter"   stackId="s" fill={COLORS.inter}   />
-            <Bar dataKey="bronze"  stackId="s" fill={COLORS.bronze}  />
-            <Bar dataKey="iceberg" stackId="s" fill={COLORS.iceberg} />
-            <Bar dataKey="silver"  stackId="s" fill={COLORS.silver}  />
-            <Bar dataKey="gold"    stackId="s" fill={COLORS.gold}
+            <Bar dataKey="raw"    stackId="s" fill={COLORS.raw}    />
+            <Bar dataKey="inter"  stackId="s" fill={COLORS.inter}  />
+            <Bar dataKey="bronze" stackId="s" fill={COLORS.bronze} />
+            <Bar dataKey="silver" stackId="s" fill={COLORS.silver} />
+            <Bar dataKey="gold"   stackId="s" fill={COLORS.gold}
                  radius={[0, 4, 4, 0]}
                  label={(props) => {
                    const { x, y, width, height, index } = props;

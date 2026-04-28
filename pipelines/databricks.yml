@@ -393,20 +393,21 @@ resources:
               force_reconvert:     "false"
               revalidate_content:  "false"
 
-        # ─── Bronze paralela em Iceberg (Hudi deferido em serverless) ─────
-        # Roda em PARALELO com bronze_rais_vinculos (Delta canônico) — ambos
-        # dependem só do ingest_mte_rais. Lê o mesmo TXT cru e escreve uma
-        # tabela Delta separada com UniForm Iceberg habilitado at-create.
-        # Trade-off: ~22 GB de duplicação de storage; ganho: paralelismo real
-        # + demonstração de open lakehouse com 2 formatos sobre mesmo input.
-        # Hudi requer JAR Maven, ausente em serverless workspace; ENABLE_HUDI=
-        # false até classic compute estar disponível.
+        # ─── Iceberg via UniForm sidecar (Hudi deferido em serverless) ────
+        # Habilita UniForm Iceberg na bronze.rais_vinculos canônica (ALTER
+        # TABLE) + cria VIEW bronze.rais_vinculos_iceberg apontando pra ela.
+        # Storage overhead: zero (sidecar de metadata, mesmos arquivos
+        # Parquet). Free Edition serverless não permite Iceberg writer nativo
+        # (Maven org.apache.iceberg ausente); UniForm é honesto pra interop
+        # sem fingir paralelismo de write. Depende do bronze canônico existir.
+        # Hudi: requer JAR Maven; ENABLE_HUDI=false até classic compute.
         - task_key: bronze_rais_vinculos_open_formats
-          depends_on: [{ task_key: ingest_mte_rais }]
+          depends_on: [{ task_key: bronze_rais_vinculos }]
           notebook_task:
             notebook_path: ./notebooks/bronze/rais_vinculos_open_formats.py
             base_parameters:
               catalog:           "${var.catalog}"
+              source_table:      "${var.catalog}.bronze.rais_vinculos"
               txt_extracted:     "/Volumes/${var.catalog}/bronze/raw/mte/rais_txt_extracted"
               open_formats_root: "/Volumes/${var.catalog}/bronze/raw/_open_formats"
               enable_iceberg:    "true"

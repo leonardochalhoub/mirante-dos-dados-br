@@ -124,13 +124,33 @@ def main() -> int:
             print(f"✗ filtro --years {args.years} não bateu com nenhuma partição", file=sys.stderr)
             return 1
 
-    n_txt_files = sum(1 for d in year_dirs for f in d.glob("*.txt"))
-    sum_txt_mb  = sum(f.stat().st_size for d in year_dirs for f in d.glob("*.txt")) / 1_048_576
+    # PDET empacota VINC + ESTAB no mesmo .7z. Hudi target é VINC-only:
+    # exclui ESTB<YYYY>.* (1985-2018) e RAIS_ESTAB_PUB.* (2019+). O orquestrador
+    # `run_rais_hudi_all_years.sh` já filtra na extração — este filtro adicional
+    # é defense-in-depth caso a fonte tenha sido extraída por outra via.
+    estab_re = re.compile(r"(?i)(?:^|/)(estb|rais_estab)")
+
+    txt_files: list[Path] = []
+    estab_skipped: list[Path] = []
+    for d in year_dirs:
+        for f in sorted(list(d.glob("*.txt")) + list(d.glob("*.TXT"))):
+            if estab_re.search(f.name):
+                estab_skipped.append(f)
+            else:
+                txt_files.append(f)
+
+    n_txt_files = len(txt_files)
+    sum_txt_mb  = sum(f.stat().st_size for f in txt_files) / 1_048_576
     print(f"input        : {in_dir}")
     print(f"output       : {out_dir}")
     print(f"partições    : {[d.name for d in year_dirs]}")
-    print(f"arquivos .txt: {n_txt_files}  ·  total: {sum_txt_mb:,.0f} MB")
+    print(f"arquivos VINC: {n_txt_files}  ·  total: {sum_txt_mb:,.0f} MB")
+    if estab_skipped:
+        print(f"⊘ pulando {len(estab_skipped)} ESTAB (grain estabelecimento, não pertence a rais_vinculos_hudi)")
     print(f"hudi package : {HUDI_PACKAGE}")
+    if not txt_files:
+        print(f"✗ nenhum .txt VINC em {in_dir} (todos eram ESTAB ou dir vazio)", file=sys.stderr)
+        return 1
 
     if args.clean and out_dir.exists():
         print(f"--clean → removendo {out_dir}…")
@@ -140,9 +160,11 @@ def main() -> int:
     spark = setup_spark(args.master, args.driver_memory)
     from pyspark.sql import functions as F  # após session up
 
-    # Lista paths exatos das partições selecionadas (inclusiveness explícito)
-    read_paths = [str(d) for d in year_dirs]
-    print(f"\n▸ lendo CSVs PT-BR (sep=';' latin-1, header, STRING-ONLY)…")
+    # Lista explícita de paths VINC (filtrados de ESTAB acima). Spark CSV
+    # aceita tanto dirs quanto file paths; passamos arquivos pra excluir ESTAB
+    # mesmo se a extração tiver deixado eles em ano=YYYY/.
+    read_paths = [str(f) for f in txt_files]
+    print(f"\n▸ lendo {len(read_paths)} CSVs PT-BR (sep=';' latin-1, header, STRING-ONLY)…")
     df_raw = (spark.read
         .option("header", "true")
         .option("sep", ";")
