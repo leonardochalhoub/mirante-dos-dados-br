@@ -216,33 +216,66 @@ verticals = {
     },
 }
 
-# ─── FinOps vertical — special shape (não byte-progression, é spend-progression) ──
-# Bronze são system tables do Databricks (não temos arquivos raw). Os "steps"
-# aqui no strip viram: dias observados → runs registradas → USD gastos.
-# Front (BigDataStrip) detecta `kind: "finops"` e renderiza com Step próprio.
-import os as _os
-finops_path = f"/Volumes/{CATALOG}/gold/exports/finops_summary.json"
-if _os.path.exists(finops_path):
+# ─── FinOps vertical — shape size/rows/format alinhado aos outros verticais ──
+# Bronze do FinOps = system tables Databricks (delta-shared, sem bytes
+# mensuráveis via DESCRIBE DETAIL). Silver/gold são nossas. Strip mostra
+# 3 steps no padrão dos outros verticais: source (system tables) → silver
+# → gold. Front detecta `kind: "finops"` e usa o mesmo componente Step.
+SYSTEM_TABLES_USED = [
+    "system.billing.usage",
+    "system.compute.warehouses",
+    "system.lakeflow.jobs",
+    "system.lakeflow.job_run_timeline",
+]
+
+def _table_size(catalog, schema, name):
+    """DESCRIBE DETAIL → (rows via COUNT, sizeInBytes via DESCRIBE DETAIL)."""
     try:
-        with open(finops_path, "r", encoding="utf-8") as fh:
-            _fo = json.load(fh)
-        verticals["finops"] = {
-            "kind":            "finops",  # marker pro front renderizar diferente
-            "n_days":          _fo["window"]["n_days"],
-            "first_day":       _fo["window"]["first_day"],
-            "last_day":        _fo["window"]["last_day"],
-            "n_runs":          _fo["kpis"]["n_runs_lifetime"],
-            "total_dbus":      _fo["kpis"]["total_dbus_lifetime"],
-            "total_cost_usd":  _fo["kpis"]["total_cost_usd_lifetime"],
-            "wasted_pct":      _fo["kpis"]["wasted_pct_lifetime"],
-        }
-        print(f"  ✓ verticals.finops adicionado: {verticals['finops']['n_days']} dias, "
-              f"{verticals['finops']['n_runs']} runs, "
-              f"USD {verticals['finops']['total_cost_usd']:.2f}")
-    except Exception as e:
-        print(f"  ⚠ FinOps summary disponível mas não pôde ser lido: {e}")
+        rows = spark.sql(f"SELECT COUNT(*) c FROM {catalog}.{schema}.{name}").collect()[0]["c"]
+    except Exception:
+        rows = 0
+    try:
+        det = spark.sql(f"DESCRIBE DETAIL {catalog}.{schema}.{name}").collect()[0]
+        size = det["sizeInBytes"] or 0
+    except Exception:
+        size = 0
+    return rows, size
+
+def _system_table_rows(fqn):
+    try:
+        return spark.sql(f"SELECT COUNT(*) c FROM {fqn}").collect()[0]["c"]
+    except Exception:
+        return 0
+
+# Source: system tables (apenas rows — delta-shared, sem sizeInBytes)
+src_total_rows = sum(_system_table_rows(t) for t in SYSTEM_TABLES_USED)
+
+# Silver: finops_daily_spend + finops_run_costs
+silv_d_rows, silv_d_bytes = _table_size(CATALOG, "silver", "finops_daily_spend")
+silv_r_rows, silv_r_bytes = _table_size(CATALOG, "silver", "finops_run_costs")
+
+# Gold: idem
+gold_d_rows, gold_d_bytes = _table_size(CATALOG, "gold", "finops_daily_spend")
+gold_r_rows, gold_r_bytes = _table_size(CATALOG, "gold", "finops_run_costs")
+
+if src_total_rows + silv_d_rows + silv_r_rows + gold_d_rows + gold_r_rows > 0:
+    verticals["finops"] = {
+        "kind":           "finops",
+        "source_label":   "Delta · system tables",
+        "source_tables":  len(SYSTEM_TABLES_USED),
+        "source_rows":    src_total_rows,
+        "silver_label":   "Delta · silver",
+        "silver_bytes":   silv_d_bytes + silv_r_bytes,
+        "silver_rows":    silv_d_rows  + silv_r_rows,
+        "gold_label":     "Delta · gold",
+        "gold_bytes":     gold_d_bytes + gold_r_bytes,
+        "gold_rows":      gold_d_rows  + gold_r_rows,
+    }
+    print(f"  ✓ verticals.finops: source={src_total_rows} rows · "
+          f"silver={silv_d_rows + silv_r_rows} rows ({silv_d_bytes + silv_r_bytes} B) · "
+          f"gold={gold_d_rows + gold_r_rows} rows ({gold_d_bytes + gold_r_bytes} B)")
 else:
-    print(f"  ⚠ {finops_path} não existe — verticals.finops será omitida")
+    print(f"  ⚠ FinOps tables ainda não populadas — verticals.finops omitida")
 
 stats = {
     "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),

@@ -253,15 +253,21 @@ function BigDataStrip({ stats }) {
         {orderedVerticals.map((k) => {
           const v = verticals[k];
 
-          // FinOps tem shape diferente: bronze são system tables (não há bytes
-          // de raw progredindo). Steps são: dias observados → runs → USD.
+          // FinOps tem shape diferente: bronze = system tables (delta-shared, sem
+          // bytes mensuráveis), silver/gold = nossas. Steps mostram formato + rows
+          // + bytes onde disponível, mesmo padrão visual dos outros verticais.
           if (v.kind === 'finops') {
             const finopsSteps = [
-              { label: 'Janela', rawValue: `${fmtCompact(v.n_days)} dias` },
-              { label: 'Job runs', rawValue: fmtCompact(v.n_runs) },
-              { label: 'Custo total', rawValue: `US$ ${(v.total_cost_usd ?? 0).toFixed(2)}`,
-                highlight: true,
-                sub: v.wasted_pct ? `${v.wasted_pct.toFixed(1)}% wasted` : null },
+              { label: v.source_label,
+                files: v.source_tables,
+                rows:  v.source_rows },
+              { label: v.silver_label,
+                bytes: v.silver_bytes,
+                rows:  v.silver_rows },
+              { label: v.gold_label,
+                bytes: v.gold_bytes,
+                rows:  v.gold_rows,
+                highlight: true },
             ];
             return (
               <div key={k} className="bigdata-pipeline">
@@ -272,7 +278,7 @@ function BigDataStrip({ stats }) {
                   {finopsSteps.map((s, i) => (
                     <Fragment key={s.label}>
                       {i > 0 && <Arrow />}
-                      <FinOpsStep {...s} />
+                      <Step {...s} />
                     </Fragment>
                   ))}
                 </div>
@@ -320,30 +326,27 @@ function BigDataStrip({ stats }) {
 }
 
 function Step({ label, files, bytes, rows, highlight }) {
+  // Valor principal: bytes se houver, senão rows (caso FinOps system tables
+  // — delta-shared, sem bytes mensuráveis). Sub mostra o que sobra.
+  const hasBytes = bytes != null && bytes > 0;
+  const hasRows  = rows != null && rows > 0;
+  const hasFiles = files != null && files > 0;
+  const mainValue = hasBytes
+    ? fmtBytes(bytes)
+    : (hasRows ? `${fmtCompact(rows)} linhas` : (hasFiles ? `${fmtCompact(files)} arquivos` : '—'));
+  const subParts = [];
+  if (hasBytes && hasFiles) subParts.push(`${fmtCompact(files)} arquivos`);
+  if (hasBytes && hasRows)  subParts.push(`${fmtCompact(rows)} linhas`);
+  if (!hasBytes && hasFiles && hasRows) subParts.push(`${fmtCompact(files)} tabelas`);
   return (
     <div className={`bigdata-step${highlight ? ' is-highlight' : ''}`}>
       <div className="bigdata-step-label">{label}</div>
-      <div className="bigdata-step-value">{fmtBytes(bytes)}</div>
-      <div className="bigdata-step-sub">
-        {files != null && `${fmtCompact(files)} arquivos`}
-        {rows  != null && `${fmtCompact(rows)} linhas`}
-      </div>
+      <div className="bigdata-step-value">{mainValue}</div>
+      <div className="bigdata-step-sub">{subParts.join(' · ')}</div>
     </div>
   );
 }
 
 function Arrow() {
   return <span className="bigdata-arrow">→</span>;
-}
-
-// FinOps step: usa string formatada direto (não bytes/files/rows). Mantém
-// o mesmo visual do Step original para uniformidade com o resto da strip.
-function FinOpsStep({ label, rawValue, sub, highlight }) {
-  return (
-    <div className={`bigdata-step${highlight ? ' is-highlight' : ''}`}>
-      <div className="bigdata-step-label">{label}</div>
-      <div className="bigdata-step-value">{rawValue}</div>
-      {sub && <div className="bigdata-step-sub">{sub}</div>}
-    </div>
-  );
 }
