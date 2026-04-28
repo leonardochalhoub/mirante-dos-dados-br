@@ -196,13 +196,19 @@ def _build_rais_vertical(raw, bronze, silver_b, silver_r, gold_b, gold_r, raw_ro
     delta_bytes = next((t["bytes"] for t in bronze if t["table"] == "rais_vinculos"), 0)
     delta_rows  = next((t["rows"]  for t in bronze if t["table"] == "rais_vinculos"), 0)
 
+    # Iceberg bronze paralela: tabela Delta SEPARADA escrita pelo job
+    # bronze_rais_vinculos_open_formats com UniForm Iceberg habilitado at-create.
+    # Lê o mesmo TXT cru — não compartilha arquivos com o Delta canônico.
+    iceberg_bytes = next((t["bytes"] for t in bronze if t["table"] == "rais_vinculos_iceberg"), 0)
+    iceberg_rows  = next((t["rows"]  for t in bronze if t["table"] == "rais_vinculos_iceberg"), 0)
     iceberg_card = {
-        "label":       "Iceberg bronze",
+        "label":       "Iceberg",
         "format":      "iceberg",
-        "bytes":       delta_bytes,
-        "rows":        delta_rows,
-        "shared_with": "rais_vinculos",
-        "note":        "UniForm — mesmos arquivos do Delta",
+        "bytes":       iceberg_bytes,
+        "rows":        iceberg_rows,
+        "note":        "Delta + UniForm Iceberg · paralela ao Delta canônico" if iceberg_bytes > 0
+                       else "aguardando bronze_rais_vinculos_open_formats",
+        "deferred":    iceberg_bytes == 0,
     }
 
     # Hudi: walk do folder no Volume. Se vazio/ausente → deferred.
@@ -249,6 +255,9 @@ def _build_rais_vertical(raw, bronze, silver_b, silver_r, gold_b, gold_r, raw_ro
         "intermediate_label":   "TXT",
         "delta_bronze_bytes":   delta_bytes,
         "delta_bronze_rows":    delta_rows,
+        # Bronze paralela em Iceberg — SEPARADA do Delta canônico, lê mesmo TXT
+        "delta_iceberg_parallel_bytes": iceberg_bytes,
+        "delta_iceberg_parallel_rows":  iceberg_rows,
         "bronze_alt_formats":   [iceberg_card, hudi_card],
         "silver_bytes":         silver_b("rais"),
         "silver_rows":          silver_r("rais"),
