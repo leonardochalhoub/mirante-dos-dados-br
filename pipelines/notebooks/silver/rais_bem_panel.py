@@ -241,21 +241,40 @@ silver_df = (
     )
     .withColumnRenamed("ano_int", "ano")
     # UF derivada do código IBGE do município (primeiros 2 dígitos).
-    # IMPORTANTE: usar F.col("muni") explícito em vez de "muni" (str) — Spark
-    # Connect não auto-resolve string como nome de coluna em F.substring,
-    # tratando-a como literal e produzindo "mu" → cast int = NULL → uf NULL.
-    .withColumn("uf_code", F.substring(F.col("muni"), 1, 2).cast("int"))
+    # F.col("muni") explícito — Spark Connect não auto-resolve str em F.substring.
+    # Usamos F.substring (resultado é string) e mapeamos via F.when chain
+    # comparando string-to-string, mais robusto que F.create_map (que sofre
+    # type mismatch Long-vs-Int em Spark Connect).
+    .withColumn("uf_code", F.substring(F.col("muni"), 1, 2))
     .withColumn(
         "uf",
-        F.create_map(
-            F.lit(11), F.lit("RO"), F.lit(12), F.lit("AC"), F.lit(13), F.lit("AM"), F.lit(14), F.lit("RR"),
-            F.lit(15), F.lit("PA"), F.lit(16), F.lit("AP"), F.lit(17), F.lit("TO"), F.lit(21), F.lit("MA"),
-            F.lit(22), F.lit("PI"), F.lit(23), F.lit("CE"), F.lit(24), F.lit("RN"), F.lit(25), F.lit("PB"),
-            F.lit(26), F.lit("PE"), F.lit(27), F.lit("AL"), F.lit(28), F.lit("SE"), F.lit(29), F.lit("BA"),
-            F.lit(31), F.lit("MG"), F.lit(32), F.lit("ES"), F.lit(33), F.lit("RJ"), F.lit(35), F.lit("SP"),
-            F.lit(41), F.lit("PR"), F.lit(42), F.lit("SC"), F.lit(43), F.lit("RS"), F.lit(50), F.lit("MS"),
-            F.lit(51), F.lit("MT"), F.lit(52), F.lit("GO"), F.lit(53), F.lit("DF"),
-        ).getItem("uf_code")
+        F.when(F.col("uf_code") == "11", "RO")
+         .when(F.col("uf_code") == "12", "AC")
+         .when(F.col("uf_code") == "13", "AM")
+         .when(F.col("uf_code") == "14", "RR")
+         .when(F.col("uf_code") == "15", "PA")
+         .when(F.col("uf_code") == "16", "AP")
+         .when(F.col("uf_code") == "17", "TO")
+         .when(F.col("uf_code") == "21", "MA")
+         .when(F.col("uf_code") == "22", "PI")
+         .when(F.col("uf_code") == "23", "CE")
+         .when(F.col("uf_code") == "24", "RN")
+         .when(F.col("uf_code") == "25", "PB")
+         .when(F.col("uf_code") == "26", "PE")
+         .when(F.col("uf_code") == "27", "AL")
+         .when(F.col("uf_code") == "28", "SE")
+         .when(F.col("uf_code") == "29", "BA")
+         .when(F.col("uf_code") == "31", "MG")
+         .when(F.col("uf_code") == "32", "ES")
+         .when(F.col("uf_code") == "33", "RJ")
+         .when(F.col("uf_code") == "35", "SP")
+         .when(F.col("uf_code") == "41", "PR")
+         .when(F.col("uf_code") == "42", "SC")
+         .when(F.col("uf_code") == "43", "RS")
+         .when(F.col("uf_code") == "50", "MS")
+         .when(F.col("uf_code") == "51", "MT")
+         .when(F.col("uf_code") == "52", "GO")
+         .when(F.col("uf_code") == "53", "DF")
     )
     .where(F.col("uf").isNotNull())
     .drop("uf_code")
