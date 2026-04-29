@@ -720,18 +720,24 @@ export const PARECER_WP_RAIS = {
 // ═══════════════════════════════════════════════════════════════════════
 // WP #9 — O CÁLCULO AUSENTE / EDUCAÇÃO COMPARADA
 // Slug: calculo-ensino-medio-internacional · Vertical: calculo
-// Régua: STRICTO SENSU MESTRADO. Score B (2,0) — pré-Conselho.
+// Régua: STRICTO SENSU MESTRADO. Score B (2,0) — APROVADO NO LIMIAR
+// pós-Reunião #5 do Conselho (2026-04-29). Média quants 2,0 EXATO.
 //
-// ESTADO: parecer do Professor (TEACHER_PERSONA, IA Claude Opus 4.7 modo
-// Programa Mestrado/Doutorado) ANTES da Reunião #5 do Conselho do Mirante.
-// Este é o material-base que as 4 cadeiras (Eng. Software · Finanças ·
-// Design · Administração) usam como ponto de partida para deliberar.
-// O score pode mover (subir ou descer) após o Conselho — vide ata em
-// app/src/data/atas-conselho.js (Reunião #5) quando registrada.
+// HISTÓRICO:
+//   - Pré-Conselho (2026-04-29 13h00 BRT): parecer do Professor
+//     (TEACHER_PERSONA, IA Claude Opus 4.7) atribuiu B (2,0) — limiar
+//     mestrado, com diagnóstico de 3 tensões: argumento forte / desenho
+//     correlacional / outlier de método na plataforma.
+//   - Pós-Conselho (2026-04-29 20h00 BRT): 4 cadeiras deliberaram em
+//     paralelo. Eng. Software, Finanças e Design CONFIRMARAM B (2,0) —
+//     mas POR RAZÕES DIFERENTES (auditoria automatizada / experimentos
+//     naturais não explorados / zero figuras Mirante). Administração
+//     emitiu parecer qualitativo positivo: "VAI VIRAR PRODUTO se autor
+//     decidir ousar". Média quants (B+B+B)/3 = 2,0 EXATO — APROVADO NO
+//     LIMIAR. Ata: ATA_WP9_REUNIAO_5 em atas-conselho.js.
 //
-// Trabalho de natureza distinta dos demais (revisão sistemática +
-// comparada curricular + 200 anos de história) — não é pipeline sobre
-// microdados públicos brasileiros.
+// Convergência metodologicamente saudável: o piso B é robusto sob 4
+// lentes independentes; o teto B+ é tracteável por 4 caminhos distintos.
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_WP9_CALCULO = {
   slug:    'calculo-ensino-medio-internacional',
@@ -748,33 +754,40 @@ export const PARECER_WP9_CALCULO = {
   scoreOriginal: null,
   originalLabel: null,
   originalUrl: null,
-  ultimaAtualizacao: '2026-04-29T13:00 BRT',
+  ultimaAtualizacao: '2026-04-29T20:00 BRT',
   versao:
-    '2.0 (pré-Conselho) — parecer do Professor antes da Reunião #5. ' +
-    'Material-base que as 4 cadeiras usam como ponto de partida. O score ' +
-    'pode mover após deliberação do Conselho (subir ou descer).',
+    '2.0 — pós Reunião #5 do Conselho do Mirante (4 cadeiras, 2026-04-29). ' +
+    'Score CONFIRMADO em B (2,0) por consenso unânime das 3 cadeiras ' +
+    'quants + parecer qualitativo positivo da Administração. Média quants ' +
+    '2,0 EXATO. Roadmap v3.0 a executar antes da submissão a periódico.',
   resumoCalibragem:
-    'Régua: STRICTO SENSU MESTRADO. Score B (2,0 pts) — no limiar de ' +
-    'aprovação, parecer PRÉ-Conselho. Working Paper de natureza distinta ' +
+    'Régua: STRICTO SENSU MESTRADO. Score B (2,0 pts) — APROVADO NO LIMIAR ' +
+    'após deliberação do Conselho. Working Paper de natureza distinta ' +
     'dos demais — não é pipeline sobre microdados públicos brasileiros, é ' +
     'revisão sistemática de currículos oficiais (n=10 países + IB) cruzada ' +
     'com séries históricas OECD/PISA, série de 200 anos de reformas ' +
     'curriculares brasileiras e literatura pedagógica (Bruner, Vygotsky, ' +
-    'Rezende, Ávila). O score B do Professor reflete três tensões ' +
-    'convergentes que serão levadas ao Conselho: ' +
-    '(i) o ARGUMENTO é forte e bem documentado, com 47+ referências ' +
-    'verificáveis e citações precisas a Ávila 1991, Rezende 2003 (tese USP), ' +
-    'BNCC 2018, OECD/PISA 2003–2022, CONFEA déficit, Unicamp 77,5%; ' +
-    '(ii) o DESENHO é correlacional, não causal — o próprio paper assume ' +
-    'esse limite ("o argumento não é causal estrito") e isso fecha o teto ' +
-    'em B na régua mestrado; (iii) o WP é um OUTLIER de método na ' +
-    'plataforma — não tem bronze/silver/gold pipeline, não tem identificação ' +
-    'causal sobre descontinuidade institucional, não tem figuras com a ' +
-    'identidade visual editorial Mirante (Lato + Wong palette + golden ' +
-    'ratio + halo). Pendente da deliberação do Conselho: se a natureza ' +
-    'standalone do paper merece régua diferente; se a Reforma Benjamin ' +
-    'Constant 1890–1925 (cálculo entrou e saiu do currículo) é descontinui' +
-    'dade aproveitável; se o gap visual editorial é bloqueador.',
+    'Rezende, Ávila). As 3 cadeiras quants (Eng. Software · Finanças · ' +
+    'Design) chegaram a B (2,0) por CAMINHOS COMPLEMENTARES: ' +
+    '(i) Eng. Software — argumento sólido e citações verificáveis, mas ' +
+    'auditoria do achado central não-automatizada (sem pdftotext/grep nos ' +
+    'PDFs curriculares), versionamento dos 47+ documentos primários frágil ' +
+    '(risco de link rot), sem ADR para padrão "WP standalone"; ' +
+    '(ii) Finanças — honestidade declarativa rara (paper assume Nível 3 ' +
+    'de robustez "moderada"), mas Reforma Benjamin Constant 1890→1925 é ' +
+    'ITS clara não explorada, PISA é proxy do output não do input ' +
+    '(identificação invertida), custo econômico R$2,3–4,6 bi/ano com ' +
+    'spread 100% sem IC bootstrap; ' +
+    '(iii) Design — newtx + ABNT corretos, ContextSection bem executada, ' +
+    'mas zero figuras com identidade visual Mirante (Lato + Wong palette + ' +
+    'golden ratio + halo) — gatekeeper de B+ — e os 6 boxes fbox da Seção ' +
+    '8 são "recurso LaTeX de emergência" (cabia heatmap síntese país × ' +
+    'tópico cálculo). Administração: parecer qualitativo positivo ("TEM ' +
+    'COMO — depende do autor decidir entre pesquisador OU agente de ' +
+    'mudança"; pode dar dinheiro mais rápido que outros WPs do projeto: ' +
+    'curso Hotmart + parceria cursinhos + consultoria SecEd). Para subir ' +
+    'a B+: implementar QUALQUER UM dos 4 caminhos identificados pelas ' +
+    'cadeiras (qualquer um sobe; os 3 quants juntos consolidam B+).',
   utilidadeSocial:
     'EXTREMAMENTE ÚTIL como peça de advocacy curricular. Beneficiários: ' +
     '(a) Ministério da Educação / CNE em revisões da BNCC — paper documenta ' +

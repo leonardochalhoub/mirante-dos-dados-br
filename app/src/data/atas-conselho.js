@@ -1382,6 +1382,273 @@ export const ATA_WP7_REUNIAO_1 = {
   },
 };
 
+// ═══════════════════════════════════════════════════════════════════════
+// REUNIÃO #5 — WP#9 v2.0 (O Cálculo Ausente · 200 anos · 10 países + IB)
+// Data: 2026-04-29 · 4 pareceres iniciais paralelos · APROVADO NO LIMIAR
+// Histórico: WP de natureza atípica para o Conselho — primeira vez que
+// um paper de revisão sistemática + comparada curricular standalone (não
+// pipeline sobre microdados) é avaliado. Material-base: parecer pré-
+// Conselho do Professor (TEACHER_PERSONA, IA Claude Opus 4.7 modo
+// Mestrado/Doutorado), score B (2,0). As 4 cadeiras deliberaram a partir
+// dessa base sob suas lentes próprias. Média (B 2,0 + B 2,0 + B 2,0) / 3
+// = 2,000 — EXATAMENTE no limiar 2,0. Cadeira de Administração não
+// atribui score numérico (parecer qualitativo: "TEM COMO — depende do
+// autor decidir se quer ser pesquisador OU agente de mudança").
+// Convergência das 4 lentes: paper sólido como advocacy, fechado em B
+// pelas 3 cadeiras quants por razões COMPLEMENTARES — não pelos mesmos
+// gaps. Eng. Software: reprodutibilidade técnica do levantamento
+// curricular. Finanças: experimentos naturais não explorados (Reforma
+// Benjamin Constant 1890→1925 é ITS clara) + PISA proxy invertido +
+// custo sem IC. Design: zero figuras com identidade visual Mirante.
+// Administração: ousadia de aplicação ausente (paper teórico, produto
+// pronto). VEREDICTO: APROVADO COM AJUSTES — APROVADO NO LIMIAR.
+// ═══════════════════════════════════════════════════════════════════════
+export const ATA_WP9_REUNIAO_5 = {
+  meta: {
+    reuniao: 5,
+    artigo: 'WP#9 v2.0 — O Cálculo Ausente · 200 anos de currículo · 10 países + IB',
+    artigo_titulo_completo:
+      'O Cálculo Ausente: duzentos anos de currículo, dez países de comparação, ' +
+      'um vácuo estrutural — análise comparativa do currículo de matemática do ' +
+      'ensino médio em dez países e suas implicações para a formação em ' +
+      'engenharia no Brasil',
+    commit: 'a78bd25 (.tex) + 5c7b00f (vertical scaffolding)',
+    data: '2026-04-29',
+    coautoria: 'Leonardo Chalhoub (autor único)',
+    rodadas: 1,
+    status: 'APROVADO NO LIMIAR — APROVADO COM AJUSTES',
+    media_quants: 2.0, // (B 2,0 + B 2,0 + B 2,0) / 3 = 2,0 EXATO
+    limiar_aprovacao: 2.0,
+    nota_promocao:
+      'Primeira reunião do Conselho sobre WP de natureza não-pipeline ' +
+      '(revisão sistemática + comparada curricular standalone). As 4 ' +
+      'cadeiras concordaram em aplicar régua mestrado e em manter o B (2,0) ' +
+      'do parecer pré-Conselho do Professor — POR RAZÕES DIFERENTES. ' +
+      'Convergência metodologicamente saudável: o piso B é robusto sob 4 ' +
+      'lentes independentes, e o teto B+ é tracteável por 4 caminhos ' +
+      'distintos (auditoria automatizada, ITS Benjamin Constant, figura ' +
+      'síntese Mirante, decisão produto vs. paper). Cruzando o limiar ' +
+      '2,0 EXATAMENTE, a aprovação é por consenso mas SEM folga.',
+  },
+
+  pareceres_iniciais: [
+    {
+      cadeira: 'eng-software',
+      titulo: 'Conselheiro de Engenharia de Software & Plataforma de Dados',
+      lente: 'Reprodutibilidade · auditabilidade · ADRs · CI/CD · versionamento de fonte primária',
+      score: { tipo: 'letra', letra: 'B', pontos: 2.0 },
+      veredicto: 'APROVADO COM AJUSTES — limiar',
+      epigrafe:
+        '"O paper é sólido como advocacy curricular e como survey comparado, ' +
+        'mas carece de auditabilidade automatizada do claim central e de ' +
+        'versionamento dos dados primários. B é o teto até que o levantamento ' +
+        'curricular seja auditável por pipeline, não por leitura manual."',
+      argumento_central:
+        'Reprodutibilidade do argumento central é alta para o gênero — cada ' +
+        'um dos 10 países tem pelo menos uma referência a documento ' +
+        'curricular oficial (MOE Singapore, SEAB 9758, NRW Zentralabitur, ' +
+        'MEXT Japan via JASSO/EJU, OECD PISA Vol. I), substancialmente ' +
+        'superior à média do campo (revisões em B2 que citam Wikipedia). ' +
+        'CI/CD compila o paper via xu-cheng/latex-action no deploy-pages.yml. ' +
+        'Honestidade epistêmica explicitada na Seção 3 (currículo prescrito ≠ ' +
+        'currículo praticado, inferências causais "plausíveis, não ' +
+        'demonstradas"). MAS: o claim "Brasil é o único" depende de leitura ' +
+        'manual dos 10 documentos curriculares; qualquer erro de leitura é ' +
+        'indetectável. Os 47+ documentos primários são linkados via URLs ' +
+        'vivas — três deles (MOE Singapore, SEAB 9758, ministérios europeus) ' +
+        'têm risco concreto de link rot em 2–3 anos. Para WPs sobre ' +
+        'microdados, isso é menos crítico porque os dados ficam no Delta. ' +
+        'Aqui, os dados SÃO os documentos curriculares.',
+      pendencias: [
+        'Auditoria do achado central não é automatizada — sem script pdftotext + grep nos PDFs curriculares; achado auditável por terceiros em 4h por país (não acontece) em vez de 10 minutos com pipeline',
+        'Sem ARCHITECTURE.md nem ADR documentando a decisão de aceitar WPs sem pipeline Databricks — escopo da plataforma fica indefinido para futuros WP#10+ não-pipeline',
+        'Versionamento dos documentos curriculares consultados é frágil — 47+ links vivos sem snapshot Wayback nem DVC-tracked PDFs locais',
+        'Botão "Ler artigo na tela" ausente no Calculo.jsx — violação de feedback_article_buttons.md (convenção de plataforma)',
+        'Nenhum teste de sanidade automatizado sobre as 10 tabelas ano-a-ano — qualquer regressão de edição passa silenciosa',
+      ],
+      sugestao_para_subir_pra_a:
+        'scripts/audit_curricula_keywords.py rodando pdftotext + frequency ' +
+        'analysis nos 11 PDFs (BNCC + 10 estrangeiros) commitado e CI-' +
+        'integrado + snapshot dos 47+ documentos primários (Wayback + ' +
+        'arquivo local) + ADR Nygard documentando padrão "WP standalone" + ' +
+        'pytest mínimo nos fixtures das 10 tabelas país × ano.',
+    },
+    {
+      cadeira: 'financas',
+      titulo: 'Conselheiro de Finanças & Métodos Quantitativos',
+      lente: 'Identificação causal · RDD/IV/DiD/ITS · robustez estatística · IC formal',
+      score: { tipo: 'letra', letra: 'B', pontos: 2.0 },
+      veredicto: 'APROVADO COM AJUSTES — limiar',
+      epigrafe:
+        '"O paper identifica os experimentos naturais e não os explora. Tratar a ' +
+        'Reforma Benjamin Constant como contexto narrativo e não como potencial ' +
+        'ITS é a principal oportunidade perdida. Mas a honestidade declarativa ' +
+        'sobre os limites é rara — em 30 anos de peer review li centenas de ' +
+        'revisões narrativas que jamais fazem essa distinção."',
+      argumento_central:
+        'O paper faz algo intelectualmente honesto: declara explicitamente ' +
+        '(Seção 9, Três Níveis de Robustez) que o Nível 3 — inferência causal ' +
+        '— tem "robustez moderada". Isso eleva o piso. MAS: a Reforma Benjamin ' +
+        'Constant (Decreto 981/1890 incluiu cálculo no secundário; Decreto ' +
+        '3.890/1901 o removeu, com a morte do ministro como choque exógeno ao ' +
+        'desempenho matemático) é descontinuidade institucional com data ' +
+        'precisa, exógena ao outcome, e com consequência mensurável 30 anos ' +
+        'depois nas coortes da Politécnica/EPUSP. Atas de admissão existem em ' +
+        'arquivo histórico — está literalmente na Seção 6 do próprio paper. ' +
+        'Tratar isso como contexto e não como ITS é a maior perda. Singapura ' +
+        '1981 (Singapore Math) também é janela DiD natural com k~10 países e ' +
+        'T~4 ciclos PISA. PISA é proxy do output, não do input — alunos PISA ' +
+        'têm 15 anos, ANTES do cálculo em qualquer país (Japão começa cálculo ' +
+        'aos 16 no Math II); usar PISA como evidência do efeito da AUSÊNCIA ' +
+        'de cálculo no EM é identificação invertida. Custo econômico Seção ' +
+        '7.5 (R$2,3–4,6 bi/ano) tem spread 100% sem IC — em pricing isso é ' +
+        'inaceitável.',
+      pendencias: [
+        'Reforma Benjamin Constant 1890→1925 nomeada como contexto mas não explorada como ITS — atas Politécnica/EPUSP/IME do período estão em arquivo histórico acessível',
+        'PISA usado como evidência do efeito da ausência de cálculo no EM, mas PISA mede alunos de 15 anos — antes do cálculo em qualquer país. Identificação invertida',
+        'Estagnação PISA 2003–2022 atribuída a vácuo curricular sem controlar PIB per capita, gasto por aluno, desigualdade — Singapura/Coreia/Japão são também muito mais ricos',
+        'Custo econômico R$2,3–4,6 bi/ano com spread de 100% sem IC bootstrap; três parâmetros (taxa reprovação, volume matrículas, custo por disciplina) multiplicados sem decomposição da variância',
+        'Lei 13.415/2017 (Novo EM) permite cálculo nos itinerários formativos — variação cross-estado disponível via SAEB, não verificada',
+        'CONFEA "déficit de 1 milhão" citado sem auditoria da metodologia da projeção',
+      ],
+      sugestao_para_subir_pra_a:
+        'ITS sobre Reforma Benjamin Constant 1890→1925 com atas da ' +
+        'Politécnica/EPUSP (mesmo rudimentar, mesmo com dados limitados) + ' +
+        'DiD cross-country sobre Singapore Math 1981 / Coreia Sul / outras ' +
+        'reformas curriculares datadas + reconhecer formalmente PISA como ' +
+        'proxy inadequado do canal causal específico + IC bootstrap sobre o ' +
+        'custo econômico. Qualquer dos três sobe para B+; os três juntos = A.',
+    },
+    {
+      cadeira: 'design',
+      titulo: 'Conselheira de Design, Information Visualization & UX',
+      lente: 'Tufte (data-ink) · Norman (affordance) · Bostock (interatividade)',
+      score: { tipo: 'letra', letra: 'B', pontos: 2.0 },
+      veredicto: 'APROVADO COM AJUSTES — major revision em Design',
+      epigrafe:
+        '"newtx + ABNT é correto. Os boxes fbox da Seção 8 são funcionais — não é ' +
+        'design, é recurso LaTeX de emergência. Zero figuras com identidade visual ' +
+        'Mirante não é violação (regra não retroativa) mas é o gatekeeper de B+. ' +
+        'Mantém B do Professor por razão diferente: argumento textual de qualidade, ' +
+        'integridade epistêmica, zero distorção visual — e zero contribuição visual."',
+      argumento_central:
+        'Tipografia newtx + ABNT adequada. Hierarquia bfseries + uppercase + ' +
+        'titlespacing funciona. Tabelas booktabs sem linhas verticais com ' +
+        'data-ink ratio decente. ContextSection do Calculo.jsx explicando "por ' +
+        'que não tem dashboard" é decisão acertada — melhor explicar a ausência ' +
+        'do que não explicar. 4 botões DocSection seguem feedback_article_' +
+        'buttons.md MENOS o "Ler artigo na tela" (rótulo está como "Ler artigo ' +
+        '(PDF)" — gap de consistência). MAS: os 6 \\fbox{\\parbox{...}} da ' +
+        'Seção 8 (boxes comparativos: Gaokao, Abitur, Baccalauréat, AP Calc BC, ' +
+        'H2 Math, ENEM) são 6 itens que o leitor processa linearmente; carga ' +
+        'cognitiva alta. Categorical heatmap país × dimensões cognitivas ' +
+        '(limites · derivadas · integrais · EDO · séries · geometria diferencial) ' +
+        'reduz tempo de compreensão de "ler 6 parágrafos" para "scan de 6 ' +
+        'segundos". Para B+: 1 figura obrigatória (heatmap 11×6 com Brasil ' +
+        'highlighted vermelho); para consolidar B+: 2 figuras (acrescenta ' +
+        'série temporal PISA com banda OECD). Vega-Lite inline na vertical ' +
+        'web é oportunidade sub-explorada — dado tabular já está no .tex.',
+      pendencias: [
+        'Zero figuras com identidade visual Mirante (Lato + Wong palette + golden ratio + halo + leader lines) — gatekeeper de B+',
+        'Boxes fbox da Seção 8 são recurso LaTeX de emergência — cabia heatmap síntese país × tópico cálculo no lugar OU ao lado',
+        'Rótulo do botão primário "Ler artigo (PDF)" deveria ser "Ler artigo na tela" (feedback_article_buttons.md)',
+        'Calculo.jsx sem Vega-Lite inline para PISA 2003–2022 — dado tabular existe no .tex, 20 linhas JSON resolveriam',
+        'Lighthouse audit da rota /calculo não declarado — risco de contraste WCAG quando interatividade for adicionada',
+        'Conflito de interesse não declarado: Seção 10.3 cita o Clube da Matemática (URL do autor) como iniciativa de educação aberta — em submissão a periódico externo (Bolema, ZDM) o revisor questionará advocacy do projeto do próprio autor',
+      ],
+      sugestao_para_subir_pra_a:
+        '(a) HEATMAP 11×6 país × tópico cálculo no Mirante style: Lato + ' +
+        'Wong + halo + Brasil em vermelho — 1 figura única que vira a chave; ' +
+        '(b) série temporal PISA 2003–2022 com Brasil destacado e banda OECD; ' +
+        '(c) Vega-Lite inline da PISA na vertical web; (d) Lighthouse 95+/95+/' +
+        '95+ na /calculo; (e) declaração de CoI sobre Clube da Matemática.',
+    },
+    {
+      cadeira: 'administrador',
+      titulo: 'Conselheiro de Administração, Estratégia & Aplicação Prática',
+      lente: 'Sinek (WHY) · Harari (escala histórica · pós-verdade × cargo cult × mudança) · Carrey (ousadia)',
+      score: { tipo: 'qualitativo', letra: null, pontos: null },
+      veredicto: 'TEM COMO — depende do autor decidir se quer ser pesquisador OU agente de mudança',
+      epigrafe:
+        '"O paper está 80% do caminho para virar produto. O Clube da Matemática ' +
+        'já existe, o WHY já está documentado, o benchmark internacional já está ' +
+        'feito, o arcabouço pedagógico (Bruner/Vygotsky/Rezende) já está lá. O ' +
+        'único insumo faltante é a decisão. Pode dar dinheiro mais rápido do que ' +
+        'qualquer outro WP do projeto."',
+      argumento_central:
+        'WHY (Sinek): existe e é robusto. "Brasil é exceção global e isso custa ' +
+        'R$2–5 bi/ano em repetência e 1 milhão de engenheiros que não vão ' +
+        'existir" conecta com o sistema límbico. A frase final da conclusão — ' +
+        '"O Brasil é exceção curricular. Não precisa continuar sendo." — é ' +
+        'destilação em sete palavras. MAS: o WHY vive na capa e na conclusão; ' +
+        'some por 50 páginas no meio. Escala histórica (Harari): o recorte de ' +
+        '200 anos é substancialmente original — Reforma Benjamin Constant ' +
+        '(1890–1925) é fato verificável em decreto federal que a maioria dos ' +
+        'educadores brasileiros desconhece. Resiste ao teste de pós-verdade ' +
+        '(35 anos de literatura citada, Rezende 2003 com 486 citações, BNCC ' +
+        'verificável, PISA série histórica oficial). Não é cargo cult. Ousadia ' +
+        '(Carrey): aqui está o gap principal. O autor domina o material, ' +
+        'acredita no WHY, já construiu o Clube da Matemática — e o paper está ' +
+        'sendo MAIS CAUTELOSO do que o problema merece. Tudo que é necessário ' +
+        'para lançar o produto educacional já está fundamentado. O risco de ' +
+        'não monetizar é igual ao risco de fazer.',
+      ideias_concretas: [
+        'Curso pago Hotmart/Eduzz "Cálculo para o ENEM e além" — R$97–197 com 40–60 aulas alinhadas a AP Calculus AB + Bruner. Mercado cursinhos online BR ~ R$3–4 bi/ano',
+        'Parceria B2B com Descomplica/Stoodi/Poliedro: white-label do Clube + credencial WP#9. Contratos de R$50–150k/plataforma/ano',
+        'Palestra paga ABENGE/CONFEA — R$5–15k/evento; CONFEA já organizou evento citado no paper',
+        'Submissão Bolema (UNESP) + press release Nexo/Folha Educação — credencial acadêmica + distribuição público qualificado',
+        'Consultoria Secretarias Estaduais (SP/MG/RS têm autonomia complementar à BNCC) — R$40–80k/estado para diagnóstico + plano + formação docente',
+        'REA/OER via edital MEC/CAPES — Clube já existe como base; editais R$100–500k regulares',
+        'Livro paradidático "Por que o Brasil não ensina Cálculo?" (Contexto/Autêntica) — adiantamento R$5–20k + royalties; Seção 8 do WP é ouro para esse formato',
+      ],
+      perguntas_criticas: [
+        'O Clube da Matemática já existe — por que o curso pago ainda não existe? O que está impedindo: tempo, dinheiro, medo de virar comercial, ou sensação de que o paper precisa estar "pronto"?',
+        'O paper documenta que SENGE-RJ discorda da narrativa do "apagão" ("é apagão de condições, não de profissionais"). Você tomou partido ou ficou em cima do muro? Vai ter que tomar partido para palestra/consultoria',
+        'O contra-argumento C2 ("não há professores qualificados") é o mais forte empiricamente — mas o Clube é educação direta ao aluno, não formação docente. Você está resolvendo o problema certo para o canal que controla?',
+        'Por que não incluir um país da América Latina (Argentina, Chile, México) no recorte? Sem contrafactual regional, o argumento pode ser atacado como cherry-picking de países ricos',
+        'A Seção 10 recomenda 5 tópicos conservadores para o 3º ano do EM. Você está preparado para defender publicamente em audiência do CNE — com oposição de professores sindicalizados, editoras de didático e secretarias com orçamento travado?',
+      ],
+      pode_dar_dinheiro:
+        'SIM — e mais rápido do que os outros WPs. Outros dependem de pipeline ' +
+        'Databricks + microdados + identidade visual + submissão a periódico de ' +
+        'econometria. Este não. Produto educacional (curso + paradidático) sai ' +
+        'em 3–6 meses com o que já existe. TAM = ~200k/ano só nos vestibulares ' +
+        'das federais. Caminho curto: Hotmart + parceria cursinho, R$100–300k ' +
+        'no ano 1. Caminho de impacto médio prazo: consultoria B2G a Sec.Educação.',
+    },
+  ],
+
+  resposta_do_autor: {
+    decisao: 'APROVADO NO LIMIAR — ajustes prioritários a v3.0 antes de submissão a periódico',
+    data: '2026-04-29',
+    commit: 'pendente (próximo ciclo)',
+    nota:
+      'Aprovação por consenso entre as 3 cadeiras quants (Eng. Software · ' +
+      'Finanças · Design) com B (2,0) cada e parecer qualitativo positivo da ' +
+      'cadeira de Administração ("VAI VIRAR PRODUTO se autor decidir ousar"). ' +
+      'Média 2,0 EXATA — cruzou o limiar 2,0 sem folga. Convergência ' +
+      'metodologicamente saudável: as 3 cadeiras quants chegam a B por ' +
+      'CAMINHOS DIFERENTES (auditoria automatizada / experimentos naturais ' +
+      'não explorados / zero figuras Mirante), o que significa que o teto B+ ' +
+      'também é tracteável por 4 caminhos distintos. ROADMAP v3.0 (interseção ' +
+      'das pendências mais críticas das 4 cadeiras): (a) HEATMAP 11×6 país × ' +
+      'tópico cálculo no Mirante style — única figura que sobe Design para B+ ' +
+      'e dá síntese visual ao argumento; (b) ITS sobre Reforma Benjamin ' +
+      'Constant 1890→1925 com fonte primária (Decreto 981/1890 + Decreto ' +
+      '3.890/1901) — sobe Finanças e responde Eng. Software (achado ' +
+      'auditável); (c) script audit_curricula_keywords.py via pdftotext + ' +
+      'grep nos PDFs curriculares — sobe Eng. Software para B+; (d) snapshot ' +
+      'dos 47+ documentos primários em /articles/snapshots/ ou Wayback — Eng. ' +
+      'Software; (e) declaração de Conflito de Interesse sobre Clube da ' +
+      'Matemática — Design (necessário pré-Bolema); (f) IC bootstrap sobre ' +
+      'custo econômico R$2,3–4,6 bi/ano — Finanças. Decisão estratégica ' +
+      '(Administração) sobre pesquisa-vs-produto fica em aberto explícito; ' +
+      'caminhos não-mutuamente-exclusivos (paper + curso + advocacy podem ' +
+      'rodar em paralelo).',
+    score_pos_aprovacao: 'B (2,0) na régua mestrado · média conselho 2,0 EXATO · APROVADO NO LIMIAR',
+  },
+};
+
 // ─── Lookup helper ───────────────────────────────────────────────────────
 export const ATAS_BY_ARTIGO = {
   'wp4-equipamentos-rm-parkinson':   ATA_WP4_REUNIAO_1,
@@ -1389,4 +1656,6 @@ export const ATAS_BY_ARTIGO = {
   'wp2-bolsa-familia':               ATA_WP2_REUNIAO_1,
   'wp7-bolsa-familia-municipios':    ATA_WP7_REUNIAO_1,
   'bolsa-familia-municipios':        ATA_WP7_REUNIAO_1,
+  'wp9-calculo-ensino-medio':        ATA_WP9_REUNIAO_5,
+  'calculo-ensino-medio-internacional': ATA_WP9_REUNIAO_5,
 };

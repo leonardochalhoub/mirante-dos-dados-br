@@ -12,8 +12,10 @@ import PageHeader        from '../components/PageHeader';
 import TechBadges        from '../components/TechBadges';
 import ScoreCard         from '../components/ScoreCard';
 import ArticleTimestamp  from '../components/ArticleTimestamp';
+import AtaConselho       from '../components/AtaConselho';
 import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
 import { PARECER_WP9_CALCULO }        from '../data/pareceres';
+import { ATA_WP9_REUNIAO_5 }          from '../data/atas-conselho';
 
 export default function Calculo() {
   const base = import.meta.env.BASE_URL || '/';
@@ -49,6 +51,12 @@ export default function Calculo() {
         texUrl={texUrl}
         overleafUrl={overleafUrl}
       />
+
+      {/* Ata da Reunião #5 do Conselho do Mirante (WP#9, 2026-04-29):
+          4 cadeiras em paralelo · média quants 2,0 EXATO · APROVADO NO LIMIAR.
+          Renderizada logo abaixo do DocSection no padrão de WP#2 (BolsaFamilia)
+          e WP#4/WP#6 (Equipamentos). */}
+      <AtaConselho ata={ATA_WP9_REUNIAO_5} />
 
       <ContextSection />
 
