@@ -102,19 +102,37 @@ def _coalesce_cols(df, *names):
     return F.coalesce(*matching)
 
 
-# Município de TRABALHO (geographic unit do panel)
-# 999999 em era3 = "ignorado" → trata como NULL
-EXPR_MUN = F.when(
-    _coalesce_cols(bronze, "municipio_trab_codigo", "mun_trab") == "999999",
-    F.lit(None)
-).otherwise(
-    F.coalesce(
-        F.when(F.col("municipio_trab_codigo") == "999999", F.lit(None))
-            .otherwise(F.col("municipio_trab_codigo")) if "municipio_trab_codigo" in bronze.columns else F.lit(None),
-        F.col("mun_trab")               if "mun_trab"               in bronze.columns else F.lit(None),
-        F.col("municipio_codigo")       if "municipio_codigo"       in bronze.columns else F.lit(None),
-        F.col("municipio")              if "municipio"              in bronze.columns else F.lit(None),
-    )
+# Município (geographic unit do panel).
+#
+# Bronze tem 4 candidatos por era:
+#   - municipio_trab_codigo  (era3 .COMT, ~999999 frequente = "ignorado")
+#   - mun_trab               (era2 .txt 2018-2022, ~000000 frequente = sub-registro)
+#   - municipio_codigo       (era3 .COMT)
+#   - municipio              (era1+2 .txt, geralmente código do ESTABELECIMENTO)
+#
+# Códigos inválidos a tratar como NULL: '000000', '999999', '999997', '' (vazio).
+# Estratégia: COALESCE com filtro de inválidos em CADA candidato, nesta ordem:
+#   1. municipio_trab_codigo (preferência: trabalho > estab pra DiD do BEm)
+#   2. mun_trab
+#   3. municipio_codigo
+#   4. municipio (estabelecimento, fallback final — sempre tem valor real)
+#
+# IBGE municipal codes são 6 dígitos (sem DV) ou 7 dígitos (com DV).
+# RAIS reporta tipicamente 6 → não fazer lpad pra 7.
+def _muni_or_null(col_name):
+    if col_name not in bronze.columns:
+        return F.lit(None)
+    raw = F.trim(F.col(col_name))
+    invalid = ["", "0", "00", "000", "0000", "00000", "000000", "0000000",
+               "9", "99", "999", "9999", "99999", "999997", "999998", "999999", "9999997"]
+    return F.when(raw.isin(invalid), F.lit(None)).otherwise(raw)
+
+
+EXPR_MUN = F.coalesce(
+    _muni_or_null("municipio_trab_codigo"),
+    _muni_or_null("mun_trab"),
+    _muni_or_null("municipio_codigo"),
+    _muni_or_null("municipio"),
 )
 
 # CNAE 2.0 (preferência) ou CNAE 95 (fallback pré-2007) — ambas como string
@@ -164,7 +182,9 @@ def _br_num(col_expr):
 df = (
     bronze
     .withColumn("ano_int",       F.col("ano").cast("int"))
-    .withColumn("muni",          F.lpad(F.regexp_replace(EXPR_MUN, r"\D", ""), 7, "0"))
+    # Muni: 6 ou 7 dígitos IBGE. RAIS reporta tipicamente 6 (sem DV).
+    .withColumn("muni",          F.regexp_replace(EXPR_MUN, r"\D", ""))
+    # CNAE 2-dig: pega só os 2 primeiros dígitos (alta-nível setorial)
     .withColumn("cnae2",         F.substring(F.regexp_replace(EXPR_CNAE.cast("string"), r"\D", ""), 1, 2))
     .withColumn("vinc_ativo",    F.when(F.trim(EXPR_VINC.cast("string")).isin("1", "01"), 1).otherwise(0))
     .withColumn("motivo",        F.lpad(F.trim(EXPR_MOTIVO.cast("string")), 2, "0"))
@@ -179,9 +199,9 @@ df = (
         # Códigos era3 (escolaridade_apos_2005_codigo): 01-04 = mesma faixa
         F.when(F.lpad(F.trim(EXPR_ESCOL.cast("string")), 2, "0").isin("01","02","03","04"), 1).otherwise(0)
     )
-    # Filtros: muni válido (7 dígitos), cnae2 válido (2 dígitos), ano não-null
+    # Filtros: ano não-null, muni com 6+ dígitos (IBGE), cnae2 com 2 dígitos
     .where(F.col("ano_int").isNotNull())
-    .where(F.length(F.col("muni")) == 7)
+    .where(F.col("muni").isNotNull() & (F.length(F.col("muni")) >= 6))
     .where(F.length(F.col("cnae2")) == 2)
 )
 
