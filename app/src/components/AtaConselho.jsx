@@ -19,7 +19,14 @@ const CADEIRA_META = {
 
 export default function AtaConselho({ ata }) {
   if (!ata) return null;
-  const { meta, pareceres_iniciais, rodada_4_doutorado, rodada_2_why } = ata;
+  const {
+    meta,
+    pareceres_iniciais,
+    rodada_4_doutorado,
+    rodada_2_why,
+    rodada_2_recalibracao,
+    resposta_do_autor,
+  } = ata;
 
   return (
     <section className="panel no-print" style={{
@@ -41,6 +48,8 @@ export default function AtaConselho({ ata }) {
       </details>
 
       {rodada_2_why && <Rodada2WhyBlock r2={rodada_2_why} />}
+
+      {rodada_2_recalibracao && <Rodada2RecalibracaoBlock r2r={rodada_2_recalibracao} />}
 
       {rodada_4_doutorado && (
         <details open style={{ marginTop: 18 }}>
@@ -73,8 +82,166 @@ export default function AtaConselho({ ata }) {
         </details>
       )}
 
+      {resposta_do_autor && <RespostaAutorBlock resposta={resposta_do_autor} />}
+
       <Footer meta={meta} />
     </section>
+  );
+}
+
+// ─── Rodada 2 — Recalibração de régua (WP#9) ─────────────────────────────
+// Documenta correção de viés de ancoragem na R1: régua mestrado foi
+// presumida sem auditoria → corrigida para lato sensu após cobrança do
+// autor. Mantida na ata como lição de processo, exposta publicamente.
+function Rodada2RecalibracaoBlock({ r2r }) {
+  return (
+    <details open style={{ marginTop: 18 }}>
+      <summary style={summaryStyle}>
+        <b>Rodada 2</b> — recalibração honesta de régua · {' '}
+        <span style={{ color: '#dc2626' }}>
+          MESTRADO B (2,0) → LATO SENSU {r2r.regua_corrigida.score_numerico.toFixed(1)}/10
+        </span>
+        <span style={summaryHintStyle}>aberto por padrão</span>
+      </summary>
+
+      <div style={{ marginTop: 14 }}>
+        <div style={{
+          fontSize: 13, lineHeight: 1.6, color: 'var(--muted)', marginBottom: 14,
+          padding: '8px 12px',
+          background: 'rgba(220, 38, 38, 0.05)',
+          borderLeft: '3px solid #dc2626',
+          borderRadius: 4,
+        }}>
+          <b>Contexto:</b> {r2r.contexto}
+        </div>
+
+        <div style={{
+          padding: 14, marginBottom: 14,
+          background: 'rgba(180, 83, 9, 0.05)',
+          border: '1px solid #b45309', borderRadius: 6,
+        }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+            textTransform: 'uppercase', color: '#b45309', marginBottom: 8,
+          }}>
+            🔍 Diagnóstico do viés
+          </div>
+          <p style={{ fontSize: 12.5, lineHeight: 1.6, margin: 0 }}>
+            {r2r.diagnostico_do_vies}
+          </p>
+        </div>
+
+        <div style={{
+          padding: 14, marginBottom: 14,
+          background: 'rgba(5, 150, 105, 0.06)',
+          border: '2px solid #059669', borderRadius: 8,
+        }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+            textTransform: 'uppercase', color: '#059669', marginBottom: 10,
+          }}>
+            ✅ Régua corrigida — {r2r.regua_corrigida.nivel.replace('_', ' ').toUpperCase()}
+          </div>
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 8 }}>
+            <span style={{ fontSize: 28, fontWeight: 800, color: '#059669' }}>
+              {r2r.regua_corrigida.score_numerico.toFixed(1)}
+            </span>
+            <span style={{ fontSize: 14, color: 'var(--muted)' }}>
+              / 10 · teto da régua: {r2r.regua_corrigida.teto_lato_sensu.toFixed(1)}
+            </span>
+          </div>
+          <p style={{ fontSize: 12.5, lineHeight: 1.6, margin: 0, color: 'var(--text)' }}>
+            {r2r.regua_corrigida.justificativa}
+          </p>
+        </div>
+
+        {r2r.como_ficaria_em_outras_reguas && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{
+              fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8,
+            }}>
+              Como ficaria em outras réguas (referência)
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none', display: 'grid', gap: 6 }}>
+              {r2r.como_ficaria_em_outras_reguas.map((r, i) => (
+                <li key={i} style={{
+                  padding: '8px 10px',
+                  background: 'var(--bg)',
+                  borderLeft: `3px solid ${r.regua.startsWith('Lato') ? '#059669' : 'var(--border)'}`,
+                  borderRadius: 4,
+                  fontSize: 11.5, lineHeight: 1.55,
+                }}>
+                  <b>{r.regua}:</b> <span style={{ color: 'var(--text)' }}>{r.estimativa}</span>
+                  <span style={{ color: 'var(--muted)', fontSize: 11 }}> — {r.motivo}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div style={{
+          padding: 12, marginBottom: 14,
+          background: 'rgba(202, 138, 4, 0.06)',
+          borderLeft: '3px solid #ca8a04', borderRadius: 4,
+          fontSize: 12, lineHeight: 1.6, fontStyle: 'italic',
+        }}>
+          <b style={{ color: '#ca8a04', fontStyle: 'normal' }}>📝 Lição de processo:</b> {r2r.licao_de_processo}
+        </div>
+
+        <div style={{
+          padding: 12,
+          background: 'rgba(13, 148, 136, 0.06)',
+          borderLeft: '3px solid #0d9488', borderRadius: 4,
+          fontSize: 12, lineHeight: 1.6,
+        }}>
+          <b style={{ color: '#0d9488' }}>Pareceres da R1 permanecem válidos:</b> {r2r.pareceres_iniciais_permanecem_validos}
+        </div>
+      </div>
+    </details>
+  );
+}
+
+// ─── Resposta do autor (renderização de campo já existente em todas atas) ─
+function RespostaAutorBlock({ resposta }) {
+  return (
+    <div style={{
+      marginTop: 18, padding: 14,
+      background: 'rgba(13, 148, 136, 0.05)',
+      border: '1px solid #0d9488', borderRadius: 8,
+    }}>
+      <div style={{
+        fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+        textTransform: 'uppercase', color: '#0d9488', marginBottom: 8,
+      }}>
+        ✍️ Resposta do autor
+      </div>
+      <div style={{ fontSize: 12.5, lineHeight: 1.6, marginBottom: 8 }}>
+        <b>Decisão:</b> {resposta.decisao}
+      </div>
+      {resposta.nota && (
+        <p style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text)', margin: '0 0 8px 0' }}>
+          {resposta.nota}
+        </p>
+      )}
+      {resposta.score_pos_aprovacao && (
+        <div style={{
+          display: 'inline-block',
+          padding: '4px 10px', borderRadius: 999,
+          background: '#0d9488', color: 'white',
+          fontSize: 11, fontWeight: 700, marginTop: 4,
+        }}>
+          Score pós-aprovação: {resposta.score_pos_aprovacao}
+        </div>
+      )}
+      {(resposta.data || resposta.commit) && (
+        <div style={{ fontSize: 10.5, color: 'var(--muted)', marginTop: 8 }}>
+          {resposta.data && <span>{resposta.data}</span>}
+          {resposta.data && resposta.commit && <span> · </span>}
+          {resposta.commit && <span>commit <code>{resposta.commit}</code></span>}
+        </div>
+      )}
+    </div>
   );
 }
 

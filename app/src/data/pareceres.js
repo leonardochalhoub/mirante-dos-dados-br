@@ -720,24 +720,34 @@ export const PARECER_WP_RAIS = {
 // ═══════════════════════════════════════════════════════════════════════
 // WP #9 — O CÁLCULO AUSENTE / EDUCAÇÃO COMPARADA
 // Slug: calculo-ensino-medio-internacional · Vertical: calculo
-// Régua: STRICTO SENSU MESTRADO. Score B (2,0) — APROVADO NO LIMIAR
-// pós-Reunião #5 do Conselho (2026-04-29). Média quants 2,0 EXATO.
+// Régua: LATO SENSU (especialização/MBA). Score 8,0/10 — APROVADO,
+// no meio-teto, sem extrapolar pra mestrado.
 //
-// HISTÓRICO:
-//   - Pré-Conselho (2026-04-29 13h00 BRT): parecer do Professor
-//     (TEACHER_PERSONA, IA Claude Opus 4.7) atribuiu B (2,0) — limiar
-//     mestrado, com diagnóstico de 3 tensões: argumento forte / desenho
-//     correlacional / outlier de método na plataforma.
-//   - Pós-Conselho (2026-04-29 20h00 BRT): 4 cadeiras deliberaram em
-//     paralelo. Eng. Software, Finanças e Design CONFIRMARAM B (2,0) —
-//     mas POR RAZÕES DIFERENTES (auditoria automatizada / experimentos
-//     naturais não explorados / zero figuras Mirante). Administração
-//     emitiu parecer qualitativo positivo: "VAI VIRAR PRODUTO se autor
-//     decidir ousar". Média quants (B+B+B)/3 = 2,0 EXATO — APROVADO NO
-//     LIMIAR. Ata: ATA_WP9_REUNIAO_5 em atas-conselho.js.
+// HISTÓRICO DE CALIBRAGEM (lições documentadas):
+//   - Pré-Conselho (2026-04-29 13h00 BRT): Professor (TEACHER_PERSONA)
+//     enquadrou em régua MESTRADO e atribuiu B (2,0). VIÉS DE
+//     ANCORAGEM: a régua mestrado foi assumida por analogia aos outros
+//     WPs do projeto, sem auditar se o trabalho EXTRAPOLAVA o teto
+//     lato sensu (que é o critério da convenção Mirante para subir
+//     régua, vide linhas 14-21 deste arquivo).
+//   - Pós-Conselho R1 (2026-04-29 20h00): 4 cadeiras deliberaram dentro
+//     da régua mestrado já dada, e CONFIRMARAM B (2,0). Média 2,0
+//     EXATO. Confirmação dentro de viés.
+//   - Recalibração honesta (2026-04-29 21h00 BRT): autor cobrou —
+//     "achei que era só graduação". Reauditoria explícita da régua
+//     contra a convenção Mirante revelou: WP#9 NÃO extrapola lato
+//     sensu (sem dados primários, sem identificação causal, sem
+//     contribuição metodológica original — apenas revisão sistemática
+//     + comparada + síntese). Régua mestrado foi inflada por
+//     ancoragem nos demais WPs (que TÊM dados primários e identificação
+//     causal). RÉGUA CORRETA: lato sensu 8,0/10.
 //
-// Convergência metodologicamente saudável: o piso B é robusto sob 4
-// lentes independentes; o teto B+ é tracteável por 4 caminhos distintos.
+// Como ficaria em outras réguas (referência):
+//   - Mestrado: C (1,0) ou D (0) — REPROVADO. Sem contribuição
+//     metodológica original, requisito mínimo de mestrado.
+//   - TCC graduação: 9,5/10 — TCC nota máxima. 47+ refs, 10 países,
+//     200 anos de história, ABNT impecável é trabalho excepcional pra
+//     TCC. Mas convenção Mirante padroniza lato sensu como default.
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_WP9_CALCULO = {
   slug:    'calculo-ensino-medio-internacional',
@@ -748,46 +758,52 @@ export const PARECER_WP9_CALCULO = {
     'ensino médio em dez países e suas implicações para a formação em ' +
     'engenharia no Brasil',
   vertical: 'calculo',
-  nivel: 'stricto_sensu_mestrado',
-  scoreType: 'letter',
-  scoreLetra: 'B',
+  nivel: 'lato_sensu',
+  scoreType: 'numeric',
+  scoreNumeric: 8.0,
   scoreOriginal: null,
   originalLabel: null,
   originalUrl: null,
-  ultimaAtualizacao: '2026-04-29T20:00 BRT',
+  ultimaAtualizacao: '2026-04-29T21:00 BRT',
   versao:
-    '2.0 — pós Reunião #5 do Conselho do Mirante (4 cadeiras, 2026-04-29). ' +
-    'Score CONFIRMADO em B (2,0) por consenso unânime das 3 cadeiras ' +
-    'quants + parecer qualitativo positivo da Administração. Média quants ' +
-    '2,0 EXATO. Roadmap v3.0 a executar antes da submissão a periódico.',
+    '2.1 — RECALIBRAÇÃO HONESTA. Régua corrigida de mestrado B (2,0) ' +
+    'para LATO SENSU 8,0/10 após cobrança do autor. Score original era ' +
+    'inflado por viés de ancoragem nos demais WPs do projeto (que têm ' +
+    'dados primários e identificação causal — WP#9 não tem). Recalibragem ' +
+    'documentada como lição de processo na ata da Reunião #5 (Rodada 2). ' +
+    'Roadmap mantido: hoje 8,0 lato sensu, teto lato sensu 9,0; pra ' +
+    'extrapolar pra mestrado seria preciso ITS sobre Reforma Benjamin ' +
+    'Constant + figura síntese Mirante + auditoria automatizada do ' +
+    'achado central — três contribuições originais.',
   resumoCalibragem:
-    'Régua: STRICTO SENSU MESTRADO. Score B (2,0 pts) — APROVADO NO LIMIAR ' +
-    'após deliberação do Conselho. Working Paper de natureza distinta ' +
-    'dos demais — não é pipeline sobre microdados públicos brasileiros, é ' +
-    'revisão sistemática de currículos oficiais (n=10 países + IB) cruzada ' +
-    'com séries históricas OECD/PISA, série de 200 anos de reformas ' +
-    'curriculares brasileiras e literatura pedagógica (Bruner, Vygotsky, ' +
-    'Rezende, Ávila). As 3 cadeiras quants (Eng. Software · Finanças · ' +
-    'Design) chegaram a B (2,0) por CAMINHOS COMPLEMENTARES: ' +
-    '(i) Eng. Software — argumento sólido e citações verificáveis, mas ' +
-    'auditoria do achado central não-automatizada (sem pdftotext/grep nos ' +
-    'PDFs curriculares), versionamento dos 47+ documentos primários frágil ' +
-    '(risco de link rot), sem ADR para padrão "WP standalone"; ' +
-    '(ii) Finanças — honestidade declarativa rara (paper assume Nível 3 ' +
-    'de robustez "moderada"), mas Reforma Benjamin Constant 1890→1925 é ' +
-    'ITS clara não explorada, PISA é proxy do output não do input ' +
-    '(identificação invertida), custo econômico R$2,3–4,6 bi/ano com ' +
-    'spread 100% sem IC bootstrap; ' +
-    '(iii) Design — newtx + ABNT corretos, ContextSection bem executada, ' +
-    'mas zero figuras com identidade visual Mirante (Lato + Wong palette + ' +
-    'golden ratio + halo) — gatekeeper de B+ — e os 6 boxes fbox da Seção ' +
-    '8 são "recurso LaTeX de emergência" (cabia heatmap síntese país × ' +
-    'tópico cálculo). Administração: parecer qualitativo positivo ("TEM ' +
-    'COMO — depende do autor decidir entre pesquisador OU agente de ' +
-    'mudança"; pode dar dinheiro mais rápido que outros WPs do projeto: ' +
-    'curso Hotmart + parceria cursinhos + consultoria SecEd). Para subir ' +
-    'a B+: implementar QUALQUER UM dos 4 caminhos identificados pelas ' +
-    'cadeiras (qualquer um sobe; os 3 quants juntos consolidam B+).',
+    'Régua: LATO SENSU (especialização/MBA), 0,0–10,0. Score 8,0 — sólido, ' +
+    'no meio-teto, sem extrapolar pra mestrado. Working Paper de revisão ' +
+    'sistemática + comparada curricular standalone, com 47+ referências ' +
+    'verificáveis, cobertura de 10 países + IB, 200 anos de reformas ' +
+    'curriculares brasileiras e marco pedagógico bem fundamentado (Bruner, ' +
+    'Vygotsky, Rezende, Ávila). HONESTIDADE DE PROCESSO: o parecer ' +
+    'pré-Conselho do Professor enquadrou em régua mestrado e atribuiu B ' +
+    '(2,0) — viés de ancoragem nos demais WPs do projeto, que TÊM dados ' +
+    'primários (PBF 2,5 bi linhas, RAIS 2,2 bi linhas, CNES 158M linhas) ' +
+    'e identificação causal (DiD/TWFE/Conley HAC). WP#9 não tem isso e ' +
+    'não tenta ter — é deliberadamente uma revisão. As 4 cadeiras do ' +
+    'Conselho deliberaram dentro do frame mestrado já dado e ' +
+    'confirmaram B (média 2,0 EXATA). O autor cobrou a calibragem após ' +
+    'a deliberação ("achei que era só graduação") e a reauditoria contra ' +
+    'a convenção Mirante (que parte de lato sensu e só sobe se EXTRAPOLAR) ' +
+    'corrigiu para lato sensu 8,0/10. As CRÍTICAS substantivas das 4 ' +
+    'cadeiras permanecem válidas e migram para o roadmap lato sensu→ ' +
+    'mestrado: (i) Eng. Software — auditoria automatizada do achado ' +
+    'central via pdftotext+grep nos PDFs curriculares + snapshots dos ' +
+    '47+ docs primários + ADR padrão "WP standalone"; (ii) Finanças — ' +
+    'ITS sobre Reforma Benjamin Constant 1890→1925 + IC bootstrap sobre ' +
+    'custo R$2-5bi + reconhecer PISA como proxy invertido; (iii) Design ' +
+    '— heatmap síntese país × tópico cálculo (Lato + Wong + halo) + ' +
+    'declarar Conflito de Interesse sobre Clube da Matemática; (iv) ' +
+    'Administração — decisão estratégica pesquisa-vs-produto. Implementar ' +
+    'as 4 + adicionar contribuição metodológica original = extrapola ' +
+    'lato sensu, sobe a régua mestrado. Hoje, 8,0 lato sensu é a ' +
+    'avaliação honesta.',
   utilidadeSocial:
     'EXTREMAMENTE ÚTIL como peça de advocacy curricular. Beneficiários: ' +
     '(a) Ministério da Educação / CNE em revisões da BNCC — paper documenta ' +

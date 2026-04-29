@@ -1412,23 +1412,30 @@ export const ATA_WP9_REUNIAO_5 = {
       'um vácuo estrutural — análise comparativa do currículo de matemática do ' +
       'ensino médio em dez países e suas implicações para a formação em ' +
       'engenharia no Brasil',
-    commit: 'a78bd25 (.tex) + 5c7b00f (vertical scaffolding)',
+    commit: 'a78bd25 (.tex) + 5c7b00f (vertical) + 35474f7 (R1)',
     data: '2026-04-29',
     coautoria: 'Leonardo Chalhoub (autor único)',
-    rodadas: 1,
-    status: 'APROVADO NO LIMIAR — APROVADO COM AJUSTES',
-    media_quants: 2.0, // (B 2,0 + B 2,0 + B 2,0) / 3 = 2,0 EXATO
+    rodadas: 2, // R1 dentro de mestrado + R2 recalibração para lato sensu
+    status: 'APROVADO — régua recalibrada para LATO SENSU 8,0/10',
+    media_quants: 2.0, // R1 dentro de mestrado: (B 2,0 + B 2,0 + B 2,0) / 3
     limiar_aprovacao: 2.0,
+    score_final: 'LATO SENSU 8,0/10 — pós-recalibração R2',
     nota_promocao:
       'Primeira reunião do Conselho sobre WP de natureza não-pipeline ' +
-      '(revisão sistemática + comparada curricular standalone). As 4 ' +
-      'cadeiras concordaram em aplicar régua mestrado e em manter o B (2,0) ' +
-      'do parecer pré-Conselho do Professor — POR RAZÕES DIFERENTES. ' +
-      'Convergência metodologicamente saudável: o piso B é robusto sob 4 ' +
-      'lentes independentes, e o teto B+ é tracteável por 4 caminhos ' +
-      'distintos (auditoria automatizada, ITS Benjamin Constant, figura ' +
-      'síntese Mirante, decisão produto vs. paper). Cruzando o limiar ' +
-      '2,0 EXATAMENTE, a aprovação é por consenso mas SEM folga.',
+      '(revisão sistemática + comparada curricular standalone). RODADA 1: ' +
+      'as 4 cadeiras deliberaram dentro da régua MESTRADO já dada pelo ' +
+      'parecer pré-Conselho do Professor e confirmaram B (2,0) — média ' +
+      '2,0 EXATA. RODADA 2 (recalibração honesta após cobrança do autor): ' +
+      'o autor questionou se a régua mestrado era apropriada ("achei que ' +
+      'era só graduação"). Reauditoria explícita contra a convenção Mirante ' +
+      '(linhas 14-21 de pareceres.js: trabalhos INICIAM em lato sensu e só ' +
+      'sobem se EXTRAPOLAREM o teto) revelou viés de ancoragem na R1 — a ' +
+      'régua mestrado foi assumida por analogia aos demais WPs do projeto, ' +
+      'que TÊM dados primários (PBF 2,5 bi linhas) e identificação causal ' +
+      '(DiD/TWFE/Conley HAC). WP#9 não tem nem tenta ter; é deliberadamente ' +
+      'revisão. Régua corrigida para LATO SENSU 8,0/10. As críticas ' +
+      'substantivas das 4 cadeiras permanecem válidas e viram roadmap ' +
+      'lato sensu → mestrado.',
   },
 
   pareceres_iniciais: [
@@ -1618,34 +1625,93 @@ export const ATA_WP9_REUNIAO_5 = {
     },
   ],
 
+  // ── Rodada 2 — Recalibração honesta de régua ───────────────────────
+  // Motivada por cobrança direta do autor após R1: "achei que era só
+  // graduação". Documentada como lição de processo para o framework
+  // editorial-crítico do Mirante (auditável publicamente). Mantida na
+  // ata para que viés de ancoragem fique exposto, não escondido.
+  rodada_2_recalibracao: {
+    contexto:
+      'Após a R1 fechar com média B (2,0) em régua mestrado, o autor ' +
+      'do projeto questionou diretamente: "achei que era só graduação". ' +
+      'O Conselho reauditou a régua aplicada contra a convenção Mirante ' +
+      '(pareceres.js linhas 14-21: trabalhos INICIAM em lato sensu e só ' +
+      'sobem se EXTRAPOLAREM o teto). A reauditoria revelou VIÉS DE ' +
+      'ANCORAGEM na R1: a régua mestrado foi assumida por analogia aos ' +
+      'demais WPs do projeto, sem auditar se WP#9 efetivamente extrapola ' +
+      'lato sensu. Não extrapola — WP#9 é deliberadamente revisão ' +
+      'sistemática + comparada, sem dados primários nem identificação ' +
+      'causal nem contribuição metodológica original.',
+    diagnostico_do_vies:
+      'Os demais WPs do projeto (WP#2 PBF, WP#4 Equipamentos RM, WP#6 ' +
+      'Panorama, WP#7 BF Municípios) têm bilhões de linhas em bronze e ' +
+      'identificação causal explícita (DiD/TWFE/Conley HAC). O Professor ' +
+      'do parecer pré-Conselho enquadrou WP#9 na mesma régua sem ' +
+      'auditar se o trabalho EXTRAPOLA lato sensu — apenas presumiu ' +
+      'continuidade de régua. As 4 cadeiras da R1 deliberaram DENTRO ' +
+      'desse frame e confirmaram B por consenso. Confirmação dentro de ' +
+      'viés é confirmação ainda assim — mas não é validação independente ' +
+      'da régua. A R2 corrige.',
+    regua_corrigida: {
+      nivel: 'lato_sensu',
+      score_numerico: 8.0,
+      teto_lato_sensu: 9.0,
+      justificativa:
+        'Sólido como revisão sistemática: 47+ refs verificáveis, 10 países + ' +
+        'IB, 200 anos de história curricular brasileira, marco pedagógico ' +
+        'bem fundamentado, ABNT impecável, honestidade epistêmica explícita. ' +
+        'No meio-teto lato sensu (8,0/9,0). Para extrapolar pra mestrado ' +
+        'seriam necessárias contribuições originais — vide roadmap.',
+    },
+    como_ficaria_em_outras_reguas: [
+      { regua: 'Mestrado A/B+/B/C/D', estimativa: 'C (1,0) ou D (0)', motivo: 'REPROVA — ausência de contribuição metodológica original, requisito mínimo de mestrado' },
+      { regua: 'Lato sensu 0–10',     estimativa: '8,0/10',           motivo: 'APROVA — sólido como monografia de especialização/MBA; régua correta' },
+      { regua: 'Graduação TCC 0–10',  estimativa: '9,5/10',           motivo: 'APROVA com louvor — TCC excepcional; convenção Mirante padroniza lato sensu como default' },
+    ],
+    licao_de_processo:
+      'Para futuros WPs do Mirante: o parecer do Professor (TEACHER_PERSONA) ' +
+      'DEVE auditar a régua antes de atribuir score, não presumir continuidade ' +
+      'com WPs anteriores. Heurística: "este trabalho EXTRAPOLA o teto lato ' +
+      'sensu? Tem dados primários, identificação causal OU contribuição ' +
+      'metodológica original?" Se NENHUMA das três, fica em lato sensu. ' +
+      'Documentação dessa lição é em si contribuição ao framework editorial-' +
+      'crítico do projeto — exatamente o tipo de meta-artefato que pode virar ' +
+      'publicação metodológica futura ("peer review interno reprodutível com ' +
+      '4 personas IA").',
+    pareceres_iniciais_permanecem_validos:
+      'IMPORTANTE: as CRÍTICAS substantivas das 4 cadeiras na R1 ' +
+      'permanecem válidas e migram para o roadmap lato sensu → mestrado. ' +
+      'Eng. Software (auditoria automatizada do achado central + ' +
+      'snapshots dos docs primários + ADR), Finanças (ITS sobre Reforma ' +
+      'Benjamin Constant + IC bootstrap sobre custo + reconhecer PISA ' +
+      'como proxy invertido), Design (heatmap síntese país × cálculo + ' +
+      'declaração CoI sobre Clube da Matemática), Administração ' +
+      '(decisão pesquisa-vs-produto). O QUE MUDA: a meta dessas ' +
+      'pendências passa de "subir B → B+ no mestrado" para "extrapolar ' +
+      'lato sensu para subir a régua mestrado". Implementar as 4 + ' +
+      'adicionar uma contribuição metodológica original = trabalho ' +
+      'extrapola lato sensu e abre R3 do Conselho em régua mestrado.',
+  },
+
   resposta_do_autor: {
-    decisao: 'APROVADO NO LIMIAR — ajustes prioritários a v3.0 antes de submissão a periódico',
+    decisao: 'APROVADO em LATO SENSU 8,0/10 — pós-recalibração R2',
     data: '2026-04-29',
     commit: 'pendente (próximo ciclo)',
     nota:
-      'Aprovação por consenso entre as 3 cadeiras quants (Eng. Software · ' +
-      'Finanças · Design) com B (2,0) cada e parecer qualitativo positivo da ' +
-      'cadeira de Administração ("VAI VIRAR PRODUTO se autor decidir ousar"). ' +
-      'Média 2,0 EXATA — cruzou o limiar 2,0 sem folga. Convergência ' +
-      'metodologicamente saudável: as 3 cadeiras quants chegam a B por ' +
-      'CAMINHOS DIFERENTES (auditoria automatizada / experimentos naturais ' +
-      'não explorados / zero figuras Mirante), o que significa que o teto B+ ' +
-      'também é tracteável por 4 caminhos distintos. ROADMAP v3.0 (interseção ' +
-      'das pendências mais críticas das 4 cadeiras): (a) HEATMAP 11×6 país × ' +
-      'tópico cálculo no Mirante style — única figura que sobe Design para B+ ' +
-      'e dá síntese visual ao argumento; (b) ITS sobre Reforma Benjamin ' +
-      'Constant 1890→1925 com fonte primária (Decreto 981/1890 + Decreto ' +
-      '3.890/1901) — sobe Finanças e responde Eng. Software (achado ' +
-      'auditável); (c) script audit_curricula_keywords.py via pdftotext + ' +
-      'grep nos PDFs curriculares — sobe Eng. Software para B+; (d) snapshot ' +
-      'dos 47+ documentos primários em /articles/snapshots/ ou Wayback — Eng. ' +
-      'Software; (e) declaração de Conflito de Interesse sobre Clube da ' +
-      'Matemática — Design (necessário pré-Bolema); (f) IC bootstrap sobre ' +
-      'custo econômico R$2,3–4,6 bi/ano — Finanças. Decisão estratégica ' +
-      '(Administração) sobre pesquisa-vs-produto fica em aberto explícito; ' +
-      'caminhos não-mutuamente-exclusivos (paper + curso + advocacy podem ' +
-      'rodar em paralelo).',
-    score_pos_aprovacao: 'B (2,0) na régua mestrado · média conselho 2,0 EXATO · APROVADO NO LIMIAR',
+      'R1 fechou em B mestrado (média 2,0 exata). Após cobrança honesta ' +
+      'do autor, R2 reauditou a régua e corrigiu para lato sensu 8,0/10 — ' +
+      'sólido, no meio-teto, sem extrapolar. As críticas substantivas das ' +
+      '4 cadeiras permanecem como roadmap lato → mestrado: (a) HEATMAP ' +
+      '11×6 país × tópico cálculo no Mirante style; (b) ITS sobre Reforma ' +
+      'Benjamin Constant 1890→1925; (c) script audit_curricula_keywords.py; ' +
+      '(d) snapshot dos 47+ docs primários; (e) declaração de Conflito de ' +
+      'Interesse sobre Clube da Matemática; (f) IC bootstrap sobre custo ' +
+      'econômico. Implementar 4 desses + adicionar contribuição metodológica ' +
+      'original = extrapola lato sensu, abre R3 em régua mestrado. Decisão ' +
+      'estratégica (Administração) sobre pesquisa-vs-produto fica em aberto ' +
+      'explícito; caminhos paper + curso + advocacy não são mutuamente ' +
+      'exclusivos.',
+    score_pos_aprovacao: 'LATO SENSU 8,0/10 (régua corrigida pós-R2) · sólido, no meio-teto · APROVADO',
   },
 };
 
