@@ -120,12 +120,15 @@ def _coalesce_cols(df, *names):
 # IBGE municipal codes são 6 dígitos (sem DV) ou 7 dígitos (com DV).
 # RAIS reporta tipicamente 6 → não fazer lpad pra 7.
 def _muni_or_null(col_name):
+    """Trim + nullify de códigos inválidos (puro 0s ou puro 9s + variantes 999997/999998).
+    Estratégia regex: aceita só 6 ou 7 dígitos NUMÉRICOS começando com [1-5] (códigos
+    IBGE válidos têm UF code 11-53, primeiro dígito 1-5)."""
     if col_name not in bronze.columns:
-        return F.lit(None)
-    raw = F.trim(F.col(col_name))
-    invalid = ["", "0", "00", "000", "0000", "00000", "000000", "0000000",
-               "9", "99", "999", "9999", "99999", "999997", "999998", "999999", "9999997"]
-    return F.when(raw.isin(invalid), F.lit(None)).otherwise(raw)
+        return F.lit(None).cast("string")
+    raw = F.trim(F.col(col_name).cast("string"))
+    # Aceita apenas 6 ou 7 dígitos com primeiro dígito [1-5] (UF IBGE válida)
+    valid = raw.rlike(r"^[1-5][0-9]{5,6}$")
+    return F.when(valid, raw).otherwise(F.lit(None).cast("string"))
 
 
 EXPR_MUN = F.coalesce(
@@ -280,21 +283,22 @@ silver_df = (
     .orderBy("ano", "uf", "muni", "cnae2")
 )
 
-# DEBUG: prints intermediários pra detectar onde rows são dropadas
-print(f"\n=== DEBUG: trace de filtros ===")
-print(f"bronze rows após filtro ano [{ANO_MIN}, {ANO_MAX}]: {n_bronze:,}")
-n_after_ano   = df.where(F.col("ano_int").isNotNull()).count()
-n_after_muni  = df.where(F.col("muni").isNotNull() & (F.length(F.col("muni")) >= 6)).count()
-n_after_cnae  = df.where(F.length(F.col("cnae2")) == 2).count()
-n_after_full  = df.count()
-print(f"  após ano_int IS NOT NULL    : {n_after_ano:,}")
-print(f"  após muni length >= 6       : {n_after_muni:,}")
-print(f"  após cnae2 length == 2      : {n_after_cnae:,}")
-print(f"  após TODOS filtros (df)     : {n_after_full:,}")
+# DEBUG: salva amostra do df pré-aggregação numa tabela diagnostic visível via SQL
+# (notebook_output API não expõe prints — então persistimos pra inspeção offline)
+df_debug_summary = (df
+    .groupBy("ano_int")
+    .agg(F.count("*").alias("rows_pos_filtro"),
+         F.countDistinct("muni").alias("distinct_munis"),
+         F.countDistinct("cnae2").alias("distinct_cnaes"))
+    .orderBy("ano_int")
+)
+(df_debug_summary.write.format("delta").mode("overwrite")
+    .saveAsTable(f"{CATALOG}.diagnostics.silver_bem_filter_trace"))
+print("✓ trace gravado em diagnostics.silver_bem_filter_trace")
+df_debug_summary.show()
 
-df.groupBy("ano_int").agg(F.count("*").alias("rows"),
-                          F.countDistinct("muni").alias("munis"),
-                          F.countDistinct("cnae2").alias("cnaes")).orderBy("ano_int").show()
+n_after_full = df.count()
+print(f"  após TODOS filtros (df) : {n_after_full:,}")
 
 n_silver = silver_df.count()
 print(f"silver panel rows: {n_silver:,}  (esperado ~1.5-2.5M para 6 anos × 5571 munis × 88 CNAEs)")
