@@ -240,8 +240,11 @@ silver_df = (
         F.avg("te_meses").alias("te_meses_medio"),
     )
     .withColumnRenamed("ano_int", "ano")
-    # UF derivada do código IBGE do município (primeiros 2 dígitos)
-    .withColumn("uf_code", F.substring("muni", 1, 2).cast("int"))
+    # UF derivada do código IBGE do município (primeiros 2 dígitos).
+    # IMPORTANTE: usar F.col("muni") explícito em vez de "muni" (str) — Spark
+    # Connect não auto-resolve string como nome de coluna em F.substring,
+    # tratando-a como literal e produzindo "mu" → cast int = NULL → uf NULL.
+    .withColumn("uf_code", F.substring(F.col("muni"), 1, 2).cast("int"))
     .withColumn(
         "uf",
         F.create_map(
