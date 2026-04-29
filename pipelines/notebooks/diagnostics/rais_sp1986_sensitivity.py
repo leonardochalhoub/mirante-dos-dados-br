@@ -179,6 +179,6 @@ results = spark.createDataFrame([
 ], ["cenario", "ativos_1985", "ativos_1986", "delta_pct"])
 
 (results.write.format("delta").mode("overwrite")
-    .saveAsTable(f"{CATALOG}.diagnostics.rais_sp1986_sensitivity"))
+    .saveAsTable(f"{CATALOG}.silver._rais_sp1986_sensitivity"))
 
-print(f"✔ {CATALOG}.diagnostics.rais_sp1986_sensitivity gravado")
+print(f"✔ {CATALOG}.silver._rais_sp1986_sensitivity gravado")

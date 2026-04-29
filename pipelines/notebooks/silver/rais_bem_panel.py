@@ -293,8 +293,8 @@ df_debug_summary = (df
     .orderBy("ano_int")
 )
 (df_debug_summary.write.format("delta").mode("overwrite")
-    .saveAsTable(f"{CATALOG}.diagnostics.silver_bem_filter_trace"))
-print("✓ trace gravado em diagnostics.silver_bem_filter_trace")
+    .saveAsTable(f"{CATALOG}.silver._silver_bem_filter_trace"))
+print("✓ trace gravado em silver._silver_bem_filter_trace")
 df_debug_summary.show()
 
 n_after_full = df.count()
