@@ -1,0 +1,130 @@
+{
+  "schema_version": "1.0",
+  "wp": "WP#9 — O Cálculo Ausente",
+  "generated_at": "2026-04-29",
+  "purpose": "Manifest de documentos curriculares oficiais usados como fonte primária do achado central do WP#9. Consumido por audit_curricula_keywords.py — auditoria automatizada da presença/ausência de cálculo nos currículos nacionais. Rodada 2 do Conselho do Mirante (Reunião #5) corrigiu para lato sensu 8,0; este manifest é parte do roadmap lato → mestrado pedido pela cadeira de Engenharia de Software.",
+  "sources": [
+    {
+      "country": "Brasil",
+      "lang": "pt",
+      "title": "BNCC — Base Nacional Comum Curricular (Ensino Médio)",
+      "url": "http://basenacionalcomum.mec.gov.br/images/historico/BNCC_EnsinoMedio_embaixa_site_110518.pdf",
+      "local_path": null,
+      "paper_claim": "absent",
+      "expected_keywords_hits": 0,
+      "issuer": "MEC — Ministério da Educação",
+      "year": 2018,
+      "notes": "Documento oficial homologado em dez/2018. Achado central do paper: o termo 'derivada/integral/limite' (em sentido matemático, não polissêmico) está ausente do currículo prescrito do ensino médio."
+    },
+    {
+      "country": "Singapura",
+      "lang": "en",
+      "title": "MOE Singapore — H2 Mathematics Syllabus 9758",
+      "url": "https://www.seab.gov.sg/docs/default-source/national-examinations/syllabus/alevel/2025syllabus/9758_y25_sy.pdf",
+      "local_path": null,
+      "paper_claim": "present",
+      "issuer": "SEAB — Singapore Examinations and Assessment Board",
+      "year": 2025,
+      "notes": "Cálculo (limites, derivadas, integrais) é obrigatório para H2 Mathematics — pré-requisito para STEM."
+    },
+    {
+      "country": "Coreia do Sul",
+      "lang": "ko",
+      "title": "MOE Korea — 2015 Revised National Curriculum (Mathematics)",
+      "url": "https://www.kice.re.kr/sub/info.do?m=040206&s=kice",
+      "local_path": null,
+      "paper_claim": "present",
+      "issuer": "MOE Korea — Ministry of Education",
+      "year": 2015,
+      "notes": "미적분 (Calculus) é parte do CSAT (수능) Mathematics II e Calculus track."
+    },
+    {
+      "country": "Japão",
+      "lang": "ja",
+      "title": "MEXT — Course of Study (高等学校学習指導要領 数学)",
+      "url": "https://www.mext.go.jp/content/1407196_5_1_2.pdf",
+      "local_path": null,
+      "paper_claim": "present",
+      "issuer": "MEXT — Ministry of Education, Culture, Sports, Science and Technology",
+      "year": 2018,
+      "notes": "数学II e 数学III incluem 微分 (diferenciação) e 積分 (integração)."
+    },
+    {
+      "country": "China",
+      "lang": "zh",
+      "title": "教育部 — 普通高中数学课程标准 (2017)",
+      "url": "http://www.moe.gov.cn/srcsite/A26/s8001/201801/W020180116595538107185.pdf",
+      "local_path": null,
+      "paper_claim": "present",
+      "issuer": "教育部 — Ministry of Education of the People's Republic of China",
+      "year": 2017,
+      "notes": "Currículo nacional inclui 微积分初步 (introdução ao cálculo) na trilha optativa avançada."
+    },
+    {
+      "country": "Alemanha",
+      "lang": "de",
+      "title": "NRW Lehrplan Mathematik (Sekundarstufe II)",
+      "url": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplan/47/KLP_GOSt_Mathematik.pdf",
+      "local_path": null,
+      "paper_claim": "present",
+      "issuer": "Ministerium für Schule und Bildung des Landes Nordrhein-Westfalen",
+      "year": 2014,
+      "notes": "Differentialrechnung e Integralrechnung obrigatórios no Abitur. Análogo nas demais Bundesländer (federalismo educacional)."
+    },
+    {
+      "country": "França",
+      "lang": "fr",
+      "title": "Eduscol — Programme de mathématiques (Spécialité, Terminale)",
+      "url": "https://eduscol.education.fr/document/24631/download",
+      "local_path": null,
+      "paper_claim": "present",
+      "issuer": "Ministère de l'Éducation nationale",
+      "year": 2019,
+      "notes": "Dérivation, primitives, intégrales no programme de Terminale Spécialité Mathématiques."
+    },
+    {
+      "country": "Rússia",
+      "lang": "ru",
+      "title": "ФГОС СОО — Примерная программа по математике (профильный уровень)",
+      "url": "https://fgos.ru/fgos/fgos-soo/",
+      "local_path": null,
+      "paper_claim": "present",
+      "issuer": "Минобрнауки России — Ministério da Educação",
+      "year": 2012,
+      "notes": "Производная (derivada) e интеграл (integral) na ЕГЭ профильный уровень."
+    },
+    {
+      "country": "Finlândia",
+      "lang": "fi",
+      "title": "Opetushallitus — Lukion opetussuunnitelman perusteet (Pitkä matematiikka)",
+      "url": "https://www.oph.fi/sites/default/files/documents/lukion_opetussuunnitelman_perusteet_2019.pdf",
+      "local_path": null,
+      "paper_claim": "present",
+      "issuer": "Opetushallitus — Finnish National Agency for Education",
+      "year": 2019,
+      "notes": "Pitkä matematiikka (matemática extensa) inclui derivaatta e integraali — obrigatório para STEM."
+    },
+    {
+      "country": "Estados Unidos",
+      "lang": "en",
+      "title": "AP Calculus AB/BC Course and Exam Description",
+      "url": "https://apcentral.collegeboard.org/media/pdf/ap-calculus-ab-and-bc-course-and-exam-description.pdf",
+      "local_path": null,
+      "paper_claim": "eletivo",
+      "issuer": "College Board",
+      "year": 2020,
+      "notes": "AP é OPCIONAL — currículo federal não exige. Implementação varia por estado/escola/distrito. Em ~52 estados, AP Calculus disponível mas não obrigatório. Lista presente no manifest com paper_claim=eletivo para que a auditoria distinga 'presente, mas não compulsório' de 'compulsório'."
+    },
+    {
+      "country": "International Baccalaureate",
+      "lang": "en",
+      "title": "IB DP — Mathematics: Analysis and Approaches HL Subject Brief",
+      "url": "https://www.ibo.org/contentassets/5895a05412144fe890312bad52b17044/dp-maths-aa-hl-2019-english.pdf",
+      "local_path": null,
+      "paper_claim": "present",
+      "issuer": "International Baccalaureate Organization",
+      "year": 2019,
+      "notes": "Differential and integral calculus core ao HL Analysis and Approaches."
+    }
+  ]
+}

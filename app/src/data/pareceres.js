@@ -720,34 +720,40 @@ export const PARECER_WP_RAIS = {
 // ═══════════════════════════════════════════════════════════════════════
 // WP #9 — O CÁLCULO AUSENTE / EDUCAÇÃO COMPARADA
 // Slug: calculo-ensino-medio-internacional · Vertical: calculo
-// Régua: LATO SENSU (especialização/MBA). Score 8,0/10 — APROVADO,
-// no meio-teto, sem extrapolar pra mestrado.
+// Régua: LATO SENSU (especialização/MBA). Score 9,2/10 — APROVADO COM
+// LOUVOR, no teto, ainda sem extrapolar pra mestrado.
 //
 // HISTÓRICO DE CALIBRAGEM (lições documentadas):
-//   - Pré-Conselho (2026-04-29 13h00 BRT): Professor (TEACHER_PERSONA)
-//     enquadrou em régua MESTRADO e atribuiu B (2,0). VIÉS DE
-//     ANCORAGEM: a régua mestrado foi assumida por analogia aos outros
-//     WPs do projeto, sem auditar se o trabalho EXTRAPOLAVA o teto
-//     lato sensu (que é o critério da convenção Mirante para subir
-//     régua, vide linhas 14-21 deste arquivo).
-//   - Pós-Conselho R1 (2026-04-29 20h00): 4 cadeiras deliberaram dentro
-//     da régua mestrado já dada, e CONFIRMARAM B (2,0). Média 2,0
-//     EXATO. Confirmação dentro de viés.
-//   - Recalibração honesta (2026-04-29 21h00 BRT): autor cobrou —
-//     "achei que era só graduação". Reauditoria explícita da régua
-//     contra a convenção Mirante revelou: WP#9 NÃO extrapola lato
-//     sensu (sem dados primários, sem identificação causal, sem
-//     contribuição metodológica original — apenas revisão sistemática
-//     + comparada + síntese). Régua mestrado foi inflada por
-//     ancoragem nos demais WPs (que TÊM dados primários e identificação
-//     causal). RÉGUA CORRETA: lato sensu 8,0/10.
+//   - v1.0 / Pré-Conselho (2026-04-29 13h00 BRT): Professor enquadrou
+//     em régua MESTRADO e atribuiu B (2,0). VIÉS DE ANCORAGEM nos
+//     demais WPs do projeto (PBF/RAIS/CNES, que têm dados primários).
+//   - v2.0 / Pós-Conselho R1 (2026-04-29 20h00): 4 cadeiras deliberaram
+//     dentro da régua mestrado já dada e CONFIRMARAM B (2,0).
+//     Confirmação dentro de viés.
+//   - v2.0 / R2 Recalibração (2026-04-29 21h00 BRT): autor cobrou
+//     "achei que era só graduação". Reauditoria contra convenção
+//     Mirante (lato sensu como default) corrigiu para LATO SENSU
+//     8,0/10 — sólido, no meio-teto, sem extrapolar.
+//   - v3.0 / Re-avaliação pós-v2.1 (2026-04-29 23h00 BRT): autor
+//     IMPLEMENTOU as principais pendências do Conselho — 2 figuras
+//     editoriais Mirante-style (heatmap país × cálculo + PISA timeline),
+//     subseção formal sobre Reforma Benjamin Constant 1890-1925 como
+//     descontinuidade institucional, reconhecimento explícito do PISA
+//     como proxy invertido (mede 15a, antes do cálculo), caveat de
+//     IC sobre custo R$2-5bi, caveat sobre ausência de país da AL,
+//     auditoria automatizada do achado central (script + manifest
+//     JSON), ADR-006 documentando padrão WP-standalone, declaração
+//     de Conflito de Interesse sobre Clube da Matemática. Score
+//     SOBE de 8,0 → 9,2 — lato sensu no teto, mas AINDA NÃO
+//     EXTRAPOLA pra mestrado (segue revisão sistemática, sem dados
+//     primários nem identificação causal IMPLEMENTADA).
 //
 // Como ficaria em outras réguas (referência):
-//   - Mestrado: C (1,0) ou D (0) — REPROVADO. Sem contribuição
-//     metodológica original, requisito mínimo de mestrado.
-//   - TCC graduação: 9,5/10 — TCC nota máxima. 47+ refs, 10 países,
-//     200 anos de história, ABNT impecável é trabalho excepcional pra
-//     TCC. Mas convenção Mirante padroniza lato sensu como default.
+//   - Mestrado: C+ (~1,5) — sobe de C (1,0) v2.0 para C+ (~1,5) v2.1
+//     graças à ITS Benjamin Constant documentada + auditabilidade.
+//     Ainda REPROVADO em mestrado por ausência de implementação.
+//   - TCC graduação: 9,8/10 — perto da nota máxima absoluta. Convenção
+//     Mirante padroniza lato sensu como default; não-canônico.
 // ═══════════════════════════════════════════════════════════════════════
 export const PARECER_WP9_CALCULO = {
   slug:    'calculo-ensino-medio-internacional',
@@ -760,50 +766,65 @@ export const PARECER_WP9_CALCULO = {
   vertical: 'calculo',
   nivel: 'lato_sensu',
   scoreType: 'numeric',
-  scoreNumeric: 8.0,
-  scoreOriginal: null,
-  originalLabel: null,
+  scoreNumeric: 9.2,
+  scoreOriginal: 8.0,
+  originalLabel: 'v2.0 pós-Conselho R2 (2026-04-29 21h00 BRT)',
   originalUrl: null,
-  ultimaAtualizacao: '2026-04-29T21:00 BRT',
+  ultimaAtualizacao: '2026-04-29T23:00 BRT',
   versao:
-    '2.1 — RECALIBRAÇÃO HONESTA. Régua corrigida de mestrado B (2,0) ' +
-    'para LATO SENSU 8,0/10 após cobrança do autor. Score original era ' +
-    'inflado por viés de ancoragem nos demais WPs do projeto (que têm ' +
-    'dados primários e identificação causal — WP#9 não tem). Recalibragem ' +
-    'documentada como lição de processo na ata da Reunião #5 (Rodada 2). ' +
-    'Roadmap mantido: hoje 8,0 lato sensu, teto lato sensu 9,0; pra ' +
-    'extrapolar pra mestrado seria preciso ITS sobre Reforma Benjamin ' +
-    'Constant + figura síntese Mirante + auditoria automatizada do ' +
-    'achado central — três contribuições originais.',
+    '3.0 — RE-AVALIAÇÃO PÓS-v2.1 do .tex. Autor implementou pacote ' +
+    'principal pedido pelo Conselho na R1: 2 figuras editoriais Mirante ' +
+    '(heatmap 11×6 país × tópico cálculo + série PISA 2003–2022 com ' +
+    'banda OECD), subseção formal sobre Reforma Benjamin Constant ' +
+    '1890–1925 como descontinuidade institucional ITS-aproveitável, ' +
+    'reconhecimento explícito do PISA como proxy invertido (mede 15a, ' +
+    'antes do cálculo em qualquer país), caveat de incerteza sobre ' +
+    'custo econômico R$2,3–4,6bi, caveat sobre ausência de país da ' +
+    'América Latina, pipeline de auditoria automatizada do achado ' +
+    'central (audit_curricula_keywords.py + sources_calculo_curricula' +
+    '.json), ADR-006 documentando padrão WP-standalone, declaração ' +
+    'de Conflito de Interesse sobre Clube da Matemática. Score sobe ' +
+    'de lato sensu 8,0 → 9,2.',
   resumoCalibragem:
-    'Régua: LATO SENSU (especialização/MBA), 0,0–10,0. Score 8,0 — sólido, ' +
-    'no meio-teto, sem extrapolar pra mestrado. Working Paper de revisão ' +
-    'sistemática + comparada curricular standalone, com 47+ referências ' +
-    'verificáveis, cobertura de 10 países + IB, 200 anos de reformas ' +
-    'curriculares brasileiras e marco pedagógico bem fundamentado (Bruner, ' +
-    'Vygotsky, Rezende, Ávila). HONESTIDADE DE PROCESSO: o parecer ' +
-    'pré-Conselho do Professor enquadrou em régua mestrado e atribuiu B ' +
-    '(2,0) — viés de ancoragem nos demais WPs do projeto, que TÊM dados ' +
-    'primários (PBF 2,5 bi linhas, RAIS 2,2 bi linhas, CNES 158M linhas) ' +
-    'e identificação causal (DiD/TWFE/Conley HAC). WP#9 não tem isso e ' +
-    'não tenta ter — é deliberadamente uma revisão. As 4 cadeiras do ' +
-    'Conselho deliberaram dentro do frame mestrado já dado e ' +
-    'confirmaram B (média 2,0 EXATA). O autor cobrou a calibragem após ' +
-    'a deliberação ("achei que era só graduação") e a reauditoria contra ' +
-    'a convenção Mirante (que parte de lato sensu e só sobe se EXTRAPOLAR) ' +
-    'corrigiu para lato sensu 8,0/10. As CRÍTICAS substantivas das 4 ' +
-    'cadeiras permanecem válidas e migram para o roadmap lato sensu→ ' +
-    'mestrado: (i) Eng. Software — auditoria automatizada do achado ' +
-    'central via pdftotext+grep nos PDFs curriculares + snapshots dos ' +
-    '47+ docs primários + ADR padrão "WP standalone"; (ii) Finanças — ' +
-    'ITS sobre Reforma Benjamin Constant 1890→1925 + IC bootstrap sobre ' +
-    'custo R$2-5bi + reconhecer PISA como proxy invertido; (iii) Design ' +
-    '— heatmap síntese país × tópico cálculo (Lato + Wong + halo) + ' +
-    'declarar Conflito de Interesse sobre Clube da Matemática; (iv) ' +
-    'Administração — decisão estratégica pesquisa-vs-produto. Implementar ' +
-    'as 4 + adicionar contribuição metodológica original = extrapola ' +
-    'lato sensu, sobe a régua mestrado. Hoje, 8,0 lato sensu é a ' +
-    'avaliação honesta.',
+    'Régua: LATO SENSU (especialização/MBA), 0,0–10,0. Score 9,2 — ' +
+    'APROVADO COM LOUVOR, no teto da régua. Para extrapolar pra mestrado ' +
+    'seria necessário IMPLEMENTAR (não só documentar) a ITS sobre Reforma ' +
+    'Benjamin Constant 1890–1925 + DiD cross-country sobre Singapore Math ' +
+    '1981 + análise empírica primária sobre microdados INEP/ENADE. ' +
+    'HISTÓRICO: v1.0 pré-Conselho era B (2,0) mestrado por viés de ' +
+    'ancoragem; v2.0 pós-R2 do Conselho recalibrou para 8,0 lato sensu ' +
+    '(meio-teto); v3.0 sobe para 9,2 após o autor implementar o pacote ' +
+    'principal de pendências em ~3h: (i) 2 figuras editoriais Mirante-' +
+    'style — heatmap 11×6 país × tópico cálculo (com Brasil em destaque ' +
+    'vermelho como único da amostra com toda a linha ausente) + série ' +
+    'temporal PISA 2003–2022 (Brasil + média OECD + potências asiáticas + ' +
+    'caveat textual de PISA como proxy invertido); (ii) subseção formal ' +
+    'sobre a Reforma Benjamin Constant 1890–1925 como descontinuidade ' +
+    'institucional quasi-experimental — Decreto 981/1890 introduziu ' +
+    'cálculo no 3º ano do ginásio, Decreto 3.890/1901 (pós-morte de ' +
+    'Benjamin Constant) o suprimiu; janela de 25 anos com outcome ' +
+    'mensurável em coortes da Politécnica/EPUSP/IME, aguardando ITS ' +
+    'formal; (iii) reconhecimento metodológico explícito do PISA como ' +
+    'proxy do output (alunos 15a, antes do cálculo em qualquer país) — ' +
+    'identificação invertida que o paper agora declara; (iv) caveat ' +
+    'de IC sobre o custo econômico R$2,3–4,6bi (spread 100% sem IC ' +
+    'formal — três parâmetros multiplicados, σ/μ ~0,15-0,25 cada); ' +
+    '(v) caveat sobre ausência de país da América Latina (Argentina/ ' +
+    'Chile/México) na amostra; (vi) pipeline de auditoria automatizada ' +
+    'do achado central — articles/scripts/audit_curricula_keywords.py + ' +
+    'sources_calculo_curricula.json (manifest com 11 documentos ' +
+    'curriculares oficiais); torna o claim "Brasil é o único" verificável ' +
+    'por terceiros em tempo linear (pdftotext + grep) em vez de 4h por ' +
+    'país; (vii) ADR-006 documentando o padrão arquitetural "WP ' +
+    'standalone" (literatura sem pipeline Databricks) com 4 critérios ' +
+    'obrigatórios + 2 desejáveis; (viii) declaração de Conflito de ' +
+    'Interesse sobre o Clube da Matemática (projeto pessoal do autor ' +
+    'em educação aberta, citado na Seção 10.3 do paper). PORQUE 9,2 ' +
+    'E NÃO 9,5+: o paper continua sendo revisão sistemática + comparada, ' +
+    'não tem análise empírica primária; a ITS Benjamin Constant está ' +
+    'DOCUMENTADA mas NÃO IMPLEMENTADA; o DiD Singapore Math 1981 está ' +
+    'NOMEADO mas NÃO RODADO. Para subir além de 9,2 lato sensu (e ' +
+    'extrapolar pra mestrado), as implementações precisam acontecer.',
   utilidadeSocial:
     'EXTREMAMENTE ÚTIL como peça de advocacy curricular. Beneficiários: ' +
     '(a) Ministério da Educação / CNE em revisões da BNCC — paper documenta ' +
@@ -823,42 +844,47 @@ export const PARECER_WP9_CALCULO = {
     'cobrindo cálculo de ensino médio em PT-BR, alinhado a Bruner/Vygotsky/ ' +
     'Rezende — Singapore Math aplicado ao currículo brasileiro.',
   pontosFortes: [
-    'Pergunta de pesquisa direta e operacionalizável: "em quais países um aluno aprende cálculo antes da universidade?" — ponto raro para WP que cruza 200 anos de história',
-    'Revisão sistemática real, não enumeração: 10 países (Japão, China, Coreia do Sul, Singapura, Alemanha, França, Rússia, Finlândia, EUA, Brasil) + IB, cada um com seção dedicada citando documento curricular oficial verificável',
-    'Cobertura histórica brasileira de 200 anos é original para WPs de educação comparada brasileira: Colégio Pedro II 1837 → Reforma Benjamin Constant 1890 (que incluiu cálculo!) → Reforma Capanema 1942 → Movimento Mat. Moderna 1960 → PCN 1997 → BNCC 2018',
-    'Marco pedagógico bem fundamentado: Bruner (currículo em espiral, 1960), Vygotsky (ZPD), Rezende (UFF, tese USP 2003 sobre obstáculos epistemológicos), Singapore Math como Bruner aplicado em escala nacional',
-    'Achado factual robusto: Brasil é o ÚNICO país da amostra cujo currículo nacional não inclui limites/derivadas/integrais. Verificável em fonte primária (BNCC 2018) e contraste com 9 países + IB',
-    'Triangulação com séries históricas OECD/PISA 2003–2022 (estagnação ~380 pontos, 47–55 abaixo OECD; 1% top-performers vs 41% Singapura) e taxas de reprovação universitária (UFRJ ~70%, Unicamp 77,5%, ABENGE meta-análise ~48%)',
-    '47+ referências bibliográficas com URL e data de acesso (padrão ABNT++ Mirante) — incluindo documentos curriculares estrangeiros em chinês, japonês, coreano, finlandês, alemão e francês',
-    'Honestidade epistêmica: paper declara explicitamente que "o argumento não é causal estrito" e hedge com "compatível com" / "merece ser mapeado" em vez de afirmação causal forte',
-    'Boxes comparativos de exames (Gaokao China, Abitur Alemanha, Baccalauréat França, AP Calculus BC EUA, H2 Mathematics Singapura, ENEM Brasil) — comparativo qualitativo concreto',
-    'Standalone do pipeline Databricks — pode ser submetido a periódico de Educação Matemática sem depender de qualquer outra vertical do Mirante',
+    'Pergunta de pesquisa direta e operacionalizável: "em quais países um aluno aprende cálculo antes da universidade?"',
+    'Revisão sistemática real: 10 países + IB, cada um com seção dedicada citando documento curricular oficial verificável',
+    'Cobertura histórica brasileira de 200 anos: Pedro II 1837 → Benjamin Constant 1890 → Capanema 1942 → Mat. Moderna 1960 → PCN 1997 → BNCC 2018',
+    'Marco pedagógico fundamentado: Bruner, Vygotsky, Rezende (tese USP 2003), Singapore Math como Bruner aplicado em escala nacional',
+    'Achado factual robusto: Brasil é o ÚNICO país da amostra cujo currículo nacional não inclui limites/derivadas/integrais',
+    'Triangulação com PISA 2003–2022 + reprovação Cálculo I (UFRJ ~70%, Unicamp 77,5%, ABENGE ~48%) + CONFEA déficit',
+    '47+ referências verificáveis com URL e data de acesso (padrão ABNT++ Mirante) — incluindo documentos em zh/ja/ko/fi/de/fr',
+    'IDENTIDADE VISUAL EDITORIAL MIRANTE COMPLETA (v2.1): Fig01 heatmap 11×6 país × tópico cálculo (Brasil destaque vermelho, Wong palette, halo branco, golden ratio) + Fig02 série PISA 2003–2022 com banda OECD',
+    'PISA proxy invertido reconhecido formalmente (Seção 9.1): alunos PISA têm 15a, antes do cálculo em qualquer país — gap mede ensino fundamental + condições socioeconômicas, não canal específico',
+    'Reforma Benjamin Constant 1890–1925 documentada como descontinuidade institucional quasi-experimental (Seção 6.2): Decreto 981/1890 introduziu, Decreto 3.890/1901 suprimiu, outcome mensurável em coortes Politécnica/EPUSP — janela ITS aguardando implementação formal',
+    'Caveat de incerteza explícito sobre custo econômico R$2,3–4,6bi (Seção 7.5): três parâmetros multiplicados com σ/μ ~0,15-0,25 cada, intervalo provavelmente mais amplo que o publicado',
+    'Auditabilidade automatizada do achado central: scripts/audit_curricula_keywords.py + sources_calculo_curricula.json — pdftotext + grep nos PDFs curriculares torna o claim verificável por terceiros em tempo linear',
+    'ADR-006 documenta padrão arquitetural "WP standalone" — primeiro WP do Mirante de natureza não-pipeline; 4 critérios obrigatórios + 2 desejáveis para futuros WPs literature-kind',
+    'Declaração de Conflito de Interesse sobre Clube da Matemática (projeto pessoal do autor em educação aberta) e sobre o Mirante dos Dados — transparência editorial pré-Bolema/ZDM',
+    'Caveat sobre ausência de país da América Latina na amostra — limitação reconhecida e roadmap explícito para versão expandida',
+    'Honestidade epistêmica em 3 pontos formais: Nível 3 robustez moderada (Seção 9), PISA proxy invertido (Seção 9.1), IC informal sobre custo (Seção 7.5)',
   ],
   problemasParaNotaPlena: [
-    'Desenho correlacional sem identificação causal — paper assume isso explicitamente, mas no rigor mestrado isso fecha o teto em B (não em B+/A)',
-    'Não explora a descontinuidade óbvia: Reforma Benjamin Constant (1890–1899) INCLUIU cálculo no secundário, e foi REMOVIDA em ~1900–1925. Esses 25 anos são experimento natural disponível — exames da Politécnica/EPUSP/IME pré e pós, mas não foram digitalizados/analisados',
-    'Não há comparação contrafactual com países que MUDARAM o currículo (ex.: Finlândia pós-2014, Coreia do Sul ondas curriculares) — janelas DiD disponíveis',
-    'PISA é proxy do output, não do input curricular — currículo oficial e currículo praticado podem divergir (problema clássico em educação comparada, sub-discutido)',
-    'CONFEA "déficit de até 1 milhão" é citado mas a metodologia da projeção CONFEA não é auditada — número polêmico em circulação midiática',
-    'Não há figuras com identidade visual editorial Mirante (Lato + Wong palette + golden ratio + halo + leader lines) — o paper é texto + 6 boxes fbox simples; gap de Design',
-    'Análise do BNCC é por leitura — não há mineração sistemática do texto da BNCC para detectar palavras-chave (limite/derivada/integral) ausentes vs. presentes em outros currículos',
-    'Custo econômico estimado (Seção 7.5) é high-level — não há decomposição por região, setor (engenharia civil −52% destacado, mas só ela), nem cenário contrafactual de "1 milhão de engenheiros não-faltando"',
+    'ITS sobre Reforma Benjamin Constant 1890–1925 está DOCUMENTADA como roadmap mas NÃO IMPLEMENTADA — exames da Politécnica/EPUSP/IME no Arquivo Nacional aguardam digitalização e codificação',
+    'DiD cross-country sobre Singapore Math 1981 está NOMEADO mas NÃO RODADO — k~10 países, T~4 ciclos PISA pós-2003 disponíveis',
+    'Snapshot dos 47+ documentos primários ainda parcial — manifest existe, mas Wayback Machine + cópias locais para mitigar link rot dos PDFs ministeriais ainda em roadmap',
+    'Custo econômico R$2,3–4,6bi tem caveat textual mas falta IC bootstrap formal sobre microdados INEP/ENADE',
+    'CONFEA "déficit de 1 milhão" citado mas metodologia da projeção não auditada — pendente para v3.x',
+    'Variação cross-estado pós-Lei 13.415/2017 (Novo EM) via SAEB não verificada — alguns estados podem ter introduzido cálculo em itinerários, abre quasi-experimento contemporâneo',
+    'Sem análise empírica primária sobre microdados brasileiros (CAGED/RAIS/INEP) — o paper continua sendo revisão sistemática, não estudo empírico',
   ],
   problemasParaSubirNivel: [
-    'B → B+: implementar análise quasi-experimental sobre Reforma Benjamin Constant 1890–1925 (cálculo entra/sai do currículo) usando exames de admissão Politécnica/EPUSP/IME — DiD ou ITS sobre coorte de ingresso em engenharia',
-    'B → B+: text mining sistemático do BNCC vs. currículos estrangeiros (palavras-chave: limite, derivada, integral, taxa de variação, área sob curva) com análise de frequência e contexto',
-    'B+ → A: produzir figuras seguindo identidade visual editorial Mirante — mapa global de "país × cálculo no ensino médio" (binário/intensidade), série temporal PISA com bandas de incerteza, Sankey de fluxo curricular Brasil 1837→2018',
-    'B+ → A: cruzar com microdados públicos brasileiros (CAGED/RAIS já no Mirante) — UFs com mais engenheiros formados têm escolas técnicas com cálculo? Variável instrumental candidata',
-    'B+ → A: peer review formal externo — Bolema, Revista Educação e Pesquisa, ZDM Mathematics Education ou International Journal for Mathematics in Education',
-    'A → A+ (próximo de doutorado): meta-análise quantitativa das taxas de reprovação em Cálculo I usando todos os estudos brasileiros disponíveis — virou tese de doutorado em educação matemática',
+    'PARA EXTRAPOLAR LATO SENSU → MESTRADO: implementar (não só documentar) a ITS sobre Reforma Benjamin Constant 1890–1925 com atas Politécnica/EPUSP digitalizadas — descontinuidade institucional documentada vira identificação causal RODADA',
+    'PARA EXTRAPOLAR LATO SENSU → MESTRADO: rodar DiD cross-country sobre Singapore Math 1981 + outras reformas curriculares datadas (Coreia do Sul, Finlândia pós-2014) com PISA por país × ciclo',
+    'PARA EXTRAPOLAR LATO SENSU → MESTRADO: análise empírica primária sobre microdados INEP/ENADE — taxa de reprovação Cálculo I por instituição × ano × variáveis observáveis (proxies de qualidade do ensino médio, IDH-M, etc.)',
+    'B+ MESTRADO → A MESTRADO: peer review formal externo aceito em Bolema, Educação e Pesquisa, ZDM Mathematics Education ou International Journal for Mathematics in Education',
+    'A → A+ DOUTORADO: meta-análise quantitativa de TODAS as taxas de reprovação em Cálculo I no Brasil + framework metodológico publicado como meta-artigo separado sobre auditabilidade de revisões sistemáticas em educação comparada',
   ],
   proximosPassos: [
-    'P1 (alto): produzir figura-síntese com identidade visual Mirante — mapa global "cálculo no ensino médio · 10 países + IB · 2024" (categorical heatmap ou choropleth), Lato + Wong palette + halo + source_note',
-    'P2 (alto): implementar text mining BNCC vs currículos estrangeiros (palavras-chave cálculo) — script Python reproducível adicionando rigor metodológico que o paper hoje não tem',
-    'P3 (médio): adicionar tabela síntese com colunas (país · idade introdução · obrigatório? · documento oficial · referência verificável) — ainda não está consolidada visualmente',
-    'P4 (médio): adicionar análise da Reforma Benjamin Constant 1890 com fonte primária (Decreto 981/1890 + Decreto 3890/1901 que a substituiu) — descontinuidade institucional documentada',
-    'P5 (médio): submeter a Bolema (RBE Educação Matemática Bolema) ou ZDM Mathematics Education — primeiro peer review externo formal abre caminho para A',
-    'P6 (baixo): curso aberto de cálculo de ensino médio em PT-BR, alinhado a Bruner+Singapore Math, monetização via Hotmart/Coursera (gap Administração)',
+    'P1 (alto): rodar audit_curricula_keywords.py em modo --download-missing + --strict para validar empiricamente o achado central contra os 11 PDFs curriculares oficiais',
+    'P2 (alto): digitalizar ao menos uma amostra das atas de admissão da Escola Politécnica do Rio de Janeiro (1895–1930) no Arquivo Nacional → habilita ITS formal sobre Reforma Benjamin Constant',
+    'P3 (médio): coletar dados PISA por país × ciclo × ano de introdução do cálculo no EM → DiD natural sobre Singapore Math 1981 + Coreia do Sul + Finlândia pós-2014',
+    'P4 (médio): IC bootstrap formal sobre custo econômico R$2-5bi via microdados INEP/ENADE — substitui caveat textual por IC quantitativo',
+    'P5 (médio): ampliar amostra com Argentina/Chile/México (cadeira de Administração R5) — testa robustez do "Brasil é exceção" contra recorte regional, não global',
+    'P6 (médio): submeter a Bolema OU ZDM Mathematics Education — primeiro peer review externo formal',
+    'P7 (baixo): curso aberto de cálculo de ensino médio em PT-BR via Hotmart/Coursera, alinhado a Bruner+Singapore Math (gap Administração R5)',
   ],
 };
 

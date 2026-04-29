@@ -4,9 +4,13 @@
 % Comparação, Um Vácuo Estrutural
 %
 % Autor: Leonardo Chalhoub
-% Versão: 2.0 — Abril de 2026 (expandida com marco pedagógico,
-%        histórico brasileiro de 200 anos, comparativo ano a ano,
-%        problemas comparativos, contra-argumentos)
+% Versão: 2.1 — Abril de 2026 (pós-Reunião #5 do Conselho do Mirante:
+%        2 figuras editoriais Mirante-style, declaração de Conflito de
+%        Interesse, caveat sobre ausência de país da América Latina,
+%        reconhecimento formal do PISA como proxy do output, IC
+%        qualitativo sobre custo econômico, subseção sobre Reforma
+%        Benjamin Constant 1890-1925 como descontinuidade institucional,
+%        Singapore Math 1981 como possível DiD natural)
 % Compilação: pdflatex articles/calculo-ensino-medio-internacional.tex (2x)
 % =====================================================================
 
@@ -38,6 +42,8 @@
 \usepackage{float}
 \usepackage{tcolorbox}
 
+\graphicspath{{figures-calculo/}}
+
 \onehalfspacing
 \setlength{\parindent}{1.25cm}
 \setlength{\parskip}{0pt}
@@ -62,7 +68,7 @@
   \begin{center}
     \vspace*{1.5cm}
     {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 9}}\\
-    {\small Versão 2.0 \textemdash{} Abril de 2026}\\[2pt]
+    {\small Versão 2.1 \textemdash{} Abril de 2026 \textemdash{} pós Reunião \#5 do Conselho do Mirante}\\[2pt]
     {\footnotesize Compilada em \COMPILESTAMP\ \textbullet\ \texttt{\COMPILESHA}}
 
     \vfill
@@ -440,6 +446,51 @@ internacional sempre carrega risco de viés do analista; foi feita
 entre presença/ausência de cálculo no EM e indicadores de
 desempenho universitário são tratadas como plausíveis, não como
 demonstradas \textemdash{} discussão na Seção~\ref{sec:discussao}.
+(iv) \textbf{Recorte regional limitado}: a amostra prioriza as
+nações usualmente referenciadas em comparações internacionais
+(potências asiáticas, OECD europeia, EUA + IB) e o próprio Brasil.
+\emph{Nenhum país da América Latina entrou na amostra}
+\textemdash{} omissão consciente que enfraquece a tese caso se
+queira evitar acusação de \emph{cherry-picking} de países ricos.
+A inclusão de Argentina, Chile e México em revisão futura
+permitiria testar se o argumento ``Brasil é exceção'' resiste
+quando o referente é regional, não global. Esta limitação foi
+explicitamente flagged pela cadeira de Administração na Reunião
+\#5 do Conselho do Mirante (2026-04-29) e fica no roadmap para a
+versão expandida deste paper.
+
+\subsection*{Definição operacional de auditabilidade do achado central}
+
+Para tornar o achado ``Brasil é o único da amostra cujo currículo
+nacional não inclui limites/derivadas/integrais'' \emph{verificável
+por terceiros em tempo linear} (e não em quatro horas de leitura
+manual por país), este Working Paper acompanha um pipeline de
+auditoria automatizada:
+
+\begin{itemize}
+\item \texttt{articles/scripts/sources\_calculo\_curricula.json}
+  \textemdash{} manifest com URL, idioma, ano de emissão e
+  \emph{paper\_claim} (\texttt{present} / \texttt{absent} /
+  \texttt{eletivo}) para cada um dos 11 documentos curriculares
+  oficiais usados como fonte primária.
+\item \texttt{articles/scripts/audit\_curricula\_keywords.py}
+  \textemdash{} baixa cada PDF (idempotentemente, em
+  \texttt{articles/snapshots/calculo/}), extrai texto via
+  \texttt{pdftotext} (Poppler) ou fallback \texttt{pdfplumber},
+  e procura ocorrências case-insensitive de termos de cálculo no
+  idioma original do documento (PT/EN/ES/DE/FR/JA/ZH/KO/RU/FI). Saída:
+  CSV em \texttt{articles/snapshots/calculo/audit\_report.csv} com
+  status \texttt{OK} ou \texttt{INCONSISTENT} para cada país.
+\item Em modo \texttt{--strict}, o script falha (\texttt{exit 1}) se
+  algum currículo estrangeiro tem 0 hits \textbf{ou} se a BNCC tem
+  N$>$0 hits. Ambos os casos invalidariam o achado central.
+\end{itemize}
+
+Esta camada de auditabilidade automatizada é a resposta direta à
+pendência crítica da cadeira de Engenharia de Software na Reunião
+\#5 do Conselho do Mirante (2026-04-29): ``o achado depende de
+leitura manual; qualquer erro de leitura é indetectável''. A partir
+da v2.1 deste WP, não é mais.
 
 % ---------- 4. PANORAMA INTERNACIONAL ------------------------------------
 \section{Panorama Internacional}
@@ -657,6 +708,24 @@ IB DP                & AA HL (sim)           & Sim                  & ---  \\
 \end{tabular}
 \end{table}
 
+% Figura síntese pedida pela cadeira de Design na Reunião #5 do Conselho
+% (2026-04-29): heatmap 11 países x 6 tópicos cognitivos, com Brasil em
+% destaque vermelho. Identidade visual editorial Mirante (Lato + Wong
+% palette + halo + golden ratio). Gerada por
+% articles/scripts/build_figures_calculo.py.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{fig01_heatmap_calculo.pdf}
+\caption{\textbf{Cálculo no ensino médio em 10 países + IB.} Cada célula
+indica se o tópico de cálculo (limites, derivadas, integrais, EDOs
+simples, séries, geometria diferencial) é \emph{obrigatório} no currículo
+nacional para ingresso em STEM, \emph{eletivo}, ou \emph{ausente}. Brasil
+(BNCC 2018) é o único país da amostra com toda a linha ausente. Estados
+Unidos é federalizado e marca \emph{eletivo} porque AP Calculus AB/BC é
+opcional e implementação varia por estado/escola/distrito.}
+\label{fig:heatmap-calculo}
+\end{figure}
+
 % ---------- 5. COMPARATIVO ANO A ANO -------------------------------------
 \section{Comparativo Ano a Ano: o que sabe um aluno em cada idade?}
 
@@ -825,6 +894,38 @@ políticas que se seguiram à morte de Benjamin Constant em 22 de
 janeiro de 1891. Desde então, o cálculo nunca mais voltou a fazer
 parte do currículo oficial do ensino secundário/médio brasileiro.
 
+\subsubsection*{Nota metodológica: a Reforma Benjamin Constant como descontinuidade institucional}
+
+A janela 1890\textendash 1925 (entrada e saída do cálculo no
+secundário brasileiro) constitui uma descontinuidade institucional
+quasi-experimental com características raras. Em primeiro lugar,
+\textbf{a data é precisa em fontes primárias}: o Decreto n.\textsuperscript{o}
+981/1890 introduziu cálculo no programa do 3.\textsuperscript{o} ano,
+e o Decreto n.\textsuperscript{o} 3.890, de 1.\textsuperscript{o}
+de janeiro de 1901 (Reforma Epitácio Pessoa), o suprimiu na revisão
+geral do currículo do ginásio. Em segundo lugar, \textbf{a remoção
+foi exógena ao desempenho dos alunos} \textemdash{} ela seguiu a morte
+prematura de Benjamin Constant (22/jan/1891) e o subsequente
+realinhamento político da Velha República, não uma avaliação técnica
+de ineficácia. Em terceiro lugar, \textbf{há outcome de longo prazo
+disponível}: a Escola Politécnica do Rio de Janeiro (criada em 1874),
+a Escola Politécnica de São Paulo (1894) e a Escola Naval mantiveram
+exames de admissão durante todo o período, e essas atas estão hoje no
+acervo do Arquivo Nacional e dos arquivos institucionais das
+universidades-sucessoras (UFRJ, USP, IME).
+
+Este Working Paper \emph{não realiza} essa análise quasi-experimental
+\textemdash{} ela demanda digitalização e codificação de atas de exame
+fora do escopo de revisão sistemática. O ponto registrado aqui, em
+diálogo direto com o parecer da cadeira de Finanças do Conselho do
+Mirante (Reunião \#5, 2026-04-29), é que a descontinuidade existe,
+está documentada em decreto federal verificável, e \emph{aguarda}
+um Interrupted Time Series formal sobre as coortes de ingresso em
+engenharia entre 1895\textendash 1930. Singapura 1981 (introdução do
+Singapore Math) é janela DiD natural análoga \textemdash{} k$\sim$10
+países, T$\sim$4 ciclos PISA pós-2003 \textemdash{} também não explorada
+neste paper, e portanto também roadmap para versão futura.
+
 \subsection{Era Vargas: a Reforma Capanema (1942)}
 
 Em 9 de abril de 1942, o Ministro da Educação Gustavo Capanema
@@ -969,6 +1070,24 @@ brasileiros} qualificam como top performers, contra 41\% em
 Singapura, 32\% em Taipei, 29\% em Macau, 27\% em Hong Kong, 23\%
 no Japão e 23\% na Coreia \cite{ref:pisa-2022-vol1}.
 
+% Figura editorial pedida pela cadeira de Design na Reunião #5: série
+% temporal Brasil + média OECD + potências asiáticas, 2003-2022.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig02_pisa_timeline.pdf}
+\caption{\textbf{PISA Matemática 2003\textendash 2022.} Brasil
+(vermelho) oscilou entre 356 e 391 pontos em 6 ciclos, com média
+$\sim$380. A média OECD (azul tracejado) caiu de 500 para 472 no
+mesmo período, mas o gap absoluto Brasil--OECD não fechou ($-$93
+em 2022). Singapura, Coreia, Japão e Finlândia (cinza, contexto)
+mantiveram patamares 525\textendash 575. \emph{Caveat
+identificacional:} PISA mede alunos de 15 anos, idade em que o
+cálculo ainda não foi introduzido em qualquer país da amostra.
+A correlação aqui é com qualidade geral de ensino fundamental, não
+com o canal específico ``ausência de cálculo no EM''.}
+\label{fig:pisa-timeline}
+\end{figure}
+
 \subsection{TIMSS Advanced 2015}
 
 O TIMSS Advanced 2015, conduzido pela IEA, avalia alunos do último
@@ -1030,6 +1149,29 @@ disciplina, o custo direto da repetência apenas em Cálculo I,
 apenas em engenharia, está na ordem de \textbf{R\$\,2,3 a
 R\$\,4,6 bilhões por ano}. O cálculo é grosseiro e merece estudo
 formal; a ordem de grandeza, ainda assim, é informativa.
+
+\paragraph{Caveat de incerteza estatística.} O intervalo
+[R\$\,2,3 bi; R\$\,4,6 bi] tem \emph{spread de 100\%}; em qualquer
+modelagem orçamentária essa amplitude seria inaceitável sem
+intervalo de confiança formal. A variância vem da multiplicação de
+três parâmetros, cada um com incerteza própria: (a) taxa de
+reprovação $r$, com média ABENGE 48\% \cite{ref:abenge-reprovacao}
+mas dispersão observada de $\sim$48\%--77,5\% entre instituições
+\cite{ref:caeng-ufrj,ref:unicamp-calculo}; (b) volume de matrículas
+ativas $M$, com referência $\sim$800k baseada em fonte midiática
+\cite{ref:otempo-deficit} sem auditoria do INEP; (c) custo médio
+por disciplina $c$, com piso--teto $\sim$R\$\,6\,000--R\$\,12\,000
+provenientes de comparação informal com semestralidade de cursos
+privados (não auditada formalmente em estudo de custo direto).
+Em primeira aproximação, todos os três parâmetros têm coeficiente
+de variação $\sigma/\mu$ na ordem de 0,15--0,25, e o produto
+acumula variância: o intervalo honesto provavelmente é mais
+amplo que [2,3; 4,6], não mais estreito. \emph{Recomenda-se que
+qualquer citação deste número fora do contexto reforce os limites
+da estimativa e remeta a estudo de custo direto formal sobre
+microdados INEP/ENADE} \textemdash{} pendência registrada em
+roadmap pela cadeira de Finanças do Conselho do Mirante (Reunião
+\#5, 2026-04-29) e a ser endereçada na próxima versão do paper.
 
 % ---------- 8. EXEMPLOS COMPARATIVOS -------------------------------------
 \section{Exemplos Comparativos: o que se cobra em cada exame?}
@@ -1120,6 +1262,39 @@ déficit projetado de engenheiros. Aqui a robustez é mais delicada:
 correlação não é causação, e há fatores confundidores (qualidade
 geral do ensino básico, condições socioeconômicas, valorização
 profissional, qualidade docente). \emph{Robustez: moderada}.
+
+\paragraph{PISA como proxy do output, não do input curricular.}
+Há uma identificação invertida que precisa ser explicitada e que,
+por reconhecimento honesto, fragiliza o uso direto do PISA como
+evidência do efeito específico ``ausência de cálculo no EM''. O
+PISA avalia jovens de \textbf{15 anos} \textemdash{} idade em que o
+cálculo \emph{ainda não foi introduzido} no currículo de
+\emph{nenhum dos países da amostra}: Japão começa cálculo aos 16
+anos no Math II/III, Singapura no H2 do junior college (16+),
+Alemanha no Leistungskurs (último ano), França na Spécialité de
+Terminale (idem), Estados Unidos no AP Calculus (12.\textsuperscript{o}
+ano, eletivo). Em todas essas trajetórias, o aluno PISA está, por
+construção, na fase \emph{pré-cálculo}. Em consequência, o gap PISA
+brasileiro mede \emph{antes} qualidade do ensino fundamental,
+condições socioeconômicas, formação docente e disposição cultural
+em relação a STEM \emph{do que} o efeito da omissão do cálculo no
+EM. Esta limitação de identificação foi flagged com precisão pela
+cadeira de Finanças do Conselho do Mirante (Reunião \#5,
+2026-04-29) e é registrada aqui em texto para impedir
+sobre-interpretação do resultado.
+
+A consequência metodológica direta é que a triangulação Nível 2
+do paper \emph{não} pode ser lida como ``PISA $\Rightarrow$ ausência
+de cálculo no EM tem efeito mensurável''. A leitura honesta é mais
+modesta: ``Brasil tem desempenho fundamentalmente fraco em
+matemática mesmo \emph{antes} do gap curricular do EM, o que
+sugere que (a) há problema sistêmico anterior ao cálculo, e (b) a
+introdução do cálculo no EM pode ser \emph{condição necessária mas
+não suficiente} para fechar o gap''. Para o canal causal específico
+``ausência de cálculo no EM $\Rightarrow$ reprovação universitária
+$\Rightarrow$ déficit de engenheiros'', a evidência interna mais
+forte do paper é a Seção 7.2 (taxas de reprovação em Cálculo I) +
+Seção 8 (problemas comparativos), \emph{não} o PISA.
 
 \subsection{Contra-Argumentos}
 
@@ -1259,6 +1434,48 @@ baixo custo, baixo risco e benefício potencial não nulo
 educacionais abertos.
 
 O Brasil é exceção curricular. Não precisa continuar sendo.
+
+% ---------- DECLARAÇÃO DE CONFLITO DE INTERESSE --------------------------
+% Pendência registrada pela cadeira de Design do Conselho do Mirante
+% (Reunião #5, 2026-04-29): "Seção 10.3 cita o Clube da Matemática (URL do
+% autor) como iniciativa de educação aberta. Em submissão a periódico
+% externo (Bolema, ZDM), o revisor questionará advocacy do projeto do
+% próprio autor". Declaração explícita resolve.
+\section*{Declaração de Conflito de Interesse}
+\addcontentsline{toc}{section}{Declaração de Conflito de Interesse}
+
+O autor mantém, paralelamente a este Working Paper, o projeto
+\textbf{Clube da Matemática}, iniciativa pessoal de recursos
+educacionais abertos em português voltada a estudantes brasileiros
+de ensino médio interessados em matemática avançada (cálculo,
+álgebra linear, análise combinatória), disponível em
+\url{https://leonardochalhoub.github.io/Clube-da-Matematica}. O
+projeto é gratuito, não-comercial neste momento, e mantido em
+repositório público no GitHub. As recomendações da Seção~10.3
+deste paper (educação aberta como mitigação não-curricular do gap
+documentado) são logicamente consistentes com a existência do
+Clube da Matemática \textemdash{} mas o argumento substantivo do
+paper (Brasil é o único país da amostra cujo currículo nacional
+não inclui cálculo no ensino médio) independe completamente desse
+projeto pessoal e foi sustentado em fontes primárias documentais
+verificáveis. O autor declara este vínculo no espírito de
+transparência exigido pelos periódicos de Educação Matemática
+brasileiros (Bolema, Educação e Pesquisa) e internacionais (ZDM
+Mathematics Education, Educational Studies in Mathematics) onde o
+paper poderá ser submetido.
+
+Adicionalmente, o autor é único responsável pelo
+\textbf{Mirante dos Dados} (\url{https://leonardochalhoub.github.io/mirante-dos-dados-br}),
+plataforma de microdados públicos brasileiros sob a qual este
+Working Paper é circulado em sua versão pré-revisão. Nenhum
+financiamento externo, edital governamental ou de fomento privado
+foi recebido para a produção deste WP. O Conselho do Mirante,
+referenciado na seção de versão deste paper, é peer review interno
+de IA simulando 4 cadeiras (Engenharia de Software, Finanças,
+Design/HCI, Administração) com personas baseadas em referências
+reais anonimizadas; \emph{não substitui} peer review humano formal
+e está documentado publicamente em
+\url{https://github.com/leonardochalhoub/mirante-dos-dados-br/blob/main/app/src/data/atas-conselho.js}.
 
 % ---------- REFERÊNCIAS --------------------------------------------------
 \newpage

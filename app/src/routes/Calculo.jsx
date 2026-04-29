@@ -114,6 +114,9 @@ function DocSection({ slug, pdfUrl, texUrl, overleafUrl }) {
         </p>
 
         <div className="doc-actions">
+          {/* Convenção de plataforma (feedback_article_buttons.md): rótulo
+              primário é "Ler artigo na tela". Aplicado pós-Reunião #5 do
+              Conselho (cadeira de Design flagged o gap em 2026-04-29). */}
           <a
             className="doc-toggle doc-toggle-primary"
             href={pdfUrl}
@@ -121,7 +124,7 @@ function DocSection({ slug, pdfUrl, texUrl, overleafUrl }) {
             rel="noreferrer"
             title="Abrir PDF em nova aba (visualizador nativo do navegador)"
           >
-            📖 Ler artigo (PDF)
+            📖 Ler artigo na tela
           </a>
 
           <a

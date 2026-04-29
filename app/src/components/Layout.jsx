@@ -27,7 +27,7 @@ const VERTICALS = [
   // + comparada curricular, sem pipeline bronze/silver/gold). `goldTable: null`
   // → tagFor() devolve `defaultTag`. firstPublished = data do commit a78bd25
   // (WP#9 v2.0).
-  { to: '/calculo',                label: 'Cálculo no Ensino Médio',  goldTable: null,                     defaultTag: 'v2', firstPublished: '2026-04-28T23:25:00-03:00' },
+  { to: '/calculo',                label: 'Cálculo no Ensino Médio',  goldTable: null,                     defaultTag: 'v3', firstPublished: '2026-04-28T23:25:00-03:00' },
 ].sort((a, b) => a.firstPublished.localeCompare(b.firstPublished));
 
 // Format ISO datetime as "24/abr/2026 · 11h47 BRT".
