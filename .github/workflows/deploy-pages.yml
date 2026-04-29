@@ -141,6 +141,14 @@ jobs:
           latexmk_use_xelatex: false
           args: -pdf -interaction=nonstopmode -file-line-error
 
+      - name: Compile Cálculo Ensino Médio Internacional (WP #9) LaTeX → PDF
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: calculo-ensino-medio-internacional.tex
+          working_directory: articles
+          latexmk_use_xelatex: false
+          args: -pdf -interaction=nonstopmode -file-line-error
+
       - name: Stage PDFs + .tex sources for Vite
         run: |
           mkdir -p app/public/articles
@@ -153,6 +161,7 @@ jobs:
           cp articles/uropro-serie-2008-2025.pdf        app/public/articles/
           cp articles/uropro-saude-publica-2008-2025.pdf app/public/articles/
           cp articles/finops-plataforma-dados-publicos.pdf app/public/articles/
+          cp articles/calculo-ensino-medio-internacional.pdf app/public/articles/
           # Stage .tex sources for the "Baixar fonte" button (all verticais).
           cp articles/emendas-parlamentares.tex         app/public/articles/
           cp articles/bolsa-familia.tex                 app/public/articles/
@@ -163,6 +172,7 @@ jobs:
           cp articles/uropro-serie-2008-2025.tex        app/public/articles/
           cp articles/uropro-saude-publica-2008-2025.tex app/public/articles/
           cp articles/finops-plataforma-dados-publicos.tex app/public/articles/
+          cp articles/calculo-ensino-medio-internacional.tex app/public/articles/
           ls -la app/public/articles/
 
       # ─── Front-end build ─────────────────────────────────────────────
