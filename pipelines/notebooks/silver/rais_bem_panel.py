@@ -280,11 +280,28 @@ silver_df = (
     .orderBy("ano", "uf", "muni", "cnae2")
 )
 
+# DEBUG: prints intermediários pra detectar onde rows são dropadas
+print(f"\n=== DEBUG: trace de filtros ===")
+print(f"bronze rows após filtro ano [{ANO_MIN}, {ANO_MAX}]: {n_bronze:,}")
+n_after_ano   = df.where(F.col("ano_int").isNotNull()).count()
+n_after_muni  = df.where(F.col("muni").isNotNull() & (F.length(F.col("muni")) >= 6)).count()
+n_after_cnae  = df.where(F.length(F.col("cnae2")) == 2).count()
+n_after_full  = df.count()
+print(f"  após ano_int IS NOT NULL    : {n_after_ano:,}")
+print(f"  após muni length >= 6       : {n_after_muni:,}")
+print(f"  após cnae2 length == 2      : {n_after_cnae:,}")
+print(f"  após TODOS filtros (df)     : {n_after_full:,}")
+
+df.groupBy("ano_int").agg(F.count("*").alias("rows"),
+                          F.countDistinct("muni").alias("munis"),
+                          F.countDistinct("cnae2").alias("cnaes")).orderBy("ano_int").show()
+
 n_silver = silver_df.count()
 print(f"silver panel rows: {n_silver:,}  (esperado ~1.5-2.5M para 6 anos × 5571 munis × 88 CNAEs)")
-print(f"distinct munis: {silver_df.select('muni').distinct().count()}")
-print(f"distinct cnae2: {silver_df.select('cnae2').distinct().count()}")
-silver_df.groupBy("ano").agg(F.count("*").alias("cells"), F.sum("n_vinculos_ativos").alias("ativos")).orderBy("ano").show()
+if n_silver > 0:
+    print(f"distinct munis: {silver_df.select('muni').distinct().count()}")
+    print(f"distinct cnae2: {silver_df.select('cnae2').distinct().count()}")
+    silver_df.groupBy("ano").agg(F.count("*").alias("cells"), F.sum("n_vinculos_ativos").alias("ativos")).orderBy("ano").show()
 
 # COMMAND ----------
 
