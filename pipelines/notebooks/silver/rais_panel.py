@@ -231,11 +231,15 @@ silver_df = (
         F.sum(F.when(F.col("motivo") == "30",         1).otherwise(0)).cast("long").alias("n_morte"),
         F.sum(F.when(F.col("motivo").rlike(r"^[1-9][0-9]?$"), 1).otherwise(0)).cast("long").alias("n_demissoes_total"),
 
-        # Massa salarial e estatísticas de remuneração (em SM, comparável cross-era)
+        # Massa salarial e estatísticas SIMPLES de remuneração (em SM).
+        # Removido percentile_approx — em 1.94B rows × ~10M groups consome
+        # tempo proibitivo em Photon 2X-Small (>97min sem commit observados
+        # em 2026-04-29). Quem precisar de mediana/p90 pode derivar em
+        # silver_rais_panel_percentiles separado.
         F.sum(F.coalesce(F.col("vl_dez_sm"), F.lit(0.0))).alias("massa_salarial_sm"),
-        F.percentile_approx("vl_dez_sm", 0.5).alias("remun_mediana_sm"),
-        F.percentile_approx("vl_dez_sm", 0.9).alias("remun_p90_sm"),
         F.avg("vl_dez_sm").alias("remun_media_sm"),
+        F.min("vl_dez_sm").alias("remun_min_sm"),
+        F.max("vl_dez_sm").alias("remun_max_sm"),
 
         # Demografia
         F.sum(F.when((F.col("sexo") == "F") & (F.col("vinc_ativo") == 1), 1).otherwise(0)).cast("long").alias("n_femininos_ativos"),
@@ -413,9 +417,9 @@ _col_comments = {
     "n_morte":             "Desligamentos por morte (motivo 30). Útil pra detectar excess mortality COVID.",
     "n_demissoes_total":   "Soma de TODOS os desligamentos no ano (qualquer motivo numérico não-zero).",
     "massa_salarial_sm":   "Soma vl_remun_dezembro_sm da célula (em salários-mínimos do ano).",
-    "remun_mediana_sm":    "Mediana (p50) da remuneração de dezembro em SM, na célula.",
-    "remun_p90_sm":        "P90 da remuneração de dezembro em SM (proxy de cauda alta).",
     "remun_media_sm":      "Média aritmética da remuneração de dezembro em SM.",
+    "remun_min_sm":        "Mínima da remuneração de dezembro na célula.",
+    "remun_max_sm":        "Máxima da remuneração de dezembro na célula.",
     "n_femininos_ativos":  "Vínculos ativos em 31/12 com sexo=feminino. Heterogeneidade BEm — mulheres + setores afetados.",
     "n_masculinos_ativos": "Vínculos ativos em 31/12 com sexo=masculino.",
     "n_baixa_escolaridade": "Vínculos com até ensino médio incompleto (códigos 01-04). Proxy renda baixa, mais vulnerável a choques.",
