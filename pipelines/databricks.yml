@@ -407,18 +407,19 @@ resources:
             base_parameters:
               catalog: "${var.catalog}"
 
-        # Silver TEMÁTICA pra working paper sobre BEm (Lei 14.020/2020) —
-        # painel município × CNAE 2-dig × ano (2017-2022). Independente da
-        # silver ampla rais_uf_ano. Conselho 2026-04-28: silver-por-questão
-        # é o caminho aprovado pra peer review.
-        - task_key: silver_rais_bem_panel
+        # Silver AMPLA município × CNAE × ano (1985-2024 teórica, 1995-2024
+        # efetiva). Sucessor de silver_rais_bem_panel (originalmente 2017-2022
+        # só p/ BEm DiD). Expandida em 2026-04-29 a pedido do autor — usar
+        # como base ampla para WP BEm + artigo Cruzado + análises cross-tema.
+        # Para BEm DiD focal, restringir SQL: WHERE ano BETWEEN 2017 AND 2022.
+        - task_key: silver_rais_panel
           depends_on: [{ task_key: bronze_rais_vinculos }]
           notebook_task:
-            notebook_path: ./notebooks/silver/rais_bem_panel.py
+            notebook_path: ./notebooks/silver/rais_panel.py
             base_parameters:
               catalog: "${var.catalog}"
-              ano_min: "2017"
-              ano_max: "2022"
+              ano_min: "1985"
+              ano_max: "2024"
 
         - task_key: gold_rais_estados_ano
           depends_on: [{ task_key: silver_rais_uf_ano }]

@@ -1,34 +1,41 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # silver · rais_bem_panel
+# MAGIC # silver · rais_panel
 # MAGIC
-# MAGIC Painel **município × CNAE 2-dígitos × ano** otimizado para análise causal
-# MAGIC do **BEm (Benefício Emergencial de Manutenção do Emprego e da Renda)** —
-# MAGIC programa criado pela MP 936/2020 (convertida na Lei 14.020/2020) durante
-# MAGIC a pandemia de COVID-19.
+# MAGIC Painel **município × CNAE 2-dígitos × ano** ABRANGENTE (1985–2024).
+# MAGIC Sucessor de `silver.rais_bem_panel` (originalmente 2017–2022 só p/ BEm DiD).
+# MAGIC Expandido em 2026-04-29 a pedido do autor — usar como base ampla para:
 # MAGIC
-# MAGIC ## Por que silver TEMÁTICA, não ampla
+# MAGIC - **Working paper BEm COVID** (filtra ano BETWEEN 2017 AND 2022)
+# MAGIC - **Artigo imprensa Cruzado 1986** (filtra ano BETWEEN 1985 AND 1989)
+# MAGIC - **Análises de choques macro cross-eras** (Plano Real, recessão Dilma,
+# MAGIC   COVID — todos juntos no mesmo painel)
+# MAGIC - **Forecasting de vínculos** (séries longas ajudam modelagem)
 # MAGIC
-# MAGIC Conselho do Mirante (2026-04-28) recomendou unanimemente: silver-por-questão,
-# MAGIC não silver ampla cross-questão. Silver ampla com 30+ outcomes seria
-# MAGIC inutilizável pra qualquer DiD/RDD específico — variáveis de controle e
-# MAGIC tratamento variam por questão.
+# MAGIC ## Cobertura efetiva
 # MAGIC
-# MAGIC ## Janela
+# MAGIC Janela teórica 1985–2024 = 40 anos. Janela efetiva onde CNAE existe = 1995–2024
+# MAGIC (30 anos). Pré-1995 (1985–1994) tem `cnae` NULL e é filtrada.
+# MAGIC Para análises pré-1995 (ex.: Cruzado), criar silver complementar
+# MAGIC `silver.rais_panel_ibge` usando `ibge_subsetor` em vez de cnae2 — ADR futuro.
 # MAGIC
-# MAGIC **2017–2022 (6 anos)**:
-# MAGIC - **Pré-tratamento**: 2017–2019 (3 anos para teste de paralelismo de
-# MAGIC   tendências — "parallel trends test")
+# MAGIC ## Janela DiD do BEm (subset)
+# MAGIC
+# MAGIC Para o working paper BEm COVID, restringir em SQL:
+# MAGIC
+# MAGIC ```sql
+# MAGIC SELECT * FROM mirante_prd.silver.rais_panel
+# MAGIC  WHERE ano BETWEEN 2017 AND 2022
+# MAGIC ```
+# MAGIC
+# MAGIC - **Pré-tratamento**: 2017–2019 (parallel trends test)
 # MAGIC - **Tratamento**: 2020–2021 (BEm em vigor)
-# MAGIC - **Pós-tratamento**: 2022 (recuperação, fim do BEm)
-# MAGIC
-# MAGIC Dados 2023–2024 (era3 .COMT, schema renomeado) DELIBERADAMENTE excluídos
-# MAGIC desta silver — diluiriam DiD com período pós-recuperação.
+# MAGIC - **Pós-tratamento**: 2022–2024 (recuperação, fim do BEm)
 # MAGIC
 # MAGIC ## Grain
 # MAGIC
-# MAGIC `(municipio_codigo, cnae_2_dig, ano)`. ~5571 munis × ~88 CNAE 2-dig × 6
-# MAGIC anos = ~2.9 M linhas teóricas (real ~1.5–2 M com sparse cells).
+# MAGIC `(municipio_codigo, cnae_2_dig, ano)`. ~5571 munis × ~88 CNAE 2-dig × 30 anos
+# MAGIC efetivos ≈ 14M linhas teóricas (real ~7-10M com sparse cells).
 # MAGIC
 # MAGIC ## Outcomes
 # MAGIC
@@ -45,14 +52,14 @@
 # COMMAND ----------
 
 dbutils.widgets.text("catalog", "mirante_prd")
-dbutils.widgets.text("ano_min", "2017")
-dbutils.widgets.text("ano_max", "2022")
+dbutils.widgets.text("ano_min", "1985")
+dbutils.widgets.text("ano_max", "2024")
 
 CATALOG = dbutils.widgets.get("catalog")
 ANO_MIN = int(dbutils.widgets.get("ano_min"))
 ANO_MAX = int(dbutils.widgets.get("ano_max"))
 BRONZE_TABLE = f"{CATALOG}.bronze.rais_vinculos"
-SILVER_TABLE = f"{CATALOG}.silver.rais_bem_panel"
+SILVER_TABLE = f"{CATALOG}.silver.rais_panel"
 
 # COMMAND ----------
 
@@ -347,27 +354,34 @@ print(f"✔ {SILVER_TABLE} written")
 # Table COMMENT — verbose, audit trail completa
 spark.sql(f"""
     COMMENT ON TABLE {SILVER_TABLE} IS
-    'Mirante · RAIS BEm Panel — silver temática para análise causal do
-    Benefício Emergencial de Manutenção do Emprego e da Renda (BEm),
-    programa criado pela MP 936/2020 (Lei 14.020/2020) durante COVID-19.
+    'Mirante · RAIS Panel — silver ABRANGENTE 1985-2024 para análises causais,
+    descritivas e ML cross-tema do mercado formal brasileiro.
 
-    GRAIN: (municipio_codigo, cnae2, ano), painel desbalanceado.
-    JANELA: 2017-2022 (3 anos pré + 2 anos tratamento + 1 ano pós).
+    GRAIN: (municipio_codigo, cnae2, ano), painel desbalanceado, ~7-10M linhas.
+    JANELA: 1985-2024 teórica; 1995-2024 efetiva (CNAE não existia pré-1995;
+    pré-1995 cells filtradas. Para análise pré-1995 ver silver.rais_panel_ibge
+    em ADR futuro).
+
     OUTCOMES: vínculos ativos, decomposição de motivo_desligamento (sem justa
     causa, com justa causa, pedido, aposentadoria, morte), massa salarial,
     remuneração mediana/p90, demografia (sexo, escolaridade, idade).
 
-    USO PRIMÁRIO: DiD/TWFE com setor_bem_exposicao (alta/média/baixa) ×
-    período (pre/treat/post). Conley HAC clustering (raio 100-200 km)
-    recomendado por Finanças do Conselho do Mirante.
+    USOS DOCUMENTADOS:
+    1. WP BEm COVID (DiD 2017-2022 com setor_bem_exposicao alta/média/baixa)
+    2. Artigo imprensa Cruzado 1986 (descritivo 1985-1989, mas com CNAE NULL
+       — usar silver.rais_panel_ibge quando criada)
+    3. Forecasting de vínculos (séries 30+ anos)
+    4. Análises cross-choques (Plano Real 1994, Recessão Dilma 2014-16, COVID)
 
-    LIMITAÇÕES (declarar em LIMITAÇÕES de qualquer manuscrito):
-    1. Granularidade anual do RAIS — apenas 2-3 pontos pre-treatment para
-       teste de paralelismo de tendências
-    2. Não isola BEm de outros choques COVID simultâneos (Auxílio
-       Emergencial, PRONAMPE, lockdowns) — exige variação independente
+    LIMITAÇÕES (declarar em manuscritos):
+    1. Granularidade anual (estoque 31/12) — DiD precisa janela maior pra
+       parallel trends. CAGED tem mensalidade pra refinamento.
+    2. Não isola tratamentos simultâneos em janelas com múltiplos choques
+       (ex.: COVID + BEm + AE em 2020). Exige variação independente.
     3. Sem identificador de trabalhador (CPF não público) — análise é em
-       nível de painel município×setor, não individual'
+       nível de painel município×setor, não individual.
+    4. CNAE 1.0 (1995-2007) e 2.0 (2008+) coexistem — tabelas de equivalência
+       PDET aplicáveis. Pré-1995 sem CNAE.'
 """)
 
 # TAGs de governança Mirante
@@ -377,9 +391,9 @@ _tags = {
     "source":         "mte_pdet_rais",
     "pii":            "indirect",
     "grain":          "municipio_cnae_ano",
-    "janela":         "2017_2022",
-    "questao_causal": "bem_covid_lei_14020",
-    "uso_primario":   "did_twfe_paineldesbalanceado",
+    "janela":         "1985_2024_efetiva_1995_2024",
+    "questao_causal": "multi_uso_did_descritivo_ml",
+    "uso_primario":   "did_twfe_painel_amplo",
 }
 for k, v in _tags.items():
     spark.sql(f"ALTER TABLE {SILVER_TABLE} SET TAGS ('{k}' = '{v}')")
@@ -428,38 +442,41 @@ print(f"✓ TAGs aplicadas: {list(_tags.keys())}")
 
 # COMMAND ----------
 
-print("=== DQ GATE silver_rais_bem_panel ===")
+print("=== DQ GATE silver_rais_panel ===")
 
-# Check 1: cobertura temporal completa
+# Check 1: cobertura temporal — 1995-2024 (CNAE não existia pré-1995)
 years_in_silver = [r["ano"] for r in silver_df.select("ano").distinct().orderBy("ano").collect()]
-expected_years = list(range(ANO_MIN, ANO_MAX + 1))
-missing_years = set(expected_years) - set(years_in_silver)
-if missing_years:
-    raise RuntimeError(f"DQ FAIL: anos faltantes na silver: {sorted(missing_years)}")
-print(f"✓ cobertura temporal: {years_in_silver}")
+print(f"  anos no silver: {years_in_silver}")
+expected_min_year = 1995  # Antes disso CNAE não existe → cells filtradas
+missing_post_1995 = set(range(expected_min_year, ANO_MAX + 1)) - set(years_in_silver)
+if missing_post_1995:
+    raise RuntimeError(f"DQ FAIL: anos faltantes pós-{expected_min_year}: {sorted(missing_post_1995)}")
+print(f"✓ cobertura temporal pós-{expected_min_year}: completa ({len([y for y in years_in_silver if y >= expected_min_year])} anos)")
 
-# Check 2: 27 UFs em cada ano (com tolerância para 1986/SP1986 fora da janela)
-uf_per_year = silver_df.groupBy("ano").agg(F.countDistinct("uf").alias("n_uf"))
-bad_uf = uf_per_year.filter(F.col("n_uf") < 27).collect()
+# Check 2: 27 UFs por ano (tolerância pra 1985-1986 com gaps de fonte: MA1985, PA1986, SP1986)
+uf_per_year = silver_df.groupBy("ano").agg(F.countDistinct("uf").alias("n_uf")).orderBy("ano").collect()
+bad_uf = [(r["ano"], r["n_uf"]) for r in uf_per_year if r["n_uf"] < 25]
 if bad_uf:
-    print(f"⚠ anos com < 27 UFs: {[(r['ano'], r['n_uf']) for r in bad_uf]}")
+    print(f"⚠ anos com < 25 UFs (esperado em 1985-1987 por TO ainda não existir): {bad_uf}")
 else:
-    print(f"✓ 27 UFs em cada ano")
+    print(f"✓ todos anos com >= 25 UFs (TO criado em 1988, esperado 25-27 cross-1985-2024)")
 
-# Check 3: somatório anual de vínculos ativos plausível (entre 35M e 65M para 2017-2022)
+# Check 3: somatório anual de vínculos ativos plausível
+# Range: ~14M em 1986 (Cruzado) → ~58M em 2024
 totais = silver_df.groupBy("ano").agg(F.sum("n_vinculos_ativos").alias("ativos")).orderBy("ano").collect()
 for r in totais:
-    if not (35_000_000 <= r["ativos"] <= 65_000_000):
-        print(f"⚠ ano {r['ano']}: total ativos {r['ativos']:,} fora do esperado [35M, 65M]")
-    else:
-        print(f"  ano {r['ano']}: {r['ativos']:,} ativos ✓")
+    if not (10_000_000 <= r["ativos"] <= 70_000_000):
+        print(f"⚠ ano {r['ano']}: total ativos {r['ativos']:,} fora do esperado [10M, 70M]")
 
-# Check 4: distribuição de exposição BEm (espera ~10-15% alta, ~20-25% média, restante baixa)
-bem_dist = (silver_df.groupBy("setor_bem_exposicao")
+# Check 4: distribuição de exposição BEm (essa categorização vale só pra recente,
+# mas a coluna é informativa cross-anos pra contextualizar)
+bem_dist = (silver_df
+    .filter(F.col("ano") >= 2017)  # exposição BEm só faz sentido pós-Reforma 2017
+    .groupBy("setor_bem_exposicao")
     .agg(F.sum("n_vinculos_ativos").alias("ativos"))
     .orderBy(F.desc("ativos")).collect())
 total_ativos = sum(r["ativos"] for r in bem_dist)
-print("\n=== Distribuição setor_bem_exposicao (média 2017-2022) ===")
+print("\n=== Distribuição setor_bem_exposicao (média 2017-2024) ===")
 for r in bem_dist:
     pct = 100 * r["ativos"] / total_ativos if total_ativos else 0
     print(f"  {r['setor_bem_exposicao']:<6}  {r['ativos']:>14,}  ({pct:>5.1f}%)")
