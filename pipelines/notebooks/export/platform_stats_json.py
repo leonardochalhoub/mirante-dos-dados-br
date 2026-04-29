@@ -334,6 +334,22 @@ verticals = {
         "delta_bronze_bytes":   next((t["bytes"] for t in gold if t["table"] == "pbf_municipios_df"), 0),
         "delta_bronze_rows":    next((t["rows"]  for t in gold if t["table"] == "pbf_municipios_df"), 0),
     },
+    # Cálculo no Ensino Médio (WP#9) — vertical de natureza distinta:
+    # revisão sistemática + comparada curricular standalone, NÃO há
+    # microdados em bronze/silver/gold. O front detecta `kind: "literature"`
+    # e renderiza com semântica adaptada (currículos · triangulação · WP).
+    # Valores hardcoded — não dependem do warehouse Databricks.
+    "calculo": {
+        "kind":         "literature",
+        "source_label": "Currículos · 10 países + IB",
+        "source_files": 11,            # 10 países + IB
+        "source_rows":  47,            # referências bibliográficas verificáveis
+        "silver_label": "PISA · reprovação · 200 anos",
+        "silver_rows":  7,             # waves PISA 2003–2022 efetivamente analisadas
+        "gold_label":   "Working Paper · ABNT",
+        "gold_bytes":   78617,         # tamanho do .tex (atual: v2.0)
+        "gold_rows":    1617,          # linhas do .tex
+    },
 }
 
 # ─── FinOps vertical — shape size/rows/format alinhado aos outros verticais ──

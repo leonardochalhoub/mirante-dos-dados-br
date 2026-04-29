@@ -718,6 +718,122 @@ export const PARECER_WP_RAIS = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════
+// WP #9 — O CÁLCULO AUSENTE / EDUCAÇÃO COMPARADA
+// Slug: calculo-ensino-medio-internacional · Vertical: calculo
+// Régua: STRICTO SENSU MESTRADO. Score B (2,0) — pré-Conselho.
+//
+// ESTADO: parecer do Professor (TEACHER_PERSONA, IA Claude Opus 4.7 modo
+// Programa Mestrado/Doutorado) ANTES da Reunião #5 do Conselho do Mirante.
+// Este é o material-base que as 4 cadeiras (Eng. Software · Finanças ·
+// Design · Administração) usam como ponto de partida para deliberar.
+// O score pode mover (subir ou descer) após o Conselho — vide ata em
+// app/src/data/atas-conselho.js (Reunião #5) quando registrada.
+//
+// Trabalho de natureza distinta dos demais (revisão sistemática +
+// comparada curricular + 200 anos de história) — não é pipeline sobre
+// microdados públicos brasileiros.
+// ═══════════════════════════════════════════════════════════════════════
+export const PARECER_WP9_CALCULO = {
+  slug:    'calculo-ensino-medio-internacional',
+  wp_num:  9,
+  artigo_titulo:
+    'O Cálculo Ausente: duzentos anos de currículo, dez países de comparação, ' +
+    'um vácuo estrutural — análise comparativa do currículo de matemática do ' +
+    'ensino médio em dez países e suas implicações para a formação em ' +
+    'engenharia no Brasil',
+  vertical: 'calculo',
+  nivel: 'stricto_sensu_mestrado',
+  scoreType: 'letter',
+  scoreLetra: 'B',
+  scoreOriginal: null,
+  originalLabel: null,
+  originalUrl: null,
+  ultimaAtualizacao: '2026-04-29T13:00 BRT',
+  versao:
+    '2.0 (pré-Conselho) — parecer do Professor antes da Reunião #5. ' +
+    'Material-base que as 4 cadeiras usam como ponto de partida. O score ' +
+    'pode mover após deliberação do Conselho (subir ou descer).',
+  resumoCalibragem:
+    'Régua: STRICTO SENSU MESTRADO. Score B (2,0 pts) — no limiar de ' +
+    'aprovação, parecer PRÉ-Conselho. Working Paper de natureza distinta ' +
+    'dos demais — não é pipeline sobre microdados públicos brasileiros, é ' +
+    'revisão sistemática de currículos oficiais (n=10 países + IB) cruzada ' +
+    'com séries históricas OECD/PISA, série de 200 anos de reformas ' +
+    'curriculares brasileiras e literatura pedagógica (Bruner, Vygotsky, ' +
+    'Rezende, Ávila). O score B do Professor reflete três tensões ' +
+    'convergentes que serão levadas ao Conselho: ' +
+    '(i) o ARGUMENTO é forte e bem documentado, com 47+ referências ' +
+    'verificáveis e citações precisas a Ávila 1991, Rezende 2003 (tese USP), ' +
+    'BNCC 2018, OECD/PISA 2003–2022, CONFEA déficit, Unicamp 77,5%; ' +
+    '(ii) o DESENHO é correlacional, não causal — o próprio paper assume ' +
+    'esse limite ("o argumento não é causal estrito") e isso fecha o teto ' +
+    'em B na régua mestrado; (iii) o WP é um OUTLIER de método na ' +
+    'plataforma — não tem bronze/silver/gold pipeline, não tem identificação ' +
+    'causal sobre descontinuidade institucional, não tem figuras com a ' +
+    'identidade visual editorial Mirante (Lato + Wong palette + golden ' +
+    'ratio + halo). Pendente da deliberação do Conselho: se a natureza ' +
+    'standalone do paper merece régua diferente; se a Reforma Benjamin ' +
+    'Constant 1890–1925 (cálculo entrou e saiu do currículo) é descontinui' +
+    'dade aproveitável; se o gap visual editorial é bloqueador.',
+  utilidadeSocial:
+    'EXTREMAMENTE ÚTIL como peça de advocacy curricular. Beneficiários: ' +
+    '(a) Ministério da Educação / CNE em revisões da BNCC — paper documenta ' +
+    'que o Brasil é OUTLIER internacional e que cálculo já esteve no ensino ' +
+    'secundário brasileiro entre 1890 e ~1925 (Reforma Benjamin Constant); ' +
+    '(b) sociedades científicas (SBM, SBEM, ABENGE, CONFEA) que defendem ' +
+    'reintrodução do cálculo no ensino médio — tem agora uma síntese ' +
+    'comparada com 10 países + IB, citações verificáveis, série PISA ' +
+    '2003–2022 e taxas de reprovação universitária; (c) projetos de ' +
+    'recursos educacionais abertos (ex.: Khan Academy/Brasil, MEC/Capes ' +
+    'OER, Wikiversity-pt) que querem cobrir o gap — o paper mapeia ' +
+    'precisamente o que cada país ensina aos 15/16/17 anos, dando ' +
+    'roadmap de conteúdo; (d) jornalismo educacional (Folha, Nexo, Piauí) ' +
+    'em coberturas sobre o "apagão de engenheiros". A natureza standalone ' +
+    'do paper (não depende de pipeline Databricks rodando) é vantagem para ' +
+    'circulação imediata pré-revisão. Monetização possível: curso aberto ' +
+    'cobrindo cálculo de ensino médio em PT-BR, alinhado a Bruner/Vygotsky/ ' +
+    'Rezende — Singapore Math aplicado ao currículo brasileiro.',
+  pontosFortes: [
+    'Pergunta de pesquisa direta e operacionalizável: "em quais países um aluno aprende cálculo antes da universidade?" — ponto raro para WP que cruza 200 anos de história',
+    'Revisão sistemática real, não enumeração: 10 países (Japão, China, Coreia do Sul, Singapura, Alemanha, França, Rússia, Finlândia, EUA, Brasil) + IB, cada um com seção dedicada citando documento curricular oficial verificável',
+    'Cobertura histórica brasileira de 200 anos é original para WPs de educação comparada brasileira: Colégio Pedro II 1837 → Reforma Benjamin Constant 1890 (que incluiu cálculo!) → Reforma Capanema 1942 → Movimento Mat. Moderna 1960 → PCN 1997 → BNCC 2018',
+    'Marco pedagógico bem fundamentado: Bruner (currículo em espiral, 1960), Vygotsky (ZPD), Rezende (UFF, tese USP 2003 sobre obstáculos epistemológicos), Singapore Math como Bruner aplicado em escala nacional',
+    'Achado factual robusto: Brasil é o ÚNICO país da amostra cujo currículo nacional não inclui limites/derivadas/integrais. Verificável em fonte primária (BNCC 2018) e contraste com 9 países + IB',
+    'Triangulação com séries históricas OECD/PISA 2003–2022 (estagnação ~380 pontos, 47–55 abaixo OECD; 1% top-performers vs 41% Singapura) e taxas de reprovação universitária (UFRJ ~70%, Unicamp 77,5%, ABENGE meta-análise ~48%)',
+    '47+ referências bibliográficas com URL e data de acesso (padrão ABNT++ Mirante) — incluindo documentos curriculares estrangeiros em chinês, japonês, coreano, finlandês, alemão e francês',
+    'Honestidade epistêmica: paper declara explicitamente que "o argumento não é causal estrito" e hedge com "compatível com" / "merece ser mapeado" em vez de afirmação causal forte',
+    'Boxes comparativos de exames (Gaokao China, Abitur Alemanha, Baccalauréat França, AP Calculus BC EUA, H2 Mathematics Singapura, ENEM Brasil) — comparativo qualitativo concreto',
+    'Standalone do pipeline Databricks — pode ser submetido a periódico de Educação Matemática sem depender de qualquer outra vertical do Mirante',
+  ],
+  problemasParaNotaPlena: [
+    'Desenho correlacional sem identificação causal — paper assume isso explicitamente, mas no rigor mestrado isso fecha o teto em B (não em B+/A)',
+    'Não explora a descontinuidade óbvia: Reforma Benjamin Constant (1890–1899) INCLUIU cálculo no secundário, e foi REMOVIDA em ~1900–1925. Esses 25 anos são experimento natural disponível — exames da Politécnica/EPUSP/IME pré e pós, mas não foram digitalizados/analisados',
+    'Não há comparação contrafactual com países que MUDARAM o currículo (ex.: Finlândia pós-2014, Coreia do Sul ondas curriculares) — janelas DiD disponíveis',
+    'PISA é proxy do output, não do input curricular — currículo oficial e currículo praticado podem divergir (problema clássico em educação comparada, sub-discutido)',
+    'CONFEA "déficit de até 1 milhão" é citado mas a metodologia da projeção CONFEA não é auditada — número polêmico em circulação midiática',
+    'Não há figuras com identidade visual editorial Mirante (Lato + Wong palette + golden ratio + halo + leader lines) — o paper é texto + 6 boxes fbox simples; gap de Design',
+    'Análise do BNCC é por leitura — não há mineração sistemática do texto da BNCC para detectar palavras-chave (limite/derivada/integral) ausentes vs. presentes em outros currículos',
+    'Custo econômico estimado (Seção 7.5) é high-level — não há decomposição por região, setor (engenharia civil −52% destacado, mas só ela), nem cenário contrafactual de "1 milhão de engenheiros não-faltando"',
+  ],
+  problemasParaSubirNivel: [
+    'B → B+: implementar análise quasi-experimental sobre Reforma Benjamin Constant 1890–1925 (cálculo entra/sai do currículo) usando exames de admissão Politécnica/EPUSP/IME — DiD ou ITS sobre coorte de ingresso em engenharia',
+    'B → B+: text mining sistemático do BNCC vs. currículos estrangeiros (palavras-chave: limite, derivada, integral, taxa de variação, área sob curva) com análise de frequência e contexto',
+    'B+ → A: produzir figuras seguindo identidade visual editorial Mirante — mapa global de "país × cálculo no ensino médio" (binário/intensidade), série temporal PISA com bandas de incerteza, Sankey de fluxo curricular Brasil 1837→2018',
+    'B+ → A: cruzar com microdados públicos brasileiros (CAGED/RAIS já no Mirante) — UFs com mais engenheiros formados têm escolas técnicas com cálculo? Variável instrumental candidata',
+    'B+ → A: peer review formal externo — Bolema, Revista Educação e Pesquisa, ZDM Mathematics Education ou International Journal for Mathematics in Education',
+    'A → A+ (próximo de doutorado): meta-análise quantitativa das taxas de reprovação em Cálculo I usando todos os estudos brasileiros disponíveis — virou tese de doutorado em educação matemática',
+  ],
+  proximosPassos: [
+    'P1 (alto): produzir figura-síntese com identidade visual Mirante — mapa global "cálculo no ensino médio · 10 países + IB · 2024" (categorical heatmap ou choropleth), Lato + Wong palette + halo + source_note',
+    'P2 (alto): implementar text mining BNCC vs currículos estrangeiros (palavras-chave cálculo) — script Python reproducível adicionando rigor metodológico que o paper hoje não tem',
+    'P3 (médio): adicionar tabela síntese com colunas (país · idade introdução · obrigatório? · documento oficial · referência verificável) — ainda não está consolidada visualmente',
+    'P4 (médio): adicionar análise da Reforma Benjamin Constant 1890 com fonte primária (Decreto 981/1890 + Decreto 3890/1901 que a substituiu) — descontinuidade institucional documentada',
+    'P5 (médio): submeter a Bolema (RBE Educação Matemática Bolema) ou ZDM Mathematics Education — primeiro peer review externo formal abre caminho para A',
+    'P6 (baixo): curso aberto de cálculo de ensino médio em PT-BR, alinhado a Bruner+Singapore Math, monetização via Hotmart/Coursera (gap Administração)',
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════════════════
 // GLOBAL — Avaliação macro do projeto inteiro (não de uma vertical isolada)
 // Aparece na página Início. Régua: STRICTO SENSU MESTRADO.
 // ═══════════════════════════════════════════════════════════════════════
@@ -869,6 +985,7 @@ export const PARECERES_BY_SLUG = {
   'uropro-saude-publica-2008-2025':  PARECER_WP5_UROPRO,
   'equipamentos-panorama-cnes':      PARECER_WP6_EQUIPAMENTOS_PANORAMA,
   'bolsa-familia-municipios':        PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS,
+  'calculo-ensino-medio-internacional': PARECER_WP9_CALCULO,
 };
 
 // Backward-compat: nas verticais com 1 artigo, o "principal" é o único.
@@ -880,6 +997,7 @@ export const PARECERES_BY_VERTICAL = {
   emendas:       PARECER_WP1_EMENDAS,
   uropro:        PARECER_WP3_UROPRO,
   rais:          PARECER_WP_RAIS,
+  calculo:       PARECER_WP9_CALCULO,
   global:        PARECER_GLOBAL,
 };
 
@@ -887,5 +1005,6 @@ export const PARECERES_BY_VERTICAL = {
 export const PARECER_PBF          = PARECER_WP2_BOLSA_FAMILIA;
 export const PARECER_EQUIPAMENTOS = PARECER_WP4_EQUIPAMENTOS;
 export const PARECER_EMENDAS      = PARECER_WP1_EMENDAS;
+export const PARECER_CALCULO      = PARECER_WP9_CALCULO;
 export const PARECER_UROPRO       = PARECER_WP3_UROPRO;
 export const PARECER_RAIS         = PARECER_WP_RAIS;

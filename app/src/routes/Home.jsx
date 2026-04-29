@@ -55,6 +55,14 @@ const VERTICAIS = [
     period: 'jun/2025 – hoje',
     available: true,
   },
+  {
+    to: '/calculo',
+    eyebrow: 'Educação comparada · currículo de matemática',
+    title: 'Cálculo no Ensino Médio',
+    desc: 'WP#9 — revisão sistemática do currículo oficial de matemática em 10 países + IB. Brasil é o único país da amostra cujo BNCC não inclui limites, derivadas ou integrais. Triangulação com PISA 2003–2022, taxas de reprovação em Cálculo I (UFRJ/Unicamp/ABENGE) e duzentos anos de reformas curriculares brasileiras. Fontes: BNCC · OECD/PISA · CONFEA · Ávila (RPM) · Rezende (UFF/IME-USP).',
+    period: '1837 – 2024',
+    available: true,
+  },
 ];
 
 const MEDALLION = [
@@ -213,7 +221,7 @@ function BigDataStrip({ stats }) {
   const verticals = stats.verticals || {};
   // Ordem preferida; verticais não listadas aparecem no fim por ordem alfabética.
   // Default genérico pra que novas verticais apareçam automaticamente.
-  const PREFERRED_ORDER = ['pbf', 'equipamentos', 'equipamentos-sus', 'emendas', 'uropro', 'rais', 'finops'];
+  const PREFERRED_ORDER = ['pbf', 'equipamentos', 'equipamentos-sus', 'emendas', 'uropro', 'rais', 'finops', 'calculo'];
   const orderedVerticals = [
     ...PREFERRED_ORDER.filter((k) => verticals[k]),
     ...Object.keys(verticals).filter((k) => !PREFERRED_ORDER.includes(k)).sort(),
@@ -228,6 +236,7 @@ function BigDataStrip({ stats }) {
     uropro:              'Incontinência Urinária (SIH)',
     rais:                'RAIS — Vínculos Públicos',
     finops:              'FinOps · custo da plataforma',
+    calculo:             'Cálculo no Ensino Médio',
   };
   const labelOf = (k) => verticalLabel[k]
     || k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ');
@@ -278,6 +287,42 @@ function BigDataStrip({ stats }) {
                 </div>
                 <div className="bigdata-pipeline-row">
                   {finopsSteps.map((s, i) => (
+                    <Fragment key={s.label}>
+                      {i > 0 && <Arrow />}
+                      <Step {...s} />
+                    </Fragment>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+
+          // Literature/curriculum verticals (e.g. WP#9 Cálculo): não tem
+          // bronze/silver/gold sobre microdados — é revisão sistemática
+          // standalone. Usamos o mesmo Step renderer mas com semântica
+          // adaptada: source = currículos/documentos analisados, silver =
+          // séries/triangulação, gold = artigo final.
+          if (v.kind === 'literature') {
+            const litSteps = [
+              { label: v.source_label,
+                files: v.source_files,
+                rows:  v.source_rows,
+                tier:  'bronze' },
+              { label: v.silver_label,
+                rows:  v.silver_rows,
+                tier:  'silver' },
+              { label: v.gold_label,
+                bytes: v.gold_bytes,
+                rows:  v.gold_rows,
+                tier:  'gold' },
+            ].filter((s) => (s.bytes ?? 0) > 0 || (s.files ?? 0) > 0 || (s.rows ?? 0) > 0);
+            return (
+              <div key={k} className="bigdata-pipeline">
+                <div className="bigdata-pipeline-head">
+                  <span className="kicker">{verticalLabel[k] || k}</span>
+                </div>
+                <div className="bigdata-pipeline-row">
+                  {litSteps.map((s, i) => (
                     <Fragment key={s.label}>
                       {i > 0 && <Arrow />}
                       <Step {...s} />

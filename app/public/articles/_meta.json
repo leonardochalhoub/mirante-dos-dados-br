@@ -1,5 +1,5 @@
 {
-  "manifest_built_at": "2026-04-28T19:29:35.379Z",
+  "manifest_built_at": "2026-04-29T03:43:08.262Z",
   "articles": {
     "bolsa-familia-municipios": {
       "tex_last_edited": "2026-04-28T00:31:49-03:00",
@@ -9,9 +9,17 @@
       "tex_last_edited": "2026-04-27T09:57:34-03:00",
       "tex_last_sha": "ef5af64"
     },
+    "calculo-ensino-medio-internacional": {
+      "tex_last_edited": "2026-04-28T23:25:46-03:00",
+      "tex_last_sha": "a78bd25"
+    },
     "compile-stamp": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",
       "tex_last_sha": "dda3e6e"
+    },
+    "cruzado-1986-imprensa": {
+      "tex_last_edited": "2026-04-28T22:44:49-03:00",
+      "tex_last_sha": "fbfc56b"
     },
     "emendas-parlamentares": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",
@@ -28,6 +36,10 @@
     "finops-plataforma-dados-publicos": {
       "tex_last_edited": "2026-04-28T12:21:34-03:00",
       "tex_last_sha": "bda5adc"
+    },
+    "rais-bem-covid": {
+      "tex_last_edited": "2026-04-28T22:44:49-03:00",
+      "tex_last_sha": "fbfc56b"
     },
     "rais-fair-lakehouse": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",

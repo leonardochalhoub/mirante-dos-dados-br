@@ -23,6 +23,11 @@ const VERTICALS = [
   { to: '/incontinencia-urinaria', label: 'Incontinência Urinária', goldTable: 'uropro_estados_ano',       defaultTag: 'v1', firstPublished: '2026-04-25T15:26:34-03:00' },
   { to: '/rais',                   label: 'RAIS — Vínculos Públicos', goldTable: 'rais_estados_ano',       defaultTag: 'v1', firstPublished: '2026-04-25T17:00:00-03:00' },
   { to: '/finops',                 label: 'FinOps · custo da plataforma', goldTable: 'finops_daily_spend', defaultTag: 'v1', firstPublished: '2026-04-28T00:00:00-03:00' },
+  // Cálculo no Ensino Médio é um Working Paper standalone (revisão sistemática
+  // + comparada curricular, sem pipeline bronze/silver/gold). `goldTable: null`
+  // → tagFor() devolve `defaultTag`. firstPublished = data do commit a78bd25
+  // (WP#9 v2.0).
+  { to: '/calculo',                label: 'Cálculo no Ensino Médio',  goldTable: null,                     defaultTag: 'v2', firstPublished: '2026-04-28T23:25:00-03:00' },
 ].sort((a, b) => a.firstPublished.localeCompare(b.firstPublished));
 
 // Format ISO datetime as "24/abr/2026 · 11h47 BRT".
