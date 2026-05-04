@@ -23,6 +23,10 @@ const VERTICALS = [
   { to: '/incontinencia-urinaria', label: 'Incontinência Urinária', goldTable: 'uropro_estados_ano',       defaultTag: 'v1', firstPublished: '2026-04-25T15:26:34-03:00' },
   { to: '/rais',                   label: 'RAIS — Vínculos Públicos', goldTable: 'rais_estados_ano',       defaultTag: 'v1', firstPublished: '2026-04-25T17:00:00-03:00' },
   { to: '/finops',                 label: 'FinOps · custo da plataforma', goldTable: 'finops_daily_spend', defaultTag: 'v1', firstPublished: '2026-04-28T00:00:00-03:00' },
+  // ClaudeOps: auto-observabilidade do uso de Claude Code. Sem gold table —
+  // a fonte é o ccusage local sobre ~/.claude/projects/. `goldTable: null`
+  // → tagFor() devolve `defaultTag`.
+  { to: '/claude-ops',             label: 'Claude Code · custo de uso',   goldTable: null,                 defaultTag: 'v1', firstPublished: '2026-05-04T13:00:00-03:00' },
   // Cálculo no Ensino Médio é um Working Paper standalone (revisão sistemática
   // + comparada curricular, sem pipeline bronze/silver/gold). `goldTable: null`
   // → tagFor() devolve `defaultTag`. firstPublished = data do commit a78bd25

@@ -1,5 +1,5 @@
 {
-  "manifest_built_at": "2026-04-29T04:31:34.885Z",
+  "manifest_built_at": "2026-05-04T16:09:00.884Z",
   "articles": {
     "bolsa-familia-municipios": {
       "tex_last_edited": "2026-04-28T00:31:49-03:00",
@@ -10,8 +10,8 @@
       "tex_last_sha": "ef5af64"
     },
     "calculo-ensino-medio-internacional": {
-      "tex_last_edited": "2026-04-28T23:25:46-03:00",
-      "tex_last_sha": "a78bd25"
+      "tex_last_edited": "2026-04-29T15:16:10-03:00",
+      "tex_last_sha": "cda40fe"
     },
     "compile-stamp": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",

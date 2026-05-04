@@ -7,6 +7,7 @@ import Emendas from './routes/Emendas';
 import UroPro from './routes/UroPro';
 import Rais from './routes/Rais';
 import FinOps from './routes/FinOps';
+import ClaudeOps from './routes/ClaudeOps';
 import Calculo from './routes/Calculo';
 import NotFound from './routes/NotFound';
 
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/incontinencia-urinaria"      element={<UroPro />} />
         <Route path="/rais"                        element={<Rais />} />
         <Route path="/finops"                      element={<FinOps />} />
+        <Route path="/claude-ops"                  element={<ClaudeOps />} />
         <Route path="/calculo"                     element={<Calculo />} />
         <Route path="*"                            element={<NotFound />} />
       </Route>

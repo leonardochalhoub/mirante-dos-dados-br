@@ -6,7 +6,11 @@ dist/
 *.log
 
 # Vite copies these from /data/gold at prebuild — source of truth lives there.
-app/public/data/
+app/public/data/*
+# Exception: claude_usage.json comes from local ccusage (~/.claude/projects/),
+# not from data/gold/. CI can't regenerate it (no access to home dir), so we
+# commit it. The predev/prebuild script refreshes it locally before each build.
+!app/public/data/claude_usage.json
 
 # Python (pipelines)
 __pycache__/
