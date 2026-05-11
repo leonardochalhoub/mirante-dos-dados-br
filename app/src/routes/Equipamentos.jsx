@@ -86,29 +86,11 @@ export default function Equipamentos() {
   useEffect(() => {
     loadGold('gold_equipamentos_estados_ano.json')
       .then((all) => {
-        // FIX dual-flag dedup (silver fix 6f4e1ca, ainda não materializado
-        // no gold publicado). O gold atual ainda traz total_avg = sus + priv,
-        // o que double-conta máquinas dual-flagged (mesma unidade física
-        // declarada como SUS-disponível e Priv-disponível). Aplicamos o
-        // dedup aqui no client-side como aproximação conservadora:
-        //   total_avg ≈ MAX(sus_total_avg, priv_total_avg) por (UF, key, ano).
-        // sus_total_avg e priv_total_avg ficam intactos (são subconjuntos
-        // que podem incluir dual-flagged). Quando o silver re-rodar em
-        // produção, esta override fica idempotente: no gold corrigido
-        // total_avg ≤ sus + priv, então MAX é o próprio total_avg.
-        // Vide ARCHITECTURE.md ADR-014 e WP #6 v2 §4.3.
-        const filtered = all
-          .filter((r) => r.ano >= MIN_YEAR)
-          .map((r) => {
-            const sus  = r.sus_total_avg  || 0;
-            const priv = r.priv_total_avg || 0;
-            const dedup = Math.max(sus, priv);
-            // Só sobrescreve se sus+priv > MAX (sinal de dual-flag inflado);
-            // se total_avg já era ≤ MAX, mantém (gold já corrigido).
-            return r.total_avg > dedup
-              ? { ...r, total_avg: dedup, _dedup_applied: true }
-              : r;
-          });
+        // Silver fix 6f4e1ca + gold sync 4d47d37/08df2b2 já estão em produção:
+        // total_avg = soma de GREATEST(qt_sus, qt_priv) por (CNES, mês) e
+        // overlap dual-flag observado = 0,0 % (vide WP #6 §sub:dedup). Confiamos
+        // no total_avg do gold direto — não há mais double-count a remover.
+        const filtered = all.filter((r) => r.ano >= MIN_YEAR);
         setRows(filtered);
         const last = Math.max(...filtered.map((r) => r.ano));
         setYear(String(last));
@@ -249,9 +231,9 @@ export default function Equipamentos() {
       <ArticleSection />
 
       <div className="kpiRow" data-export-id="equipamentos-kpis">
-        <KpiCard label={`Total · ${kpis.y ?? '—'}`}             value={fmtInt(kpis.total)} sub="unidades físicas estimadas (deduped)" color={theme === 'dark' ? '#60a5fa' : '#1d4ed8'} />
-        <KpiCard label={`SUS · ${kpis.y ?? '—'}`}               value={fmtInt(kpis.sus)}   sub={`${fmtPct(kpis.susShare)} disponível ao SUS`} color={SETORES.sus.color} />
-        <KpiCard label={`Privado · ${kpis.y ?? '—'}`}           value={fmtInt(kpis.priv)}  sub={`${fmtPct(kpis.privShare)} disponível ao privado`} color={SETORES.priv.color} />
+        <KpiCard label={`Total · ${kpis.y ?? '—'}`}             value={fmtInt(kpis.total)} sub="unidades físicas (deduped no silver)" color={theme === 'dark' ? '#60a5fa' : '#1d4ed8'} />
+        <KpiCard label={`SUS · ${kpis.y ?? '—'}`}               value={fmtInt(kpis.sus)}   sub={`${fmtPct(kpis.susShare)} do total`} color={SETORES.sus.color} />
+        <KpiCard label={`Privado · ${kpis.y ?? '—'}`}           value={fmtInt(kpis.priv)}  sub={`${fmtPct(kpis.privShare)} do total`} color={SETORES.priv.color} />
         <KpiCard label={`Estabelecimentos · ${kpis.y ?? '—'}`}  value={fmtInt(kpis.cnes)}  sub="com pelo menos 1 unidade" color={theme === 'dark' ? '#34d399' : '#059669'} />
         {kpis.prevYear != null && kpis.yoyTotal != null && (
           <KpiCard
@@ -268,14 +250,13 @@ export default function Equipamentos() {
         margin: '-2px 2px 14px 2px', padding: '0 2px',
       }}>
         <b>Sobre o "Total"</b>: cada CNES pode declarar a mesma máquina física
-        em duas linhas (uma <code>IND_SUS=1</code>, outra <code>IND_SUS=0</code>) quando
-        ela é disponível a ambos os setores. O total exibido aqui aplica{' '}
-        <code>max(sus, priv)</code> por <code>(UF, equipamento, ano)</code> para
-        aproximar o número físico, em vez de somar as duas linhas (que
-        double-conta dual-flagged). As <i>shares</i> SUS e Privado podem,
-        portanto, somar &gt;100% — uma máquina dual-flagged é 100%
-        disponível ao SUS <i>e</i> 100% ao privado simultaneamente.
-        Vide WP #6 §4.3 e ADR-014.
+        em duas linhas (<code>IND_SUS=1</code> e <code>IND_SUS=0</code>) quando ela é
+        disponível a ambos os setores. O <i>silver</i> já corrige isso aplicando{' '}
+        <code>GREATEST(qt_sus, qt_priv)</code> por <code>(CNES, mês, equipamento)</code>,
+        de modo que o <code>total_avg</code> publicado é o número físico canônico.
+        O <i>overlap</i> dual-flag observado no gold 2025 é <b>0,0%</b> — portanto{' '}
+        <code>sus + priv = total</code> e as <i>shares</i> somam 100%.
+        Vide WP #6 §sub:dedup.
       </div>
 
       <div className="layout">
