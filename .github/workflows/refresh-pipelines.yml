@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       job_name:
-        description: "Which job to trigger (mirante · refresh PBF, ...)"
+        description: "Which job to trigger (DAB-deployed name from pipelines/databricks.yml)"
         required: true
-        default: "mirante · refresh PBF (download → DLT → export)"
+        default: "refresh PBF (ingest → bronze → silver → gold → export)"
         type: string
 
   schedule:
@@ -40,7 +40,7 @@ jobs:
       - name: Trigger Databricks job + wait
         id: run_job
         env:
-          JOB_NAME: ${{ github.event.inputs.job_name || 'mirante · refresh PBF (download → DLT → export)' }}
+          JOB_NAME: ${{ github.event.inputs.job_name || 'refresh PBF (ingest → bronze → silver → gold → export)' }}
         run: |
           set -euo pipefail
           # Find job_id by name (DAB-deployed jobs use the names from databricks.yml)
