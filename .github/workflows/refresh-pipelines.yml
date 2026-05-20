@@ -48,13 +48,15 @@ jobs:
           JOB_ID=$(databricks jobs list --output JSON | python3 -c "import json,sys,os; target=os.environ['JOB_NAME']; data=json.load(sys.stdin); jobs=data if isinstance(data,list) else data.get('jobs',[]); m=[j for j in jobs if j.get('settings',{}).get('name')==target]; sys.exit(f'Job not found: {target}') if not m else print(m[0]['job_id'])")
           echo "Triggering job_id=$JOB_ID ($JOB_NAME)"
 
-          # Run-now and poll until terminal state
-          RUN_ID=$(databricks jobs run-now --job-id "$JOB_ID" --output JSON \
+          # Run-now and poll until terminal state.
+          # Databricks CLI ≥0.240: JOB_ID/RUN_ID are positional args (no --job-id/--run-id flags).
+          # --no-wait keeps run-now from blocking until terminal — we poll below ourselves.
+          RUN_ID=$(databricks jobs run-now "$JOB_ID" --no-wait --output json \
             | python3 -c "import json,sys; print(json.load(sys.stdin)['run_id'])")
           echo "run_id=$RUN_ID" | tee -a "$GITHUB_OUTPUT"
 
           while true; do
-            STATE=$(databricks jobs get-run --run-id "$RUN_ID" --output JSON \
+            STATE=$(databricks jobs get-run "$RUN_ID" --output json \
               | python3 -c "import json,sys; r=json.load(sys.stdin); s=r.get('state',{}); print(s.get('life_cycle_state',''), s.get('result_state',''))")
             LC=$(echo "$STATE" | awk '{print $1}')
             RS=$(echo "$STATE" | awk '{print $2}')
