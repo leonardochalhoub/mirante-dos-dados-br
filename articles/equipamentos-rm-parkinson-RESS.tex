@@ -188,7 +188,7 @@ forte gradiente regional: 17 das 27 unidades federativas situaram-se
 abaixo da mediana, e Acre (5,7), Roraima (8,1) e Amazonas (8,6) abaixo
 de metade desse referencial. O índice de Kakwani foi $+0{,}183$
 (IC95\% 0,12\textendash 0,24), indicando distribuição regressiva
-pró-rico; o índice de necessidade variou cerca de nove vezes entre os
+pró-rico; o índice de necessidade variou cerca de oito vezes entre os
 extremos. \textbf{Conclusão:} a principal barreira ao diagnóstico
 diferencial da DP no Brasil não é o volume agregado de equipamentos,
 mas a iniquidade espacial do acesso, que tende a se agravar com o
@@ -304,14 +304,16 @@ persistência usa exclusivamente tabelas Delta Lake (sem \textit{Delta
 Live Tables} e sem \textit{views} materializadas), o que provê
 transações ACID, evolução de esquema e versionamento com ``viagem no
 tempo'' (\textit{time travel}). A execução ocorre na plataforma
-Databricks, com governança e armazenamento pelo Unity Catalog
-(\textit{Volumes}); a orquestração é declarada como código por meio de
-\textit{Databricks Asset Bundles}, em que um \textit{job} em cascata
-encadeia \texttt{ingestão $\rightarrow$ bronze $\rightarrow$ silver
+\textbf{Databricks Free Edition} (camada gratuita do Databricks), com
+governança e armazenamento pelo Unity Catalog (\textit{Volumes}); a
+orquestração é declarada como código por meio de \textit{Databricks
+Asset Bundles}, em que um \textit{job} em cascata encadeia
+\texttt{ingestão $\rightarrow$ bronze $\rightarrow$ silver
 $\rightarrow$ gold $\rightarrow$ export}, com dependências explícitas
-que garantem a ordem de materialização. O código é distribuído sob
-licença aberta e pode ser reproduzido por terceiros na edição gratuita
-do Databricks, sem custo marginal.
+que garantem a ordem de materialização. Por usar exclusivamente a
+\textbf{Databricks Free Edition} e ferramentas de código aberto (Apache
+Spark, Delta Lake, PySpark), o \textit{pipeline} é integralmente
+reproduzível por terceiros sem custo de licença ou de infraestrutura.
 
 \textbf{Camada bronze (dado bruto).} A \textit{bronze} preserva o
 registro fiel da fonte: os arquivos mensais por UF, no formato
@@ -540,7 +542,7 @@ indica maior densidade.}
 ordenada por valor per capita. Brasil, 2025}
 \label{fig:ranking}
 \par\noindent{\small Fonte: CNES/DATASUS e IBGE. Linha de referência:
-mediana da OCDE 2021 ($\approx$17/Mhab).}
+mediana da OCDE ($\approx$19,4/Mhab).}
 \end{figure}
 
 A iniquidade, embora persistente, recuou: o coeficiente de variação
@@ -560,12 +562,10 @@ $K = +0{,}183$ (IC \textit{bootstrap} 95\%: 0,124\textendash 0,241),
 confirmando distribuição regressiva pró-rico; estendido às quatro
 modalidades, $K = +0{,}141$ (0,082\textendash 0,198). O índice de
 necessidade (Tabela~\ref{tab:necessidade}) mostrou pressão relativa
-cerca de nove vezes maior em Roraima (1.435 pacientes estimados por
-aparelho) e Acre (1.318) do que no Distrito Federal (152) ou no Rio de
-Janeiro (208). \textit{A magnitude dessa discrepância indica que a
-subdotação de algumas UF não é incremental, mas estrutural: a pressão
-relativa nas regiões mais desassistidas chega a ser nove vezes a do
-Distrito Federal.}
+cerca de oito vezes maior no Acre (584 pacientes estimados de DP por
+aparelho) e em Roraima (406) do que no Distrito Federal (72) ou em
+Rondônia (109). \textit{A magnitude dessa discrepância indica que a
+subdotação de algumas UF não é incremental, mas estrutural.}
 
 \begin{table}[htbp]
 \centering
@@ -577,20 +577,20 @@ extremas. Brasil, 2025}
 \textbf{UF} & \textbf{Casos est.\ de DP} & \textbf{RM} & \textbf{DP/RM} \\
 \midrule
 \multicolumn{4}{l}{\textit{Maior pressão (déficit relativo)}} \\
-Roraima (RR)          & 2.870  & 2   & 1.435 \\
-Acre (AC)             & 2.636  & 2   & 1.318 \\
-Maranhão (MA)         & 22.176 & 22  & 1.008 \\
-Pará (PA)             & 28.578 & 36  &   794 \\
-Amazonas (AM)         & 14.190 & 19  &   747 \\
+Acre (AC)                   &  2.918 &   5 & 584 \\
+Roraima (RR)                &  2.438 &   6 & 406 \\
+Amazonas (AM)               & 14.261 &  37 & 385 \\
+Ceará (CE)                  & 30.587 &  92 & 332 \\
+Rio Grande do Norte (RN)    & 11.402 &  36 & 317 \\
 \midrule
 \multicolumn{4}{l}{\textit{Menor pressão (folga relativa)}} \\
-Distrito Federal (DF) &  9.900 &  65 &   152 \\
-Rio de Janeiro (RJ)   & 51.480 & 247 &   208 \\
-Paraná (PR)           & 35.310 & 158 &   223 \\
-Rio Grande do Sul (RS)& 33.495 & 149 &   225 \\
-Santa Catarina (SC)   & 22.770 &  89 &   256 \\
+Distrito Federal (DF)       &  9.890 & 138 &  72 \\
+Rondônia (RO)               &  5.781 &  53 & 109 \\
+Rio de Janeiro (RJ)         & 56.838 & 466 & 122 \\
+Mato Grosso (MT)            & 12.849 &  94 & 137 \\
+Tocantins (TO)              &  5.237 &  38 & 138 \\
 \midrule
-\textbf{Brasil}       & \textbf{703.788} & \textbf{3.900} & \textbf{180} \\
+\textbf{Brasil}       & \textbf{704.290} & \textbf{3.900} & \textbf{181} \\
 \bottomrule
 \end{tabular}
 \par\noindent{\small Fonte: CNES/DATASUS (2025) e IBGE. Casos estimados
@@ -617,7 +617,7 @@ de interiorização da alta complexidade. Trata-se de uma expressão
 local da ``lei dos cuidados inversos'', segundo a qual a oferta de bons
 cuidados tende a variar inversamente à necessidade da população
 atendida\,[\ref{ref:hart}]; a concentração de RM nas UF de maior IDH,
-contraposta à maior pressão de necessidade nas UF amazônicas,
+contraposta à maior pressão de necessidade nas UF do Norte e Nordeste,
 materializa essa lei na capacidade diagnóstica para a DP.
 
 A iniquidade aqui documentada não é um fenômeno isolado da
@@ -738,7 +738,7 @@ referência.
 Em conclusão, entre 2013 e 2025 a densidade média nacional de RM
 alcançou a mediana da OCDE, mas essa média esconde uma iniquidade
 regional estrutural, regressiva pró-rico e com pressão de necessidade
-até nove vezes maior nas regiões mais desassistidas. Os resultados
+até oito vezes maior nas regiões mais desassistidas. Os resultados
 sustentam fortemente a existência dessa iniquidade espacial; as
 intervenções propostas \textemdash{} padronização de protocolo,
 capacitação e telerradiologia \textemdash{} são recomendações

@@ -278,7 +278,7 @@ def fig_density_oecd():
         series[short] = (xs, ys)
 
     # OCDE refs
-    oecd_refs = {'RM': 17, 'CT': 28}
+    oecd_refs = {'RM': 19.4, 'CT': 28}
     for short, val in oecd_refs.items():
         ax.axhline(val, color=PALETTE_MIRANTE["neutro_soft"],
                    linestyle="--", linewidth=0.8, alpha=0.7)
@@ -305,7 +305,7 @@ def fig_choropleth_rm():
     den = {r['estado']: r['total_avg']/r['populacao']*1e6
            for r in rm if r['populacao']}
     states = load_brazil_geojson()
-    n_below = sum(1 for v in den.values() if v < 17)
+    n_below = sum(1 for v in den.values() if v < 19.4)
 
     fig, ax = plt.subplots(figsize=(8.5, 10.0))
     fig.subplots_adjust(top=0.86, bottom=0.18, left=0.04, right=0.96)
@@ -315,7 +315,7 @@ def fig_choropleth_rm():
     add_horizontal_colorbar(
         fig, CIVIDIS, norm, x=0.12, y=0.13, w=0.50,
         label="RM por milhão de habitantes",
-        ref_value=17, ref_label="Mediana OCDE = 17",
+        ref_value=19.4, ref_label="Mediana OCDE = 19,4",
     )
     editorial_title(ax,
         title=f"{n_below} das 27 UFs estão abaixo da mediana OCDE em capacidade de RM",
@@ -412,7 +412,7 @@ def fig_top_uf_rm():
         key=lambda t: t[2])  # ascending — menor embaixo? não, vamos inverter pra plot
     fig, ax = plt.subplots(figsize=GOLDEN_FIGSIZE_TALL)
     fig.subplots_adjust(top=0.88, bottom=0.10, left=0.10, right=0.95)
-    OCDE = 17.0
+    OCDE = 19.4
     labels = [t[0] for t in items]
     vals = [t[2] for t in items]
     colors = [PALETTE_MIRANTE["destaque"] if v < OCDE
@@ -458,7 +458,7 @@ def fig_region_rm():
     names = [n for n, _ in items]
     pms = [v['tot']/v['pop']*1e6 if v['pop'] else 0 for _, v in items]
     tots = [v['tot'] for _, v in items]
-    OCDE = 17.0
+    OCDE = 19.4
     colors = [PALETTE_MIRANTE["destaque"] if p < OCDE
               else PALETTE_MIRANTE["principal"] for p in pms]
     bars = ax.bar(names, pms, color=colors)

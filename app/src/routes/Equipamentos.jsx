@@ -679,15 +679,22 @@ function DocCardWP4() {
         <ArticleTimestamp slug="equipamentos-rm-parkinson" />
       </div>
       <p style={{ marginTop: 6, fontSize: 13.5 }}>
-        <b>"Iniquidade diagnóstica em neuroimagem para Doença de
-        Parkinson no Brasil: análise multidimensional do parque
-        instalado, do federalismo fiscal e do envelhecimento
-        populacional (2013–2025)"</b> — coautoria com <b>Alexandre
-        Maciel Rolim</b> (epidemiologia, revisão clínica e
-        recomendações de protocolo, abr/2026).
+        <b>"Iniquidade regional no acesso à neuroimagem para a doença de
+        Parkinson no Brasil, 2013–2025: estudo ecológico de base
+        nacional"</b> — Leonardo Chalhoub, <b>Alexandre Maciel Rolim</b>,
+        Luis Fernando Kranz e Jefferson Korte (pesquisadores
+        independentes). Versão formatada para submissão ao periódico{' '}
+        <i>Epidemiologia e Serviços de Saúde</i> (RESS), 2026.
       </p>
 
-      <ScoreCard parecer={PARECER_WP4_EQUIPAMENTOS} />
+      <details style={{ margin: '4px 0' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 12, color: 'var(--muted)' }}>
+          Parecer crítico — avaliador externo independente
+        </summary>
+        <div style={{ marginTop: 8 }}>
+          <ScoreCard parecer={PARECER_WP4_EQUIPAMENTOS} />
+        </div>
+      </details>
 
       <WhyQuadruplo />
 
