@@ -40,9 +40,10 @@ export const NIVEL_LABEL = {
   stricto_sensu_doutorado: 'Stricto sensu · Doutorado',
 };
 
-export const LETRA_PONTOS = { A: 3, 'B+': 2.5, B: 2, C: 1, D: 0 };
+export const LETRA_PONTOS = { A: 3, 'A-': 2.75, 'B+': 2.5, B: 2, C: 1, D: 0 };
 export const LETRA_DESCRICAO = {
   A: 'Excelente — passa com folga, próximo do teto do mestrado',
+  'A-': 'Quase excelente — pronto para submissão; faltam apenas ajustes editoriais menores',
   'B+': 'Muito bom — acima da média, passa com mérito',
   B: 'Bom — passa na média',
   C: 'Abaixo — depende de compensação por outros trabalhos',
@@ -313,102 +314,77 @@ export const PARECER_WP3_UROPRO = {
 export const PARECER_WP4_EQUIPAMENTOS = {
   slug:    'equipamentos-rm-parkinson',
   wp_num:  4,
-  artigo_titulo: 'Iniquidade diagnóstica em neuroimagem para Doença de Parkinson no Brasil: análise multidimensional do parque instalado, do federalismo fiscal e do envelhecimento populacional (2013–2025)',
+  artigo_titulo: 'Iniquidade regional no acesso à neuroimagem para a doença de Parkinson no Brasil, 2013–2025: estudo ecológico de base nacional',
   vertical: 'equipamentos',
   nivel: 'stricto_sensu_mestrado',
   scoreType: 'letter',
-  scoreLetra: 'A',
-  scoreOriginal: 8.8,
-  originalLabel: 'v2.1 (lato sensu, abr/2026 — pré-rewrites)',
+  scoreLetra: 'A-',
+  scoreOriginal: null,
+  originalLabel: null,
   originalUrl: null,
-  ultimaAtualizacao: `${HOJE}T19:00 BRT`,
-  versao: '3.1 — reframing financeiro + ML + pedagogia + independência do artigo',
+  avaliador: 'Conselho do Mirante (2ª rodada) — IA Claude Opus 4.8, em 4 lentes (Finanças/Métodos Quantitativos, Engenharia de Dados/Reprodutibilidade, Design/Visualização e Administração/Estratégia)',
+  ultimaAtualizacao: '2026-06-15T18:30 BRT',
+  versao: '4.1 — A− (2ª rodada do Conselho) após reconciliação numérica com o gold pós-dedup',
   resumoCalibragem:
-    'Promovido de B+ (v3.0) para A (v3.1) — primeira atribuição A na ' +
-    'régua mestrado stricto sensu deste programa de pesquisa. A v3.1 ' +
-    'adiciona ao já consolidado v3.0 (multidimensional + salvaguardas + ' +
-    'Kakwani + cross-shock agenda + lab natural): (a) reframing financeiro ' +
-    'central — distribuição é sintoma, não causa; equipamentos pesados ' +
-    'imobilizam capital, paciente não migra em país continental, gap é ' +
-    'resultado de decisões de capital sob custo diferencial; (b) modelo ' +
-    'conceitual NPV formalizado em equação com custo de capital r_i por UF ' +
-    '(referencia explícita Chandra-Skinner 2012 e Finkelstein 2007); (c) 5 ' +
-    'hipóteses falsificáveis (H1 custo de capital diferencial; H2 volume ' +
-    'mínimo viável + threshold populacional; H3 tax expenditure; H4 ' +
-    'paradoxo das emendas como cargo cult de capital visível; H5 hélio e ' +
-    'geografia industrial); (d) Random Forest preditivo + Causal Forest ' +
-    'exploratório com Tabela rf-features (5 features), feature importance ' +
-    'via permutação Strobl 2007, PDP/ICE/SHAP/CATE map agendados; (e) 4 ' +
-    'boxes "Em linguagem simples" (NPV, DiD, Kakwani, RF) implementam ' +
-    'pedagogia rigorosa que torna o artigo acessível a leitor leigo SEM ' +
-    'sacrificar rigor científico — diferencial editorial relevante; (f) ' +
-    'remoção de platform-talk Mirante do corpo do texto — artigo agora ' +
-    'independente e auto-contido (apenas título de série + bibliografia ' +
-    'mantém referência institucional); (g) hyperref colorlinks + xurl ' +
-    'corrigem URLs invisíveis no PDF — agora todas as refs online ' +
-    'aparecem como links azuis clicáveis com data de acesso ABNT; (h) ' +
-    'fig02-architecture redesenhada estilo Databricks blog (cores ' +
-    'metálicas reais bronze/silver/gold, sombras sutis, arrows finas). ' +
-    'Bibliografia 39 → 44. Total 2.765 linhas LaTeX. PARA SUBIR a ' +
-    'doutorado faltam: implementar (não só declarar) wild-cluster ' +
-    'bootstrap + Roth 2022 + cross-shock EC 100/2019; treinar e reportar ' +
-    'Random Forest + Causal Forest com dados reais; peer review formal ' +
-    'em Cad SP ou Lancet Reg Health Am; replicação independente por ' +
-    'terceiros.',
+    'Segunda rodada do Conselho sobre a versão RESS já corrigida. Três das ' +
+    'quatro lentes — Engenharia de Dados (A−), Design (A−) e Administração ' +
+    '(A−) — confirmaram que o bloqueador da 1ª rodada foi sanado de forma ' +
+    'rastreável: Tabela 3 reconciliada com o gold (DF = 138 RM em corpo, ' +
+    'suplementar e narrativa; total nacional 3.900 fechando em três pontos), ' +
+    'figuras fig05/fig08 regeneradas com mediana 19,4 (17 das 27 UF abaixo, ' +
+    'consistente com o texto e a Tabela 2) e total do suplementar corrigido. ' +
+    'A lente Finanças manteve B+, condicionada a três acertos de ' +
+    'arredondamento (a soma das linhas da Tabela S1 dá 3.898/8.001/16.090 vs ' +
+    '3.900/8.000/16.089 no corpo; densidade do DF 46,0 vs 46,1; e ausência de ' +
+    'sensibilidade do Kakwani ao proxy socioeconômico). Consenso do Conselho: ' +
+    'A− — pronto para submissão à RESS, restando apenas ajustes editoriais ' +
+    'menores para o A pleno.',
   utilidadeSocial:
-    'EXTREMAMENTE ÚTIL — utilidade clinicamente concreta + framework ' +
-    'analítico transferível. Beneficiários diretos: (a) Movement Disorders ' +
-    'Society Brazil tem panorama auditável + framework financeiro pra ' +
-    'argumentar com MS; (b) gestores SES regionais (AM, RR, AC, AP, MA) ' +
-    'têm mapas coropléticos + índice de necessidade quantificado pra ' +
-    'advocacy; (c) neurologistas têm benchmark + framework de capital ' +
-    'pra solicitar investimento; (d) jornalismo de saúde tem séries + ' +
-    'narrativa do paradoxo das emendas (cargo cult); (e) CONITEC e ' +
-    'Comissões de Saúde têm evidência rastreável + 5 hipóteses ' +
-    'falsificáveis; (f) IPEA, IBGE, SES ganham framing demográfico ' +
-    'antecipativo; (g) academia de Saúde Coletiva ganha 4 boxes ' +
-    'pedagógicos reusáveis (DiD, Kakwani, NPV, Random Forest) que podem ' +
-    'ser citados em ensino. Cruzamento ELSI-Brazil 1,25mi até 2060 + NPV ' +
-    'model + RF feature importance transforma agregação nacional em ' +
-    'projeção UF-by-UF auditável e teoricamente fundamentada.',
+    'ALTA E ACIONÁVEL. Beneficiários diretos: (a) Secretarias Estaduais de ' +
+    'Saúde do Norte/Nordeste — Acre, Roraima, Amazonas, Ceará e Rio Grande ' +
+    'do Norte são as UF de maior pressão de necessidade (até 584 pacientes ' +
+    'estimados de DP por aparelho de RM, contra 72 no DF) —, com o índice ' +
+    'traduzível para audiência pública nos Conselhos Estaduais de Saúde; (b) ' +
+    'CONITEC, CONASS (Câmara Técnica de Alta Complexidade) e Comissões de ' +
+    'Saúde, com evidência rastreável da iniquidade regressiva pró-rico ' +
+    '(Kakwani +0,183); (c) Movement Disorders Society Brazil, com panorama ' +
+    'auditável para embasar protocolo mínimo de RM-DP no SUS; (d) gestores e ' +
+    'o Planejamento Regional Integrado / PGASS; (e) jornalismo de dados, com ' +
+    'mapa coroplético e séries reprodutíveis; (f) academia de Saúde Coletiva, ' +
+    'com a distinção desigualdade × iniquidade operacionalizada (Kakwani + ' +
+    'lei dos cuidados inversos de Hart). O índice de necessidade transforma a ' +
+    'iniquidade num número de gestão, não numa abstração.',
   pontosFortes: [
-    'v3.1 com 2.765 linhas LaTeX (~+50 páginas em relação a v2.1) — análise multidimensional + reframing financeiro + ML + pedagogia',
-    '**Reframing financeiro central**: distribuição como sintoma, equação NPV formalizada com custo de capital r_i por UF, magnitudes empíricas (CAPEX R$ 3-8M, OPEX 8-12% a.a., hélio R$ 45-90/L, SUS-AIH R$ 268,75 vs privado R$ 800-1500)',
-    '**5 hipóteses falsificáveis (H1-H5)** com estratégias empíricas concretas: custo de capital diferencial via spread STN, volume mínimo viável via RDD com threshold populacional, tax expenditure via SICONFI×CNES, paradoxo das emendas via SIOPS painel, hélio via survey de operadores',
-    '**Random Forest + Causal Forest exploratórios**: Tabela rf-features (5 features socioeconômicas+fiscais), feature importance via permutação Strobl 2007, PDP/ICE/SHAP/dendrograma hierárquico/CATE map por UF agendados como dados suplementares',
-    '**4 boxes "Em linguagem simples"** (NPV, DiD, Kakwani, Random Forest): rigor científico mantido COM acessibilidade a leitor leigo — diferencial editorial raro em literatura de Saúde Coletiva brasileira',
-    'WHY quádruplo (clínico+político+demográfico+epidemiológico) embebido SUBSTANTIVAMENTE na introdução — não como Sinek-speak',
-    'Salvaguardas metodológicas declaradas (subsec própria, 5 itens): SUTVA + staggered DiD, Roth 2022 parallel trends, wild-cluster bootstrap p/ N=27, CI partial reproducibility, cividis non-neutrality',
-    'Kakwani K=+0,183 (IC bootstrap [+0,124; +0,241]) + índice de necessidade DP/RM com 9× variação entre extremos (RR 1.435 vs DF 152 pacientes/aparelho)',
-    'DiD 2x2 + TWFE clusterizado sobre EC 86/2015 com null/marginal HONESTO + interpretação substantiva (crowding-out, capital visível vs invisível)',
-    'Framing "Brasil como laboratório natural" para pesquisa em política de capital diagnóstico — múltiplos cutoffs constitucionais, heterogeneidade calibrada das 27 UFs, triangulação CNES × SIH-AIH × Portal Transparência',
-    'Artigo INDEPENDENTE e auto-contido — sem platform-talk Mirante no corpo. Pode ser submetido a qualquer periódico sem reescrita institucional',
-    'Bibliografia expandida 30 → 44 com URLs + "Acesso em DD/MM/YYYY HH:MM (BRT)" em todas refs online (padrão ABNT++); URLs aparecem como links azuis clicáveis no PDF (hyperref colorlinks + xurl)',
-    'fig02-architecture redesenhada estilo Databricks blog (cores metálicas reais, sombras, arrows finas) — qualidade visual editorial',
-    '13 figuras vetoriais matplotlib em identidade visual editorial Mirante (Lato + paleta hierárquica + golden ratio + halo + leader lines + adjustText + polylabel)',
-    '2 mapas coropléticos por UF — RM/Mhab + densidade combinada neuroimagem-PD',
-    'Coautoria engenheiro+clínico (Rolim+Chalhoub) integrada substantivamente',
+    'Consistência figura–texto–tabela completa após a correção: fig05/fig08 e o corpo convergem em "17 das 27 UF abaixo da mediana OCDE de 19,4"; DF = 138 RM alinhado em Tabela 3, suplementar e narrativa; total nacional 3.900 fecha em três pontos (lentes Design e Engenharia de Dados)',
+    'Tabela 3 internamente consistente: os dez pares casos/RM conferem ao inteiro (AC 2918/5 = 584; DF 9890/138 = 72); razão extrema 8,1× correta e propagada em Resumo, Resultados e Conclusão (lente Finanças)',
+    '**Kakwani K = +0,183** (IC bootstrap 0,124–0,241, não cruza zero) com justificativa Kakwani-vs-Gini e referência seminal (Wagstaff 1991); K combinado +0,141 interpretado corretamente como moderação pela câmara gama (94% SUS)',
+    '**Proveniência honesta**: bronze-bruto (316M registros) vs gold-derivada explicitada no corpo e no suplementar; medallion correta (Raw→bronze→silver→gold; export = serialização); GENERATED_FROM versiona commit + SHA do gold — reprodutibilidade acima do padrão da saúde coletiva nacional',
+    'Caveat ecológico e QT_EXIST vs QT_USO com direção do viés correta; distinção desigualdade × iniquidade operacionalizada (Wagstaff) + lei dos cuidados inversos (Hart) estrutural',
+    'Recomendações ancoradas em instrumentos reais do SUS (regiões de saúde, PGASS, redes de atenção, telerradiologia, referência/contrarreferência); foco estratégico correto para a RESS (lente Administração)',
+    'Conformidade formal RESS plena: ~3.487 palavras, resumo estruturado ~220, 5 descritores DeCS, 28 referências Vancouver com DOI, exatamente 5 elementos (2 figuras + 3 tabelas), IMRaD, ética e CRediT',
   ],
   problemasParaNotaPlena: [
-    'A é teto da régua mestrado — o trabalho está exatamente no patamar máximo do nível atual. Para subir a doutorado, ver problemasParaSubirNivel.',
-    'Salvaguardas robustez DECLARADAS mas ainda não IMPLEMENTADAS: wild-cluster bootstrap, Roth 2022 parallel trends, replicação cross-shock EC 100',
-    'Random Forest e Causal Forest descritos como agenda — falta o pipeline efetivamente treinado com resultados numéricos reportados (esperado em v3.2 ou v4.0)',
-    'CNES × SIH-AIH (cadastro × utilização efetiva) declarado mas não implementado',
+    'Arredondamento no suplementar: a soma das linhas por UF da Tabela S1 dá 3.898 (RM), 8.001 (CT) e 16.090 (câmara gama), divergindo dos números redondos do corpo (3.900 / 8.000 / 16.089) — resolvido com nota de arredondamento; convém alinhar de vez (Finanças, Engenharia)',
+    'Densidade do DF: corpo e figura usam 46,1/Mhab; a Tabela S1 exibe 46,0 — unificar o critério de arredondamento (Finanças, Design)',
+    'Kakwani sem teste de sensibilidade ao proxy socioeconômico — recalcular substituindo o IDH por renda domiciliar per capita estadual e reportar em duas linhas (Finanças)',
+    'Separador decimal das figuras em ponto (5.7) e não vírgula (5,7) — padrão ABNT/SciELO; trivial no script de geração (Design)',
+    'Tabela OCDE sem coluna/nota de ano por país; caso-limite de GO e SP ambos em 19,4 precisa de convenção explícita (Design)',
+    'Databricks Free Edition citado duas vezes em §2.2 (a 2ª menção é redundante); ADRs e versão do Databricks Runtime sem link/especificação verificável no artigo (Engenharia)',
+    'Paradoxo regulatório (os critérios MDS presumem neuroimagem; onde ela falta, o padrão-ouro torna-se inaplicável) está na Discussão mas ausente da Conclusão — espelhá-lo na conclusão eleva o registro político (Administração)',
+    'Sensibilidade etária da proxy 0,33% não quantificada — UF jovens (AC, RR) puxam o índice em direção contrária; um parágrafo descritivo transforma a limitação em contribuição (Administração, Finanças)',
   ],
   problemasParaSubirNivel: [
-    'PROMOÇÃO PRA DOUTORADO exige: implementar (não só declarar) wild-cluster bootstrap + Roth 2022 + cross-shock EC 100 + IV pra cross-vertical PBF',
-    'Treinar Random Forest com dataset real e reportar feature importance + Causal Forest com CATE por UF mapeado — transformar agenda em resultado',
-    'Peer review formal: submeter a Cad Saúde Pública (acesso aberto, CONITEC) ou Lancet Reg Health Americas (escopo internacional)',
-    'Replicação independente por terceiros — fork do repositório + execução end-to-end + reprodução do gold seria validação externa decisiva',
-    'Implementar pelo menos UMA das 5 hipóteses falsificáveis (H1-H5) com dados — preferencialmente H4 (paradoxo das emendas via SIOPS painel) que é a de menor custo de implementação',
+    'Cruzar o cadastro (QT_EXIST) com produção efetiva (SIH-AIH / APAC de neuroimagem) para calibrar o viés cadastrado-vs-operacional',
+    'Análise intra-estadual usando município e Região de Saúde (REGSAUDE, já presente no CNES) — gradiente capital-interior em PA/AM, artigo co-assinável por uma SES',
+    'Depositar o dataset gold no Zenodo com DOI próprio (CC-BY) — citabilidade independente e credencial de reprodutibilidade decisiva',
+    'Transformar a recomendação de protocolo mínimo de RM-DP em posicionamento da Movement Disorders Society Brazil — de sugestão de pesquisadores independentes para posição de sociedade de especialidade',
   ],
   proximosPassos: [
-    'Esta semana: DOI Zenodo + abstract em inglês — citabilidade internacional (40min de trabalho, abre porta pra Cad SP / Lancet Reg Health Am)',
-    'Próximas 2 semanas: Implementar wild-cluster bootstrap (boottest/wildboottest) sobre TWFE existente — primeira ação concreta do roadmap declarado',
-    'Próximo mês: Treinar Random Forest com 5 features (PIB pc, PBF, RP6 pc, idade mediana, dívida/RCL) e reportar feature importance + identificar UFs com resíduos atípicos como contribuição empírica nova',
-    'Próximos 2 meses: Implementar event-study TWFE com leads/lags ±5 anos sobre EC 86 + teste Roth 2022 → fecha agenda de robustez declarada',
-    '6 meses: Cross-shock EC 100/2019 + estimadores Callaway-Sant\'Anna; submeter v4.0 a Cad Saúde Pública',
-    'Versão expandida (Seção Política + Causal Forest CATE map) para Journal of Public Health Policy ou Lancet Reg Health Am',
+    'Ajuste de ~30 min pré-submissão: espelhar o paradoxo regulatório na Conclusão; unificar a densidade do DF (46,0 vs 46,1)',
+    'Recalcular o Kakwani com renda per capita estadual como teste de sensibilidade (2 linhas no Métodos)',
+    'Uniformizar o separador decimal das figuras para vírgula; adicionar ano por país na tabela OCDE; condensar a 2ª menção ao Databricks Free Edition',
+    'Depositar o gold no Zenodo (CC-BY) antes de submeter — fortalece a credencial de reprodutibilidade',
+    'Submeter à RESS; backups Revista Brasileira de Epidemiologia e Saúde em Debate; nota técnica executiva de 2 páginas para SES-AC/RR/AM/CE/RN e CONASS',
   ],
 };
 

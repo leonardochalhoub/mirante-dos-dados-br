@@ -689,7 +689,7 @@ function DocCardWP4() {
 
       <details style={{ margin: '4px 0' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 12, color: 'var(--muted)' }}>
-          Parecer crítico — avaliador externo independente
+          Parecer do Conselho do Mirante (avaliação externa)
         </summary>
         <div style={{ marginTop: 8 }}>
           <ScoreCard parecer={PARECER_WP4_EQUIPAMENTOS} />
