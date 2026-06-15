@@ -21,7 +21,7 @@
 \usepackage{newtxtext}
 \usepackage{newtxmath}
 \usepackage[section]{placeins}
-\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=3cm,right=3cm]{geometry}
 \usepackage{setspace}
 \usepackage{indentfirst}
 \usepackage{titlesec}
@@ -65,210 +65,53 @@
 \begin{document}
 
 % ---------- CAPA ---------------------------------------------------------
-\begin{titlepage}
-  \begin{center}
-    \vspace*{1.5cm}
-    {\small\textsc{Mirante dos Dados \quad\textbar\quad Working Paper n. 2}}\\
-    {\small Versão 2.0 \textemdash{} Abril de 2026}\\[2pt]
-    {\footnotesize Compilada em \COMPILESTAMP\ \textbullet\ \texttt{\COMPILESHA}}
+\begin{center}{\LARGE\bfseries Três regimes, um programa: documentação, identificação causal e equidade do Bolsa Família\par}\end{center}
 
-    \vfill
+\begin{center}{\large\itshape Three regimes, one program: documentation, causal identification, and equity of Bolsa Família\par}\end{center}
 
-    {\LARGE\bfseries
-     TRÊS REGIMES, UM PROGRAMA:
+\begin{center}{\large\itshape Tres regímenes, un programa: documentación, identificación causal y equidad de Bolsa Família\par}\end{center}
 
-     DOCUMENTAÇÃO REPRODUZÍVEL,
-     IDENTIFICAÇÃO CAUSAL E
-     SUSTENTABILIDADE FISCAL DO
+\begin{center}{\large Leonardo Chalhoub\textsuperscript{1,*},~Jefferson Korte Junior\textsuperscript{2},~Alexandre Maciel Rolim\textsuperscript{3},~Luis Fernando Kranz\textsuperscript{4}\par}\end{center}
 
-     BOLSA FAMÍLIA, AUXÍLIO BRASIL E
-     NOVO BOLSA FAMÍLIA (2013\textendash 2025)}
+\begin{center}{\footnotesize\textsuperscript{1} Pesquisador independente, Porto Alegre, RS, Brasil. ORCID: 0000-0003-0484-158X. E-mail: leonardochalhoub@gmail.com\par}\end{center}
 
-    \vspace{1cm}
-    {\large\itshape
-     Three regimes, one program: reproducible documentation, causal
-     identification, and fiscal sustainability of the Bolsa Família
-     program (2013\textendash 2025)}
+\begin{center}{\footnotesize\textsuperscript{2} Universidade Tecnológica Federal do Paraná (UTFPR), PR, Brasil. ORCID: 0009-0006-9466-9830. E-mail: jefferson.2024@alunos.utfpr.br\par}\end{center}
 
-    \vfill
+\begin{center}{\footnotesize\textsuperscript{3} Pesquisador independente, Florianópolis, SC, Brasil. ORCID: 0000-0001-9919-122X. E-mail: alexandremrolim@gmail.com\par}\end{center}
 
-    {\large\textbf{Leonardo Chalhoub}}\\[4pt]
-    {\small Pesquisador independente \textemdash{} engenharia de dados,
-     análise quasi-experimental, índices formais de equidade,
-     benchmark internacional CCT.}\\[2pt]
-    {\small\href{mailto:leonardochalhoub@gmail.com}{leonardochalhoub@gmail.com}}\\
-    {\small\href{https://github.com/leonardochalhoub/mirante-dos-dados-br}{github.com/leonardochalhoub/mirante-dos-dados-br}}
+\begin{center}{\footnotesize\textsuperscript{4} Universidade Federal do Rio Grande do Sul (UFRGS), Porto Alegre, RS, Brasil. ORCID: [a inserir]. E-mail: [a inserir]\par}\end{center}
 
-    \vfill
+\begin{center}{\footnotesize\textsuperscript{*} Autor correspondente.\par}\end{center}
 
-    {\small Brasil \\ Abril de 2026}
-  \end{center}
-\end{titlepage}
+\vspace{6pt}
+
 
 % ---------- RESUMO -------------------------------------------------------
 \section*{Resumo}
-\addcontentsline{toc}{section}{Resumo}
 \begin{singlespace}\small\noindent
-Sobre o Bolsa Família no período 2013\textendash 2025, este trabalho
-integra três dimensões usualmente tratadas em separado: documentação
-reproduzível dos microdados, identificação causal das transições
-institucionais e análise de sustentabilidade fiscal sob cenários
-demográficos. \textbf{Materiais e métodos.}
-A análise consolida microdados mensais do Portal da Transparência
-da CGU (mais de 2,2 bilhões de registros, 280\,GB descomprimidos)
-em painel UF\,$\times$\,Ano via arquitetura
-medallion (bronze \textrightarrow{} silver \textrightarrow{} gold) com
-deflação IPCA base dezembro/2021. A identificação causal articula
-(i) DiD~2$\times$2 sobre a Medida Provisória n.\,1.061/2021 (Auxílio
-Brasil), tratando UFs no Q4 superior do déficit de cobertura
-pré-choque; (ii) modelo \textit{two-way fixed effects} (TWFE) com
-erros clusterizados por UF; (iii) \textit{wild-cluster bootstrap}
-Rademacher (Cameron, Gelbach e Miller, 2008) com 999 réplicas,
-necessário pelo número pequeno de \textit{clusters} (N\,=\,27);
-(iv) replicação cross-shock sobre a Lei n.\,14.601/2023 (Novo Bolsa
-Família); (v) testes informais de \textit{parallel trends} segundo
-Roth (2022); (vi) placebo no \textit{cutoff} 2020 sem mudança
-institucional; (vii) \textit{leave-one-out} por UF. A análise de
-equidade emprega o índice de Kakwani sobre o Bolsa Família e sobre
-emendas parlamentares, ambos ordenados por IDH-M (PNUD/Atlas Brasil
-2010), com intervalos de confiança \textit{bootstrap} (1000
-réplicas), e o índice de necessidade (\,pobreza\,$\times$\,população).
-O benchmark internacional compara o programa brasileiro com a
-Asignación Universal por Hijo (Argentina), Prospera (México), Más
-Familias en Acción (Colômbia) e Renta Dignidad (Bolívia), em
-US\$~PPP~2021 (\,World Bank ICP\,). \textbf{Achados.} Em valores
-reais, o programa cresceu \textbf{283,4\,\%} entre 2018 e 2024
-(\rs 36,75\,bi $\rightarrow$ \rs 140,88\,bi), com o número de
-beneficiários crescendo \textbf{36,4\,\%} (16,99\,milhões $\rightarrow$
-23,18\,milhões) e o valor médio por beneficiário \textbf{180,9\,\%}
-(\rs 2.163 $\rightarrow$ \rs 6.078). O salto entre 2021 e 2022
-correspondeu a \textbf{2,16$\times$} o valor real de 2021, e entre
-2022 e 2023 a \textbf{2,07$\times$} o valor real de 2022 \textemdash{}
-ambos consistentes com redesenho institucional, não com mera
-atualização monetária. A focalização territorial em 2025 apresenta
-razão de \textbf{6,98:1} entre Maranhão (\rs 1.168,51/hab) e Santa
-Catarina (\rs 167,35/hab), com Nordeste a \rs 1.051/hab
-(penetração 17,6\,\%) e Sul a \rs 283/hab (penetração 5,3\,\%). O
-DiD sobre MP 1.061/2021 produz coeficiente $\hat\beta = +223,75$
-\rs/hab (HC3, IC 95\,\% $[+147,69;\,+299,82]$, $p < 0,001$); o TWFE
-clusterizado, $\hat\beta = +233,27$ \rs/hab; o
-\textit{wild-cluster bootstrap}, contudo, devolve $p_{\mathrm{WCB}}
-= 0,49$ \textemdash{} sob a métrica robusta a \textit{clustering}
-com N\,=\,27, o efeito não pode ser distinguido de zero. O teste
-informal de \textit{parallel trends} pré-tratamento rejeita H\textsubscript{0}
-($\beta_{\mathrm{treated:t}} = -9,03$, $p < 0,001$), enfraquecendo
-o desenho de identificação. O índice de Kakwani confirma o caráter
-progressivo do PBF/NBF (K $= -0,33$ em 2018, $-0,26$ em 2024;
-K $= -0,15$ para emendas em 2024) e documenta tendência de
-\textbf{redução da progressividade} ao longo das transições
-institucionais. O índice de necessidade revela razão
-\textit{share}\textsubscript{PBF} / \textit{share}\textsubscript{necessidade}
-abaixo de 1 para Maranhão (0,89), Roraima (0,80) e Rondônia (0,84)
-\textemdash{} UFs aparentemente \textit{campeãs} em per capita
-estão de fato sub-atendidas em relação à intensidade da pobreza
-local. O benchmark internacional posiciona o NBF brasileiro como o
-CCT de \textbf{maior valor por beneficiário} da América Latina
-(US\$~PPP~2.179/ano), com cobertura ($\sim$\,33\,\% da população)
-acima de Argentina, Colômbia e o pico do Prospera mexicano.
-\textbf{Discussão e contribuição.} O paper publica abertamente o
-\textit{pipeline} reprodutível, o \textit{gold dataset} versionado e
-\textit{tests} automatizados de qualidade de dados, viabilizando
-reprodução por terceiros sem custo marginal. Os resultados causais
-honestos \textemdash{} efeito grande sob HC3, mas indistinguível de
-zero sob \textit{wild-cluster bootstrap} e
-\textit{parallel-trends}~test rejeitado \textemdash{} ilustram o
-ônus identificacional em desenhos quasi-experimentais com poucos
-\textit{clusters} e tendências pré-tratamento divergentes. A
-queda da progressividade entre regimes e o sub-atendimento dos
-estados mais pobres em relação à necessidade são contribuições
-distintas das análises descritivas pré-existentes da literatura
-sobre o programa.
+Este trabalho analisa o Bolsa Família entre 2013 e 2025, integrando três dimensões usualmente tratadas em separado: documentação reproduzível dos microdados, identificação causal das transições institucionais e equidade distributiva. Consolidam-se microdados mensais do Portal da Transparência (mais de 2,2 bilhões de registros) em painel estado$\times$ano, via arquitetura \textit{medallion}, com deflação pelo IPCA (base dezembro de 2021). A identificação causal articula diferenças-em-diferenças e efeitos fixos de dois sentidos sobre a Medida Provisória 1.061/2021 e a Lei 14.601/2023, com inferência robusta por \textit{wild-cluster bootstrap}, testes de tendências paralelas, placebo e \textit{leave-one-out}. A equidade é medida pelo índice de Kakwani, ordenado pelo IDH municipal, e por um índice de necessidade. Um \textit{benchmark} internacional compara o programa a quatro transferências condicionadas latino-americanas em dólares PPC. Em termos reais, o gasto cresceu 283\,\% entre 2018 e 2024 e o valor por beneficiário, 181\,\%. O efeito causal é grande sob erros HC3, mas indistinguível de zero sob \textit{bootstrap} robusto, e o teste de tendências paralelas é rejeitado --- ilustrando o ônus identificacional com poucos \textit{clusters}. O índice de Kakwani confirma a progressividade do programa, porém decrescente entre regimes; o índice de necessidade revela que estados líderes em valor per capita estão subatendidos frente à intensidade local da pobreza. O artigo publica o \textit{pipeline}, os dados e os testes automatizados, viabilizando reprodução integral.
 
-\vspace{0.4cm}\noindent\textbf{Palavras-chave:}
-Programa Bolsa Família; Auxílio Brasil; Novo Bolsa Família;
-transferência condicionada de renda; pobreza; desigualdade
-territorial; políticas sociais; \textit{difference-in-differences};
-índice de Kakwani; \textit{wild-cluster bootstrap}; CCT América
-Latina.
+\vspace{6pt}\noindent\textbf{Palavras-chave:} Bolsa Família; transferência condicionada de renda; avaliação de políticas públicas; equidade distributiva; reprodutibilidade.
 \end{singlespace}
 
-% ---------- ABSTRACT -----------------------------------------------------
+\vspace{6pt}
 \section*{Abstract}
-\addcontentsline{toc}{section}{Abstract}
 \begin{singlespace}\small\noindent
-On Brazil's Bolsa Família program over 2013\textendash 2025, this
-work integrates three dimensions usually treated separately:
-reproducible microdata documentation, causal identification of the
-institutional transitions, and fiscal-sustainability analysis under
-demographic scenarios. \textbf{Methods.} Microdata from the
-Comptroller-General's Transparency Portal (over 2.2 billion records)
-are consolidated into a state-by-year panel via a medallion
-architecture (bronze\,$\rightarrow$\,silver\,$\rightarrow$\,gold)
-with IPCA deflation (December 2021). Causal identification combines
-DiD~2$\times$2 on Provisional Measure 1.061/2021 (Auxílio Brasil),
-two-way fixed-effects panel with cluster-robust standard errors,
-Rademacher wild-cluster bootstrap (Cameron, Gelbach and Miller, 2008)
-with 999 replicates, cross-shock replication on Law 14.601/2023
-(Novo Bolsa Família), informal parallel-trends testing (Roth, 2022),
-a placebo in 2020, and leave-one-out by state. Equity is measured
-with the Kakwani index ranked by HDI-M and a need index
-(poverty\,$\times$\,population), with bootstrap intervals
-(1{,}000~replicates). International benchmarking compares the
-program with AUH (Argentina), Prospera (Mexico), Más Familias en
-Acción (Colombia) and Renta Dignidad (Bolivia), in US\$~PPP~2021.
-\textbf{Findings.} Real spending grew 283.4\,\% between 2018 and
-2024 (R\$~36.75\,bn $\rightarrow$ R\$~140.88\,bn);
-beneficiaries grew 36.4\,\% (16.99 to 23.18\,million); per-beneficiary
-real value grew 180.9\,\% (R\$~2{,}163 $\rightarrow$ R\$~6{,}078).
-The 2021$\to$2022 jump was 2.16$\times$ in real terms; 2022$\to$2023
-was 2.07$\times$. State-level inequality in 2025 yields a 6.98:1
-ratio (Maranhão R\$~1{,}168.51/cap. vs. Santa Catarina
-R\$~167.35/cap.). DiD on MP 1.061 yields
-$\hat\beta = +223.75$ R\$/cap. (HC3 95\,\%~CI [$+147.69;\,+299.82$],
-$p < 0.001$); TWFE clustered $\hat\beta = +233.27$;
-wild-cluster bootstrap $p_{\mathrm{WCB}} = 0.49$ \textemdash{} under
-the cluster-robust metric the effect is indistinguishable from
-zero. The pre-treatment parallel-trends test is rejected
-($\beta_{\mathrm{treated:t}} = -9.03$, $p < 0.001$). Kakwani
-confirms PBF/NBF progressivity (K~$=-0.33$ in 2018, $-0.26$ in 2024;
-emendas K~$=-0.15$ in 2024), documenting declining progressivity
-across regimes. The need index reveals
-\textit{share}\textsubscript{PBF}\,/\,\textit{share}\textsubscript{need}
-below 1 for Maranhão (0.89), Roraima (0.80) and Rondônia (0.84)
-\textemdash{} states ranked top by per capita are in fact
-underprovisioned relative to local poverty intensity. NBF is the
-CCT with the largest per-beneficiary value in Latin America
-(US\$~PPP~2{,}179/year). \textbf{Discussion.} The paper publishes
-the open pipeline, versioned gold dataset and automated tests,
-enabling external reproduction at zero marginal cost. The honest
-causal results, the declining progressivity across regimes and the
-underprovision of poorest states relative to local need are
-contributions distinct from prior descriptive analyses.
+This paper analyzes Brazil's Bolsa Família program between 2013 and 2025, integrating three dimensions usually treated separately: reproducible microdata documentation, causal identification of the institutional transitions, and distributive equity. Monthly microdata from the federal Transparency Portal (over 2.2 billion records) are consolidated into a state-by-year panel through a \textit{medallion} architecture, deflated by the IPCA index (December 2021 base). Causal identification combines difference-in-differences and two-way fixed-effects estimators on Provisional Measure 1.061/2021 and Law 14.601/2023, with robust inference via \textit{wild-cluster bootstrap}, parallel-trends tests, placebo, and \textit{leave-one-out} checks. Equity is measured with the Kakwani index ranked by the municipal Human Development Index and with a need index. An international benchmark compares the program with four Latin American conditional cash transfers in PPP dollars. In real terms, spending grew 283\,\% between 2018 and 2024 and the per-beneficiary value grew 181\,\%. The causal effect is large under HC3 errors but indistinguishable from zero under robust \textit{bootstrap}, and the parallel-trends test is rejected --- illustrating the identification burden with few \textit{clusters}. The Kakwani index confirms the program's progressivity, although it declines across regimes; the need index reveals that states leading in per-capita value are underprovisioned relative to local poverty intensity. The paper releases the pipeline, dataset, and automated tests, enabling full reproduction.
 
-\vspace{0.4cm}\noindent\textbf{Keywords:}
-Bolsa Família program; Auxílio Brasil; Novo Bolsa Família;
-conditional cash transfers; poverty; territorial inequality;
-social policies; difference-in-differences; Kakwani index;
-wild-cluster bootstrap; Latin American CCTs.
+\vspace{6pt}\noindent\textbf{Keywords:} Bolsa Família; conditional cash transfers; public policy evaluation; distributive equity; reproducibility.
 \end{singlespace}
 
-\newpage
+\vspace{6pt}
+\section*{Resumen}
+\begin{singlespace}\small\noindent
+Este trabajo analiza el programa Bolsa Família entre 2013 y 2025 integrando tres dimensiones habitualmente tratadas por separado: documentación reproducible de los microdatos, identificación causal de las transiciones institucionales y equidad distributiva. Se consolidan microdatos mensuales del Portal de la Transparencia (más de 2,2 mil millones de registros) en un panel estado$\times$año, mediante una arquitectura \textit{medallion}, con deflación por el IPCA (base diciembre de 2021). La identificación causal combina diferencias-en-diferencias y efectos fijos de dos vías sobre la Medida Provisional 1.061/2021 y la Ley 14.601/2023, con inferencia robusta por \textit{wild-cluster bootstrap}, pruebas de tendencias paralelas, placebo y \textit{leave-one-out}. La equidad se mide con el índice de Kakwani, ordenado por el IDH municipal, y con un índice de necesidad. Un \textit{benchmark} internacional compara el programa con cuatro transferencias monetarias condicionadas latinoamericanas en dólares PPA. En términos reales, el gasto creció 283\,\% entre 2018 y 2024 y el valor por beneficiario, 181\,\%. El efecto causal es grande con errores HC3, pero indistinguible de cero bajo \textit{bootstrap} robusto, y la prueba de tendencias paralelas se rechaza, ilustrando la carga de identificación con pocos \textit{clusters}. El índice de Kakwani confirma la progresividad del programa, aunque decreciente entre regímenes; el índice de necesidad revela que los estados líderes en valor per cápita están subatendidos frente a la intensidad local de la pobreza. El artículo publica el \textit{pipeline}, los datos y las pruebas automatizadas, permitiendo su reproducción integral.
 
-% ---------- SUMÁRIO + LISTAS --------------------------------------------
-\renewcommand{\contentsname}{Sumário}
-\tableofcontents
+\vspace{6pt}\noindent\textbf{Palabras clave:} Bolsa Família; transferencias monetarias condicionadas; evaluación de políticas públicas; equidad distributiva; reproducibilidad.
+\end{singlespace}
 
-\newpage
-\renewcommand{\listfigurename}{Lista de Figuras}
-\listoffigures
+\clearpage
 
-\vspace{1cm}
-\renewcommand{\listtablename}{Lista de Tabelas}
-\listoftables
-
-\newpage
-
-% =====================================================================
 \section{Introdução}\label{sec:intro}
 % =====================================================================
 
@@ -286,10 +129,9 @@ de elegibilidade.
 A literatura acadêmica produziu evidências consistentes sobre os
 efeitos do PBF na redução da pobreza extrema, na escolarização
 infantil, na frequência de pré-natal e na ampliação do consumo nas
-regiões mais pobres do país\,[\ref{ref:soares}, \ref{ref:paes-sousa},
-\ref{ref:campello}]. A literatura internacional reconheceu o
+regiões mais pobres do país (Soares, 2010; Paes-Sousa et al., 2011; Campello \& Neri, 2013). A literatura internacional reconheceu o
 programa como referência mundial em transferência
-condicionada\,[\ref{ref:fiszbein}], inspirando desenhos congêneres
+condicionada (Fiszbein \& Schady, 2009), inspirando desenhos congêneres
 em mais de quarenta países.
 
 Apesar dessa centralidade, persistem três lacunas analíticas
@@ -383,26 +225,25 @@ faixas temporais correspondentes a cada regime.
 \subsection{Fontes de dados}
 
 Três fontes oficiais públicas: (i) microdados mensais do Portal da
-Transparência da CGU\,[\ref{ref:cgu}], abrangendo PBF
+Transparência da CGU (CGU, 2025), abrangendo PBF
 (2013\textendash 2021), Auxílio Brasil (2021\textendash 2023) e
 Novo Bolsa Família (2023\textendash atual); (ii) IBGE/SIDRA Tabela
-6579 (população residente estimada por UF)\,[\ref{ref:ibge-sidra}];
+6579 (população residente estimada por UF) (IBGE, 2024);
 (iii) Banco Central do Brasil, série SGS 433 (IPCA mensal para
-deflação base dezembro/2021)\,[\ref{ref:bcb-sgs}]. Para o índice
+deflação base dezembro/2021) (Banco Central do Brasil, 2024). Para o índice
 de Kakwani, IDH-M PNUD/Atlas Brasil 2010 (último Censo
-completo)\,[\ref{ref:atlas-brasil}]. Para a construção do
+completo) (PNUD et al., 2013). Para a construção do
 tratamento da identificação causal, taxa de pobreza monetária
 PNAD-C 2019 (linha US\$~5,50/dia PPP, IBGE Tabela
-6688)\,[\ref{ref:ibge-pnad}]. Para o benchmark internacional,
-\textit{World Bank ASPIRE}\,[\ref{ref:wb-aspire}], CEPAL
-\textit{Panorama Social}\,[\ref{ref:cepal}] e fontes nacionais por
+6688) (IBGE, 2019). Para o benchmark internacional,
+\textit{World Bank ASPIRE} (World Bank, 2024a), CEPAL
+\textit{Panorama Social} (CEPAL, 2024) e fontes nacionais por
 programa (ANSES, SEDESOL, DPS, MEFP\,/\,UDAPE).
 
 \subsection{Pipeline de dados}
 
-O pipeline adota arquitetura medallion\,[\ref{ref:armbrust},
-\ref{ref:kukreja}] implementada em Apache
-Spark\,[\ref{ref:zaharia}] sobre Databricks Free Edition com
+O pipeline adota arquitetura medallion (Armbrust et al., 2021; Kukreja, 2021) implementada em Apache
+Spark (Zaharia et al., 2016) sobre Databricks Free Edition com
 persistência em Delta Lake.
 \textbf{Bronze} ingere os ZIPs mensais via Auto Loader (Spark
 Structured Streaming) preservando o registro original em
@@ -468,7 +309,7 @@ $2018 \leq t \leq 2025$.
 (iii)~\textit{Wild-cluster bootstrap} com $999$ réplicas Rademacher
 por UF, dada a inconsistência conhecida de erros clusterizados
 assintóticos quando o número de \textit{clusters} é
-pequeno\,[\ref{ref:cameron}]: o $p$-valor robusto é o
+pequeno (Cameron et al., 2008): o $p$-valor robusto é o
 quantil empírico de $|t^{(b)}| \geq |t^{\mathrm{obs}}|$ sobre as
 réplicas.
 \textbf{Salvaguardas adicionais.}
@@ -478,14 +319,14 @@ $T_u$ idêntico mas pré $\in \{2021,2022\}$ e pós $\in \{2023,2024,2025\}$.
 regressão $y_{u,t} = \alpha + \rho\,t + \pi\,T_u + \tau\,(T_u \cdot t)
 + \varepsilon$ sobre $t \in \{2018,2019,2020\}$, com clustering por
 UF; a hipótese de tendências paralelas pré-tratamento corresponde
-a $\tau = 0$\,[\ref{ref:roth}].
+a $\tau = 0$ (Roth, 2022).
 (vi)~Placebo: substituir o \textit{cutoff} para 2020 (sem mudança
 institucional) e re-estimar.
 (vii)~\textit{Leave-one-out} retirando cada UF.
 
 \subsection{Índices formais de equidade}
 
-\textbf{Kakwani (1977)}\,[\ref{ref:kakwani}]: $K = C_y - G_z$, onde
+\textbf{Índice de Kakwani} (Kakwani, 1977): $K = C_y - G_z$, onde
 $C_y$ é o índice de concentração da variável $y$ ordenada pelo
 \textit{ranking} $z$ e $G_z$ é o Gini do próprio \textit{ranking}.
 Ordenamos as 27 UFs pelo IDH-M crescente. $K < 0$ indica
@@ -870,7 +711,7 @@ o efeito é ordens de magnitude maior que o erro padrão; sob WCB com
 999 réplicas Rademacher, o $p$-valor sobe para $0,493$. Esse
 contraste é uma manifestação clássica da inconsistência de erros
 clusterizados quando o número de \textit{clusters} é
-pequeno\,[\ref{ref:cameron}]. \textbf{O efeito não pode ser
+pequeno (Cameron et al., 2008). \textbf{O efeito não pode ser
 distinguido de zero sob a métrica robusta apropriada para N=27}.
 
 \textbf{Parallel trends.} A regressão pré-tratamento
@@ -1007,7 +848,7 @@ Colômbia / MFA            & 2023 & 14,5\,\% & 0,40\,\% & 1.100 &  2,60 \\
 Bolívia / Renta Dignidad  & 2023 & 11,2\,\% & 1,20\,\% & 1.670 &  1,40 \\
 \bottomrule
 \end{tabular}
-\par\noindent{\small Fontes: World Bank ASPIRE database\,[\ref{ref:wb-aspire}], CEPAL Panorama Social 2024\,[\ref{ref:cepal}], MDS/CGU (Brasil), ANSES (Argentina), SEDESOL (México), DPS (Colômbia), MEFP (Bolívia). PPP 2021 da ICP do World Bank\,[\ref{ref:wb-icp}].}
+\par\noindent{\small Fontes: World Bank ASPIRE database (World Bank, 2024a), CEPAL Panorama Social 2024 (CEPAL, 2024), MDS/CGU (Brasil), ANSES (Argentina), SEDESOL (México), DPS (Colômbia), MEFP (Bolívia). PPP 2021 da ICP do World Bank (World Bank, 2024b).}
 \label{tab:benchmark}
 \end{table}
 
@@ -1041,10 +882,9 @@ centralizada na CEF e do CadÚnico amortizado.
 Uma literatura consolidada emprega a cobertura do Bolsa Família como
 \textit{proxy} territorial de pobreza e de nível de desenvolvimento
 local, sobretudo onde indicadores diretos e atualizados são escassos na
-granularidade desejada\,[\ref{ref:rasella}, \ref{ref:hoffmann},
-\ref{ref:rocha}]. Estudos epidemiológicos e econômicos usam a penetração
+granularidade desejada (Rasella et al., 2013; Hoffmann, 2006; Rocha, 2008). Estudos epidemiológicos e econômicos usam a penetração
 do programa como variável de exposição associada a desfechos sociais
-(p.\,ex.\ mortalidade infantil ao nível municipal)\,[\ref{ref:rasella}].
+(p.\,ex.\ mortalidade infantil ao nível municipal) (Rasella et al., 2013).
 Esta seção testa \textbf{explicitamente}, com aprendizado de máquina, em
 que medida indicadores \textit{internos} do programa recuperam medidas
 consagradas de pobreza (taxa de pobreza monetária PNAD-C 2019) e de
@@ -1063,7 +903,7 @@ três indicadores internos do programa: \textbf{penetração}
 \textbf{IDH-M}. Para o agrupamento, as variáveis são padronizadas em
 escore-$z$ (média 0, desvio 1). Para o modelo supervisionado adotamos
 validação \textit{leave-one-out} (LOO), apropriada ao $N$ pequeno.
-Ferramentas: \texttt{statsmodels} e \texttt{scikit-learn}\,[\ref{ref:pedregosa}].
+Ferramentas: \texttt{statsmodels} e \texttt{scikit-learn} (Pedregosa et al., 2011).
 
 \subsection{Nível 1 --- correlação e regressão log--log}
 
@@ -1154,7 +994,7 @@ quase exatamente a clivagem socioeconômica conhecida do país
 
 Por fim, testamos se as três variáveis \textit{internas} do programa,
 sozinhas, preveem a pobreza. Treinamos dois modelos --- regressão linear
-múltipla e \textit{Random Forest}\,[\ref{ref:breiman}, \ref{ref:hastie}]
+múltipla e \textit{Random Forest} (Breiman, 2001; Hastie et al., 2009)
 --- sob validação \textit{leave-one-out}: para cada UF, o modelo aprende
 nas outras 26 e prevê a UF retida, de forma que \textbf{nenhum estado é
 avaliado com dados que o modelo já viu}. Esse protocolo penaliza
@@ -1187,7 +1027,7 @@ Os três níveis convergem: a cobertura do Bolsa Família é um \textit{proxy}
 empiricamente forte de pobreza ($R^2 \approx 0{,}93$ fora da amostra) e,
 inversamente, de desenvolvimento. Isso \textbf{valida quantitativamente}
 o uso do programa como indicador territorial na
-literatura\,[\ref{ref:rasella}] e, ao mesmo tempo, impõe cautela: trata-se
+literatura (Rasella et al., 2013) e, ao mesmo tempo, impõe cautela: trata-se
 de associação \textit{transversal} com $N = 27$ e com endogeneidade por
 desenho (o programa é \textit{construído} para focalizar a pobreza). As
 relações aqui medidas são descritivas e preditivas, \textbf{não causais}.
@@ -1336,7 +1176,7 @@ entrega um \textit{gold dataset} público em painel UF\,$\times$\,Ano,
 acompanhado de uma suíte de testes automatizados de qualidade de dados
 (invariantes de esquema, contagem, plausibilidade, monotonia
 populacional e focalização Nordeste\,$>$\,Sul) e aderente aos
-princípios FAIR\,[\ref{ref:wilkinson}]. Todos os indicadores
+princípios FAIR (Wilkinson et al., 2016). Todos os indicadores
 descritivos, os índices de equidade, os modelos de aprendizado de
 máquina e as figuras deste artigo são gerados a partir desse
 \textit{gold dataset} por \textit{scripts} reproduzíveis, sem nenhum
@@ -1344,182 +1184,60 @@ valor \textit{hardcoded}, de modo que terceiros podem auditar e
 estender a análise a custo marginal praticamente nulo.
 
 % =====================================================================
-\section*{Referências}\label{sec:ref}
-\addcontentsline{toc}{section}{Referências}
-% =====================================================================
+\section*{Referências}
 \begin{singlespace}\small
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:armbrust}]
-ARMBRUST, M.; GHODSI, A.; XIN, R.; ZAHARIA, M. Lakehouse: a new
-generation of open platforms that unify data warehousing and advanced
-analytics. In: \textbf{11th Annual Conference on Innovative Data
-Systems Research (CIDR)}, 2021.\par\smallskip
+\newcommand{\refitem}{\par\smallskip\noindent\hangindent=1.25cm\hangafter=1\relax}
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:atlas-brasil}]
-ATLAS BRASIL. \textbf{Atlas do Desenvolvimento Humano no Brasil}.
-PNUD, IPEA, FJP. Disponível em: \url{http://atlasbrasil.org.br/}.
-Acesso em: 27 abr. 2026, 14h00.\par\smallskip
+\refitem Armbrust, M., Ghodsi, A., Xin, R., \& Zaharia, M. (2021). Lakehouse: A new generation of open platforms that unify data warehousing and advanced analytics. In \textit{11th Annual Conference on Innovative Data Systems Research (CIDR)}.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:bcb-sgs}]
-BANCO CENTRAL DO BRASIL. \textbf{Sistema Gerenciador de Séries
-Temporais — série 433 (IPCA)}. Disponível em:
-\url{https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados}.
-Acesso em: 27 abr. 2026, 09h00.\par\smallskip
+\refitem Banco Central do Brasil. (2024). \textit{Sistema Gerenciador de Séries Temporais --- série 433 (IPCA)} [Conjunto de dados]. \url{https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados}
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:cameron}]
-CAMERON, A. C.; GELBACH, J. B.; MILLER, D. L. Bootstrap-based
-improvements for inference with clustered errors. \textbf{Review of
-Economics and Statistics}, v. 90, n. 3, p. 414\textendash 427,
-2008.\par\smallskip
+\refitem Breiman, L. (2001). Random forests. \textit{Machine Learning, 45}(1), 5--32.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:campello}]
-CAMPELLO, T.; NERI, M. C. (Orgs.). \textbf{Programa Bolsa Família:
-uma década de inclusão e cidadania}. Brasília: IPEA, 2013.\par\smallskip
+\refitem Cameron, A. C., Gelbach, J. B., \& Miller, D. L. (2008). Bootstrap-based improvements for inference with clustered errors. \textit{The Review of Economics and Statistics, 90}(3), 414--427.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:cepal}]
-COMISIÓN ECONÓMICA PARA AMÉRICA LATINA Y EL CARIBE (CEPAL).
-\textbf{Panorama Social de América Latina y el Caribe 2024}.
-Santiago: CEPAL, 2024. Disponível em:
-\url{https://www.cepal.org/es/publicaciones/panoramasocial}.
-Acesso em: 27 abr. 2026, 11h00.\par\smallskip
+\refitem Campello, T., \& Neri, M. C. (Orgs.). (2013). \textit{Programa Bolsa Família: uma década de inclusão e cidadania}. IPEA.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:cgu}]
-CONTROLADORIA-GERAL DA UNIÃO. \textbf{Portal da Transparência:
-Microdados de Pagamentos do Bolsa Família, Auxílio Brasil e Novo
-Bolsa Família}. Disponível em:
-\url{https://portaldatransparencia.gov.br/download-de-dados/bolsa-familia-pagamentos}.
-Acesso em: 27 abr. 2026, 09h00.\par\smallskip
+\refitem CEPAL --- Comisión Económica para América Latina y el Caribe. (2024). \textit{Panorama social de América Latina y el Caribe 2024}. CEPAL. \url{https://www.cepal.org/es/publicaciones/panoramasocial}
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:fiszbein}]
-FISZBEIN, A.; SCHADY, N. \textbf{Conditional Cash Transfers:
-Reducing Present and Future Poverty}. World Bank Policy Research
-Report. Washington, DC: World Bank, 2009.\par\smallskip
+\refitem CGU --- Controladoria-Geral da União. (2025). \textit{Portal da Transparência: microdados de pagamentos do Bolsa Família, Auxílio Brasil e Novo Bolsa Família} [Conjunto de dados]. \url{https://portaldatransparencia.gov.br/download-de-dados/bolsa-familia-pagamentos}
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:ibge-pnad}]
-INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA. \textbf{Pesquisa
-Nacional por Amostra de Domicílios Contínua (PNAD-C) — Tabela 6688:
-Distribuição percentual das pessoas residentes em domicílios
-particulares por classes de rendimento}. Brasília: IBGE, 2019.
-Disponível em: \url{https://sidra.ibge.gov.br/tabela/6688}. Acesso
-em: 27 abr. 2026, 10h00.\par\smallskip
+\refitem Fiszbein, A., \& Schady, N. (2009). \textit{Conditional cash transfers: Reducing present and future poverty}. World Bank.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:ibge-sidra}]
-INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA. \textbf{SIDRA —
-Tabela 6579}. Disponível em:
-\url{https://sidra.ibge.gov.br/tabela/6579}. Acesso em: 27 abr.
-2026, 09h30.\par\smallskip
+\refitem Hastie, T., Tibshirani, R., \& Friedman, J. (2009). \textit{The elements of statistical learning} (2nd ed.). Springer.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:kakwani}]
-KAKWANI, N. C. Measurement of tax progressivity: an international
-comparison. \textbf{The Economic Journal}, v. 87, n. 345, p.
-71\textendash 80, 1977.\par\smallskip
+\refitem Hoffmann, R. (2006). Transferências de renda e a redução da desigualdade no Brasil e cinco regiões entre 1997 e 2004. \textit{Econômica, 8}(1), 55--81.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:kukreja}]
-KUKREJA, M. \textbf{Data Engineering with Apache Spark, Delta Lake,
-and Lakehouse}. Birmingham: Packt Publishing, 2021.\par\smallskip
+\refitem IBGE --- Instituto Brasileiro de Geografia e Estatística. (2019). \textit{Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD-C) --- Tabela 6688} [Conjunto de dados]. \url{https://sidra.ibge.gov.br/tabela/6688}
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:nicolau}]
-NICOLAU, J. \textbf{Representantes de quem? Os (des)caminhos do seu
-voto da urna à Câmara dos Deputados}. Rio de Janeiro: Zahar, 2017.
-\par\smallskip
+\refitem IBGE --- Instituto Brasileiro de Geografia e Estatística. (2024). \textit{SIDRA --- Tabela 6579: população residente estimada} [Conjunto de dados]. \url{https://sidra.ibge.gov.br/tabela/6579}
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:paes-sousa}]
-PAES-SOUSA, R.; SANTOS, L. M. P.; QUARESMA, J. M. (Eds.).
-\textbf{Bolsa Família: avaliação de impacto e o desafio da
-intersetorialidade}. Brasília: MDS, 2011.\par\smallskip
+\refitem Kakwani, N. C. (1977). Measurement of tax progressivity: An international comparison. \textit{The Economic Journal, 87}(345), 71--80.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:reis-housley}]
-REIS, J.; HOUSLEY, M. \textbf{Fundamentals of Data Engineering}.
-Sebastopol: O'Reilly, 2022.\par\smallskip
+\refitem Kukreja, M. (2021). \textit{Data engineering with Apache Spark, Delta Lake, and Lakehouse}. Packt Publishing.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:roth}]
-ROTH, J. Pretest with caution: event-study estimates after testing
-for parallel trends. \textbf{American Economic Review: Insights},
-v. 4, n. 3, p. 305\textendash 322, 2022.\par\smallskip
+\refitem Paes-Sousa, R., Santos, L. M. P., \& Quaresma, J. M. (Orgs.). (2011). \textit{Bolsa Família: avaliação de impacto e o desafio da intersetorialidade}. Ministério do Desenvolvimento Social.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:soares}]
-SOARES, F. V. Bolsa Família, its design, its impacts and possibilities
-for the future. \textbf{International Policy Centre for Inclusive
-Growth}, n. 137, 2010.\par\smallskip
+\refitem Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., \ldots Duchesnay, É. (2011). Scikit-learn: Machine learning in Python. \textit{Journal of Machine Learning Research, 12}, 2825--2830.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:wb-aspire}]
-WORLD BANK. \textbf{ASPIRE: Atlas of Social Protection Indicators
-of Resilience and Equity}. Washington, DC: World Bank, 2024.
-Disponível em:
-\url{https://www.worldbank.org/en/data/datatopics/aspire}. Acesso
-em: 27 abr. 2026, 12h00.\par\smallskip
+\refitem PNUD, IPEA, \& Fundação João Pinheiro. (2013). \textit{Atlas do desenvolvimento humano no Brasil}. \url{http://atlasbrasil.org.br/}
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:wb-icp}]
-WORLD BANK. \textbf{International Comparison Program (ICP) 2021}.
-Washington, DC: World Bank, 2024. Disponível em:
-\url{https://www.worldbank.org/en/programs/icp}. Acesso em:
-27 abr. 2026, 12h30.\par\smallskip
+\refitem Rasella, D., Aquino, R., Santos, C. A. T., Paes-Sousa, R., \& Barreto, M. L. (2013). Effect of a conditional cash transfer programme on childhood mortality: A nationwide analysis of Brazilian municipalities. \textit{The Lancet, 382}(9886), 57--64.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:wilkinson}]
-WILKINSON, M. D. \textit{et al.} The FAIR Guiding Principles for
-scientific data management and stewardship. \textbf{Scientific Data},
-v. 3, 160018, 2016. DOI: 10.1038/sdata.2016.18.\par\smallskip
+\refitem Rocha, S. (2008). Transferências de renda federais: focalização e impactos sobre pobreza e desigualdade. \textit{Revista de Economia Contemporânea, 12}(1), 67--96.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:zaharia}]
-ZAHARIA, M.; XIN, R.; WENDELL, P.; DAS, T.; ARMBRUST, M. \textit{et
-al.} Apache Spark: a unified engine for big data processing.
-\textbf{Communications of the ACM}, v. 59, n. 11, p. 56\textendash 65,
-2016.\par\smallskip
+\refitem Roth, J. (2022). Pretest with caution: Event-study estimates after testing for parallel trends. \textit{American Economic Review: Insights, 4}(3), 305--322.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:breiman}]
-BREIMAN, L. Random forests. \textbf{Machine Learning}, v. 45, n. 1,
-p. 5\textendash 32, 2001.\par\smallskip
+\refitem Soares, F. V. (2010). \textit{Bolsa Família, its design, its impacts and possibilities for the future} (Working Paper No. 137). International Policy Centre for Inclusive Growth.
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:hastie}]
-HASTIE, T.; TIBSHIRANI, R.; FRIEDMAN, J. \textbf{The Elements of
-Statistical Learning}. 2. ed. New York: Springer, 2009.\par\smallskip
+\refitem Wilkinson, M. D., Dumontier, M., Aalbersberg, I. J., Appleton, G., Axton, M., Baak, A., \ldots Mons, B. (2016). The FAIR Guiding Principles for scientific data management and stewardship. \textit{Scientific Data, 3}, 160018. \url{https://doi.org/10.1038/sdata.2016.18}
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:hoffmann}]
-HOFFMANN, R. Transferências de renda e a redução da desigualdade no
-Brasil e cinco regiões entre 1997 e 2004. \textbf{Econômica}, v. 8,
-n. 1, p. 55\textendash 81, 2006.\par\smallskip
+\refitem World Bank. (2024a). \textit{ASPIRE: Atlas of Social Protection Indicators of Resilience and Equity} [Conjunto de dados]. \url{https://www.worldbank.org/en/data/datatopics/aspire}
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:pedregosa}]
-PEDREGOSA, F. \textit{et al.} Scikit-learn: Machine Learning in Python.
-\textbf{Journal of Machine Learning Research}, v. 12, p.
-2825\textendash 2830, 2011.\par\smallskip
+\refitem World Bank. (2024b). \textit{International Comparison Program (ICP) 2021} [Conjunto de dados]. \url{https://www.worldbank.org/en/programs/icp}
 
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:rasella}]
-RASELLA, D.; AQUINO, R.; SANTOS, C. A. T.; PAES-SOUSA, R.; BARRETO,
-M. L. Effect of a conditional cash transfer programme on childhood
-mortality: a nationwide analysis of Brazilian municipalities.
-\textbf{The Lancet}, v. 382, n. 9886, p. 57\textendash 64, 2013.\par\smallskip
-
-\noindent\hangindent=1.25cm\hangafter=1
-[\refstepcounter{equation}\theequation\label{ref:rocha}]
-ROCHA, S. Transferências de renda federais: focalização e impactos
-sobre pobreza e desigualdade. \textbf{Revista de Economia
-Contemporânea}, v. 12, n. 1, p. 67\textendash 96, 2008.\par\smallskip
+\refitem Zaharia, M., Xin, R., Wendell, P., Das, T., Armbrust, M., Dave, A., \ldots Stoica, I. (2016). Apache Spark: A unified engine for big data processing. \textit{Communications of the ACM, 59}(11), 56--65.
 \end{singlespace}
+
 
 \end{document}

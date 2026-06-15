@@ -1,5 +1,5 @@
 {
-  "manifest_built_at": "2026-05-04T16:09:00.884Z",
+  "manifest_built_at": "2026-06-15T19:02:40.453Z",
   "articles": {
     "bolsa-familia-municipios": {
       "tex_last_edited": "2026-04-28T00:31:49-03:00",
@@ -10,8 +10,16 @@
       "tex_last_sha": "ef5af64"
     },
     "calculo-ensino-medio-internacional": {
-      "tex_last_edited": "2026-04-29T15:16:10-03:00",
-      "tex_last_sha": "cda40fe"
+      "tex_last_edited": "2026-05-05T15:30:15-03:00",
+      "tex_last_sha": "b3338cc"
+    },
+    "calculo-remat-COM-AUTORES": {
+      "tex_last_edited": null,
+      "tex_last_sha": null
+    },
+    "calculo-remat-submissao": {
+      "tex_last_edited": null,
+      "tex_last_sha": null
     },
     "compile-stamp": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",
@@ -28,6 +36,18 @@
     "equipamentos-panorama-cnes": {
       "tex_last_edited": "2026-04-27T09:52:35-03:00",
       "tex_last_sha": "deb5825"
+    },
+    "equipamentos-rm-parkinson-RBN": {
+      "tex_last_edited": null,
+      "tex_last_sha": null
+    },
+    "equipamentos-rm-parkinson-RESS-suplementar": {
+      "tex_last_edited": null,
+      "tex_last_sha": null
+    },
+    "equipamentos-rm-parkinson-RESS": {
+      "tex_last_edited": null,
+      "tex_last_sha": null
     },
     "equipamentos-rm-parkinson": {
       "tex_last_edited": "2026-04-27T09:45:37-03:00",
@@ -52,6 +72,14 @@
     "uropro-serie-2008-2025": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",
       "tex_last_sha": "dda3e6e"
+    },
+    "wp2-anonimo": {
+      "tex_last_edited": null,
+      "tex_last_sha": null
+    },
+    "wp2-rap": {
+      "tex_last_edited": null,
+      "tex_last_sha": null
     }
   }
 }
