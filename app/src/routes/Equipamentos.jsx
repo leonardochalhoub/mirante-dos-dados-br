@@ -228,8 +228,6 @@ export default function Equipamentos() {
         }
       />
 
-      <ArticleSection />
-
       <div className="kpiRow" data-export-id="equipamentos-kpis">
         <KpiCard label={`Total · ${kpis.y ?? '—'}`}             value={fmtInt(kpis.total)} sub="unidades físicas (deduped no silver)" color={theme === 'dark' ? '#60a5fa' : '#1d4ed8'} />
         <KpiCard label={`SUS · ${kpis.y ?? '—'}`}               value={fmtInt(kpis.sus)}   sub={`${fmtPct(kpis.susShare)} do total`} color={SETORES.sus.color} />
@@ -245,11 +243,15 @@ export default function Equipamentos() {
         )}
       </div>
 
-      <div className="no-print" style={{
+      <details className="no-print" style={{
         fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.5,
         margin: '-2px 2px 14px 2px', padding: '0 2px',
       }}>
-        <b>Sobre o "Total"</b>: cada CNES pode declarar a mesma máquina física
+        <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+          Sobre o "Total" — deduplicação dual-flag (sus&nbsp;+&nbsp;priv&nbsp;=&nbsp;total)
+        </summary>
+        <div style={{ marginTop: 6 }}>
+        Cada CNES pode declarar a mesma máquina física
         em duas linhas (<code>IND_SUS=1</code> e <code>IND_SUS=0</code>) quando ela é
         disponível a ambos os setores. O <i>silver</i> já corrige isso aplicando{' '}
         <code>GREATEST(qt_sus, qt_priv)</code> por <code>(CNES, mês, equipamento)</code>,
@@ -257,7 +259,8 @@ export default function Equipamentos() {
         O <i>overlap</i> dual-flag observado no gold 2025 é <b>0,0%</b> — portanto{' '}
         <code>sus + priv = total</code> e as <i>shares</i> somam 100%.
         Vide WP #6 §sub:dedup.
-      </div>
+        </div>
+      </details>
 
       <div className="layout">
         <div className="row row-controls-bar">
@@ -364,6 +367,8 @@ export default function Equipamentos() {
         </div>
       </div>
 
+      <ArticleSection />
+
       <Footer />
     </>
   );
@@ -468,16 +473,16 @@ function Footer() {
         </div>
       </div>
 
-      <div className="footerSection">
-        <div className="footerHeading">Notas técnicas</div>
-        <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
+      <details className="footerSection">
+        <summary className="footerHeading" style={{ cursor: 'pointer' }}>Notas técnicas</summary>
+        <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7, marginTop: 6 }}>
           Quando você seleciona <b>2+ equipamentos</b>, o "Total" é a soma direta dos averages. O "por milhão" é recomputado como (soma de equipamentos) / população × 10⁶ — não é a soma das taxas individuais. Isso garante comparação correta entre UFs com tamanhos diferentes.
         </div>
-      </div>
+      </details>
 
-      <div className="footerSection">
-        <div className="footerHeading">Limitações da fonte</div>
-        <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
+      <details className="footerSection">
+        <summary className="footerHeading" style={{ cursor: 'pointer' }}>Limitações da fonte</summary>
+        <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7, marginTop: 6 }}>
           Caveats estruturais do CNES (não do pipeline) que valem ler antes de
           usar os números pra decisão clínica ou orçamentária:
           <ul style={{ marginTop: 6, marginBottom: 0, paddingLeft: 18 }}>
@@ -511,7 +516,7 @@ function Footer() {
           alocação de turnos), seria necessário cruzamento com produção
           (SIH-RD, SIA-RD).
         </div>
-      </div>
+      </details>
     </footer>
   );
 }
@@ -523,9 +528,19 @@ function ArticleSection() {
   return (
     <section className="emendas-abstract no-print" style={{ marginBottom: 14 }}>
       <DocCardWP4 />
-      <AtaConselho ata={ATA_WP4_REUNIAO_1} />
+      <details style={{ margin: '8px 0 14px' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 12, color: 'var(--muted)' }}>
+          Ata da Reunião #1 do Conselho do Mirante (avaliação do WP #4)
+        </summary>
+        <div style={{ marginTop: 8 }}><AtaConselho ata={ATA_WP4_REUNIAO_1} /></div>
+      </details>
       <DocCardWP6 />
-      <AtaConselho ata={ATA_WP6_REUNIAO_2} />
+      <details style={{ margin: '8px 0 0' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 12, color: 'var(--muted)' }}>
+          Ata da Reunião #2 do Conselho do Mirante (avaliação do WP #6)
+        </summary>
+        <div style={{ marginTop: 8 }}><AtaConselho ata={ATA_WP6_REUNIAO_2} /></div>
+      </details>
     </section>
   );
 }
@@ -579,18 +594,19 @@ const TESE_CENTRAL_WP4 =
 
 function WhyQuadruplo() {
   return (
-    <div style={{
+    <details style={{
       marginTop: 12, marginBottom: 4,
       padding: 12,
       background: 'var(--accent-soft, rgba(13, 148, 136, 0.05))',
       border: '1px solid var(--border)', borderRadius: 8,
     }}>
-      <div style={{
+      <summary style={{
+        cursor: 'pointer',
         fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
-        textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8,
+        textTransform: 'uppercase', color: 'var(--muted)',
       }}>
         Por que este artigo existe — 4 ângulos sobre o mesmo dataset
-      </div>
+      </summary>
 
       <p style={{
         fontSize: 13, lineHeight: 1.65, margin: '0 0 12px 0',
@@ -637,7 +653,7 @@ function WhyQuadruplo() {
       }}>
         Formalizado na Reunião #1 do Conselho do Mirante · 2026-04-26 · APROVADO COM AJUSTES
       </div>
-    </div>
+    </details>
   );
 }
 
@@ -647,7 +663,10 @@ function DocCardWP4() {
   const slug       = 'equipamentos-rm-parkinson';
   const meta       = useArticleMeta(slug);
   const sha        = meta?.tex_last_sha;
-  const pdfUrl     = articleUrl(base, slug, 'pdf', sha);
+  // O artigo desta vertical passou a ser a versão independente
+  // formatada para submissão ao periódico RESS (Epidemiologia e
+  // Serviços de Saúde). O botão "Ler artigo" aponta para esse PDF.
+  const pdfUrl     = articleUrl(base, 'equipamentos-rm-parkinson-RESS', 'pdf', sha);
   const texUrl     = articleUrl(base, slug, 'tex', sha);
   // Overleaf snip_uri precisa de URL pública absoluta — também leva o sha
   // como query param pra forçar Overleaf a refazer o fetch.
@@ -762,21 +781,22 @@ const TESE_CENTRAL_WP6 =
 
 function WhyDuplo() {
   return (
-    <div style={{
+    <details style={{
       marginTop: 12, marginBottom: 4,
       padding: 12,
       background: 'var(--accent-soft, rgba(13, 148, 136, 0.05))',
       border: '1px solid var(--border)', borderRadius: 8,
     }}>
-      <div style={{
+      <summary style={{
+        cursor: 'pointer',
         fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
-        textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8,
+        textTransform: 'uppercase', color: 'var(--muted)',
       }}>
         Por que este artigo existe — 2 ângulos sobre o mesmo dataset
-      </div>
+      </summary>
 
       <p style={{
-        fontSize: 13, lineHeight: 1.65, margin: '0 0 12px 0',
+        fontSize: 13, lineHeight: 1.65, margin: '10px 0 12px 0',
         fontStyle: 'italic', color: 'var(--text)',
       }}>
         {TESE_CENTRAL_WP6}
@@ -820,7 +840,7 @@ function WhyDuplo() {
       }}>
         Formalizado na Reunião #2 do Conselho do Mirante · 2026-04-26 · APROVADO COM AJUSTES
       </div>
-    </div>
+    </details>
   );
 }
 

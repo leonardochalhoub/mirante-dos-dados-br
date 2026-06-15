@@ -101,6 +101,14 @@ jobs:
           latexmk_use_xelatex: false
           args: -pdf -interaction=nonstopmode -file-line-error
 
+      - name: Compile Equipamentos × Parkinson (RESS submission) LaTeX → PDF
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: equipamentos-rm-parkinson-RESS.tex
+          working_directory: articles
+          latexmk_use_xelatex: false
+          args: -pdf -interaction=nonstopmode -file-line-error
+
       - name: Compile Equipamentos · Panorama Cross-Vertical (WP #6) LaTeX → PDF
         uses: xu-cheng/latex-action@v3
         with:
@@ -157,6 +165,7 @@ jobs:
           cp articles/bolsa-familia-municipios.pdf      app/public/articles/
           cp articles/rais-fair-lakehouse.pdf           app/public/articles/
           cp articles/equipamentos-rm-parkinson.pdf     app/public/articles/
+          cp articles/equipamentos-rm-parkinson-RESS.pdf app/public/articles/
           cp articles/equipamentos-panorama-cnes.pdf    app/public/articles/
           cp articles/uropro-serie-2008-2025.pdf        app/public/articles/
           cp articles/uropro-saude-publica-2008-2025.pdf app/public/articles/

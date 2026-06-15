@@ -28,3 +28,6 @@ rais_local/
 # so that we can re-include .claude/agents/ which IS part of Mirante's identity.
 /.claude/*
 !/.claude/agents/data/reference/geobr_municipios_geo.geojson
+
+# Author-provided source/reference material (reviews, journal tables, audio) — not part of repo
+/sources-reference/
