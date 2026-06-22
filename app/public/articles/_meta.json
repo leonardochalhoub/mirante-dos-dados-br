@@ -1,25 +1,25 @@
 {
-  "manifest_built_at": "2026-06-15T19:02:40.453Z",
+  "manifest_built_at": "2026-06-22T02:59:01.952Z",
   "articles": {
     "bolsa-familia-municipios": {
       "tex_last_edited": "2026-04-28T00:31:49-03:00",
       "tex_last_sha": "8aa1edf"
     },
     "bolsa-familia": {
-      "tex_last_edited": "2026-04-27T09:57:34-03:00",
-      "tex_last_sha": "ef5af64"
+      "tex_last_edited": "2026-06-21T23:52:30-03:00",
+      "tex_last_sha": "ed34a63"
     },
     "calculo-ensino-medio-internacional": {
       "tex_last_edited": "2026-05-05T15:30:15-03:00",
       "tex_last_sha": "b3338cc"
     },
     "calculo-remat-COM-AUTORES": {
-      "tex_last_edited": null,
-      "tex_last_sha": null
+      "tex_last_edited": "2026-06-15T16:09:43-03:00",
+      "tex_last_sha": "e873b60"
     },
     "calculo-remat-submissao": {
-      "tex_last_edited": null,
-      "tex_last_sha": null
+      "tex_last_edited": "2026-06-15T16:09:43-03:00",
+      "tex_last_sha": "e873b60"
     },
     "compile-stamp": {
       "tex_last_edited": "2026-04-26T22:54:25-03:00",
@@ -38,16 +38,16 @@
       "tex_last_sha": "deb5825"
     },
     "equipamentos-rm-parkinson-RBN": {
-      "tex_last_edited": null,
-      "tex_last_sha": null
+      "tex_last_edited": "2026-06-15T17:07:28-03:00",
+      "tex_last_sha": "0341a67"
     },
     "equipamentos-rm-parkinson-RESS-suplementar": {
-      "tex_last_edited": null,
-      "tex_last_sha": null
+      "tex_last_edited": "2026-06-15T17:07:28-03:00",
+      "tex_last_sha": "0341a67"
     },
     "equipamentos-rm-parkinson-RESS": {
-      "tex_last_edited": null,
-      "tex_last_sha": null
+      "tex_last_edited": "2026-06-15T17:07:28-03:00",
+      "tex_last_sha": "0341a67"
     },
     "equipamentos-rm-parkinson": {
       "tex_last_edited": "2026-04-27T09:45:37-03:00",
@@ -74,12 +74,12 @@
       "tex_last_sha": "dda3e6e"
     },
     "wp2-anonimo": {
-      "tex_last_edited": null,
-      "tex_last_sha": null
+      "tex_last_edited": "2026-06-21T23:52:30-03:00",
+      "tex_last_sha": "ed34a63"
     },
     "wp2-rap": {
-      "tex_last_edited": null,
-      "tex_last_sha": null
+      "tex_last_edited": "2026-06-21T23:52:30-03:00",
+      "tex_last_sha": "ed34a63"
     }
   }
 }
