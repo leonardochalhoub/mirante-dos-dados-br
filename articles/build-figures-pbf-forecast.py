@@ -31,9 +31,9 @@ FONTE = ("Fonte: elaboração própria sobre microdados do Portal da Transparên
 
 apply_mirante_style()
 
-# paleta dos modelos
+# paleta dos modelos — color-blind safe (azul/laranja Wong p/ o par foco-alerta)
 C = {"persistence": P["contexto_dark"], "linear": P["principal"],
-     "deep": P["destaque"], "linear_mv": P["secundario"], "deep_mv": "#8E44AD"}
+     "deep": "#D55E00", "linear_mv": P["secundario"], "deep_mv": "#8E44AD"}
 NAME = {"persistence": "Persistência", "linear": "AR linear", "deep": "MLP profunda",
         "linear_mv": "AR linear + cov.", "deep_mv": "MLP profunda + cov."}
 MKEY = {"persistence": "persistence", "linear": "linear_ar", "deep": "deep_mlp",
@@ -103,7 +103,7 @@ def fig01():
                 color=col, fontweight="semibold", style="italic")
 
     ax.fill_between(bnd["t"], bnd["lo"] / 1e6, bnd["hi"] / 1e6,
-                    color=C[CENTRAL], alpha=0.13, lw=0, label="Banda 95% (backtest)")
+                    color=C[CENTRAL], alpha=0.13, lw=0, label="Banda ±MAPE (backtest, informal)")
     ax.plot(act["t"], act["actual"] / 1e6, color=P["neutro"], lw=2.4,
             label="Observado", zorder=6)
     ax.plot(proj["t"], proj[CENTRAL] / 1e6, color=C[CENTRAL], lw=2.2,
@@ -120,6 +120,11 @@ def fig01():
                     xytext=(row["t"] + dx, row["actual"] / 1e6 + dy),
                     fontsize=8.6, color=P["neutro"], fontweight="semibold",
                     arrowprops=dict(arrowstyle="-", color=P["neutro"], lw=0.8))
+
+    # fronteira observado | projeção
+    ax.axvline(2026.0, color=P["neutro"], lw=0.9, ls=(0, (4, 3)), zorder=2)
+    ax.text(2026.05, ymin + 0.35, "observado  |  projeção →", fontsize=7.8,
+            color=P["neutro_soft"], style="italic", ha="left", va="bottom")
 
     ax.set_ylim(ymin, ymax); ax.set_xlim(2013, 2029.2)
     ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.0f"))
@@ -327,8 +332,18 @@ def fig09():
     ax.plot(df["t"], df["linear"] / 1e6, color=C["linear"], lw=2.0, label="AR linear", zorder=5)
     ax.plot(df["t"], df["linear_mv"] / 1e6, color=C["linear_mv"], lw=2.0, ls="--",
             label="AR linear + cov.", zorder=5)
+    # eixo X em meses nomeados (evita offset de notação científica)
+    MESES = ["jan", "fev", "mar", "abr", "mai", "jun",
+             "jul", "ago", "set", "out", "nov", "dez"]
+    ax.xaxis.set_major_formatter(mticker.FuncFormatter(
+        lambda v, _: ""))  # placeholder, sobrescrito por set_xticks abaixo
+    ticks = df["t"].values[::2]
+    labels = [f"{MESES[int(c) % 100 - 1]}/{int(c) // 100 % 100:02d}"
+              for c in df["mes_competencia"].values[::2]]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels)
     ax.set_ylabel("Famílias beneficiárias (milhões)")
-    ax.legend(loc="upper right", fontsize=8.4, frameon=False, ncol=2)
+    ax.legend(loc="lower left", fontsize=8.4, frameon=False, ncol=2)
     nm = SIG["national_mape_pct"]
     nat6 = nm.get(CENTRAL, nm.get("linear", {})).get("6", None)
     sub = "Agregado mensal observado vs. previsto (horizonte 6 meses) na janela de teste de 2025"
@@ -477,6 +492,10 @@ def fig14():
     lo = min(d["vinculos"].min(), d["familias_dez"].min())
     hi = max(d["vinculos"].max(), d["familias_dez"].max())
     ax.plot([lo, hi], [lo, hi], color=P["neutro"], lw=0.9, ls=":", zorder=2)
+    for axis in (ax.xaxis, ax.yaxis):
+        axis.set_minor_locator(mticker.LogLocator(subs=(2, 3, 5)))
+        axis.set_minor_formatter(mticker.NullFormatter())
+    ax.grid(which="minor", lw=0.3, alpha=0.4, color=P["rule"])
     ax.set_xlabel("Vínculos formais ativos (RAIS, 2024)")
     ax.set_ylabel("Famílias beneficiárias (dez/2024)")
     editorial_title(ax, "Caseload e emprego formal crescem juntos em escala — mas não em proporção",
@@ -534,9 +553,10 @@ def fig16():
     ax.set_xlabel("Variação do emprego formal, 2019→2024 (log)")
     ax.set_ylabel("Variação da carga de casos, 2019→2024 (log)")
     ax.legend(loc="upper right", fontsize=9, frameon=False)
-    editorial_title(ax, "Onde o emprego formal mais cresceu, o caseload cresceu menos",
-                    "Variação municipal de 2019 a 2024 (escala log); relação negativa")
-    source_note(ax, FONTE + f"  Correlação: r = {r:.2f}.")
+    editorial_title(ax, "A relação é estrutural, não dinâmica: variações de curto prazo não se correlacionam",
+                    "Variação municipal de 2019 a 2024 (escala log); correlação praticamente nula")
+    source_note(ax, FONTE + f"  Correlação das variações: r = {r:.2f} (≈ 0); "
+                f"contraste com a relação em nível (Fig. 13, r = −0,66).")
     save(fig, "fig16_crescimento.pdf")
 
 
@@ -577,7 +597,15 @@ def fig17():
                                               "5.542 municípios"], "#FBF0C9", "#C9A227")
     box(10.6, 2.6, 1.25, 1.9, "MODELOS", ["C++17", "do zero", "", "previsão"], "#E9E3F2", "#8E44AD")
 
-    for x0, x1 in [(2.35, 2.86), (5.12, 5.46), (7.72, 8.06), (10.32, 10.56)]:
+    # setas das 3 fontes convergindo para o BRONZE
+    for i in range(3):
+        yc = (5.0 - i * 1.9) + 0.625
+        ax.add_patch(FancyArrowPatch((2.34, yc), (2.86, 3.5), arrowstyle="-|>",
+                                     mutation_scale=11, color=P["contexto_dark"],
+                                     lw=1.0, zorder=4,
+                                     connectionstyle="arc3,rad=0.0"))
+    # setas entre as camadas
+    for x0, x1 in [(5.12, 5.46), (7.72, 8.06), (10.32, 10.56)]:
         ax.add_patch(FancyArrowPatch((x0, 3.5), (x1, 3.5), arrowstyle="-|>",
                                      mutation_scale=14, color=P["neutro"], lw=1.4, zorder=4))
 

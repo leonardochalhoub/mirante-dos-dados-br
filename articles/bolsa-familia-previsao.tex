@@ -170,10 +170,12 @@ melhor preditor de longo prazo; (v) a projeção nacional indica que a carga
 de casos atingiu o pico em 2022\textendash 2023 e recua, com erro agregado
 de backtest inferior a 4,7\% em 12 meses. Documentamos ainda uma forte
 relação estrutural entre cobertura do programa e intensidade de emprego
-formal nos municípios (correlação log-log de $-0{,}66$ em 2024).
-Conclui-se que a demanda estrutural é plana ou declinante e que o custo
-futuro é governado pelo \emph{valor} do benefício \textemdash{} uma
-escolha de política \textemdash{}, não por uma carga de casos em expansão.
+formal nos municípios (correlação log-log de $-0{,}66$ em 2024, robusta a
+efeitos fixos de estado e ao controle por população, porém associativa, não
+causal). Conclui-se que, sob ausência de novo choque institucional, a
+demanda estrutural é plana ou declinante e que o custo futuro é governado
+pelo \emph{valor} do benefício \textemdash{} uma escolha de política
+\textemdash{}, não por uma carga de casos em expansão.
 
 \medskip
 
@@ -457,6 +459,26 @@ mediana por decil decresce de forma monótona: onde há mais emprego formal
 \emph{per capita}, há menos dependência do Bolsa Família. É a assinatura
 empírica do programa como rede de proteção contracíclica, e a razão
 teórica para esperar que o emprego formal ajude a prever a carga de casos.
+
+Essa associação \emph{não} é mero artefato de escala. Controlando pela
+população municipal, a correlação log-log permanece praticamente
+inalterada ($-0{,}67$); e mesmo \emph{dentro} de cada unidade da federação
+\textemdash{} comparando municípios do mesmo estado, o que absorve a
+geografia histórica da pobreza por efeitos fixos \textemdash{}, a relação
+persiste, com correlação de $-0{,}39$ e inclinação de $-0{,}36$ numa
+regressão com efeitos fixos de UF ($R^2=0{,}71$). Parte do $-0{,}66$ bruto
+reflete, portanto, o contraste \emph{entre} estados (Norte/Nordeste vs.\
+Sul/Sudeste), mas uma parcela substancial e robusta sobrevive
+\emph{intra}-estado. Trata-se, ainda assim, de uma \emph{associação}
+estrutural, não de um efeito causal identificado: confundidores como o
+nível de desenvolvimento local e a composição setorial não são isolados, e
+um $n$ grande aumenta a precisão amostral sem eliminar esse viés. A
+identificação causal do efeito do emprego sobre a demanda por transferência
+exigiria variação exógena \textemdash{} um instrumento \emph{shift-share},
+uma descontinuidade de elegibilidade ou um \emph{event study} sobre choques
+locais de emprego \textemdash{}, agenda que registramos na
+Seção~\ref{sec:extensoes}.
+
 A Figura~\ref{fig:scatter-emp} mostra o mesmo par em níveis absolutos
 (escala log-log): caseload e emprego crescem juntos em escala
 \textemdash{} ambos refletem o tamanho do município \textemdash{}, mas a
@@ -526,10 +548,12 @@ A desigualdade espacial é igualmente marcante. A Figura~\ref{fig:cob-uf}
 ordena os estados pela cobertura em 2024: do Piauí e Maranhão (17,5
 famílias por 100 habitantes) a Santa Catarina (2,8) \textemdash{} um
 gradiente de mais de seis vezes que reproduz o mapa da pobreza brasileira.
-E a relação não é apenas estática: a Figura~\ref{fig:crescimento} mostra
-que, entre 2019 e 2024, os municípios onde o emprego formal mais cresceu
-foram os que menos viram a carga de casos subir, confirmando em variação a
-relação que a Figura~\ref{fig:cob-emp} mostra em nível.
+A relação, contudo, é \emph{estrutural} (de nível), não \emph{dinâmica}: ao
+correlacionar as \emph{variações} de 2019 a 2024, a associação praticamente
+desaparece (Figura~\ref{fig:crescimento}, $r\approx 0$). Isso é coerente
+com o achado preditivo central \textemdash{} covariáveis de baixa
+frequência informam o \emph{nível} de longo prazo da carga de casos, não
+suas flutuações de curto prazo (Seção~\ref{sec:efeito}).
 
 \begin{figure}[H]
 \centering
@@ -543,9 +567,10 @@ Norte/Nordeste vs.\ Sul/Sudeste reproduz a geografia da pobreza.}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.93\textwidth]{fig16_crescimento.pdf}
-\caption{\textbf{Variação de caseload vs.\ emprego, 2019\textendash 2024.}
-Municípios onde o emprego formal cresceu mais tiveram menor crescimento da
-carga de casos \textemdash{} a relação inversa também vale em dinâmica.}
+\caption{\textbf{Variação de caseload vs.\ emprego, 2019\textendash 2024.} A
+correlação das \emph{variações} é praticamente nula ($r\approx 0$),
+contrastando com a forte relação em \emph{nível} (Figura~\ref{fig:cob-emp},
+$r=-0{,}66$): a associação é estrutural, não dinâmica.}
 \label{fig:crescimento}
 \end{figure}
 
@@ -699,8 +724,14 @@ dos artefatos versionados (\texttt{metrics.json},
 \texttt{forward\_band.csv}, \texttt{forecast\_h\{1,3,6,12\}.csv},
 \texttt{errors\_h*.csv}, \texttt{training\_log.csv},
 \texttt{covariates\_municipio\_ano.csv}, \texttt{muni\_year.csv}). O
-pipeline é determinístico dado o gerador pseudoaleatório semeado
-($\text{seed}=42$).
+pipeline é determinístico dados os geradores pseudoaleatórios semeados:
+$\text{seed}=42$ na inicialização dos pesos (He) e $\text{seed}=7$ no
+embaralhamento de minilotes e na separação do conjunto de validação. As
+escolhas de desenho \textemdash{} janela $W=12$ (ciclo anual), arquitetura
+$64\to 32$ (padrão da literatura, sem busca em grade) e paciência de cinco
+épocas \textemdash{} foram fixadas \emph{a priori}, por razão de domínio,
+antes de qualquer avaliação sobre 2025, de modo a não enviesar o desenho ao
+conjunto de teste.
 
 \medskip
 \noindent\textbf{Declaração sobre ferramentas de IA.} A implementação do
@@ -1600,8 +1631,9 @@ perceptron profundo com covariáveis, um recuo mais brando
 \caption{\textbf{Carga de casos nacional, 2013\textendash 2025, e projeção
 2026\textendash 2028, por regime do programa.} A série atingiu o pico em
 2022\textendash 2023 e recua. A projeção central indica consolidação em
-torno de 15,4 milhões de famílias até 2028. A banda sombreada é o intervalo
-de 95\% derivado do MAPE agregado de backtest.}
+torno de 15,4 milhões de famílias até 2028. A banda sombreada é um intervalo
+\emph{informal}, derivado do MAPE agregado de backtest de 2025 \textemdash{}
+não um intervalo de confiança frequentista de 95\%.}
 \label{fig:serie}
 \end{figure}
 
@@ -1619,12 +1651,15 @@ Pico (jan/2023)                                  & \num{21243010} \\
 Projeção central (AR linear), dez/2028            & $\approx$ \num{15442971} \\
 AR linear + cov., dez/2028                         & $\approx$ \num{15456747} \\
 MLP profunda + cov., dez/2028                       & $\approx$ \num{15902025} \\
-Banda de 95\% em dez/2028                           & $[\,\num{13999098};\ \num{16886844}\,]$ \\
+Banda informal em dez/2028                          & $[\,\num{13999098};\ \num{16886844}\,]$ \\
 \bottomrule
 \end{tabular}
 \par\smallskip
-{\footnotesize Banda nacional de $\pm$MAPE de backtest, de 1,3\% (curto) a
-9,4\% (dez/2028). Fonte: elaboração própria.}
+{\footnotesize Banda \emph{informal} de $\pm$MAPE de backtest (não um IC de
+95\%), de 1,3\% (curto) a 9,4\% (dez/2028). Como o backtest cobre um único
+ano (2025) e a recursão amplifica o erro (equação~\ref{eq:recursao}), a
+banda deve ser lida como aproximação conservadora, não como cobertura
+calibrada. Fonte: elaboração própria.}
 \end{table}
 
 \subsection{Leitura fiscal}
@@ -1638,6 +1673,16 @@ choque institucional, escolhas discricionárias de benefício. E, porque o
 agregado nacional é previsível com erro inferior a 4,7\% em doze meses
 (e ainda menor com covariáveis), essa parcela pode ser planejada com folga
 adequada ao ciclo orçamentário.
+
+Para dimensionar o que esse erro significa em reais: a uma referência
+recente de benefício médio da ordem de R\$\,700 por família, um erro
+agregado de 4,7\% em doze meses sobre $\approx$\,18 milhões de famílias
+corresponde a um desvio potencial da ordem de R\$\,0,6 bilhão por mês
+\textemdash{} cerca de R\$\,7 bilhões ao ano \textemdash{} na parcela
+estrutural do gasto projetado. É essa escala que torna a precisão da
+projeção fiscalmente relevante, e que justifica buscar bandas calibradas
+(Seção~\ref{sec:extensoes}). O cálculo é ilustrativo: o benefício médio é,
+ele próprio, a alavanca de política, não uma constante.
 
 \subsection{Do caseload ao custo: como usar a projeção}
 
@@ -1749,7 +1794,8 @@ Seis conclusões emergem.
 consolida-se} \textemdash{} de $\approx$ 21,2 milhões de famílias em
 janeiro de 2023 para 18,4 milhões em dezembro de 2025, com projeção em
 torno de 15,4\textendash 15,9 milhões para 2028. A demanda estrutural não
-cresce.
+cresce \textemdash{} sob a hipótese, explicitada nas limitações, de ausência
+de novo choque institucional ou de elegibilidade.
 
 \textbf{Segunda:} o \emph{aprendizado supera a ingênua em horizontes de
 planejamento} \textemdash{} até 27\% de redução de MAE em seis meses, de
