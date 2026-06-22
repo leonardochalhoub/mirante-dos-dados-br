@@ -11,7 +11,7 @@ const VERTICAIS = [
     to: '/bolsa-familia',
     eyebrow: 'Transferências de renda',
     title: 'Bolsa Família',
-    desc: 'Pagamentos, beneficiários e valor real (R$ 2021) por UF e ano (WP#2) + análise municipal 5.570 unidades com TWFE/Conley HAC/Theil (WP#7). Fontes: CGU · IBGE · BCB.',
+    desc: 'Pagamentos, beneficiários e valor real (R$ 2021) por UF e ano (WP#2) + análise municipal 5.570 unidades com TWFE/Conley HAC/Theil (WP#7) + previsão da carga de casos com redes neurais do zero em C++ e covariáveis IBGE/RAIS (WP#10). Fontes: CGU · IBGE · RAIS · BCB.',
     period: '2013 – 2025',
     available: true,
   },

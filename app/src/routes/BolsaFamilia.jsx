@@ -372,6 +372,76 @@ function DocCardWP7() {
   );
 }
 
+// ─── WP#10 — Doc card (previsão com redes neurais + covariáveis) ─────────
+function DocCardWP10() {
+  const base        = import.meta.env.BASE_URL || '/';
+  const slug        = 'bolsa-familia-previsao';
+  const meta        = useArticleMeta(slug);
+  const sha         = meta?.tex_last_sha;
+  const pdfUrl      = articleUrl(base, slug, 'pdf', sha);
+  const texUrl      = articleUrl(base, slug, 'tex', sha);
+  const overleafUrl = 'https://www.overleaf.com/docs?snip_uri=' +
+    encodeURIComponent(`https://leonardochalhoub.github.io${texUrl}`);
+  return (
+    <div className="doc-block" style={{ marginTop: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+        <div className="kicker">Working Paper n. 10 — Mirante dos Dados</div>
+        <ArticleTimestamp slug={slug} />
+      </div>
+      <p style={{ marginTop: 6, fontSize: 13.5 }}>
+        <b>"Previsão da Carga de Casos do Programa Bolsa Família: redes neurais
+        construídas do zero, covariáveis de demografia e emprego, um benchmark
+        fora do tempo e uma projeção até 2028"</b> — Working Paper #10 v1.0
+        (Junho/2026), padrão ABNT, 43 páginas, 17 figuras editoriais.
+        Perceptron multicamadas implementado <b>do zero em C++17</b> (He · ReLU ·
+        AdamW · retropropagação manual, sem LibTorch), sobre painel de{' '}
+        <b>5.542 municípios × 156 meses</b> minerado de <b>2,53 bilhões</b> de
+        pagamentos (CGU), enriquecido com covariáveis de população (IBGE) e
+        emprego formal (RAIS, 2,06 bi de vínculos). Avaliação estritamente fora
+        do tempo (alvos de 2025), bootstrap pareado + Wilcoxon, e projeção
+        nacional 2026–2028.
+      </p>
+
+      <div style={{ margin: '6px 0 12px', fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.7 }}>
+        <b style={{ color: 'var(--text)' }}>Principais achados:</b>
+        <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+          <li>A carga de casos atingiu o pico (jan/2023, ~21,2 mi) e recua;
+              projeção de consolidação em ~15,4–15,9 mi de famílias até 2028
+              (banda &lt; 9,4%).</li>
+          <li>Em 6 meses, a autorregressão linear reduz o MAE em <b>27%</b> sobre
+              a ingênua — vantagem robusta (vence em 64% dos municípios).</li>
+          <li>A profundidade <b>não</b> compensa: o modelo linear domina a rede
+              profunda em todo horizonte, mesmo com covariáveis.</li>
+          <li>Demografia e emprego carregam sinal <b>crescente com o horizonte</b>:
+              elevam o modelo linear de +10% para <b>+17%</b> de redução de MAE
+              em 12 meses.</li>
+          <li>Relação estrutural forte: onde há mais emprego formal per capita,
+              menor a cobertura do PBF (correlação log–log −0,66).</li>
+        </ul>
+      </div>
+
+      <div className="doc-actions">
+        <a className="doc-toggle doc-toggle-primary" href={pdfUrl} target="_blank" rel="noreferrer"
+           title="Abrir PDF em nova aba (visualizador nativo do navegador)">
+          📖 Ler artigo (PDF)
+        </a>
+        <a className="doc-toggle" href={pdfUrl} download="Mirante-WP10-BolsaFamilia-Previsao-2026.pdf"
+           title="PDF compilado em LaTeX, padrão ABNT">
+          ⤓ Baixar PDF (ABNT)
+        </a>
+        <a className="doc-toggle" href={texUrl} download="bolsa-familia-previsao.tex"
+           title="Fonte LaTeX (.tex)">
+          ⤓ Baixar fonte (.tex)
+        </a>
+        <a className="doc-toggle" href={overleafUrl} target="_blank" rel="noreferrer"
+           title="Compilação online em 1 clique no Overleaf">
+          ↗ Abrir no Overleaf
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tab toggle Estadual / Municipal ─────────────────────────────────────
 function ScopeToggle({ scope, setScope, muniSourceLabel }) {
   const tabStyle = (active) => ({
@@ -1546,6 +1616,10 @@ export default function BolsaFamilia() {
         {/* WP#7 — segundo Working Paper na vertical Bolsa Família.
             Mesmo padrão do Equipamentos (WP#4 + WP#6 empilhados). */}
         <DocCardWP7 />
+
+        {/* WP#10 — previsão da carga de casos com redes neurais do zero +
+            covariáveis de demografia (IBGE) e emprego (RAIS). */}
+        <DocCardWP10 />
       </section>
 
       <ScopeToggle scope={scope} setScope={setScope} muniSourceLabel={muniSourceLabel} />
