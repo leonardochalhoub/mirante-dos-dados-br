@@ -284,7 +284,7 @@ codificação municipal distintos (SIAFI, IBGE de 7 e de 6 dígitos) por um
 estrutural entre cobertura do programa e mercado de trabalho.
 
 \textbf{Terceira, metodológica.} Implementamos as redes \emph{do zero} em
-C++17 \textemdash{} inicialização de He, ReLU, retropropagação manual,
+C++17 \textemdash{} inicialização de He, ReLU, retropropagação explícita,
 AdamW \textemdash{} sem qualquer biblioteca de aprendizado profundo,
 seguindo o roteiro de \textsc{Chen} e \textsc{Gupta}~\C{ref:chen-gupta}.
 Cada operação aritmética é auditável.
@@ -703,10 +703,17 @@ pipeline é determinístico dado o gerador pseudoaleatório semeado
 ($\text{seed}=42$).
 
 \medskip
-\noindent\textbf{Declaração sobre ferramentas de IA.} Nenhuma afirmação
-substantiva, número ou citação deste artigo foi gerada por modelos de
-linguagem. Todos os valores provêm dos artefatos de cômputo descritos;
-toda afirmação conceitual está ancorada nas referências oficiais.
+\noindent\textbf{Declaração sobre ferramentas de IA.} A implementação do
+código (o motor C++17, os \emph{scripts} de dados, de análise e de figuras)
+e a redação deste artigo foram realizadas com assistência do modelo de
+linguagem Claude Opus 4.8 (Anthropic), sob direção, verificação e revisão
+dos autores. Essa assistência não compromete a integridade dos resultados,
+que repousa em duas garantias verificáveis de forma independente: nenhum
+número foi inventado \textemdash{} todos os valores são reproduzíveis a
+partir dos artefatos de cômputo determinísticos descritos nesta seção
+\textemdash{}, e toda afirmação conceitual está ancorada nas referências
+oficiais listadas. Os autores assumem integral responsabilidade pelo
+conteúdo.
 
 % =====================================================================
 \section{Fundamentos}
@@ -1139,9 +1146,9 @@ com covariáveis, $16{\cdot}64{+}\cdots=\num{3201}$. Fonte: elaboração própri
 \subsection{Implementação do zero em C++17}
 
 Todo o motor \textemdash{} camadas densas, ReLU, retropropagação, AdamW
-\textemdash{} é escrito à mão em C++17, usando apenas \texttt{<vector>},
-\texttt{<cmath>}, \texttt{<map>} e \texttt{<random>}, sem LibTorch, BLAS ou
-qualquer dependência de aprendizado profundo. Os pesos são armazenados em
+\textemdash{} é implementado do zero em C++17, usando apenas
+\texttt{<vector>}, \texttt{<cmath>}, \texttt{<map>} e \texttt{<random>}, sem
+LibTorch, BLAS ou qualquer dependência de aprendizado profundo. Os pesos são armazenados em
 ordem \emph{row-major} por camada; avanço e retropropagação operam um
 exemplo por vez, acumulando o gradiente sobre o minilote antes de um passo
 de Adam. Pedagogicamente alinhada a~\C{ref:chen-gupta}, a escolha torna
@@ -1772,7 +1779,7 @@ maior relevância para o debate de sustentabilidade.
 \subsection{Método aberto e o sentido das duas perguntas}
 
 Registra-se, por fim, o valor da abordagem do zero: ao implementar cada
-peça à mão em C++17, seguindo Chen e Gupta~\C{ref:chen-gupta}, e ao
+peça explicitamente em C++17, seguindo Chen e Gupta~\C{ref:chen-gupta}, e ao
 reconciliar três bases públicas oficiais em um único painel, o experimento
 permanece integralmente auditável. Não há caixa-preta entre os dados
 públicos e a conclusão \textemdash{} cada número da Tabela~\ref{tab:acuracia}
