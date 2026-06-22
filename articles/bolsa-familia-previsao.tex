@@ -376,8 +376,9 @@ f_{c,t} \;=\; \bigl|\{\,\text{NIS favorecidos distintos em } (c,t)\,\}\bigr|,
 para cada município $c$ e mês $t$. A segunda é a estimativa anual de
 população residente por município do IBGE~\C{ref:ibge-pop}. A terceira é a
 Relação Anual de Informações Sociais (RAIS), do Programa de Disseminação
-das Estatísticas do Trabalho (PDET/MTE)~\C{ref:rais}, de onde extraímos o
-estoque municipal de vínculos formais ativos por ano.
+das Estatísticas do Trabalho (PDET/MTE)~\C{ref:rais} \textemdash{} uma base
+de \num{2060910061} vínculos formais (1985\textendash 2024) \textemdash{},
+de onde extraímos o estoque municipal de vínculos ativos por ano.
 
 \begin{table}[H]
 \centering
@@ -390,13 +391,16 @@ estoque municipal de vínculos formais ativos por ano.
 \midrule
 CGU \textendash{} Portal da Transparência & pagamentos PBF & pagamento $\times$ mês & \num{2533885299} \\
 \quad$\hookrightarrow$ painel derivado     & carga de casos & município $\times$ mês & \num{848526} \\
+RAIS \textendash{} PDET/MTE                 & vínculos formais & vínculo $\times$ ano & \num{2060910061} \\
+\quad$\hookrightarrow$ painel derivado     & emprego formal/ano & município $\times$ ano & \num{83537} \\
 IBGE                                       & população residente & município $\times$ ano & \num{66840} \\
-RAIS \textendash{} PDET/MTE                 & vínculos formais ativos & município $\times$ ano & \num{83537} \\
 \bottomrule
 \end{tabular}
 \par\smallskip
-{\footnotesize Fontes oficiais. O painel PBF cobre 156 meses
-(2013\textendash 2025); as covariáveis, 2010\textendash 2024.}
+{\footnotesize Fontes oficiais. Camadas brutas: pagamentos PBF
+(\num{2533885299}) e vínculos RAIS (\num{2060910061}, 1985\textendash 2024)
+somam $\approx$\,4,6 bilhões de linhas. O painel PBF cobre 156 meses
+(2013\textendash 2025); as covariáveis usadas, 2010\textendash 2024.}
 \end{table}
 
 \subsection{Reconciliação de códigos municipais}
