@@ -50,6 +50,18 @@ print(f"meses por Ano: {sorted([(r['Ano'], r['n_months']) for r in months_per_ye
 print(f"anos completos (12 meses): {sorted(full_years)}")
 if dropped:
     print(f"⚠ anos parciais descartados do gold: {dropped}")
+
+# Guard: descartar o ANO CORRENTE (parcial) é normal; descartar um ano PASSADO
+# significa que o silver perdeu meses (ex.: regressão nov/2021) — falha alto.
+current_year = spark.sql("SELECT year(current_date())").first()[0]
+dropped_past = [y for y in dropped if y < current_year]
+if dropped_past:
+    raise AssertionError(
+        f"Anos PASSADOS com < 12 meses descartados do gold: {dropped_past}. "
+        f"Silver entregou ano incompleto — investigar transição PBF→AUX→NBF. "
+        f"Abortando gold para não publicar série com buraco."
+    )
+
 silver = silver.where(F.col("Ano").isin(full_years))
 
 # ─── Diagnostics: detect duplicates in dim tables (would multiply gold rows) ──

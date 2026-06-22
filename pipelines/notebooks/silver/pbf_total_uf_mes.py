@@ -2,9 +2,10 @@
 # MAGIC %md
 # MAGIC # silver · pbf_total_uf_mes
 # MAGIC
-# MAGIC Lê o bronze `<catalog>.bronze.pbf_pagamentos`, aplica regra nov/2021 (PBF_AUX_SUM
-# MAGIC substitui PBF+AUX), parseia `valor_parcela` como Decimal, e agrega por
-# MAGIC `(Ano, Mes, uf)`:
+# MAGIC Lê o bronze `<catalog>.bronze.pbf_pagamentos`, parseia `valor_parcela` como
+# MAGIC Decimal e agrega por `(Ano, Mes, uf)`. Origens PBF + Auxílio Brasil + NBF
+# MAGIC entram cruas: na transição nov/2021 a soma de `valor_parcela` já combina as
+# MAGIC duas folhas e `countDistinct(NIS)` deduplica beneficiários (ver célula abaixo):
 # MAGIC - `n` = beneficiários distintos por mês (chave: `nis_favorecido` dígitos)
 # MAGIC - `n_ano` = beneficiários distintos por ano (replicado em cada linha do mês)
 # MAGIC - `total_estado` = soma de `valor_parcela`
@@ -31,49 +32,28 @@ print(f"bronze rows: {bronze.count():,}")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Fix nov/2021 PBF header swap + apply origin rule
+# MAGIC ## Nov/2021 PBF→Auxílio Brasil — transição SEM tratamento especial
+# MAGIC
+# MAGIC Em nov/2021 o PBF (última folha) e o Auxílio Brasil (primeira folha) pagaram
+# MAGIC AMBOS na mesma competência (202111): os ~14,36M beneficiários AUX são um
+# MAGIC subconjunto EXATO dos ~14,51M do PBF — todo mundo recebeu as duas parcelas.
+# MAGIC O total de R$ efetivamente transferido no mês é a SOMA das duas folhas, e a
+# MAGIC agregação crua abaixo já produz exatamente isso:
+# MAGIC   - `total_estado = sum(valor_parcela)`  soma PBF + AUX (R$ realmente pagos);
+# MAGIC   - `n` / `n_ano  = countDistinct(NIS)`  deduplicam beneficiários sozinhos.
+# MAGIC
+# MAGIC **Por que removemos a síntese antiga `PBF_AUX_SUM`:** ela agrupava por
+# MAGIC (ano,mes,competencia) e somava todas as colunas "numéricas". Quando o bronze
+# MAGIC passou a tipar `mes_competencia` como INT (28/04/2026), a síntese passou a
+# MAGIC SOMAR `mes_competencia` (~5,8×10¹²); `Ano = substring(...,1,4)` virava 5833,
+# MAGIC caía fora do range [2013, ano_atual] e a linha era descartada — nov/2021
+# MAGIC sumia em silêncio → 2021 com 11 meses → o gold (`n_months == 12`) derrubava
+# MAGIC o ano INTEIRO. A agregação crua é correta, idêntica em todo mês, e imune a
+# MAGIC drift de tipo no bronze.
 
 # COMMAND ----------
 
-# In PBF nov/2021, the source files shipped with mes_competencia ↔ mes_referencia swapped.
-# Reverse the swap only for those rows.
-if {"mes_competencia", "mes_referencia"}.issubset(set(bronze.columns)):
-    df = bronze.withColumn(
-        "mes_competencia",
-        F.when(
-            (F.col("ano") == 2021) & (F.col("mes") == 11) & (F.col("origin") == "PBF"),
-            F.col("mes_referencia"),
-        ).otherwise(F.col("mes_competencia"))
-    )
-else:
-    df = bronze
-
-# Origin rule for nov/2021: synthesize PBF_AUX_SUM by summing PBF + AUX numeric cols,
-# then keep ONLY PBF_AUX_SUM for that month and exclude PBF_AUX_SUM for all other months.
-nov21_raw = df.where((F.col("ano") == 2021) & (F.col("mes") == 11) & (F.col("origin").isin(["PBF", "AUX"])))
-
-if nov21_raw.head(1):
-    meta_cols = {"origin", "ano", "mes", "competencia", "_source_file", "_ingest_ts"}
-    numeric_cols = [c for c, t in nov21_raw.dtypes
-                    if c not in meta_cols and t in ("int", "bigint", "double", "float", "decimal")]
-    other_cols = [c for c in nov21_raw.columns if c not in meta_cols and c not in numeric_cols]
-    if numeric_cols:
-        agg_exprs = ([F.sum(F.col(c)).alias(c) for c in numeric_cols]
-                     + [F.first(F.col(c), ignorenulls=True).alias(c) for c in other_cols])
-        synthetic = (
-            nov21_raw.groupBy("ano", "mes", "competencia").agg(*agg_exprs)
-                     .withColumn("origin",       F.lit("PBF_AUX_SUM"))
-                     .withColumn("_source_file", F.lit("SYNTHETIC"))
-                     .withColumn("_ingest_ts",   F.current_timestamp())
-        )
-        df = df.unionByName(synthetic, allowMissingColumns=True)
-
-# Apply the origin rule
-is_2021_11 = (F.col("ano") == 2021) & (F.col("mes") == 11)
-df = df.where(
-    (is_2021_11 & (F.col("origin") == "PBF_AUX_SUM"))
-    | (~is_2021_11 & (F.col("origin") != "PBF_AUX_SUM"))
-)
+df = bronze
 
 # COMMAND ----------
 
@@ -154,6 +134,20 @@ ufs = silver_df.select("uf").distinct().count()
 years = silver_df.select("Ano").distinct().count()
 print(f"rows={n}  ufs={ufs}  years={years}")
 assert ufs == 27, f"Expected 27 UFs, got {ufs}"
+
+# Guard explícito (regressão nov/2021): NENHUM ano passado pode ter < 12 meses de
+# competência. O ano corrente pode ser parcial. Falha alto em vez de deixar o gold
+# derrubar o ano em silêncio.
+months_by_year = {r["Ano"]: r["m"] for r in
+                  silver_df.groupBy("Ano").agg(F.countDistinct("Mes").alias("m")).collect()}
+current_year = spark.sql("SELECT year(current_date())").first()[0]
+incomplete_past = {y: m for y, m in sorted(months_by_year.items())
+                   if y < current_year and m != 12}
+assert not incomplete_past, (
+    f"Anos passados com != 12 meses de competência: {incomplete_past}. "
+    f"Provável regressão no tratamento de transição (ex.: nov/2021 PBF→AUX). "
+    f"Abortando silver para não propagar ano incompleto ao gold."
+)
 print("✔ DQ passed")
 
 # COMMAND ----------
