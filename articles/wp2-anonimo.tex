@@ -270,14 +270,16 @@ derivados, filtrando anos não-completos pelo invariante
   fonttitle=\small\bfseries,
   ]\small
 O mês de novembro de 2021 contém registros simultâneos de PBF e
-Auxílio Brasil, reflexo da transição administrativa. O silver
-sintetiza um identificador composto \texttt{PBF\_AUX\_SUM} que
-\textit{soma} as parcelas das duas modalidades para beneficiários
-presentes em ambos, evitando dupla contagem; quando a coluna
-\texttt{mes\_competencia} aparece com valor distinto de
-\texttt{mes\_referencia} (artefato dos arquivos da CGU nesse mês),
-o silver normaliza pelo \texttt{mes\_competencia}. Detalhes de
-implementação: \texttt{pipelines/notebooks/silver/pbf\_total\_uf\_mes.py}.
+Auxílio Brasil, reflexo da transição administrativa. Nesse mês,
+os $\sim$14,36\,milhões de beneficiários do Auxílio Brasil são um
+subconjunto exato dos $\sim$14,51\,milhões do PBF: todos receberam as
+duas parcelas. O silver mantém as duas folhas como registros brutos e
+agrega normalmente, de modo que \texttt{total\_estado} $=$
+\texttt{sum(valor\_parcela)} soma as duas parcelas (R\$ efetivamente
+transferidos) e \texttt{countDistinct(NIS)} deduplica os beneficiários
+— sem síntese auxiliar. O ano de competência é derivado de
+\texttt{mes\_competencia}. Detalhes de implementação:
+\texttt{pipelines/notebooks/silver/pbf\_total\_uf\_mes.py}.
 \end{tcolorbox}
 
 \subsection{Indicadores construídos}
@@ -388,11 +390,14 @@ idênticos por país, limitando comparabilidade exata.
 
 A Tabela \ref{tab:evol-pbf} apresenta a série temporal nacional
 consolidada. Observam-se claramente os dois saltos: entre 2021 e
-2022 (Auxílio Brasil) com fator real $2,16\times$, e entre 2022 e
-2023 (Novo Bolsa Família) com fator real $2,07\times$. As
-variações de magnitude $> 30\,\%$ no per beneficiário em 2022
-($+36\,\%$) e 2023 ($+102\,\%$) indicam transformação institucional,
-não apenas atualização monetária.
+2022 (Auxílio Brasil) com fator real $1,78\times$, e entre 2022 e
+2023 (Novo Bolsa Família) com fator real $2,07\times$. O salto do
+valor por beneficiário concentra-se em 2023 ($+102\,\%$, NBF: novo
+piso e adicionais por composição familiar); em 2022 a expansão se deu
+sobretudo por cobertura (famílias beneficiárias de 14,75 para 23,85
+milhões, $+62\,\%$), com o valor por beneficiário subindo $+12\,\%$
+— sinais de transformação institucional, não de mera atualização
+monetária.
 
 \begin{table}[H]
 \centering
@@ -410,7 +415,7 @@ não apenas atualização monetária.
 2018 & 16,99 &  36,75 &  30,63 & 2.163 & 176,25 \\
 2019 & 14,99 &  35,84 &  31,16 & 2.391 & 170,56 \\
 2020 & 14,75 &  35,22 &  32,00 & 2.388 & 166,33 \\
-2021 & 15,02 &  30,39 &  30,39 & 2.023 & 142,44 \\
+2021 & 15,03 &  36,87 &  36,87 & 2.453 & 172,85 \\
 2022 & 23,85 &  65,76 &  69,56 & 2.757 & 308,61 \\
 2023 & 24,51 & 136,27 & 150,82 & 5.560 & 640,29 \\
 2024 & 23,18 & 140,88 & 163,45 & 6.078 & 662,70 \\
@@ -672,7 +677,7 @@ sobre Lei 14.601/2023.
 \textbf{Modelo} & $\hat{\beta}$ (R\$/hab) & SE & IC 95\,\% & $p$-valor \\
 \midrule
 DiD 2$\times$2 (HC3)              & $+223{,}75$ & 38{,}81 & $[+147{,}69;\,+299{,}82]$ & $< 0{,}001$ \\
-TWFE clusterizado por UF (N=27)   & $+233{,}27$ & 42{,}00 & $[+150{,}96;\,+315{,}59]$ & $< 0{,}001$ \\
+TWFE clusterizado por UF (N=27)   & $+226{,}15$ & 41{,}00 & $[+145{,}79;\,+306{,}50]$ & $< 0{,}001$ \\
 \textit{Wild-cluster bootstrap} (999 sims) & --- & --- & --- & $0{,}493$ \\
 \bottomrule
 \end{tabular}
@@ -687,7 +692,7 @@ TWFE clusterizado por UF (N=27)   & $+233{,}27$ & 42{,}00 & $[+150{,}96;\,+315{,
 \toprule
 \textbf{Modelo} & $\hat{\beta}$ (R\$/hab) & SE & IC 95\,\% & $p$-valor \\
 \midrule
-DiD 2$\times$2 (HC3) & $+271{,}05$ & 44{,}99 & $[+182{,}86;\,+359{,}23]$ & $< 0{,}001$ \\
+DiD 2$\times$2 (HC3) & $+256{,}80$ & 43{,}12 & $[+172{,}29;\,+341{,}31]$ & $< 0{,}001$ \\
 \bottomrule
 \end{tabular}
 \par\noindent{\small Fonte: \texttt{causal\_analysis\_pbf.py}.}
@@ -1041,8 +1046,8 @@ relações aqui medidas são descritivas e preditivas, \textbf{não causais}.
 \subsection{O salto de 2022\textendash 2023: o que se identifica e o que não}
 
 A Seção \ref{sec:resultados} estabeleceu, descritivamente, dois
-saltos de magnitude $> 2\times$ no valor real entre 2021$\to$2022 e
-2022$\to$2023. A Seção \ref{sec:causal} mostrou que esses saltos
+saltos no valor real ($1,78\times$ entre 2021$\to$2022 e
+$2,07\times$ entre 2022$\to$2023). A Seção \ref{sec:causal} mostrou que esses saltos
 \textit{não} podem ser atribuídos causalmente à intensidade do
 \textit{déficit de cobertura} pré-choque sob a métrica robusta
 apropriada para N\,=\,27 \textit{clusters}. O que sobrevive é a

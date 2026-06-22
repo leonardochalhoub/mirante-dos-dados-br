@@ -18,8 +18,8 @@ déficit ≥ 0.2905.
 | Modelo | β̂ (R$/hab) | SE | IC 95% | p-valor |
 |---|---:|---:|:---:|---:|
 | DiD 2×2 (HC3) | +223.75 | 38.81 | [+147.69; +299.82] | 0.0000 |
-| TWFE FE-UF FE-Ano (cluster UF) | +233.27 | 42.00 | [+150.96; +315.59] | 0.0000 |
-| Wild-cluster bootstrap (999 sims) | — | — | — | 0.4925 |
+| TWFE FE-UF FE-Ano (cluster UF) | +226.15 | 41.00 | [+145.79; +306.50] | 0.0000 |
+| Wild-cluster bootstrap (999 sims) | — | — | — | 0.4915 |
 
 - Δ̄ Treated = R$ +609.3/hab
 - Δ̄ Control = R$ +385.6/hab
@@ -28,7 +28,7 @@ déficit ≥ 0.2905.
 
 | Modelo | β̂ (R$/hab) | SE | IC 95% | p-valor |
 |---|---:|---:|:---:|---:|
-| DiD 2×2 (HC3) | +271.05 | 44.99 | [+182.86; +359.23] | 0.0000 |
+| DiD 2×2 (HC3) | +256.80 | 43.12 | [+172.29; +341.31] | 0.0000 |
 
 ## Robustez
 

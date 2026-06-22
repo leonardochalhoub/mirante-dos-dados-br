@@ -341,7 +341,12 @@ function DocCardWP7() {
         1.061/2021 e Lei 14.601/2023, e decomposição Theil within/between-UF.
       </p>
 
-      <ScoreCard parecer={PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS} />
+      <details className="no-print" style={{ margin: '8px 0 14px' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 12, color: 'var(--muted)' }}>
+          Parecer do Conselho do Mirante — avaliação crítica (WP #7)
+        </summary>
+        <div style={{ marginTop: 8 }}><ScoreCard parecer={PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS} /></div>
+      </details>
 
       <WhyDuploWP7 />
 
@@ -1493,7 +1498,12 @@ export default function BolsaFamilia() {
             (Colômbia) e Renta Dignidad (Bolívia) em US$ PPP 2021.
           </p>
 
-          <ScoreCard parecer={PARECER_WP2_BOLSA_FAMILIA} />
+          <details className="no-print" style={{ margin: '8px 0 14px' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 12, color: 'var(--muted)' }}>
+              Parecer do Conselho do Mirante — avaliação crítica (WP #2)
+            </summary>
+            <div style={{ marginTop: 8 }}><ScoreCard parecer={PARECER_WP2_BOLSA_FAMILIA} /></div>
+          </details>
 
           <WhyTriploWP2 />
 
@@ -1526,7 +1536,12 @@ export default function BolsaFamilia() {
             </a>
           </div>
         </div>
-        <AtaConselho ata={ATA_WP2_REUNIAO_1} />
+        <details className="no-print" style={{ margin: '8px 0 14px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 12, color: 'var(--muted)' }}>
+            Ata da Reunião do Conselho do Mirante — avaliação completa, 4 cadeiras (WP #2)
+          </summary>
+          <div style={{ marginTop: 8 }}><AtaConselho ata={ATA_WP2_REUNIAO_1} /></div>
+        </details>
 
         {/* WP#7 — segundo Working Paper na vertical Bolsa Família.
             Mesmo padrão do Equipamentos (WP#4 + WP#6 empilhados). */}

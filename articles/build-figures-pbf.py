@@ -672,8 +672,9 @@ def fig_yoy_growth():
     editorial_title(
         ax,
         title="Variação anual do valor por beneficiário (R$ 2021)",
-        subtitle=("+36% em 2022 (Auxílio Brasil) e +102% em 2023 (NBF) "
-                  "indicam mudança institucional, não atualização monetária."),
+        subtitle=("+12% em 2022 (Auxílio Brasil, expansão sobretudo por "
+                  "cobertura) e +102% em 2023 (NBF) — o salto do valor "
+                  "unitário concentra-se em 2023, não em 2022."),
     )
     source_note(ax, SOURCE_PBF)
     save(fig, "fig12-yoy-growth")
