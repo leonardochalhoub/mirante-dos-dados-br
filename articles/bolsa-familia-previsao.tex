@@ -308,8 +308,10 @@ maior capacidade.
 A Seção~\ref{sec:contexto} situa o programa e a carga de casos. A
 Seção~\ref{sec:dados} descreve as três fontes de dados, o \emph{crosswalk}
 municipal e um panorama descritivo das relações entre caseload, população
-e emprego. A Seção~\ref{sec:fundamentos} revisa os fundamentos de previsão
-e de redes neurais. A Seção~\ref{sec:tarefa} formaliza a tarefa e o
+e emprego. A Seção~\ref{sec:pipeline} apresenta os materiais e métodos de
+engenharia de dados \textemdash{} o pipeline, a governança e a
+reprodutibilidade. A Seção~\ref{sec:fundamentos} revisa os fundamentos de
+previsão e de redes neurais. A Seção~\ref{sec:tarefa} formaliza a tarefa e o
 protocolo. A Seção~\ref{sec:modelos} deriva os cinco modelos, com toda a
 matemática. A Seção~\ref{sec:metricas} define métricas e inferência. As
 Seções~\ref{sec:resultados} a~\ref{sec:significancia} apresentam a
@@ -317,8 +319,7 @@ acurácia, o efeito das covariáveis e sua significância. A
 Seção~\ref{sec:interpretacao} interpreta \emph{quando} a profundidade e as
 covariáveis ajudam. A Seção~\ref{sec:projecao} traz a projeção
 2026\textendash 2028. As Seções~\ref{sec:limitacoes}
-a~\ref{sec:reprod} discutem limitações, extensões, conclusões e
-reprodutibilidade.
+a~\ref{sec:conclusoes} discutem limitações, extensões e conclusões.
 
 % =====================================================================
 \section{O programa e a carga de casos}
@@ -572,7 +573,7 @@ dessas cautelas afeta a contagem de famílias, que é apurada diretamente da
 fonte primária de pagamentos e não depende de nenhuma das covariáveis.
 
 % =====================================================================
-\section{Engenharia de dados: arquitetura e reprodutibilidade}
+\section{Materiais e métodos: pipeline de dados e reprodutibilidade}
 \label{sec:pipeline}
 % =====================================================================
 
@@ -667,16 +668,41 @@ de qualquer número de saída é possível recuar até a linha bruta que o
 originou.
 
 \subsection{Fontes abertas e reprodutibilidade}
+\label{sec:reprod}
 
 Todas as três fontes são públicas e oficiais, e nenhuma exige credencial
 privada: os pagamentos do Bolsa Família estão no Portal da Transparência
 da CGU~\C{ref:portal-transparencia}; a população, nas estimativas do
 IBGE~\C{ref:ibge-pop}; os vínculos formais, na RAIS do
 PDET/MTE~\C{ref:rais}. O pipeline que as ingere e refina é de código
-aberto, e os modelos são implementados do zero
-(Seção~\ref{sec:reprod}). A reprodutibilidade, portanto, não depende de
-nenhum dado proprietário nem de infraestrutura paga: é uma propriedade de
-desenho, não uma promessa.
+aberto,\footnote{Este artigo integra a \emph{vertical Bolsa Família} da
+plataforma aberta de dados públicos brasileiros \emph{Mirante dos Dados};
+o pipeline de engenharia de dados e todo o código-fonte são públicos em
+\url{https://github.com/leonardochalhoub/mirante-dos-dados-br}.} e os
+modelos são implementados do zero. A reprodutibilidade, portanto, não
+depende de nenhum dado proprietário nem de infraestrutura paga: é uma
+propriedade de desenho, não uma promessa.
+
+Todos os números deste artigo são produzidos por código. O painel é
+minerado da camada bruta de pagamentos e as covariáveis são extraídas das
+bases de população (IBGE) e emprego (RAIS) e reconciliadas por
+\emph{crosswalk}; o motor C++17 executa o backtest fora do tempo e a
+projeção; um \emph{script} de análise computa os testes de significância e
+as bandas; e o \emph{script} de figuras
+(\texttt{build-figures-pbf-forecast.py}) gera todos os gráficos a partir
+dos artefatos versionados (\texttt{metrics.json},
+\texttt{significance.json}, \texttt{forward\_forecast.csv},
+\texttt{forward\_band.csv}, \texttt{forecast\_h\{1,3,6,12\}.csv},
+\texttt{errors\_h*.csv}, \texttt{training\_log.csv},
+\texttt{covariates\_municipio\_ano.csv}, \texttt{muni\_year.csv}). O
+pipeline é determinístico dado o gerador pseudoaleatório semeado
+($\text{seed}=42$).
+
+\medskip
+\noindent\textbf{Declaração sobre ferramentas de IA.} Nenhuma afirmação
+substantiva, número ou citação deste artigo foi gerada por modelos de
+linguagem. Todos os valores provêm dos artefatos de cômputo descritos;
+toda afirmação conceitual está ancorada nas referências oficiais.
 
 % =====================================================================
 \section{Fundamentos}
@@ -1762,31 +1788,6 @@ há, neste domínio, um almoço grátis: há o ajuste certo entre ferramenta e
 tarefa. É uma lição modesta, mas é a que os dados públicos brasileiros, aqui
 examinados com rigor, sustentam \textemdash{} e que vale, plausivelmente,
 muito além da carga de casos de um único programa social.
-
-% =====================================================================
-\section{Reprodutibilidade}
-\label{sec:reprod}
-% =====================================================================
-
-Todos os números são produzidos por código. O painel é minerado da camada
-bruta de pagamentos e as covariáveis são extraídas das bases de população
-(IBGE) e emprego (RAIS) e reconciliadas por \emph{crosswalk}; o motor C++17
-executa o backtest fora do tempo e a projeção; um \emph{script} de análise
-computa os testes de significância e as bandas; e o \emph{script} de
-figuras (\texttt{build-figures-pbf-forecast.py}) gera todos os gráficos a
-partir dos artefatos versionados (\texttt{metrics.json},
-\texttt{significance.json}, \texttt{forward\_forecast.csv},
-\texttt{forward\_band.csv}, \texttt{forecast\_h\{1,3,6,12\}.csv},
-\texttt{errors\_h*.csv}, \texttt{training\_log.csv},
-\texttt{covariates\_municipio\_ano.csv}, \texttt{muni\_year.csv}). O
-pipeline é determinístico dado o gerador pseudoaleatório semeado
-($\text{seed}=42$).
-
-\bigskip
-\noindent\textbf{Declaração sobre ferramentas de IA.} Nenhuma afirmação
-substantiva, número ou citação deste artigo foi gerado por modelos de
-linguagem. Todos os valores provêm dos artefatos de cômputo descritos;
-toda afirmação conceitual está ancorada nas referências oficiais a seguir.
 
 % =====================================================================
 \newpage
