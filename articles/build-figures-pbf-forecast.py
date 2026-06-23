@@ -623,9 +623,125 @@ def fig17():
     save(fig, "fig17_pipeline.pdf")
 
 
+# ====================================================================
+# FIG 18 — Primeiro estágio do Bartik (instrumento vs Δemprego)
+# ====================================================================
+def fig18():
+    d = pd.read_csv(os.path.join(DATA, "bartik_window_2013_2019.csv"))
+    iv = json.load(open(os.path.join(DATA, "bartik_iv.json")))["2013_2019_pre_break"]
+    fig, ax = plt.subplots(figsize=GOLDEN_FIGSIZE)
+    fig.subplots_adjust(top=0.83, bottom=0.16)
+    ax.scatter(d["bartik"], d["dlemp"], s=6, color=C["linear"], alpha=0.12, lw=0, zorder=3)
+    q = pd.qcut(d["bartik"], 20, labels=False, duplicates="drop")
+    bx = d["bartik"].groupby(q).mean(); by = d["dlemp"].groupby(q).mean()
+    ax.plot(bx.values, by.values, color=P["destaque"], lw=2.6, marker="o",
+            markersize=5, zorder=6, label="Média por vintil")
+    xs = np.array([d["bartik"].quantile(0.01), d["bartik"].quantile(0.99)])
+    ax.plot(xs, iv["first_stage_pi"] * xs + (by.mean() - iv["first_stage_pi"] * bx.mean()),
+            color=P["neutro"], lw=1.2, ls="--", zorder=5)
+    ax.set_xlabel("Instrumento de Bartik (Σ participação setorial × crescimento nacional)")
+    ax.set_ylabel("Δ log emprego formal municipal, 2013→2019")
+    ax.legend(loc="upper left", fontsize=9, frameon=False)
+    editorial_title(ax, "O instrumento prevê fortemente o crescimento do emprego",
+                    "Primeiro estágio do shift-share (Bartik), municípios, 2013→2019")
+    source_note(ax, FONTE + f"  Estatística F do 1º estágio = {iv['first_stage_F']:.1f} "
+                f"(≫ 10); π = {iv['first_stage_pi']:+.2f}.")
+    save(fig, "fig18_bartik_first_stage.pdf")
+
+
+# ====================================================================
+# FIG 19 — Benchmarks clássicos (ETS/SARIMA) vs modelos do estudo
+# ====================================================================
+def fig19():
+    doc = json.load(open(os.path.join(DATA, "doctoral_stats.json")))
+    bench = doc["national_benchmarks"]; cpp = doc["national_cpp_mape"]
+    fig, ax = plt.subplots(figsize=GOLDEN_FIGSIZE)
+    fig.subplots_adjust(top=0.83, bottom=0.16)
+    x = np.arange(len(HORIZONS)); w = 0.18
+    series = [("persist", P["contexto_dark"], "Persistência", "bench"),
+              ("ets", "#B45309", "ETS (Holt-Winters)", "bench"),
+              ("sarima", "#8E44AD", "SARIMA", "bench"),
+              ("linear", P["principal"], "AR linear (este estudo)", "cpp")]
+    for i, (k, col, lab, src) in enumerate(series):
+        vals = [bench[str(h)][k]["mape"] if src == "bench" else cpp["linear"][str(h)]
+                for h in HORIZONS]
+        bars = ax.bar(x + (i - 1.5) * w, vals, w, color=col, label=lab, zorder=3)
+        for b, v in zip(bars, vals):
+            ax.text(b.get_x() + b.get_width() / 2, v + 0.12, f"{v:.1f}",
+                    ha="center", va="bottom", fontsize=6.6, color=col, fontweight="semibold")
+    ax.set_xticks(x); ax.set_xticklabels([hlabel(h) for h in HORIZONS])
+    ax.set_ylabel("MAPE nacional fora da amostra (%)"); ax.set_ylim(0, 11.5)
+    ax.legend(loc="upper left", fontsize=8.4, frameon=False)
+    editorial_title(ax, "O modelo do estudo bate o arsenal clássico em todo horizonte",
+                    "MAPE da série nacional (2025): ETS e SARIMA vs. a autorregressão linear global")
+    source_note(ax, FONTE)
+    save(fig, "fig19_benchmarks.pdf")
+
+
+# ====================================================================
+# FIG 20 — Efeito causal (IV/Bartik) vs OLS, com IC 95%
+# ====================================================================
+def fig20():
+    iv = json.load(open(os.path.join(DATA, "bartik_iv.json")))
+    fig, ax = plt.subplots(figsize=GOLDEN_FIGSIZE)
+    fig.subplots_adjust(top=0.83, bottom=0.18, left=0.12)
+    rows = [("2013_2024_full", "Janela completa\n2013→2024"),
+            ("2013_2019_pre_break", "Janela pré-choque\n2013→2019")]
+    y = 0
+    yt, ylab = [], []
+    for tag, lab in rows:
+        r = iv[tag]
+        # OLS
+        ax.errorbar(r["ols_beta"], y + 0.18, xerr=1.96 * r["ols_se"], fmt="s",
+                    color=P["contexto_dark"], capsize=4, markersize=7,
+                    label="OLS" if y == 0 else None, zorder=5)
+        # IV
+        lo, hi = r["iv_ci95"]
+        ax.errorbar(r["iv_beta"], y - 0.18, xerr=[[r["iv_beta"] - lo], [hi - r["iv_beta"]]],
+                    fmt="o", color=C["linear"], capsize=5, markersize=9,
+                    label="IV (Bartik)" if y == 0 else None, zorder=6)
+        yt.append(y); ylab.append(lab); y += 1
+    ax.axvline(0, color=P["destaque"], lw=1.2, ls="--", zorder=2)
+    ax.set_yticks(yt); ax.set_yticklabels(ylab, fontsize=9)
+    ax.set_ylim(-0.6, len(rows) - 0.4)
+    ax.set_xlabel("Efeito de Δlog(emprego formal) sobre Δlog(cobertura PBF)")
+    ax.legend(loc="lower left", fontsize=9, frameon=False)
+    editorial_title(ax, "O efeito causal é negativo — e o OLS o subestima",
+                    "Emprego formal reduz a dependência do PBF; IV (Bartik) > OLS em magnitude")
+    source_note(ax, FONTE + "  IV just-identified, EF de UF + log-pop, SE clusterizado por UF.")
+    save(fig, "fig20_causal_iv.pdf")
+
+
+# ====================================================================
+# FIG 21 — Banda conforme vs banda informal (largura por horizonte)
+# ====================================================================
+def fig21():
+    doc = json.load(open(os.path.join(DATA, "doctoral_stats.json")))
+    conf = doc["conformal"]["rel_halfwidth_by_h"]
+    cpp = doc["national_cpp_mape"]["linear"]
+    fig, ax = plt.subplots(figsize=GOLDEN_FIGSIZE)
+    fig.subplots_adjust(top=0.83, bottom=0.16)
+    x = np.arange(len(HORIZONS)); w = 0.36
+    informal = [cpp[str(h)] for h in HORIZONS]
+    conformal = [100 * conf[str(h)] for h in HORIZONS]
+    ax.bar(x - w / 2, informal, w, color=P["contexto"], label="Banda informal (±MAPE backtest)", zorder=3)
+    ax.bar(x + w / 2, conformal, w, color=C["linear_mv"], label="Banda conforme (90%, calibrada)", zorder=3)
+    for xi, a, b in zip(x, informal, conformal):
+        ax.text(xi - w / 2, a + 0.1, f"{a:.1f}", ha="center", va="bottom", fontsize=7, color=P["neutro"])
+        ax.text(xi + w / 2, b + 0.1, f"{b:.1f}", ha="center", va="bottom", fontsize=7, color=C["linear_mv"])
+    ax.set_xticks(x); ax.set_xticklabels([hlabel(h) for h in HORIZONS])
+    ax.set_ylabel("Meia-largura relativa da banda (%)"); ax.set_ylim(0, 11)
+    ax.legend(loc="upper left", fontsize=8.6, frameon=False)
+    editorial_title(ax, "Predição conforme dá cobertura calibrada, próxima da banda informal",
+                    "Meia-largura do intervalo nacional por horizonte: informal vs. split-conformal")
+    source_note(ax, FONTE)
+    save(fig, "fig21_conformal.pdf")
+
+
 if __name__ == "__main__":
     print("Gerando figuras do WP de previsão PBF (uni vs +covariáveis)…")
     for fn in [fig01, fig02, fig03, fig04, fig05, fig06, fig07, fig08, fig09, fig10,
-               fig11, fig12, fig13, fig14, fig15, fig16, fig17]:
+               fig11, fig12, fig13, fig14, fig15, fig16, fig17,
+               fig18, fig19, fig20, fig21]:
         fn()
     print("Concluído.")

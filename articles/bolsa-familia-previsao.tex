@@ -169,17 +169,25 @@ $+17\%$ de redução de MAE, tornando o modelo linear com covariáveis o
 melhor preditor de longo prazo; (v) a projeção nacional indica que a carga
 de casos atingiu o pico em 2022\textendash 2023 e recua, com erro agregado
 de backtest inferior a 4,7\% em 12 meses. Documentamos ainda uma forte
-relação estrutural entre cobertura do programa e intensidade de emprego
-formal nos municípios (correlação log-log de $-0{,}66$ em 2024, robusta a
-efeitos fixos de estado e ao controle por população, porém associativa, não
-causal). Conclui-se que, sob ausência de novo choque institucional, a
-demanda estrutural é plana ou declinante e que o custo futuro é governado
-pelo \emph{valor} do benefício \textemdash{} uma escolha de política
-\textemdash{}, não por uma carga de casos em expansão.
+relação estrutural entre cobertura do programa e emprego formal nos
+municípios (correlação log-log de $-0{,}66$ em 2024) e, indo além da
+associação, \emph{identificamos seu efeito causal} por um instrumento
+\emph{shift-share} (Bartik): o emprego formal reduz a demanda por
+transferência, com efeito 2SLS de $-0{,}63$ (IC 95\% $[-1{,}20;-0{,}06]$,
+primeiro estágio $F>26$), maior em magnitude que o de MQO \textemdash{}
+sinal de atenuação. Em previsão, a autorregressão linear global supera não
+só a persistência como os benchmarks clássicos ETS e SARIMA em todos os
+horizontes (4,7\% vs.\ ${\sim}10\%$ de MAPE nacional em 12 meses). Conclui-se
+que, sob ausência de novo choque institucional, a demanda estrutural é plana
+ou declinante e que o custo futuro \textemdash{} cuja parcela estrutural um
+erro de 4,7\% projeta com desvio da ordem de R\$\,7 bilhões/ano \textemdash{}
+é governado pelo \emph{valor} do benefício, uma escolha de política, não por
+uma carga de casos em expansão.
 
 \medskip
 
-\noindent\textbf{Palavras-chave}: previsão de séries temporais; redes
+\noindent\textbf{Palavras-chave}: identificação causal; instrumento
+shift-share; variável instrumental; previsão de séries temporais; redes
 neurais artificiais; perceptron multicamadas; covariáveis exógenas;
 Programa Bolsa Família; emprego formal; RAIS; demografia; avaliação fora
 do tempo; C++.
@@ -466,18 +474,17 @@ inalterada ($-0{,}67$); e mesmo \emph{dentro} de cada unidade da federação
 \textemdash{} comparando municípios do mesmo estado, o que absorve a
 geografia histórica da pobreza por efeitos fixos \textemdash{}, a relação
 persiste, com correlação de $-0{,}39$ e inclinação de $-0{,}36$ numa
-regressão com efeitos fixos de UF ($R^2=0{,}71$). Parte do $-0{,}66$ bruto
-reflete, portanto, o contraste \emph{entre} estados (Norte/Nordeste vs.\
-Sul/Sudeste), mas uma parcela substancial e robusta sobrevive
-\emph{intra}-estado. Trata-se, ainda assim, de uma \emph{associação}
-estrutural, não de um efeito causal identificado: confundidores como o
-nível de desenvolvimento local e a composição setorial não são isolados, e
-um $n$ grande aumenta a precisão amostral sem eliminar esse viés. A
-identificação causal do efeito do emprego sobre a demanda por transferência
-exigiria variação exógena \textemdash{} um instrumento \emph{shift-share},
-uma descontinuidade de elegibilidade ou um \emph{event study} sobre choques
-locais de emprego \textemdash{}, agenda que registramos na
-Seção~\ref{sec:extensoes}.
+regressão com efeitos fixos de UF ($R^2=0{,}71$); essa inclinação é
+estatisticamente robusta a erro-padrão clusterizado por UF
+($\text{EP}=0{,}064$, $t=-5{,}7$, 27 \emph{clusters}). Parte do $-0{,}66$
+bruto reflete, portanto, o contraste \emph{entre} estados (Norte/Nordeste
+vs.\ Sul/Sudeste), mas uma parcela substancial e robusta sobrevive
+\emph{intra}-estado. Ainda assim, correlação não é causalidade: para
+\emph{identificar} o efeito do emprego formal sobre a demanda por
+transferência \textemdash{} isolando confundidores como nível de
+desenvolvimento e composição setorial \textemdash{}, recorremos a um
+instrumento \emph{shift-share} (Bartik), apresentado na
+Seção~\ref{sec:causal}.
 
 A Figura~\ref{fig:scatter-emp} mostra o mesmo par em níveis absolutos
 (escala log-log): caseload e emprego crescem juntos em escala
@@ -716,14 +723,19 @@ Todos os números deste artigo são produzidos por código. O painel é
 minerado da camada bruta de pagamentos e as covariáveis são extraídas das
 bases de população (IBGE) e emprego (RAIS) e reconciliadas por
 \emph{crosswalk}; o motor C++17 executa o backtest fora do tempo e a
-projeção; um \emph{script} de análise computa os testes de significância e
-as bandas; e o \emph{script} de figuras
-(\texttt{build-figures-pbf-forecast.py}) gera todos os gráficos a partir
-dos artefatos versionados (\texttt{metrics.json},
-\texttt{significance.json}, \texttt{forward\_forecast.csv},
-\texttt{forward\_band.csv}, \texttt{forecast\_h\{1,3,6,12\}.csv},
-\texttt{errors\_h*.csv}, \texttt{training\_log.csv},
-\texttt{covariates\_municipio\_ano.csv}, \texttt{muni\_year.csv}). O
+projeção; \emph{scripts} de análise computam os testes de significância e as
+bandas (\texttt{analysis.py}), a identificação causal por Bartik
+(\texttt{bartik\_iv.py}), os benchmarks clássicos, a banda conforme e os
+testes de Mincer\-Zarnowitz e Diebold\-Mariano (\texttt{doctoral\_analysis.py});
+um teste de unidade (\texttt{tests/test\_engine.cpp}) verifica o gradiente; e
+o \emph{script} de figuras (\texttt{build-figures-pbf-forecast.py}) gera os
+gráficos a partir dos artefatos versionados (\texttt{metrics.json},
+\texttt{significance.json}, \texttt{doctoral\_stats.json},
+\texttt{bartik\_iv.json}, \texttt{forward\_forecast.csv},
+\texttt{forward\_band.csv}, \texttt{conformal\_band.csv},
+\texttt{forecast\_h\{1,3,6,12\}.csv}, \texttt{errors\_h*.csv},
+\texttt{training\_log.csv}, \texttt{covariates\_municipio\_ano.csv},
+\texttt{muni\_year.csv}). O
 pipeline é determinístico dados os geradores pseudoaleatórios semeados:
 $\text{seed}=42$ na inicialização dos pesos (He) e $\text{seed}=7$ no
 embaralhamento de minilotes e na separação do conjunto de validação. As
@@ -1184,7 +1196,11 @@ ordem \emph{row-major} por camada; avanço e retropropagação operam um
 exemplo por vez, acumulando o gradiente sobre o minilote antes de um passo
 de Adam. Pedagogicamente alinhada a~\C{ref:chen-gupta}, a escolha torna
 cada operação inspecionável e o experimento integralmente reproduzível, ao
-custo de desempenho irrelevante nesta escala.
+custo de desempenho irrelevante nesta escala. A correção da retropropagação
+manual é verificada por um teste de unidade que compara o gradiente
+analítico ao numérico (diferenças finitas): o erro relativo máximo é de
+$7{,}5\times 10^{-10}$, confirmando que cada derivada está corretamente
+implementada.
 
 % =====================================================================
 \section{Métricas e inferência}
@@ -1478,6 +1494,45 @@ covariáveis, é dominada pela autorregressão linear em 3, 6 e 12 meses
 (deep+cov vs.\ linear: $-27$, $-39$, $-56$ famílias) \textemdash{} a
 informação ajuda, a capacidade extra não.
 
+\subsection{Comparação com o arsenal clássico (ETS e SARIMA)}
+
+Um cético da literatura de previsão perguntaria: a autorregressão linear
+global supera não apenas a persistência, mas os métodos estatísticos
+clássicos? Para responder, ajustamos, sobre a série \emph{nacional} e no
+mesmo protocolo fora do tempo de 2025, dois benchmarks consagrados: a
+suavização exponencial de Holt\-Winters (ETS, com tendência e sazonalidade
+aditivas) e um SARIMA $(1,1,1)(0,1,1)_{12}$. A
+Figura~\ref{fig:benchmarks} mostra o resultado: a autorregressão linear do
+estudo tem o \emph{menor} MAPE nacional em todos os horizontes, e a margem
+\emph{cresce} com o horizonte \textemdash{} 4,7\% em 12 meses, contra
+10,2\% do ETS e 10,1\% do SARIMA. Mais notável, ETS e SARIMA ficam
+\emph{abaixo} da própria persistência em horizontes longos: ajustar
+tendência e sazonalidade a uma série com quebras estruturais (os três
+regimes do programa) produz extrapolações instáveis. O achado ecoa, mais
+uma vez, a lição das competições M~\C{ref:m4}: sofisticação mal\-casada com
+a estrutura do sinal piora, não melhora.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig19_benchmarks.pdf}
+\caption{\textbf{Benchmarks clássicos.} MAPE da série nacional (2025): a
+autorregressão linear global do estudo supera ETS e SARIMA em todos os
+horizontes, e a vantagem cresce com o horizonte.}
+\label{fig:benchmarks}
+\end{figure}
+
+Dois testes formais complementam o quadro, ambos sobre a série nacional.
+O teste de Mincer\-Zarnowitz não rejeita a hipótese de não\-viés a um mês
+(estatística de Wald $=0{,}28$), embora a baixa potência de 12 observações
+nacionais o torne inconclusivo nos horizontes longos. O teste de
+Diebold\-Mariano~\C{ref:diebold} entre o modelo linear e a persistência, com
+correção de pequena amostra de Harvey\-Leybourne\-Newbold, fica abaixo do
+limiar de significância no agregado nacional \textemdash{} reflexo direto
+das 12 observações \textemdash{}, ao passo que o bootstrap pareado sobre as
+\num{66504} previsões municipais (Seção anterior) tem potência ampla. É a
+razão de centrarmos a inferência no painel municipal, não no agregado:
+$n=12$ não sustenta um teste de série temporal.
+
 % =====================================================================
 \section{Interpretação: quando ajudam a profundidade e as covariáveis?}
 \label{sec:interpretacao}
@@ -1545,6 +1600,137 @@ de previsão em larga escala~\C{ref:m4}: sofisticação não é, por si,
 acurácia.
 
 % =====================================================================
+\section{Identificação causal: o emprego formal reduz a demanda por transferência}
+\label{sec:causal}
+% =====================================================================
+
+As seções anteriores estabeleceram que o emprego formal \emph{prevê} a
+carga de casos (covariáveis ajudam no longo prazo, Seção~\ref{sec:efeito})
+e que cobertura e emprego se \emph{associam} negativamente entre municípios
+(Seção~\ref{sec:dados}). Resta a pergunta causal: o emprego formal
+\emph{reduz} a demanda por Bolsa Família, ou ambos apenas refletem um
+terceiro fator (o nível de desenvolvimento local)? Esta seção a enfrenta com
+um desenho de identificação \emph{shift-share}.
+
+\subsection{O instrumento de Bartik}
+
+A endogeneidade é clara: municípios mais pobres têm, simultaneamente, menos
+emprego formal e mais Bolsa Família, de modo que a regressão simples confunde
+causa e seleção. A estratégia de \emph{shift-share}, ou de
+Bartik~\C{ref:bartik}, resolve isso construindo um preditor do crescimento
+do emprego que não depende das condições locais de demanda. Para o município
+$c$, definimos
+\begin{equation}
+B_c \;=\; \sum_{s} \omega_{c,s,t_0}\;g_{s,-c}^{\,t_0\to t_1},
+\label{eq:bartik}
+\end{equation}
+onde $\omega_{c,s,t_0}$ é a \emph{participação} do setor $s$ no emprego
+formal do município no ano-base $t_0$ (2013), e $g_{s,-c}$ é o crescimento
+\emph{nacional} do setor $s$ entre $t_0$ e $t_1$, calculado \emph{excluindo}
+o próprio município (\emph{leave-one-out}). A intuição: um município
+especializado em setores que cresceram nacionalmente herda esse crescimento
+por composição, e essa parcela do crescimento do emprego é plausivelmente
+exógena às condições locais de pobreza. A identificação repousa na
+exogeneidade das participações setoriais iniciais condicional aos controles,
+no sentido de Goldsmith-Pinkham, Sorkin e Swift~\C{ref:gpss}; com 92 setores
+CNAE, o instrumento agrega muitos choques setoriais~\C{ref:bhj}.
+
+Estimamos, em primeiras diferenças de longo prazo,
+\begin{equation}
+\Delta\log\!\big(\text{cobertura}_c\big)
+= \beta\,\Delta\log\!\big(\text{emprego}_c\big) + \bm\gamma'\bm w_c + \varepsilon_c,
+\label{eq:2sls}
+\end{equation}
+instrumentando $\Delta\log(\text{emprego}_c)$ por $B_c$, com controles
+$\bm w_c$ (efeitos fixos de UF e log da população\-base) e erro\-padrão
+clusterizado por UF. Reportamos duas janelas: 2013\textendash 2019 (regime
+PBF estável, antes do choque do Auxílio Brasil) e 2013\textendash 2024
+(completa).
+
+\subsection{Primeiro estágio e efeito causal}
+
+O instrumento é forte. Na janela limpa 2013\textendash 2019, o primeiro
+estágio tem coeficiente $\pi=+1{,}06$ e estatística $F=67{,}7$
+(Figura~\ref{fig:firststage}) \textemdash{} muito acima do limiar usual de
+10; na janela completa, $F=26{,}3$. Não há, portanto, problema de
+instrumento fraco.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig18_bartik_first_stage.pdf}
+\caption{\textbf{Primeiro estágio do shift-share.} O instrumento de Bartik
+(participação setorial inicial $\times$ crescimento nacional) prevê
+fortemente o crescimento efetivo do emprego formal municipal,
+2013\textendash 2019 ($F=67{,}7$).}
+\label{fig:firststage}
+\end{figure}
+
+A Tabela~\ref{tab:iv} e a Figura~\ref{fig:iv} trazem o resultado central.
+O efeito causal estimado por variável instrumental (2SLS) é \emph{negativo}
+nas duas janelas e \emph{maior em magnitude} que o de MQO \textemdash{}
+$-0{,}31$ vs.\ $-0{,}05$ (2013\textendash 2019) e $-0{,}63$ vs.\ $-0{,}06$
+(2013\textendash 2024). Esse padrão \textemdash{} IV mais negativo que MQO
+\textemdash{} é a assinatura de \emph{atenuação}: a regressão simples,
+contaminada por erro de medida e endogeneidade, \emph{subestima} o efeito
+do emprego. Na janela completa o efeito é estatisticamente significativo
+($\beta_{\text{IV}}=-0{,}63$, $t=-2{,}2$, IC 95\% $[-1{,}20;-0{,}06]$); na
+janela pré\-choque, o sinal e a magnitude são os mesmos, porém o intervalo
+cruza zero \textemdash{} mesma evidência, menor potência no regime estável,
+de menor variação de emprego.
+
+\begin{table}[H]
+\centering
+\caption{Efeito do emprego formal sobre a cobertura do PBF (2SLS, EP clusterizado por UF)}
+\label{tab:iv}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Janela} & \textbf{MQO $\beta$} & \textbf{IV $\beta$} & \textbf{IC 95\% (IV)} & \textbf{$F$ 1\textsuperscript{o} est.} \\
+\midrule
+2013\textendash 2019 (pré-choque) & $-0{,}05$ & $-0{,}31$ & $[-0{,}77;\,+0{,}15]$ & 67,7 \\
+2013\textendash 2024 (completa)   & $-0{,}06$ & $\bm{-0{,}63}$ & $[-1{,}20;\,-0{,}06]$ & 26,3 \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\footnotesize $n=\num{5211}$ municípios, 27 \emph{clusters} (UF). Controles:
+efeitos fixos de UF e log-população. IV \emph{just-identified} pelo
+instrumento de Bartik. Fonte: elaboração própria sobre RAIS, CGU e IBGE.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig20_causal_iv.pdf}
+\caption{\textbf{Efeito causal vs.\ MQO.} O efeito 2SLS do emprego formal
+sobre a cobertura do PBF é negativo e maior em magnitude que o de MQO
+(atenuação), significativo na janela completa.}
+\label{fig:iv}
+\end{figure}
+
+\subsection{Interpretação e cautelas}
+
+A leitura é que o emprego formal \emph{causa} redução da dependência do
+Bolsa Família: criar vínculos formais retira famílias da elegibilidade,
+não apenas se correlaciona com municípios que já têm menos pobreza. É a
+contrapartida causal da leitura contracíclica da
+Seção~\ref{sec:dados}, e dá fundamento estrutural \textemdash{} não apenas
+preditivo \textemdash{} ao uso do emprego como covariável.
+
+Três cautelas. \emph{Primeira}: a significância vem da janela completa, cujo
+primeiro estágio, embora forte, inverte de sinal em relação à janela limpa
+\textemdash{} reflexo do choque estrutural de 2020\textendash 2021, que
+embaralha a previsão setorial; tratamos a estimativa pontual com a
+correspondente cautela. \emph{Segunda}: a exogeneidade do shift-share é uma
+hipótese de identificação, não um fato \textemdash{} ela falha se as
+participações setoriais de 2013 já anteciparem trajetórias de pobreza.
+\emph{Terceira}: especificações sem efeitos fixos de UF, que exploram
+variação nacional, são imprecisas demais para inferência. Por isso
+descrevemos o achado como evidência causal \emph{moderada}, que eleva o
+$-0{,}66$ de associação a efeito plausivelmente causal, ainda que o desenho
+definitivo \textemdash{} uma descontinuidade de elegibilidade ou um
+\emph{event study} de fechamentos de planta via CAGED \textemdash{}
+permaneça como agenda (Seção~\ref{sec:extensoes}).
+
+% =====================================================================
 \section{Projeção 2026\textendash 2028}
 \label{sec:projecao}
 % =====================================================================
@@ -1555,7 +1741,14 @@ Para projetar, reajustamos os modelos sobre \emph{todas} as janelas
 observadas e rolamos cada município adiante de forma \emph{recursiva}: cada
 previsão vira a entrada mais recente da janela seguinte; as covariáveis são
 mantidas no último ano conhecido (2024), por ainda não observadas no
-futuro. Somamos as previsões municipais à trajetória nacional
+futuro. Note\-se que, aqui, usar toda a história (inclusive 2025) para
+ajustar o modelo e padronizar as séries \emph{não} é vazamento: a projeção
+prevê 2026\textendash 2028, meses genuinamente não observados, e no momento
+real da previsão toda a série até dezembro de 2025 está, de fato,
+disponível. O vazamento é evitado onde importa \textemdash{} na
+\emph{avaliação} fora do tempo (Seção~\ref{sec:protocolo}), cuja
+padronização usa exclusivamente meses anteriores ao corte, e de onde vêm
+todos os números de acurácia e a inferência reportados. Somamos as previsões municipais à trajetória nacional
 $\widehat{N}_t=\sum_c\widehat{f}_{c,t}$. A incerteza nacional é o MAPE
 \emph{agregado} de backtest, não a soma dos erros municipais, porque na
 agregação os erros idiossincráticos largamente se cancelam. Formalmente,
@@ -1661,6 +1854,31 @@ ano (2025) e a recursão amplifica o erro (equação~\ref{eq:recursao}), a
 banda deve ser lida como aproximação conservadora, não como cobertura
 calibrada. Fonte: elaboração própria.}
 \end{table}
+
+\subsection{Banda calibrada por predição conforme}
+
+A banda informal pode ser substituída por uma com \emph{garantia de
+cobertura}. Aplicamos \emph{predição conforme} dividida~\C{ref:conformal}:
+tomamos os erros relativos de \emph{backtest} de 2025 como escores de
+não\-conformidade e, para cada horizonte, usamos o quantil empírico
+$\lceil(n+1)(1-\alpha)\rceil/n$ como meia\-largura do intervalo. Sob
+permutabilidade, o intervalo resultante tem cobertura marginal de pelo menos
+$1-\alpha$. A Figura~\ref{fig:conformal} compara as duas bandas: a conforme
+(90\%) é da mesma ordem de grandeza da informal \textemdash{} 3,4\% a 9,2\%
+de meia\-largura relativa, de 1 a 12 meses \textemdash{}, o que valida a
+banda informal como aproximação razoável, agora com uma alternativa
+calibrada disponível para uso orçamentário. A pequena amostra de calibração
+(12 meses de 2025 por horizonte) torna os quantis conformes granulares,
+limitação que séries de backtest mais longas reduziriam.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{fig21_conformal.pdf}
+\caption{\textbf{Banda conforme vs.\ informal.} Meia\-largura relativa do
+intervalo nacional por horizonte: a predição conforme (90\%, com garantia
+de cobertura) é próxima da banda informal de $\pm$MAPE.}
+\label{fig:conformal}
+\end{figure}
 
 \subsection{Leitura fiscal}
 
@@ -1818,7 +2036,15 @@ MAPE agregado abaixo de 4,7\% em doze meses, e ainda menor com covariáveis
 \textemdash{}, adequadas ao planejamento orçamentário, graças ao
 cancelamento de erros na agregação.
 
-\textbf{Sexta:} o \emph{custo fiscal é uma escolha de política}, não uma
+\textbf{Sexta:} a relação emprego$\leftrightarrow$PBF é \emph{causal}, não
+apenas associativa. Um instrumento \emph{shift-share} (Bartik) identifica um
+efeito 2SLS negativo do emprego formal sobre a cobertura do programa,
+significativo na janela completa ($-0{,}63$, $t=-2{,}2$) e maior que o de
+MQO \textemdash{} criar emprego formal \emph{retira} famílias da
+elegibilidade. E, em previsão, a autorregressão global \emph{bate o arsenal
+clássico} (ETS, SARIMA) em todos os horizontes.
+
+\textbf{Sétima:} o \emph{custo fiscal é uma escolha de política}, não uma
 inevitabilidade conduzida pela carga de casos \textemdash{} o ponto de
 maior relevância para o debate de sustentabilidade.
 
@@ -2159,6 +2385,21 @@ DOI: 10.2307/1913643.
 SHAFER, Glenn; VOVK, Vladimir. A tutorial on conformal prediction.
 \textbf{Journal of Machine Learning Research}, v. 9, p. 371\textendash 421,
 2008.
+
+\refentry{ref:bartik}
+BARTIK, Timothy J. \textbf{Who Benefits from State and Local Economic
+Development Policies?} Kalamazoo: W. E. Upjohn Institute for Employment
+Research, 1991. DOI: 10.17848/9780585223940.
+
+\refentry{ref:gpss}
+GOLDSMITH-PINKHAM, Paul; SORKIN, Isaac; SWIFT, Henry. Bartik instruments:
+what, when, why, and how. \textbf{American Economic Review}, v. 110, n. 8,
+p. 2586\textendash 2624, 2020. DOI: 10.1257/aer.20181047.
+
+\refentry{ref:bhj}
+BORUSYAK, Kirill; HULL, Peter; JARAVEL, Xavier. Quasi-experimental
+shift-share research designs. \textbf{The Review of Economic Studies},
+v. 89, n. 1, p. 181\textendash 213, 2022. DOI: 10.1093/restud/rdab030.
 
 \end{singlespace}
 
