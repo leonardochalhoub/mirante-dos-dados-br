@@ -390,16 +390,18 @@ function DocCardWP10() {
       </div>
       <p style={{ marginTop: 6, fontSize: 13.5 }}>
         <b>"Previsão da Carga de Casos do Programa Bolsa Família: redes neurais
-        construídas do zero, covariáveis de demografia e emprego, um benchmark
-        fora do tempo e uma projeção até 2028"</b> — Working Paper #10 v1.0
-        (Junho/2026), padrão ABNT, 43 páginas, 17 figuras editoriais.
+        construídas do zero, covariáveis de demografia e emprego, identificação
+        causal por shift-share e a anatomia fiscal de um programa de
+        transferência de renda"</b> — Working Paper #10 <b>v1.0.0</b>
+        (23/06/2026), padrão ABNT, <b>52 páginas, 22 figuras</b> editoriais.
         Perceptron multicamadas implementado <b>do zero em C++17</b> (He · ReLU ·
-        AdamW · retropropagação manual, sem LibTorch), sobre painel de{' '}
-        <b>5.542 municípios × 156 meses</b> minerado de <b>2,53 bilhões</b> de
-        pagamentos (CGU), enriquecido com covariáveis de população (IBGE) e
-        emprego formal (RAIS, 2,06 bi de vínculos). Avaliação estritamente fora
-        do tempo (alvos de 2025), bootstrap pareado + Wilcoxon, e projeção
-        nacional 2026–2028.
+        AdamW, sem LibTorch), sobre painel de <b>5.542 municípios × 156 meses</b>
+        minerado de <b>2,53 bilhões</b> de pagamentos (CGU), enriquecido com
+        covariáveis de população (IBGE) e emprego formal (RAIS, 2,06 bi de
+        vínculos). Avaliação fora do tempo, bootstrap + Wilcoxon, benchmarks
+        clássicos (ETS/SARIMA), identificação causal por instrumento de Bartik,
+        banda conforme e projeção nacional 2026–2028.{' '}
+        <i>(Parecer do Conselho do Mirante: média 88/100 — doutorado-publicável.)</i>
       </p>
 
       <div style={{ margin: '6px 0 12px', fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.7 }}>
@@ -416,7 +418,13 @@ function DocCardWP10() {
               elevam o modelo linear de +10% para <b>+17%</b> de redução de MAE
               em 12 meses.</li>
           <li>Relação estrutural forte: onde há mais emprego formal per capita,
-              menor a cobertura do PBF (correlação log–log −0,66).</li>
+              menor a cobertura do PBF (log–log −0,66); instrumento shift-share
+              (Bartik) dá <b>evidência causal sugestiva</b> (2SLS −0,63).</li>
+          <li>O modelo global bate ETS e SARIMA em todos os horizontes
+              (nacional e município a município).</li>
+          <li>Deflacionado pelo IPCA, o gasto real quase <b>quadruplicou</b>
+              (R$41→144 bi de 2021) conduzido pelo <b>benefício</b> (R$220→585),
+              não pela carga — o custo é uma escolha de política.</li>
         </ul>
       </div>
 
