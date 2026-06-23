@@ -1,0 +1,23 @@
+{
+  "title": "Mirante dos Dados — plataforma aberta de dados públicos brasileiros (inclui WP#10: Previsão da Carga de Casos do Bolsa Família)",
+  "description": "Plataforma aberta e reprodutível de análise de dados públicos brasileiros em arquitetura medallion sobre lakehouse, com Working Papers em padrão ABNT. O WP#10 prevê a carga de casos do Programa Bolsa Família com redes neurais construídas do zero em C++17, covariáveis de demografia (IBGE) e emprego formal (RAIS), identificação causal por instrumento shift-share (Bartik) e benchmarks clássicos (ETS/SARIMA). Fontes: CGU, IBGE, RAIS/PDET, BCB.",
+  "license": "MIT",
+  "upload_type": "software",
+  "keywords": [
+    "dados públicos",
+    "Bolsa Família",
+    "previsão de séries temporais",
+    "redes neurais",
+    "identificação causal",
+    "shift-share",
+    "Bartik",
+    "lakehouse",
+    "C++"
+  ],
+  "creators": [
+    {"name": "Chalhoub, Leonardo", "orcid": "0000-0003-0484-158X"},
+    {"name": "Maciel Rolim, Alexandre", "orcid": "0009-0000-3983-4713"},
+    {"name": "Kranz, Luis Fernando", "orcid": "0009-0009-6015-3141"},
+    {"name": "Korte, Jefferson", "orcid": "0009-0006-9466-9830"}
+  ]
+}

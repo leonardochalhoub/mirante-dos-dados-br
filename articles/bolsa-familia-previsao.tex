@@ -171,16 +171,20 @@ de casos atingiu o pico em 2022\textendash 2023 e recua, com erro agregado
 de backtest inferior a 4,7\% em 12 meses. Documentamos ainda uma forte
 relação estrutural entre cobertura do programa e emprego formal nos
 municípios (correlação log-log de $-0{,}66$ em 2024) e, indo além da
-associação, \emph{identificamos seu efeito causal} por um instrumento
-\emph{shift-share} (Bartik): o emprego formal reduz a demanda por
-transferência, com efeito 2SLS de $-0{,}63$ (IC 95\% $[-1{,}20;-0{,}06]$,
-primeiro estágio $F>26$), maior em magnitude que o de MQO \textemdash{}
-sinal de atenuação. Em previsão, a autorregressão linear global supera não
-só a persistência como os benchmarks clássicos ETS e SARIMA em todos os
-horizontes (4,7\% vs.\ ${\sim}10\%$ de MAPE nacional em 12 meses). Conclui-se
+associação, apresentamos \emph{evidência sugestiva} de seu efeito causal por
+um instrumento \emph{shift-share} (Bartik): o emprego formal parece reduzir
+a demanda por transferência, com efeito 2SLS de $-0{,}63$
+(IC 95\% $[-1{,}20;-0{,}06]$, primeiro estágio $F>26$), maior em magnitude
+que o de MQO, embora testes de falsificação recomendem cautela. Em previsão,
+a autorregressão linear global supera não só a persistência como os
+benchmarks clássicos ETS e SARIMA em todos os horizontes (4,7\% vs.\
+${\sim}10\%$ de MAPE nacional em 12 meses). Deflacionando o gasto pelo IPCA,
+mostramos que seu quase\-quadruplicar real (R\$\,41 $\to$ R\$\,144 bilhões de
+2021, 2013\textendash 2024) foi conduzido pelo \emph{benefício médio real}
+(R\$\,220 $\to$ R\$\,585 por família), não pela carga de casos. Conclui-se
 que, sob ausência de novo choque institucional, a demanda estrutural é plana
 ou declinante e que o custo futuro \textemdash{} cuja parcela estrutural um
-erro de 4,7\% projeta com desvio da ordem de R\$\,7 bilhões/ano \textemdash{}
+erro de 4,7\% projeta com desvio da ordem de R\$\,6 bilhões/ano \textemdash{}
 é governado pelo \emph{valor} do benefício, uma escolha de política, não por
 uma carga de casos em expansão.
 
@@ -1766,14 +1770,44 @@ econômico do choque mudou entre os regimes. A exogeneidade \textemdash{}
 choques setoriais nacionais, não condições locais de pobreza \textemdash{}
 permanece; o sinal do primeiro estágio é que reflete a mecânica setorial.
 
+\subsection{Testes de falsificação (placebo)}
+
+A exogeneidade do instrumento exige testes de placebo, e os reportamos com
+transparência \textemdash{} inclusive quando incômodos. Dois exames. No
+\emph{teste de balanço}, regredimos o \emph{nível} de cobertura de 2013
+(pré\-período) sobre o instrumento: o coeficiente é positivo e marginalmente
+significativo ($\beta=+2{,}76$, $t=+2{,}3$). No \emph{teste de
+pré\-tendência}, regredimos o crescimento do emprego de 2009 a 2013
+(anterior à janela de choque) sobre o instrumento: o coeficiente é grande e
+significativo ($\beta=-0{,}96$, $t=-8{,}6$). Nenhum dos dois é nulo, como o
+ideal pediria.
+
+Há, porém, uma leitura mecânica importante: o instrumento usa
+\emph{participações de 2013} \textemdash{} o fim do pré\-período
+\textemdash{}, e participações medidas ao fim de uma janela são, por
+construção, correlacionadas com o crescimento \emph{dentro} daquela janela
+(2009\textendash 2013), o que infla o teste de pré\-tendência; a literatura
+recomenda, por isso, participações de um ano\-base bem anterior~\C{ref:bhj}.
+A correlação com o nível de 2013, por sua vez, reflete que a composição
+setorial se associa à estrutura econômica local, que por sua vez se associa
+à pobreza \textemdash{} o desenho em primeiras diferenças \emph{diferencia}
+esse nível, mas não podemos testar pré\-tendências no \emph{resultado}
+porque o painel PBF começa em 2013. O líquido honesto: os placebos
+\emph{não} validam de forma limpa a restrição de exclusão, e por isso
+rebaixamos a leitura de ``evidência causal moderada'' para \emph{evidência
+sugestiva}, consistente com um canal causal, mas a ser confirmada por um
+desenho com ano\-base anterior a 2009 ou por uma descontinuidade de
+elegibilidade (Seção~\ref{sec:extensoes}).
+
 \subsection{Interpretação e cautelas}
 
-A leitura é que o emprego formal \emph{causa} redução da dependência do
-Bolsa Família: criar vínculos formais retira famílias da elegibilidade,
-não apenas se correlaciona com municípios que já têm menos pobreza. É a
-contrapartida causal da leitura contracíclica da
-Seção~\ref{sec:dados}, e dá fundamento estrutural \textemdash{} não apenas
-preditivo \textemdash{} ao uso do emprego como covariável.
+A leitura sugerida \textemdash{} com as ressalvas dos placebos \textemdash{}
+é que o emprego formal \emph{reduz} a dependência do Bolsa Família: criar
+vínculos formais retira famílias da elegibilidade, não apenas se correlaciona
+com municípios que já têm menos pobreza. É a contrapartida causal plausível
+da leitura contracíclica da Seção~\ref{sec:dados}, e dá fundamento
+estrutural \textemdash{} não apenas preditivo \textemdash{} ao uso do emprego
+como covariável.
 
 Três cautelas. \emph{Primeira}: a significância vem da janela completa, cujo
 primeiro estágio inverte de sinal por mudança na composição setorial do
@@ -1956,15 +1990,58 @@ agregado nacional é previsível com erro inferior a 4,7\% em doze meses
 (e ainda menor com covariáveis), essa parcela pode ser planejada com folga
 adequada ao ciclo orçamentário.
 
-Para dimensionar o que esse erro significa em reais: a uma referência
-recente de benefício médio da ordem de R\$\,700 por família, um erro
-agregado de 4,7\% em doze meses sobre $\approx$\,18 milhões de famílias
-corresponde a um desvio potencial da ordem de R\$\,0,6 bilhão por mês
-\textemdash{} cerca de R\$\,7 bilhões ao ano \textemdash{} na parcela
-estrutural do gasto projetado. É essa escala que torna a precisão da
-projeção fiscalmente relevante, e que justifica buscar bandas calibradas
-(Seção~\ref{sec:extensoes}). O cálculo é ilustrativo: o benefício médio é,
-ele próprio, a alavanca de política, não uma constante.
+A decomposição custo $=$ carga de casos $\times$ benefício
+(equação~\ref{eq:custo}) ganha conteúdo quando deflacionamos o gasto a
+\emph{reais de 2021} pelo IPCA (BCB). A Figura~\ref{fig:gastoreal} e a
+Tabela~\ref{tab:gastoreal} mostram o ponto central deste artigo em sua
+forma mais nítida: entre 2013 e 2024 o gasto real do programa quase
+\emph{quadruplicou} \textemdash{} de R\$\,41 para R\$\,144 bilhões de 2021
+\textemdash{}, mas a carga de casos cresceu apenas cerca de 50\%. A
+diferença é o \emph{benefício médio real}, que saltou de
+$\approx$\,R\$\,220 para $\approx$\,R\$\,585 por família\-mês. A explosão
+do custo foi conduzida pela \emph{alavanca de política}, não pela demanda
+estrutural \textemdash{} exatamente o que a equação~\eqref{eq:custo}
+prediz e o que a projeção plana da carga de casos confirma para o futuro.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig22_gasto_real.pdf}
+\caption{\textbf{O gasto explodiu pelo benefício, não pela carga de
+casos.} Índices (2013 = 100) da carga de casos, do benefício médio real e
+do gasto real (R\$ de 2021, deflator IPCA): o gasto acompanha o benefício,
+não a contagem de famílias.}
+\label{fig:gastoreal}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Gasto real e benefício médio (R\$ de 2021, deflator IPCA)}
+\label{tab:gastoreal}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Ano} & \textbf{Gasto real (R\$ bi)} & \textbf{Benefício médio (R\$/fam.)} & \textbf{Carga (mi)} \\
+\midrule
+2013 & 41,0 & 248 & 14,0 \\
+2019 & 36,6 & 221 & 13,1 \\
+2021 & 38,6 & 221 & 14,1 \\
+2022 & 66,7 & 300 & 20,9 \\
+2023 & 138,4 & 561 & 20,7 \\
+2024 & 143,9 & 585 & 20,5 \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\footnotesize Valores deflacionados a R\$ de dezembro de 2021 pelo IPCA
+(BCB, série 433). Fonte: elaboração própria sobre CGU, IBGE, BCB.}
+\end{table}
+
+Isso também torna rigorosa a tradução do erro de previsão em reais. Ao
+benefício médio real de 2024 (R\$\,585 por família\-mês), um erro agregado
+de 4,7\% em doze meses sobre $\approx$\,18 milhões de famílias corresponde
+a um desvio da ordem de R\$\,0,5 bilhão por mês \textemdash{} cerca de
+R\$\,6 bilhões ao ano \textemdash{} na parcela estrutural do gasto
+projetado. É essa escala que torna a precisão da projeção fiscalmente
+relevante.
 
 \subsection{Do caseload ao custo: como usar a projeção}
 

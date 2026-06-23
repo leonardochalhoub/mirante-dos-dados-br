@@ -156,5 +156,12 @@
       "n": 12,
       "favors": "linear"
     }
+  },
+  "ipca_real": {
+    "benef_medio_real_2024_rs": 585.1288859285179,
+    "familias_dez2025": 18460939.0,
+    "desvio_mensal_rs_12m": 507695347.5024234,
+    "desvio_anual_rs_12m": 6092344170.029081,
+    "real_2021_2024_total": 143901993826.0563
   }
 }

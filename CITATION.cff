@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "Se você usar este software ou os Working Papers, por favor cite conforme abaixo."
+title: "Mirante dos Dados — plataforma aberta de dados públicos brasileiros"
+abstract: >-
+  Plataforma aberta e reprodutível de análise de dados públicos brasileiros em
+  arquitetura medallion (bronze/silver/gold) sobre lakehouse, com Working Papers
+  em padrão ABNT. Inclui o WP#10 — previsão da carga de casos do Programa Bolsa
+  Família com redes neurais construídas do zero em C++17, covariáveis de
+  demografia (IBGE) e emprego formal (RAIS), identificação causal por instrumento
+  shift-share (Bartik) e benchmarks clássicos.
+type: software
+license: MIT
+repository-code: "https://github.com/leonardochalhoub/mirante-dos-dados-br"
+url: "https://github.com/leonardochalhoub/mirante-dos-dados-br"
+keywords:
+  - dados públicos
+  - Bolsa Família
+  - previsão de séries temporais
+  - redes neurais
+  - identificação causal
+  - shift-share
+  - lakehouse
+  - C++
+authors:
+  - family-names: Chalhoub
+    given-names: Leonardo
+    orcid: "https://orcid.org/0000-0003-0484-158X"
+  - family-names: Maciel Rolim
+    given-names: Alexandre
+    orcid: "https://orcid.org/0009-0000-3983-4713"
+  - family-names: Kranz
+    given-names: Luis Fernando
+    orcid: "https://orcid.org/0009-0009-6015-3141"
+  - family-names: Korte
+    given-names: Jefferson
+    orcid: "https://orcid.org/0009-0006-9466-9830"

@@ -738,10 +738,35 @@ def fig21():
     save(fig, "fig21_conformal.pdf")
 
 
+# ====================================================================
+# FIG 22 — Custo = carga de casos × benefício: gasto real (R$ 2021)
+# ====================================================================
+def fig22():
+    d = pd.read_csv(os.path.join(DATA, "real_spending.csv"))
+    d = d[(d.ano >= 2013) & (d.ano <= 2025)]
+    base = d[d.ano == 2013].iloc[0]
+    fig, ax = plt.subplots(figsize=GOLDEN_FIGSIZE)
+    fig.subplots_adjust(top=0.83, bottom=0.16, right=0.84)
+    series = [("familias", C["linear"], "Carga de casos"),
+              ("benef_medio_real", P["destaque"], "Benefício médio real (R$ 2021)"),
+              ("real_2021", P["neutro"], "Gasto real (R$ 2021)")]
+    for col, c, lab in series:
+        idx = 100 * d[col].values / base[col]
+        ax.plot(d.ano, idx, color=c, lw=2.3)
+        ax.text(d.ano.iloc[-1] + 0.1, idx[-1], lab, color=c, fontsize=8.4,
+                va="center", fontweight="semibold")
+    ax.axhline(100, color=P["rule_dark"], lw=0.8, ls=":")
+    ax.set_ylabel("Índice (2013 = 100)"); ax.set_xlim(2013, 2027.6)
+    editorial_title(ax, "O gasto explodiu pelo benefício, não pela carga de casos",
+                    "Carga de casos, benefício médio real e gasto real (R$ 2021), Brasil, 2013–2025")
+    source_note(ax, FONTE + "  Deflator IPCA (BCB), base dez/2021.")
+    save(fig, "fig22_gasto_real.pdf")
+
+
 if __name__ == "__main__":
     print("Gerando figuras do WP de previsão PBF (uni vs +covariáveis)…")
     for fn in [fig01, fig02, fig03, fig04, fig05, fig06, fig07, fig08, fig09, fig10,
                fig11, fig12, fig13, fig14, fig15, fig16, fig17,
-               fig18, fig19, fig20, fig21]:
+               fig18, fig19, fig20, fig21, fig22]:
         fn()
     print("Concluído.")
