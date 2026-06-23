@@ -1519,9 +1519,20 @@ a comparação não é inteiramente \emph{ceteris paribus}: a autorregressão do
 estudo é um modelo \emph{global}, treinado em \num{5542} séries de painel e
 depois agregado, ao passo que ETS e SARIMA são univariados sobre a série
 nacional. Parte da vantagem é, portanto, de \emph{dados} (a transferência de
-aprendizado entre municípios), não só de método \textemdash{} mas é
-precisamente a série nacional o objeto que o usuário de política observa, e
-nela o modelo do estudo domina.
+aprendizado entre municípios), não só de método.
+
+Para fechar essa ressalva, repetimos a comparação \emph{no nível em que a
+inferência é feita} \textemdash{} município a município. Numa amostra de 400
+municípios, ajustamos um ETS \emph{por município} e o comparamos, nas mesmas
+previsões de seis meses, à autorregressão linear global. O resultado é ainda
+mais favorável ao modelo do estudo: MAPE de \textbf{5,9\%} (AR linear global)
+contra \textbf{8,4\%} do ETS local, 10,3\% da ingênua sazonal e 7,4\% da
+persistência \textemdash{} o ETS local fica, aliás, \emph{abaixo} da própria
+persistência, repetindo o padrão nacional. Confirma\-se assim, agora
+\emph{ceteris paribus}, o achado mais forte: um modelo \emph{global},
+treinado no painel de \num{5542} séries, supera métodos clássicos univariados
+aplicados série a série \textemdash{} é a transferência de aprendizado entre
+municípios, não a arquitetura, que entrega o ganho.
 
 \begin{figure}[H]
 \centering
