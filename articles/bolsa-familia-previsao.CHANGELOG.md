@@ -5,6 +5,9 @@ Versionamento semântico: **MAJOR.MINOR.PATCH**.
 - **MINOR**: nova análise, seção, figura ou resultado (retrocompatível).
 - **PATCH**: correções de texto, números, tipografia, bugs de figura.
 
+## v1.0.1 — 23 de junho de 2026
+- PATCH: título reformulado para registro científico formal — *"Carga de Casos, Emprego Formal e Custo Fiscal do Programa Bolsa Família: previsão fora da amostra com redes neurais artificiais e identificação causal por instrumento shift-share (2013–2028)"*.
+
 ## v1.0.0 — 23 de junho de 2026
 Primeira versão pública (doutorado-publicável; parecer do Conselho do Mirante: média 88/100).
 

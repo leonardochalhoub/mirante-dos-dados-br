@@ -389,11 +389,11 @@ function DocCardWP10() {
         <ArticleTimestamp slug={slug} />
       </div>
       <p style={{ marginTop: 6, fontSize: 13.5 }}>
-        <b>"Previsão da Carga de Casos do Programa Bolsa Família: redes neurais
-        construídas do zero, covariáveis de demografia e emprego, identificação
-        causal por shift-share e a anatomia fiscal de um programa de
-        transferência de renda"</b> — Working Paper #10 <b>v1.0.0</b>
-        (23/06/2026), padrão ABNT, <b>52 páginas, 22 figuras</b> editoriais.
+        <b>"Carga de Casos, Emprego Formal e Custo Fiscal do Programa Bolsa
+        Família: previsão fora da amostra com redes neurais artificiais e
+        identificação causal por instrumento shift-share (2013–2028)"</b> —
+        Working Paper #10 <b>v1.0.1</b> (23/06/2026), padrão ABNT,
+        <b>52 páginas, 22 figuras</b> editoriais.
         Perceptron multicamadas implementado <b>do zero em C++17</b> (He · ReLU ·
         AdamW, sem LibTorch), sobre painel de <b>5.542 municípios × 156 meses</b>
         minerado de <b>2,53 bilhões</b> de pagamentos (CGU), enriquecido com
