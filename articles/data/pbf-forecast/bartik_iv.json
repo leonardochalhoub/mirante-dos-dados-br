@@ -12,7 +12,39 @@
     "first_stage_pi": 1.0621388476530045,
     "first_stage_F": 67.67440369940958,
     "n": 5211,
-    "n_clusters": 27
+    "n_clusters": 27,
+    "rotemberg_top": [
+      {
+        "cnae": "14",
+        "nome": "Confec\u00e7\u00e3o de vestu\u00e1rio",
+        "weight": 0.23650761238970544
+      },
+      {
+        "cnae": "42",
+        "nome": "Obras de infraestrutura",
+        "weight": 0.2055060072388349
+      },
+      {
+        "cnae": "15",
+        "nome": "Couro e cal\u00e7ados",
+        "weight": 0.15206958114167543
+      },
+      {
+        "cnae": "47",
+        "nome": "Com\u00e9rcio varejista",
+        "weight": -0.13201842834294902
+      },
+      {
+        "cnae": "19",
+        "nome": "Coque e derivados de petr\u00f3leo",
+        "weight": 0.11372188425692992
+      },
+      {
+        "cnae": "29",
+        "nome": "(outro)",
+        "weight": 0.06153518134316699
+      }
+    ]
   },
   "2013_2024_full": {
     "iv_beta": -0.6340108633388023,
@@ -27,6 +59,38 @@
     "first_stage_pi": -0.18927504922657518,
     "first_stage_F": 26.282603415552355,
     "n": 5211,
-    "n_clusters": 27
+    "n_clusters": 27,
+    "rotemberg_top": [
+      {
+        "cnae": "15",
+        "nome": "Couro e cal\u00e7ados",
+        "weight": 0.6624749368903424
+      },
+      {
+        "cnae": "10",
+        "nome": "Alimentos",
+        "weight": 0.2848596907732726
+      },
+      {
+        "cnae": "13",
+        "nome": "T\u00eaxteis",
+        "weight": 0.2783645683210247
+      },
+      {
+        "cnae": "46",
+        "nome": "Com\u00e9rcio atacadista",
+        "weight": -0.24397374152339393
+      },
+      {
+        "cnae": "78",
+        "nome": "Sele\u00e7\u00e3o de m\u00e3o de obra",
+        "weight": 0.23246242633311323
+      },
+      {
+        "cnae": "84",
+        "nome": "Administra\u00e7\u00e3o p\u00fablica",
+        "weight": 0.20764816682872453
+      }
+    ]
   }
 }

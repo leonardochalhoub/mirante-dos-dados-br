@@ -1510,7 +1510,14 @@ estudo tem o \emph{menor} MAPE nacional em todos os horizontes, e a margem
 tendência e sazonalidade a uma série com quebras estruturais (os três
 regimes do programa) produz extrapolações instáveis. O achado ecoa, mais
 uma vez, a lição das competições M~\C{ref:m4}: sofisticação mal\-casada com
-a estrutura do sinal piora, não melhora.
+a estrutura do sinal piora, não melhora. Registre\-se, em honestidade, que
+a comparação não é inteiramente \emph{ceteris paribus}: a autorregressão do
+estudo é um modelo \emph{global}, treinado em \num{5542} séries de painel e
+depois agregado, ao passo que ETS e SARIMA são univariados sobre a série
+nacional. Parte da vantagem é, portanto, de \emph{dados} (a transferência de
+aprendizado entre municípios), não só de método \textemdash{} mas é
+precisamente a série nacional o objeto que o usuário de política observa, e
+nela o modelo do estudo domina.
 
 \begin{figure}[H]
 \centering
@@ -1523,8 +1530,14 @@ horizontes, e a vantagem cresce com o horizonte.}
 
 Dois testes formais complementam o quadro, ambos sobre a série nacional.
 O teste de Mincer\-Zarnowitz não rejeita a hipótese de não\-viés a um mês
-(estatística de Wald $=0{,}28$), embora a baixa potência de 12 observações
-nacionais o torne inconclusivo nos horizontes longos. O teste de
+(estatística de Wald $=0{,}28$), mas a \emph{rejeita} nos horizontes longos
+(Wald $=7{,}0$, $23{,}6$ e $6{,}6$ em 3, 6 e 12 meses, acima do crítico
+$\chi^2_2 = 5{,}99$) \textemdash{} sinal de viés agregado da projeção recursiva
+nesses horizontes. Como a baixa potência de 12 observações torna a rejeição
+\emph{conservadora} (mais difícil rejeitar), o sinal é genuíno; reforça,
+portanto, que o nível adequado de inferência é o painel municipal, não o
+agregado, e que a projeção nacional de longo prazo deve ser lida com a
+banda de incerteza, não como ponto. O teste de
 Diebold\-Mariano~\C{ref:diebold} entre o modelo linear e a persistência, com
 correção de pequena amostra de Harvey\-Leybourne\-Newbold, fica abaixo do
 limiar de significância no agregado nacional \textemdash{} reflexo direto
@@ -1706,6 +1719,53 @@ sobre a cobertura do PBF é negativo e maior em magnitude que o de MQO
 \label{fig:iv}
 \end{figure}
 
+\subsection{Quais setores identificam o efeito? Pesos de Rotemberg}
+
+Um instrumento de Bartik é uma média ponderada de estimadores setoriais; os
+pesos de Rotemberg~\C{ref:gpss} revelam quais setores CNAE dominam a
+identificação \textemdash{} e, portanto, se a exogeneidade é plausível. A
+Tabela~\ref{tab:rotemberg} lista os setores de maior peso. Na janela limpa
+(2013\textendash 2019), o instrumento é dominado por manufatura
+\emph{transacionável} \textemdash{} confecção de vestuário, couro/calçados,
+obras de infraestrutura \textemdash{}, setores cuja sorte responde à demanda
+nacional, e não às condições locais de pobreza: exatamente o tipo de choque
+que a hipótese de exogeneidade requer.
+
+\begin{table}[H]
+\centering
+\caption{Setores de maior peso de Rotemberg no instrumento de Bartik}
+\label{tab:rotemberg}
+\small
+\begin{tabular}{@{}lr@{\hskip 2.2em}lr@{}}
+\toprule
+\multicolumn{2}{c}{\textbf{2013\textendash 2019 (limpa)}} &
+\multicolumn{2}{c}{\textbf{2013\textendash 2024 (completa)}} \\
+\textbf{Setor} & \textbf{$\alpha$} & \textbf{Setor} & \textbf{$\alpha$} \\
+\midrule
+Confecção de vestuário   & $+0{,}24$ & Couro e calçados      & $+0{,}66$ \\
+Obras de infraestrutura  & $+0{,}21$ & Alimentos             & $+0{,}29$ \\
+Couro e calçados         & $+0{,}15$ & Têxteis               & $+0{,}28$ \\
+Comércio varejista       & $-0{,}13$ & Comércio atacadista   & $-0{,}24$ \\
+Coque e derivados        & $+0{,}11$ & Seleção de mão de obra & $+0{,}23$ \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\footnotesize Pesos de Rotemberg normalizados (somam 1). Fonte: elaboração
+própria sobre a RAIS setorial (92 setores CNAE).}
+\end{table}
+
+Esses pesos também explicam a inversão de sinal do primeiro estágio na
+janela completa. Ali o instrumento passa a ser dominado por manufatura
+\emph{trabalho\-intensiva} (couro/calçados, têxteis, alimentos)
+\textemdash{} setores que cresceram \emph{nacionalmente} na recuperação
+pós\-2015 e pós\-pandemia, mas \emph{encolheram localmente} onde eram
+concentrados, por desindustrialização e competição de importados. A
+previsão shift\-share (participações de 2013 $\times$ crescimento nacional)
+inverte\-se, portanto, não por falha do instrumento, mas porque o conteúdo
+econômico do choque mudou entre os regimes. A exogeneidade \textemdash{}
+choques setoriais nacionais, não condições locais de pobreza \textemdash{}
+permanece; o sinal do primeiro estágio é que reflete a mecânica setorial.
+
 \subsection{Interpretação e cautelas}
 
 A leitura é que o emprego formal \emph{causa} redução da dependência do
@@ -1716,10 +1776,10 @@ Seção~\ref{sec:dados}, e dá fundamento estrutural \textemdash{} não apenas
 preditivo \textemdash{} ao uso do emprego como covariável.
 
 Três cautelas. \emph{Primeira}: a significância vem da janela completa, cujo
-primeiro estágio, embora forte, inverte de sinal em relação à janela limpa
-\textemdash{} reflexo do choque estrutural de 2020\textendash 2021, que
-embaralha a previsão setorial; tratamos a estimativa pontual com a
-correspondente cautela. \emph{Segunda}: a exogeneidade do shift-share é uma
+primeiro estágio inverte de sinal por mudança na composição setorial do
+instrumento (subseção anterior), não por instrumento fraco ($F=26{,}3$);
+ainda assim, tratamos a estimativa pontual com a correspondente cautela.
+\emph{Segunda}: a exogeneidade do shift-share é uma
 hipótese de identificação, não um fato \textemdash{} ela falha se as
 participações setoriais de 2013 já anteciparem trajetórias de pobreza.
 \emph{Terceira}: especificações sem efeitos fixos de UF, que exploram
@@ -1869,7 +1929,11 @@ de meia\-largura relativa, de 1 a 12 meses \textemdash{}, o que valida a
 banda informal como aproximação razoável, agora com uma alternativa
 calibrada disponível para uso orçamentário. A pequena amostra de calibração
 (12 meses de 2025 por horizonte) torna os quantis conformes granulares,
-limitação que séries de backtest mais longas reduziriam.
+limitação que séries de backtest mais longas reduziriam.\footnote{Com
+$n=12$ escores por horizonte e $\alpha=0{,}10$, o quantil conforme usável é
+o 11.\textsuperscript{o} da amostra ordenada, de modo que a cobertura
+marginal \emph{efetiva} é $11/13 \approx 84{,}6\%$, e não exatamente 90\%;
+para uso orçamentário, a banda deve ser lida com essa cobertura efetiva.}
 
 \begin{figure}[H]
 \centering
@@ -2036,13 +2100,14 @@ MAPE agregado abaixo de 4,7\% em doze meses, e ainda menor com covariáveis
 \textemdash{}, adequadas ao planejamento orçamentário, graças ao
 cancelamento de erros na agregação.
 
-\textbf{Sexta:} a relação emprego$\leftrightarrow$PBF é \emph{causal}, não
-apenas associativa. Um instrumento \emph{shift-share} (Bartik) identifica um
-efeito 2SLS negativo do emprego formal sobre a cobertura do programa,
+\textbf{Sexta:} a relação emprego$\leftrightarrow$PBF é \emph{consistente
+com causalidade}, não apenas associativa, com as ressalvas da
+Seção~\ref{sec:causal}. Um instrumento \emph{shift-share} (Bartik) identifica
+um efeito 2SLS negativo do emprego formal sobre a cobertura do programa,
 significativo na janela completa ($-0{,}63$, $t=-2{,}2$) e maior que o de
-MQO \textemdash{} criar emprego formal \emph{retira} famílias da
-elegibilidade. E, em previsão, a autorregressão global \emph{bate o arsenal
-clássico} (ETS, SARIMA) em todos os horizontes.
+MQO \textemdash{} indício de que criar emprego formal \emph{retira} famílias
+da elegibilidade. E, em previsão, a autorregressão global \emph{bate o
+arsenal clássico} (ETS, SARIMA) em todos os horizontes.
 
 \textbf{Sétima:} o \emph{custo fiscal é uma escolha de política}, não uma
 inevitabilidade conduzida pela carga de casos \textemdash{} o ponto de
