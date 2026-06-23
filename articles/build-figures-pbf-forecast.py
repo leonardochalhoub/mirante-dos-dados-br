@@ -645,7 +645,7 @@ def fig18():
     editorial_title(ax, "O instrumento prevê fortemente o crescimento do emprego",
                     "Primeiro estágio do shift-share (Bartik), municípios, 2013→2019")
     source_note(ax, FONTE + f"  Estatística F do 1º estágio = {iv['first_stage_F']:.1f} "
-                f"(≫ 10); π = {iv['first_stage_pi']:+.2f}.")
+                f"(≫ 10); π = {iv['first_stage_pi']:+.2f}. Instrumento negativo: contração setorial agregada no período.")
     save(fig, "fig18_bartik_first_stage.pdf")
 
 
@@ -684,7 +684,7 @@ def fig19():
 def fig20():
     iv = json.load(open(os.path.join(DATA, "bartik_iv.json")))
     fig, ax = plt.subplots(figsize=GOLDEN_FIGSIZE)
-    fig.subplots_adjust(top=0.83, bottom=0.18, left=0.12)
+    fig.subplots_adjust(top=0.83, bottom=0.18, left=0.22)
     rows = [("2013_2024_full", "Janela completa\n2013→2024"),
             ("2013_2019_pre_break", "Janela pré-choque\n2013→2019")]
     y = 0
@@ -748,7 +748,7 @@ def fig22():
     fig, ax = plt.subplots(figsize=GOLDEN_FIGSIZE)
     fig.subplots_adjust(top=0.83, bottom=0.16, right=0.84)
     series = [("familias", C["linear"], "Carga de casos"),
-              ("benef_medio_real", P["destaque"], "Benefício médio real (R$ 2021)"),
+              ("benef_medio_real", "#D55E00", "Benefício médio real (R$ 2021)"),
               ("real_2021", P["neutro"], "Gasto real (R$ 2021)")]
     for col, c, lab in series:
         idx = 100 * d[col].values / base[col]

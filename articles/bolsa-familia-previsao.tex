@@ -226,11 +226,19 @@ covariates carry real signal whose value grows with the horizon \textemdash{}
 negligible or harmful in the short run, they lift the 12-month linear model
 from $+10\%$ to $+17\%$ MAE reduction. The national projection shows the
 caseload peaked in 2022\textendash 2023 and is declining, with aggregate
-backtest error below 4.7\% at twelve months. We also document a strong
-structural relationship between program coverage and formal-employment
-intensity across municipalities (log-log correlation $-0.66$ in 2024). We
-conclude that structural demand is flat-to-falling, so future cost is
-governed by the benefit level \textemdash{} a policy choice.
+backtest error below 4.7\% at twelve months, and beats classical ETS and
+SARIMA benchmarks at every horizon (nationally and municipality by
+municipality). We document a strong structural relationship between program
+coverage and formal-employment intensity across municipalities (log-log
+correlation $-0.66$ in 2024) and, beyond association, provide
+\emph{suggestive} causal evidence from a shift-share (Bartik) instrument
+that formal employment lowers program demand (2SLS effect $-0.63$, larger
+than OLS), though placebo tests counsel caution. Deflating spending by the
+IPCA, we show its near\-quadrupling in real terms (R\$\,41 to R\$\,144
+billion of 2021, 2013\textendash 2024) was driven by the real average
+benefit (R\$\,220 to R\$\,585), not the caseload. We conclude that
+structural demand is flat-to-falling, so future cost is governed by the
+benefit level \textemdash{} a policy choice.
 
 \medskip
 
@@ -267,7 +275,14 @@ familiares na folha de pagamento \textemdash{} é demanda estrutural,
 governada por dinâmicas demográficas, de mercado de trabalho e de
 elegibilidade que nenhum decreto altera no curto prazo. Uma previsão
 crível da carga de casos isola a parcela do gasto futuro que \emph{não} é
-decisão discricionária. É essa parcela que tratamos aqui.
+decisão discricionária. É essa parcela que tratamos aqui. E adiantamos o
+achado de política que dela decorre: deflacionado pelo IPCA, o gasto real do
+programa quase \emph{quadruplicou} entre 2013 e 2024 (de R\$\,41 para
+R\$\,144 bilhões de 2021), mas a carga de casos cresceu apenas cerca de
+50\% \textemdash{} a explosão do custo veio do \emph{benefício médio real}
+(que mais que dobrou), não da demanda (Seção~\ref{sec:projecao},
+Figura~\ref{fig:gastoreal}). O custo do programa é, em grande medida, uma
+escolha de política.
 
 A escolha de objeto não é trivial. Diferentemente do gasto nominal
 \textemdash{} que exige deflação e mistura mudanças de preço e de
@@ -1522,8 +1537,8 @@ nacional. Parte da vantagem é, portanto, de \emph{dados} (a transferência de
 aprendizado entre municípios), não só de método.
 
 Para fechar essa ressalva, repetimos a comparação \emph{no nível em que a
-inferência é feita} \textemdash{} município a município. Numa amostra de 400
-municípios, ajustamos um ETS \emph{por município} e o comparamos, nas mesmas
+inferência é feita} \textemdash{} município a município. Numa \emph{amostra
+aleatória} de 400 municípios (semente fixa), ajustamos um ETS \emph{por município} e o comparamos, nas mesmas
 previsões de seis meses, à autorregressão linear global. O resultado é ainda
 mais favorável ao modelo do estudo: MAPE de \textbf{5,9\%} (AR linear global)
 contra \textbf{8,4\%} do ETS local, 10,3\% da ingênua sazonal e 7,4\% da
@@ -1555,11 +1570,13 @@ agregado, e que a projeção nacional de longo prazo deve ser lida com a
 banda de incerteza, não como ponto. O teste de
 Diebold\-Mariano~\C{ref:diebold} entre o modelo linear e a persistência, com
 correção de pequena amostra de Harvey\-Leybourne\-Newbold, fica abaixo do
-limiar de significância no agregado nacional \textemdash{} reflexo direto
-das 12 observações \textemdash{}, ao passo que o bootstrap pareado sobre as
-\num{66504} previsões municipais (Seção anterior) tem potência ampla. É a
-razão de centrarmos a inferência no painel municipal, não no agregado:
-$n=12$ não sustenta um teste de série temporal.
+limiar de significância nos horizontes curtos e é \emph{numericamente
+instável} em 12 meses (a variância de longo prazo do diferencial colapsa com
+$n=12$ e forte autocorrelação) \textemdash{} ambos reflexo direto das 12
+observações. Já o bootstrap pareado sobre as \num{66504} previsões
+municipais (Seção anterior) tem potência ampla. É a razão de centrarmos a
+inferência no painel municipal, não no agregado: $n=12$ não sustenta um
+teste de série temporal.
 
 % =====================================================================
 \section{Interpretação: quando ajudam a profundidade e as covariáveis?}
@@ -1829,11 +1846,12 @@ hipótese de identificação, não um fato \textemdash{} ela falha se as
 participações setoriais de 2013 já anteciparem trajetórias de pobreza.
 \emph{Terceira}: especificações sem efeitos fixos de UF, que exploram
 variação nacional, são imprecisas demais para inferência. Por isso
-descrevemos o achado como evidência causal \emph{moderada}, que eleva o
-$-0{,}66$ de associação a efeito plausivelmente causal, ainda que o desenho
-definitivo \textemdash{} uma descontinuidade de elegibilidade ou um
-\emph{event study} de fechamentos de planta via CAGED \textemdash{}
-permaneça como agenda (Seção~\ref{sec:extensoes}).
+descrevemos o achado como \emph{evidência sugestiva}, consistente com um
+canal causal mas não suficiente para afirmá\-lo \textemdash{} a
+identificação \emph{causal} permanece como agenda aberta, a ser fechada por
+um desenho com ano\-base anterior a 2009, uma descontinuidade de
+elegibilidade ou um \emph{event study} de fechamentos de planta via CAGED
+(Seção~\ref{sec:extensoes}).
 
 % =====================================================================
 \section{Projeção 2026\textendash 2028}
@@ -1979,6 +1997,11 @@ $n=12$ escores por horizonte e $\alpha=0{,}10$, o quantil conforme usável é
 o 11.\textsuperscript{o} da amostra ordenada, de modo que a cobertura
 marginal \emph{efetiva} é $11/13 \approx 84{,}6\%$, e não exatamente 90\%;
 para uso orçamentário, a banda deve ser lida com essa cobertura efetiva.}
+Como a banda é calibrada sobre os mesmos erros de backtest que o teste de
+Mincer\-Zarnowitz apontou enviesados em horizontes longos, ela herda esse
+viés de projeção recursiva: é, portanto, conservadora quanto à variância,
+mas não corrige o viés sistemático \textemdash{} razão adicional para
+tratar a projeção de longo prazo como cenário, não como ponto.
 
 \begin{figure}[H]
 \centering
