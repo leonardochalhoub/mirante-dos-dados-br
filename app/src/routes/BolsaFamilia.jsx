@@ -21,7 +21,8 @@ import AtaConselho     from '../components/AtaConselho';
 import ArticleTimestamp from '../components/ArticleTimestamp';
 import { useArticleMeta, articleUrl } from '../hooks/useArticleMeta';
 import { PARECER_WP2_BOLSA_FAMILIA,
-         PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS } from '../data/pareceres';
+         PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS,
+         PARECER_WP10_BOLSA_FAMILIA_PREVISAO } from '../data/pareceres';
 import { ATA_WP2_REUNIAO_1 } from '../data/atas-conselho';
 import { useTheme }    from '../hooks/useTheme';
 import { loadGold }    from '../lib/data';
@@ -427,6 +428,13 @@ function DocCardWP10() {
               não pela carga — o custo é uma escolha de política.</li>
         </ul>
       </div>
+
+      <details className="no-print" style={{ margin: '8px 0 14px' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 12, color: 'var(--muted)' }}>
+          Parecer do Conselho do Mirante — 4 lentes · Conceito A− · doutorado-publicável (WP #10)
+        </summary>
+        <div style={{ marginTop: 8 }}><ScoreCard parecer={PARECER_WP10_BOLSA_FAMILIA_PREVISAO} /></div>
+      </details>
 
       <div className="doc-actions">
         <a className="doc-toggle doc-toggle-primary" href={pdfUrl} target="_blank" rel="noreferrer"

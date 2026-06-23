@@ -624,6 +624,79 @@ export const PARECER_WP7_BOLSA_FAMILIA_MUNICIPIOS = {
 
 
 // ═══════════════════════════════════════════════════════════════════════
+// WP #10 — BOLSA FAMÍLIA · PREVISÃO DA CARGA DE CASOS
+// Slug: bolsa-familia-previsao · Vertical: bolsa-familia
+// Régua: DOUTORADO (stricto sensu) — A− (média 88/100, 4 lentes).
+// ═══════════════════════════════════════════════════════════════════════
+export const PARECER_WP10_BOLSA_FAMILIA_PREVISAO = {
+  slug:    'bolsa-familia-previsao',
+  wp_num:  10,
+  artigo_titulo: 'Carga de Casos, Emprego Formal e Custo Fiscal do Programa Bolsa Família: previsão fora da amostra com redes neurais artificiais e identificação causal por instrumento shift-share (2013–2028)',
+  vertical: 'bolsa-familia',
+  nivel: 'stricto_sensu_doutorado',
+  scoreType: 'letter',
+  scoreLetra: 'A-',
+  scoreOriginal: null,
+  originalLabel: null,
+  originalUrl: null,
+  avaliador: 'Conselho do Mirante (4 lentes) — IA Claude Opus 4.8 (Finanças/Métodos Quantitativos, Engenharia de Dados/Reprodutibilidade, Design/Visualização e Administração/Estratégia)',
+  ultimaAtualizacao: '2026-06-23T20:00 BRT',
+  versao: '1.0.1 — Conselho (4ª rodada): doutorado-publicável, média 88/100',
+  resumoCalibragem:
+    'Quatro lentes avaliaram a versão v1.0.1 e convergiram em ' +
+    'DOUTORADO-PUBLICÁVEL: Finanças 91 (A, "pronto para submissão"), Design ' +
+    '92 (A−, "Doutorado com Distinção"), Administração 91 e Engenharia de ' +
+    'Software 78 (B+) — média 88/100, conceito A−. A trajetória do trabalho ' +
+    'foi de ~80 (Mestrado) a 88 (Doutorado) ao longo de quatro rodadas: a ' +
+    'lente Finanças (que definiu a identificação causal como o limiar de ' +
+    'doutorado) confirmou que o instrumento shift-share/Bartik, os pesos de ' +
+    'Rotemberg, os testes de placebo reportados com honestidade (rebaixando o ' +
+    'achado causal de "moderado" para "sugestivo") e os benchmarks clássicos ' +
+    'fecharam as lacunas. Veredicto: pronto para submissão a Economia Aplicada ' +
+    '/ Pesquisa e Planejamento Econômico (A2) ou ao International Journal of ' +
+    'Forecasting (A1), com ajustes editoriais menores.',
+  utilidadeSocial:
+    'ALTA E DE POLÍTICA PÚBLICA. O achado fiscal central — deflacionado pelo ' +
+    'IPCA, o gasto real do programa quase quadruplicou entre 2013 e 2024 (R$41 ' +
+    '→ R$144 bilhões de 2021) enquanto a carga de casos cresceu apenas ~50%, ' +
+    'conduzido pelo BENEFÍCIO médio real (R$220 → R$585), não pela demanda — ' +
+    'contradiz a narrativa que trata o crescimento do custo como inevitabilidade ' +
+    'demográfica. Beneficiários: (a) Secretaria do Tesouro Nacional / SPE-MF e a ' +
+    'Comissão Mista de Orçamento, para separar a parcela estrutural (previsível, ' +
+    'erro < 4,7% em 12 meses) da alavanca de política no ciclo do PLOA; (b) TCU ' +
+    'e INEEP, com a equação custo = carga × benefício auditável linha a linha; ' +
+    '(c) MDS/SAGI, com previsão municipal reprodutível; (d) academia de política ' +
+    'social e de previsão, com um caso limpo de "quando a profundidade compensa".',
+  pontosFortes: [
+    'Identificação causal por instrumento shift-share (Bartik) executada de forma tecnicamente correta — leave-one-out, 92 setores CNAE, participações de 2013, SE clusterizado por UF, primeiro estágio forte (F = 67,7) e padrão de atenuação (IV −0,63 > OLS −0,06) corretamente diagnosticado; Bartik 1991, GPSS 2020 e BHJ 2022 citados (lente Finanças)',
+    'Pesos de Rotemberg como argumento substantivo: o instrumento é dominado por manufatura transacionável (vestuário, couro/calçados, infraestrutura), exógena à pobreza local, e eles explicam economicamente a inversão de sinal do 1º estágio na janela completa (lente Finanças)',
+    'Honestidade científica rara: os testes de placebo voltaram DESFAVORÁVEIS e foram reportados com os números exatos, levando ao rebaixamento honesto do achado causal para "evidência sugestiva" — virtude metodológica de primeiro nível (consenso do Conselho)',
+    'Benchmarks clássicos (ETS/SARIMA) no nacional E no painel municipal: o modelo global vence em todos os horizontes (12m: 4,7% vs ~10%); ETS local perde até para a persistência — comparação ceteris paribus (lente Finanças)',
+    'Deflação IPCA tornando a tese custo = carga × benefício rigorosa e visceral (fig22 hero): o gasto acompanha o benefício, não a contagem de famílias (lentes Administração e Design)',
+    'Reprodutibilidade de desenho, não de promessa: pipeline determinístico (seeds 42/7), artefatos versionados, fontes públicas, e teste de unidade que verifica a retropropagação manual contra diferenças finitas (erro relativo 7,5×10⁻¹⁰) (lente Engenharia)',
+    'Identidade editorial madura sob 22 figuras: forest plot, ECDF, coefficient plot IV-vs-OLS e a hero fig22 constroem o argumento por conta própria; paleta azul/laranja color-blind safe (lente Design, 92/A−)',
+  ],
+  problemasParaNotaPlena: [
+    'Engenharia: falta `make test` rodar em CI e cobertura de testes das funções de dataset (build_dataset/split) — não bloqueante para um paper reproduzível, mas é a lacuna real de engenharia de software (lente Engenharia, 78/B+)',
+    'Banda conforme calibrada sobre os mesmos 12 meses do teste (cobertura efetiva 84,6%, já declarada) — um split disjunto (calibrar em 2024, testar em 2025) fecharia o rigor conforme (lentes Finanças e Engenharia)',
+    'Mincer-Zarnowitz rejeita não-viés em horizontes longos; a banda herda esse viés de projeção recursiva — já anotado, mas merece um parágrafo próprio sobre a implicação orçamentária (lente Finanças)',
+    'O achado fiscal (fig22) é a contribuição de política mais forte e ainda poderia ganhar mais destaque na abertura; falta um benchmark contra projeções institucionais (IPEA/SPE/MDS) (lente Administração)',
+  ],
+  problemasParaSubirNivel: [
+    'Identificação causal LIMPA: refazer o Bartik com ano-base anterior a 2009 (elimina a correlação mecânica das participações), ou um RDD nos limiares de elegibilidade, ou um event study de fechamentos de planta via CAGED — converteria "sugestivo" em causal pleno',
+    'Tradução orçamentária explícita da banda conforme (reserva de contingência em R$ para LOA/LDO 2027)',
+    'Depositar o painel + artefatos no Zenodo com DOI próprio (data paper em Scientific Data / Data in Brief) — citabilidade independente',
+  ],
+  proximosPassos: [
+    'Ajustes editoriais (< 1 dia): split conforme calibração/teste; parágrafo sobre o viés MZ herdado pela banda; benchmark vs projeção institucional',
+    'Mintar o DOI no Zenodo (CITATION.cff e .zenodo.json já preparados no repositório)',
+    'Submeter a Economia Aplicada / PPE (impacto de política, 60–70% de aceite) e, em paralelo, ao International Journal of Forecasting (crédito acadêmico)',
+    'Policy brief de 4 páginas (fig22 na capa) para a Comissão Mista de Orçamento e o TCU, antes do ciclo do PLOA 2027',
+  ],
+};
+
+
+// ═══════════════════════════════════════════════════════════════════════
 // WP #3 RAIS — VÍNCULOS PÚBLICOS / FAIR LAKEHOUSE
 // Slug: rais-fair-lakehouse · Vertical: RAIS
 // Régua: LATO SENSU 6,8/10.
