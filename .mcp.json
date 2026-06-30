@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "conselho": {
+      "command": "/home/leochalhoub/miniconda3/envs/dev-env/bin/python",
+      "args": ["/home/leochalhoub/mirante-dos-dados-br/conselho_mcp/server.py"],
+      "comment": "Credenciais Databricks vêm de conselho_mcp/.env (gitignored), carregado por server.py.",
+      "env": {
+        "HF_HUB_OFFLINE": "1",
+        "TOKENIZERS_PARALLELISM": "false"
+      }
+    }
+  }
+}

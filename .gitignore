@@ -15,6 +15,9 @@ app/public/data/*
 # Python (pipelines)
 __pycache__/
 *.pyc
+
+# Conselho MCP — índice RAG é artefato reproduzível (python conselho_mcp/build_index.py)
+conselho_mcp/index/
 .venv/
 .ipynb_checkpoints/
 
@@ -31,3 +34,6 @@ rais_local/
 
 # Author-provided source/reference material (reviews, journal tables, audio) — not part of repo
 /sources-reference/
+
+# Credenciais Databricks do server MCP (segredo)
+conselho_mcp/.env

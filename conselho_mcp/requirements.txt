@@ -1,0 +1,6 @@
+# Servidor MCP do Conselho do Mirante — instalar no env dev-env
+#   conda activate dev-env && pip install -r conselho_mcp/requirements.txt
+mcp[cli]
+sentence-transformers
+databricks-sql-connector
+numpy
