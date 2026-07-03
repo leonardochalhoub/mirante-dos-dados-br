@@ -78,21 +78,28 @@ REPORT_PATH = SNAPSHOT_DIR / "audit_report.csv"
 # Termos de cálculo por idioma (case-insensitive). Mantemos lista enxuta
 # pra evitar falsos positivos em palavras como "integral curriculares" ou
 # "limites da álgebra".
+# Termos CALCULUS-ESPECÍFICOS (baixa polissemia). Deliberadamente evitam
+# "integral"/"limite" isolados, que geram falso-positivo em PT ("formação
+# integral", "limites da representação") — o que faria o BNCC (claim=absent)
+# parecer conter cálculo. Só contam expressões inequívocas de cálculo.
 KEYWORDS = {
-    "pt": [r"\blimite[s]?\b", r"\bderivad[oa]s?\b", r"\bintegrais?\b",
-           r"\bintegrar\b", r"taxa de varia[cç][ãa]o", r"chain rule"],
-    "en": [r"\blimits?\b", r"\bderivative[s]?\b", r"\bintegral[s]?\b",
-           r"\bantiderivative\b", r"rate of change", r"\barea under\b"],
-    "es": [r"\bl[ií]mite[s]?\b", r"\bderivada[s]?\b", r"\bintegral(es)?\b"],
-    "de": [r"\bGrenzwert(e)?\b", r"\bAbleitung(en)?\b", r"\bIntegral(e)?\b",
-           r"\bStammfunktion(en)?\b"],
-    "fr": [r"\blimite[s]?\b", r"\bd[ée]riv[ée]e?[s]?\b",
-           r"\bint[ée]grale[s]?\b", r"\bprimitive[s]?\b"],
-    "ja": ["極限", "微分", "積分"],
-    "zh": ["极限", "导数", "积分", "微積分"],
-    "ko": ["극한", "미분", "적분"],
-    "ru": ["предел", "производная", "интеграл"],
-    "fi": ["raja-arvo", "derivaatta", "integraali"],
+    "pt": [r"c[áa]lculo diferencial", r"c[áa]lculo integral", r"derivada de",
+           r"fun[çc][ãa]o derivada", r"integral definida", r"integral indefinida",
+           r"primitiva de", r"antiderivada", r"limite de uma fun[çc][ãa]o"],
+    "en": [r"\bderivative[s]?\b", r"\bantiderivative\b", r"differential calculus",
+           r"integral calculus", r"definite integral", r"indefinite integral",
+           r"\blimit of\b", r"\bintegration\b"],
+    "es": [r"c[áa]lculo diferencial", r"c[áa]lculo integral", r"\bderivada de\b",
+           r"integral definida", r"\bprimitiva"],
+    "de": [r"\bAbleitung(en)?\b", r"\bIntegralrechnung\b", r"\bDifferentialrechnung\b",
+           r"\bStammfunktion(en)?\b", r"\bIntegral\b"],
+    "fr": [r"\bd[ée]riv[ée]e?[s]?\b", r"\bprimitives?\b", r"calcul int[ée]gral",
+           r"int[ée]grale[s]?\b"],
+    "ja": ["微分", "積分", "導関数", "極限"],
+    "zh": ["导数", "积分", "微积分", "极限", "定积分"],
+    "ko": ["미분", "적분", "도함수", "미적분", "극한", "정적분", "부정적분"],
+    "ru": ["производн", "интеграл", "первообразн"],
+    "fi": ["derivaatta", "integraali", "integraalilask"],
 }
 
 
@@ -120,29 +127,52 @@ def download_if_needed(url: str, dest: Path, *, do_download: bool) -> Optional[P
 
 
 def pdftotext_extract(pdf_path: Path) -> Optional[str]:
-    """Extrai texto do PDF. Tenta pdftotext (poppler) → pdfplumber fallback."""
+    """Extrai texto do documento. HWP (Hangul) via hwp5txt; caso contrário
+    PDF via pdftotext (poppler) → pdfplumber → PyMuPDF (fitz)."""
+    if pdf_path.suffix.lower() == ".hwp":
+        if shutil.which("hwp5txt"):
+            try:
+                out = subprocess.run(["hwp5txt", str(pdf_path)],
+                                     capture_output=True, text=True, timeout=120)
+                return out.stdout
+            except Exception as e:
+                print(f"  ⚠ hwp5txt failed: {pdf_path} → {e}", file=sys.stderr)
+        else:
+            print("  ⚠ hwp5txt não instalado (pip install pyhwp) — HWP não lido",
+                  file=sys.stderr)
+        return None
+    # Cascata: pdftotext → pdfplumber → PyMuPDF. Alguns PDFs oficiais (ex.: a
+    # BNCC "embaixa") têm páginas em que o pdftotext devolve vazio; o fallback
+    # PyMuPDF (fitz) recupera o texto. Fica-se com o extrato mais longo.
+    text = ""
     if shutil.which("pdftotext"):
         try:
             out = subprocess.run(
                 ["pdftotext", "-layout", "-q", str(pdf_path), "-"],
-                capture_output=True, text=True, timeout=60,
+                capture_output=True, text=True, timeout=90,
             )
-            return out.stdout
+            text = out.stdout or ""
         except Exception as e:
             print(f"  ⚠ pdftotext failed: {pdf_path} → {e}", file=sys.stderr)
-    try:
-        import pdfplumber  # type: ignore
-        text_parts = []
-        with pdfplumber.open(str(pdf_path)) as pdf:
-            for page in pdf.pages:
-                text_parts.append(page.extract_text() or "")
-        return "\n".join(text_parts)
-    except ImportError:
-        print("  ⚠ neither pdftotext (poppler) nor pdfplumber installed",
-              file=sys.stderr)
-    except Exception as e:
-        print(f"  ⚠ pdfplumber failed: {pdf_path} → {e}", file=sys.stderr)
-    return None
+    if len(text.strip()) < 200:
+        try:
+            import pdfplumber  # type: ignore
+            with pdfplumber.open(str(pdf_path)) as pdf:
+                text = "\n".join((pg.extract_text() or "") for pg in pdf.pages)
+        except ImportError:
+            pass
+        except Exception as e:
+            print(f"  ⚠ pdfplumber failed: {pdf_path} → {e}", file=sys.stderr)
+    if len(text.strip()) < 200:
+        try:
+            import fitz  # PyMuPDF
+            text = "\n".join(pg.get_text() for pg in fitz.open(str(pdf_path)))
+        except ImportError:
+            print("  ⚠ nenhum extrator disponível (poppler/pdfplumber/pymupdf)",
+                  file=sys.stderr)
+        except Exception as e:
+            print(f"  ⚠ pymupdf failed: {pdf_path} → {e}", file=sys.stderr)
+    return text or None
 
 
 def count_keyword_hits(text: str, lang: str) -> dict[str, int]:
@@ -170,6 +200,7 @@ def audit(*, download_missing: bool, strict: bool) -> int:
 
     rows: list[dict] = []
     contradicoes: list[str] = []
+    coverage_gaps: list[str] = []  # país com paper_claim mas sem verificação mecânica
 
     for entry in manifest["sources"]:
         country = entry["country"]
@@ -190,6 +221,7 @@ def audit(*, download_missing: bool, strict: bool) -> int:
 
         if pdf_path is None:
             print(f"  ⏭  SKIP {country} — sem PDF (nem local nem baixado)")
+            coverage_gaps.append(f"{country} (SKIP — sem snapshot; rode --download-missing)")
             rows.append({
                 "country": country, "doc": entry.get("title", ""),
                 "lang": lang, "url": url or "",
@@ -202,6 +234,7 @@ def audit(*, download_missing: bool, strict: bool) -> int:
         text = pdftotext_extract(pdf_path)
         if not text:
             print(f"  ⏭  SKIP {country} — extração de texto falhou")
+            coverage_gaps.append(f"{country} (EXTRACTION_FAILED)")
             rows.append({
                 "country": country, "doc": entry.get("title", ""),
                 "lang": lang, "url": url or "",
@@ -252,14 +285,32 @@ def audit(*, download_missing: bool, strict: bool) -> int:
             writer.writerows(rows)
     print(f"\n📊 Relatório: {REPORT_PATH.relative_to(ROOT)}")
 
+    n_ok = sum(1 for r in rows if r["status"] == "OK")
+    print(f"\n📈 Cobertura: {n_ok}/{len(rows)} fontes verificadas mecanicamente.")
+
     if contradicoes:
         print("\n⚠ CONTRADIÇÕES detectadas:")
         for c in contradicoes:
             print(f"  {c}")
-        if strict:
-            return 1
 
-    print("\n✅ auditoria concluída sem contradições críticas")
+    if coverage_gaps:
+        print("\n⚠ LACUNAS DE COBERTURA (fonte com paper_claim não verificada):")
+        for g in coverage_gaps:
+            print(f"  • {g}")
+
+    # Em --strict, tanto contradições quanto lacunas de cobertura falham:
+    # afirmar auditabilidade exige que TODA fonte com paper_claim seja checada.
+    if strict and (contradicoes or coverage_gaps):
+        print("\n❌ --strict: auditoria NÃO passou "
+              f"({len(contradicoes)} contradição(ões), "
+              f"{len(coverage_gaps)} lacuna(s) de cobertura).")
+        return 1
+
+    if contradicoes or coverage_gaps:
+        print("\n⚠ auditoria concluída COM ressalvas (rode --strict para exigir 100%).")
+        return 0
+
+    print("\n✅ auditoria concluída: sem contradições e cobertura completa.")
     return 0
 
 

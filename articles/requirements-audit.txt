@@ -1,0 +1,11 @@
+# Dependências da auditoria e das estatísticas de 'O Cálculo Ausente'.
+# Extração de PDF em cascata (pdftotext -> pdfplumber -> pymupdf) + HWP
+# coreano (pyhwp/hwp5txt) + correlações (scipy/numpy) + figuras (matplotlib).
+# poppler-utils (pdftotext) é dependência de sistema; instale via gerenciador do SO.
+
+pdfplumber==0.11.10
+pymupdf==1.28.0
+pyhwp==0.1b15
+scipy==1.17.1
+numpy==1.26.4
+matplotlib==3.11.0

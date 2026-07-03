@@ -37,3 +37,12 @@ rais_local/
 
 # Credenciais Databricks do server MCP (segredo)
 conselho_mcp/.env
+
+# Bolema published-articles corpus (reference for our submission) — not part of repo
+articles/bolema-corpus/
+
+# Auditoria WP#9 — snapshots dos PDFs curriculares (grandes, baixados sob demanda)
+articles/snapshots/
+
+# Reproducibility bundle (deploy artifact) — published to a standalone repo
+articles/calculo-repro/

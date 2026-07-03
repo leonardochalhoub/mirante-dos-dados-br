@@ -1,0 +1,1183 @@
+% =====================================================================
+% O CÁLCULO AUSENTE — versão para submissão ao
+% Bolema: Boletim de Educação Matemática (UNESP Rio Claro)
+%
+% IMPORTANTE: arquivo ANONIMIZADO para avaliação por pares duplo-cega
+% (sem nomes/afiliação/ORCID no corpo nem nas propriedades do arquivo).
+% Identificação dos autores vai apenas na plataforma ScholarOne e na
+% carta de apresentação (calculo-bolema-CARTA-APRESENTACAO.md).
+%
+% Normas Bolema atendidas: Word/A4; Times New Roman 12; espaço 1,5;
+% recuo 1,25 cm; margens sup./esq. 3,0 cm e inf./dir. 2,0 cm; título
+% PT 16pt, título secundário 14pt; resumo 100-250 palavras; até 5
+% palavras-chave; quadros/tabelas título acima e fonte abaixo, sem
+% fios verticais; figuras "Figura N -" com fonte; referências TNR 11;
+% ABNT NBR 10520:2023 (autor-data). Limite: 20 páginas.
+%
+% Compilação: tectonic calculo-bolema-submissao.tex
+% =====================================================================
+\documentclass[12pt,a4paper,oneside]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazilian]{babel}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[hidelinks,breaklinks=true]{hyperref}
+\usepackage{url}
+\usepackage{xurl}
+
+\graphicspath{{figures-calculo/}}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2em}
+
+% --- Seções primárias: TNR 12, negrito, MAIÚSCULAS, justificado ------
+\titleformat{\section}{\normalfont\normalsize\bfseries}{\thesection}{0.6em}{\MakeUppercase}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\itshape}{\thesubsubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+\titlespacing*{\subsubsection}{0pt}{8pt}{3pt}
+
+% --- Quadros/Tabelas: título acima, fonte size 10, sem fios verticais
+\captionsetup[table]{labelfont=bf,name=Quadro,labelsep=endash,
+                     position=above,justification=centering,font=normalsize,skip=4pt}
+\captionsetup[figure]{labelfont=bf,name=Figura,labelsep=endash,
+                      position=below,justification=centering,font=small,skip=4pt}
+
+% comando para a linha "Fonte:" sob quadros/tabelas
+\newcommand{\fonte}[1]{\par\vspace{1pt}{\footnotesize\noindent\hspace*{0pt}Fonte: #1}}
+
+\begin{document}
+
+% =====================================================================
+% TÍTULO + RESUMOS  (sem identificação de autoria — avaliação cega)
+% =====================================================================
+% Título em Português (idioma principal, tamanho 14, máximo 15 palavras)
+\begin{center}
+{\fontsize{16}{19}\selectfont\bfseries O cálculo ausente: duzentos anos de
+currículo, uma comparação internacional e um roteiro pedagógico para o
+ensino médio}
+\end{center}
+
+\vspace{4pt}
+
+% ---------- RESUMO (PT) ----------
+{\centering\textbf{Resumo}\par}\vspace{2pt}
+{\setstretch{1.0}\small\noindent
+Este artigo conduz uma revisão documental comparada dos currículos
+oficiais de matemática do ensino médio, com foco específico na presença
+ou ausência de cálculo diferencial e integral antes do ingresso no
+ensino superior. Foram analisados documentos curriculares e de avaliação
+de sistemas educacionais nacionais em cinco continentes, abrangendo
+países de alta, média e baixa renda, além do programa International
+Baccalaureate. O achado central é que o Brasil é o único país da amostra
+cujo currículo nacional do ensino médio não contempla limites, derivadas
+ou integrais. Discutem-se o marco pedagógico que fundamenta a
+viabilidade da reintrodução --- ilustrado por uma sequência didática à luz
+de Bruner ---, a trajetória
+de duzentos anos do currículo brasileiro, do Colégio Pedro II à BNCC, e
+indicadores contextuais associados, como o desempenho em avaliações
+internacionais e as elevadas taxas de reprovação em Cálculo I nas
+engenharias. O achado central é verificável de forma automatizada sobre os
+documentos curriculares oficiais. Conclui-se que o vácuo é estrutural, historicamente
+documentado e pedagogicamente solucionável, ainda que a inferência
+causal estrita entre a ausência curricular e os indicadores observados
+permaneça limitada.\par}
+
+\smallskip
+\noindent{\small\textbf{Palavras-chave:} Cálculo Diferencial e Integral.
+Currículo de Matemática. Ensino Médio. Educação Matemática Comparada.
+BNCC.}
+
+\medskip
+
+% Título em Inglês (idioma secundário, tamanho 12)
+\begin{center}
+{\fontsize{14}{17}\selectfont\bfseries The absent calculus: two hundred years of curriculum, an
+international comparison and a pedagogical route for secondary education}
+\end{center}
+\vspace{2pt}
+
+% ---------- ABSTRACT (EN) ----------
+{\centering\textbf{Abstract}\par}\vspace{2pt}
+{\setstretch{1.0}\small\noindent
+This article presents a comparative documentary review of official
+upper-secondary mathematics curricula, focusing specifically on the
+presence or absence of differential and integral calculus before
+entry into higher education. Curriculum and assessment documents from
+national education systems across five continents were analysed,
+including high-, middle- and low-income countries, as well as the
+International Baccalaureate programme. The central finding is that
+Brazil is the only country in the sample whose national upper-secondary
+curriculum does not include limits, derivatives or integrals. We discuss
+the pedagogical framework supporting the feasibility of reintroduction ---
+illustrated by a Bruner-inspired teaching sequence ---,
+the two-hundred-year trajectory of the
+Brazilian curriculum, from Colégio Pedro II to the BNCC, and associated
+contextual indicators, such as performance in international assessments
+and high failure rates in university Calculus~I in engineering programmes.
+The central finding is verifiable automatically against the official
+curricular documents.
+We conclude that the gap is structural, historically documented and
+pedagogically solvable, although strict causal inference between the
+curricular absence and the observed indicators remains limited.\par}
+
+\smallskip
+\noindent{\small\textbf{Keywords:} Differential and Integral Calculus.
+Mathematics Curriculum. Secondary Education. Comparative Mathematics
+Education. BNCC.}
+
+\medskip
+
+% Título em Espanhol (idioma secundário, tamanho 12)
+\begin{center}
+{\fontsize{14}{17}\selectfont\bfseries El cálculo ausente: doscientos años de currículo, una
+comparación internacional y una ruta pedagógica para la enseñanza secundaria}
+\end{center}
+\vspace{2pt}
+
+% ---------- RESUMEN (ES) ----------
+{\centering\textbf{Resumen}\par}\vspace{2pt}
+{\setstretch{1.0}\small\noindent
+Este artículo realiza una revisión documental comparada de los
+currículos oficiales de matemática de la enseñanza secundaria, con foco
+específico en la presencia o ausencia de cálculo diferencial e integral
+antes del ingreso a la educación superior. Se analizaron documentos
+curriculares y de evaluación de sistemas educativos nacionales en cinco
+continentes, abarcando países de renta alta, media y baja, además del
+programa International Baccalaureate. El hallazgo central es que Brasil
+es el único país de la muestra cuyo currículo nacional de secundaria no
+contempla límites, derivadas ni integrales. Se discuten el marco
+pedagógico que fundamenta la viabilidad de la reintroducción --- ilustrado
+por una secuencia didáctica inspirada en Bruner ---, la
+trayectoria de doscientos años del currículo
+brasileño, del Colégio Pedro II a la BNCC, e indicadores contextuales
+asociados, como el desempeño en evaluaciones internacionales y las
+elevadas tasas de reprobación en Cálculo~I en las ingenierías. El hallazgo
+central es verificable de forma automatizada sobre los documentos
+curriculares oficiales. Se
+concluye que el vacío es estructural, históricamente documentado y
+pedagógicamente solucionable, aunque la inferencia causal estricta
+entre la ausencia curricular y los indicadores observados permanezca
+limitada.\par}
+
+\smallskip
+\noindent{\small\textbf{Palabras clave:} Cálculo Diferencial e Integral.
+Currículo de Matemática. Enseñanza Secundaria. Educación Matemática
+Comparada. BNCC.}
+
+\bigskip
+
+% =====================================================================
+% 1. INTRODUÇÃO
+% =====================================================================
+\section{Introdução}
+
+A pergunta que orienta este artigo é simples: \emph{em quais países do
+mundo um estudante aprende cálculo diferencial e integral antes de
+ingressar na universidade?} A resposta surpreende quem está habituado ao
+sistema brasileiro. Em praticamente todos os países com tradição
+consolidada em educação matemática --- e, como se mostrará, também em
+diversos países de renda média e baixa --- o cálculo integra o currículo
+do ensino médio dos estudantes que pretendem cursar engenharia, ciências
+exatas ou economia. No Brasil, não.
+
+A ausência do cálculo no ensino médio brasileiro é uma anomalia
+historicamente conhecida. Geraldo Ávila, no artigo ``O ensino de Cálculo
+no 2.\textsuperscript{o} grau'', publicado na \emph{Revista do Professor
+de Matemática} em 1991, perguntava diretamente por que não se ensinavam
+as ideias básicas do cálculo na escola secundária, argumentando que sua
+omissão suprimia ``a componente significativa e certamente a mais
+relevante da Matemática'' (Ávila, 1991, p. 1). A questão permanece em
+aberto mais de três décadas depois. Wanderley Moura Rezende, em tese de
+doutorado defendida na Faculdade de Educação da Universidade de São Paulo
+em 2003, formalizou o diagnóstico: a dificuldade dos estudantes
+brasileiros em Cálculo~I universitário é \emph{essencialmente
+epistemológica}, e tem como raiz a omissão das ideias básicas do cálculo
+no ensino que antecede a universidade (Rezende, 2003).
+
+A relevância da pergunta foi recentemente amplificada pelo debate público
+sobre o ``apagão de engenheiros''. Segundo o Conselho Federal de
+Engenharia e Agronomia, o Brasil pode enfrentar déficit de até um milhão
+de profissionais das áreas tecnológicas até 2030, com o número de
+matrículas em cursos de engenharia recuando cerca de 30\% entre 2015 e
+2024 (CONFEA, 2025). Em paralelo, a disciplina de Cálculo Diferencial e
+Integral~I nas engenharias brasileiras apresenta taxas de reprovação
+historicamente altas: a Universidade Federal do Rio de Janeiro (UFRJ)
+registrou cerca de 70\% de reprovação em período recente (GAZETA DO POVO,
+2023), e pesquisa na Universidade Estadual de Campinas (Unicamp)
+constatou taxa combinada de reprovação e evasão de até 77,5\% entre 1997
+e 2009 (Garzella, 2013).
+
+Há, ainda, uma dimensão de equidade que atravessa todo o argumento. No
+Brasil, o cálculo no ensino médio não está totalmente ausente: ele é
+estudado, hoje, por estudantes de escolas particulares que oferecem o
+programa \emph{International Baccalaureate}, ao passo que a rede pública
+--- regida pela BNCC --- não o oferece. A estratificação, portanto,
+\emph{já existe}; a questão é se ela deve permanecer invisível na política
+curricular. Incorporar o cálculo à base comum tenderia a \emph{reduzir},
+não a ampliar, essa desigualdade de acesso --- ponto ao qual se retorna na
+discussão (Seção~\ref{sec:discussao}).
+
+O argumento deste artigo não é causal estrito. Não se afirma que a
+inclusão de cálculo no ensino médio brasileiro resolveria, por si só, o
+conjunto desses problemas. Argumenta-se que (i) o vácuo curricular
+existe; (ii) é documentável em fontes primárias; (iii) está registrado na
+literatura acadêmica brasileira há mais de três décadas; e (iv) contrasta
+com a prática internacional dominante de uma forma que merece ser mapeada
+com precisão. Esse mapeamento dialoga com a tradição de estudos
+curriculares em Educação Matemática --- da edição temática que a área
+dedicou ao currículo de matemática (Pires \emph{et al.}, 2014) aos estudos
+comparados entre sistemas nacionais (Gonçalves; Dias; Peralta, 2018) --- e
+com a discussão sobre a introdução das ideias do cálculo na educação
+básica (Araújo; Avelar, 2022). Diferentemente desses trabalhos, o foco
+aqui é estritamente a presença ou ausência do cálculo diferencial e
+integral no currículo prescrito, mapeada país a país e verificável de
+forma automatizada (Seção~\ref{sec:metodo}).
+
+O restante do artigo organiza-se como segue. A Seção 2 estabelece o
+referencial teórico (Bruner, Vygotsky, Rezende e o caso de Singapura). A
+Seção 3 descreve a metodologia. A Seção 4 apresenta os resultados e a
+discussão: o panorama internacional em países desenvolvidos e em
+desenvolvimento, um comparativo por idade, a trajetória histórica
+brasileira, as consequências mensuráveis, exemplos de exames e a
+discussão dos limites de robustez. A Seção 5 traz as considerações
+finais.
+
+% =====================================================================
+% 2. REFERENCIAL TEÓRICO
+% =====================================================================
+\section{Referencial Teórico}
+
+Antes de comparar currículos, é necessário estabelecer o arcabouço
+pedagógico que torna a discussão sobre cálculo no ensino médio uma
+questão técnica, e não meramente retórica. Três autores são centrais:
+Jerome Bruner, Lev Vygotsky e Wanderley Rezende. O caso de Singapura
+fornece evidência empírica de que a aplicação sistemática desses
+princípios produz resultados internacionais mensuráveis.
+
+\subsection{Bruner e o currículo em espiral}
+
+Jerome Bruner (1915--2016) formulou em 1960 o princípio do \emph{currículo
+em espiral}: tópicos matemáticos não devem ser apresentados uma única vez
+em sua forma completa, mas revisitados em níveis crescentes de
+complexidade ao longo da escolarização, de modo que cada revisita
+reconstrói e integra a compreensão prévia (Bruner, 1960). Bruner postulou
+ainda três modos de representação do conhecimento que se sucedem na
+aprendizagem: \emph{enativo} (ação concreta), \emph{icônico} (imagem
+mental) e \emph{simbólico} (notação formal abstrata) (Bruner, 1966).
+
+A consequência prática para o ensino do cálculo é direta: a ideia de
+``taxa de variação'' pode ser introduzida no nível enativo (velocidade de
+um corpo em queda), depois icônico (gráfico posição-tempo) e, finalmente,
+simbólico (definição de derivada via limite). A versão simbólica não
+precisa esperar a universidade --- ela é o ponto de chegada de uma
+trajetória que pode começar antes. Bruner sintetizou seu princípio em
+uma proposição que se tornou clássica: ``qualquer matéria pode ser
+ensinada de forma intelectualmente honesta a qualquer criança em qualquer
+estágio de desenvolvimento''\footnote{No original: \emph{``any subject
+can be taught effectively in some intellectually honest form to any child
+at any stage of development''}.} (Bruner, 1960, p. 33).
+
+\subsection{Vygotsky e a zona de desenvolvimento proximal}
+
+Lev Vygotsky (1896--1934) introduziu o conceito de \emph{zona de
+desenvolvimento proximal} (ZDP), definida como a distância entre o nível
+de desenvolvimento real, determinado pela resolução autônoma de
+problemas, e o nível de desenvolvimento potencial, determinado pela
+resolução de problemas sob orientação de um adulto ou em colaboração com
+pares mais capazes (Vygotsky, 1978, p. 86). A aprendizagem eficaz ocorre
+nessa zona. O conceito de \emph{scaffolding} (andaime), formalizado por
+Wood, Bruner e Ross, operacionaliza a ZDP: o suporte é fornecido enquanto
+necessário e gradualmente retirado conforme o estudante se aproxima de
+seu nível potencial (Wood; Bruner; Ross, 1976, p. 90).
+
+O argumento para o cálculo no ensino médio decorre dessa formulação: se
+um estudante de 17 anos no Japão, na Alemanha ou em Singapura aprende
+derivadas e integrais com \emph{scaffolding} adequado, isso evidencia que
+o conteúdo está dentro da ZDP dessa faixa etária. A ausência do conteúdo
+no Brasil é decisão curricular, não limitação cognitiva.
+
+\subsection{Rezende e os obstáculos epistemológicos}
+
+A análise mais rigorosa do problema brasileiro foi conduzida por Rezende
+(2003). Após análise empírica e teórica das dificuldades de aprendizagem
+em Cálculo~I, o autor identificou cinco macro-eixos epistemológicos de
+dificuldade: discreto/contínuo; variabilidade/permanência;
+finito/infinito; local/global; e sistematização/construção. O diagnóstico
+central é que existe \emph{uma fonte comum} dessas dificuldades --- a
+omissão das ideias básicas e dos problemas construtores do cálculo no
+ensino de matemática que antecede a universidade (Rezende, 2003). Não se
+trata, segundo o autor, de falta de pré-requisitos algébricos nem de
+inadequação dos métodos universitários, mas do fato de o estudante
+encontrar a problemática do cálculo de forma pontual, abstrata e
+descontextualizada, sem ter sido preparado para pensar em variação, em
+limite e em processos infinitos.
+
+Esse diagnóstico dialoga com a literatura internacional sobre a didática
+do cálculo. A dificuldade com a noção de limite é interpretada, na teoria
+da \emph{imagem conceitual} e da \emph{definição conceitual}, como um
+descompasso entre a intuição do estudante e a formalização (Tall; Vinner,
+1981). A derivada, por sua vez, exige a passagem de uma concepção
+\emph{operacional} (o processo de calcular taxas) para uma
+\emph{estrutural} (a função-derivada como objeto) --- transição que Sfard
+(1991) descreve como reificação e que a teoria APOS detalha em termos de
+ação--processo--objeto--esquema (Dubinsky; McDonald, 2001). Artigue (1991)
+mostra que tais dificuldades são estruturais do ensino da análise, não
+idiossincrasias nacionais. A contribuição de Rezende é localizar a
+\emph{raiz} brasileira dessas dificuldades na ausência curricular que
+antecede a universidade --- o que remete diretamente à noção de
+\emph{transposição didática}: o processo pelo qual um saber de referência
+(o cálculo, \emph{savoir savant}) é --- ou deixa de ser --- convertido em
+saber a ensinar (\emph{savoir enseigné}) no currículo prescrito
+(Chevallard, 1991). A ausência documentada neste artigo é, nesses termos,
+uma \emph{não-transposição}: uma decisão, e não uma inevitabilidade.
+
+\subsection{O caso de Singapura: Bruner aplicado em escala nacional}
+\label{sec:singapura}
+
+Singapura oferece evidência empírica de que a aplicação sistemática dos
+princípios de Bruner produz resultados mensuráveis. A partir do início
+da década de 1980, o currículo singapurense adotou explicitamente a
+sequência \emph{Concrete-Pictorial-Abstract} (CPA) --- operacionalização
+direta dos modos enativo, icônico e simbólico de Bruner ---, tal como
+documentado pela própria literatura de educação matemática do país
+(Leong; Ho; Cheng, 2015). O princípio operacional ficou conhecido como
+``menos tópicos, maior profundidade'', com revisitas em espiral: o
+conceito de derivada não é apresentado de uma vez como definição-limite,
+mas construído ao longo de anos, partindo de razões de variação em
+problemas concretos até a diferenciação implícita e as séries de
+Maclaurin no \emph{H2 Mathematics} pré-universitário (SEAB, 2025).
+
+O resultado aparece nas avaliações internacionais. Singapura figurou
+entre as primeiras posições mundiais em matemática em diversas edições do
+TIMSS, incluindo 1995, 1999, 2003 e 2015 (Mullis \emph{et al.}, 2016), e
+ocupou a primeira posição global em matemática no PISA 2022, com 41\% de
+\emph{top performers} (OECD, 2023). A lição relevante para o Brasil não é
+``copiar Singapura'' --- o contexto é distinto ---, mas reconhecer que a
+teoria pedagógica que permite ensinar cálculo no ensino médio está
+disponível, foi testada em escala nacional por quatro décadas e produz
+resultados. A questão deixa de ser ``é possível?'' para tornar-se ``por
+que não?''.
+
+\subsection{Do referencial à sala de aula: uma sequência em engenharia didática}
+\label{sec:sequencia}
+
+Para que o argumento não seja apenas diagnóstico, convém mostrar como o
+referencial se traduz em ação didática. Apresenta-se o \emph{desenho} de
+uma sequência --- na tradição da \emph{engenharia didática} (Artigue,
+1988), que articula uma análise \emph{a priori} do saber e das
+concepções dos estudantes a uma proposta de intervenção posteriormente
+validável em sala. O Quadro~\ref{quad:cpa} organiza a introdução tanto da
+\emph{derivada} quanto da \emph{integral} no ensino médio brasileiro ---
+cobrindo os dois tópicos que o artigo identifica como ausentes --- segundo
+os três modos de representação de Bruner (enativo, icônico, simbólico), a
+mesma lógica \emph{Concrete-Pictorial-Abstract} operacionalizada por
+Singapura. Cada etapa cabe em conteúdos já presentes no currículo
+(cinemática, funções, geometria analítica), o que sustenta a viabilidade.
+
+\begin{table}[H]
+\centering
+\caption{Sequência ilustrativa para introduzir derivada e integral no
+ensino médio, segundo os modos de representação de Bruner}
+\label{quad:cpa}
+\small
+\begin{tabular}{@{}p{1.9cm}p{5.6cm}p{4.5cm}@{}}
+\toprule
+\textbf{Modo} & \textbf{Situação (derivada / integral)} & \textbf{Objeto matemático} \\
+\midrule
+Enativo \newline (concreto) &
+Móvel: medir posição e tempo (velocidade); e recuperar a distância
+percorrida a partir da velocidade &
+Taxa média $\Delta s/\Delta t$; distância como área acumulada \\
+Icônico \newline (gráfico) &
+Gráfico posição--tempo (secantes $\to$ tangente); e área sob o gráfico
+velocidade--tempo por retângulos &
+Tangente como limite de secantes; área como limite de somas de retângulos \\
+Simbólico \newline (formal) &
+Razão incremental $\to$ limite; e somas de Riemann $\to$ integral definida &
+$f'(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$ e $\int_a^b f$; o TFC liga as duas \\
+\bottomrule
+\end{tabular}
+\fonte{Elaboração própria, a partir de Bruner (1960, 1966) e da sequência
+CPA (Leong; Ho; Cheng, 2015).}
+\end{table}
+
+A sequência dialoga diretamente com o diagnóstico de Rezende (2003): ao
+partir do concreto e do gráfico antes do símbolo, ela ataca justamente os
+eixos epistemológicos que o autor identifica como fontes de dificuldade
+--- o par discreto/contínuo (da razão média à taxa instantânea), o
+finito/infinito (o processo de limite) e o local/global (a tangente como
+comportamento local de uma função). A análise \emph{a priori} é, portanto,
+explícita: espera-se que a ancoragem enativa e icônica reduza o
+descompasso entre imagem e definição conceitual do limite (Tall; Vinner,
+1981) e favoreça a reificação da derivada como objeto (Sfard, 1991) antes
+da formalização simbólica. Enquadrados assim, os obstáculos deixam de ser
+tratados na universidade, de forma pontual, e passam a ser construídos ao
+longo do ensino médio.
+
+Este artigo apresenta o \emph{desenho} e a análise \emph{a priori} da
+sequência, não sua validação empírica --- que constitui a etapa seguinte
+da engenharia didática. Um protocolo de validação está delineado para
+trabalho futuro: aplicação da sequência em turmas do ensino médio, com
+análise \emph{a posteriori} contrastando o comportamento observado às
+hipóteses aqui declaradas (por exemplo, a evolução da imagem conceitual de
+taxa de variação e a passagem da concepção operacional à estrutural da
+derivada), em desenho quase-experimental com grupo de comparação. Delimitar
+claramente o que é proposta fundamentada e o que ainda demanda evidência de
+sala é parte do compromisso metodológico do trabalho.
+
+% =====================================================================
+% 3. METODOLOGIA
+% =====================================================================
+\section{Metodologia}
+\label{sec:metodo}
+
+Trata-se de uma pesquisa de abordagem qualitativa, do tipo revisão
+documental comparada, de caráter exploratório-descritivo. O corpus é
+constituído por documentos curriculares e de avaliação oficiais de cada
+sistema educacional --- ministérios da educação, conselhos de currículo e
+órgãos de exame nacionais ---, sempre que disponíveis em formato
+eletrônico, complementados por relatórios de comparações internacionais
+(PISA e TIMSS) e por literatura acadêmica revisada por pares quando havia
+divergência ou ambiguidade entre fontes nacionais.
+
+Para cada sistema, catalogaram-se: (i) a estrutura geral do ensino médio
+(duração e divisão em trilhas/séries); (ii) o currículo de matemática nos
+anos finais (idades de 15 a 18 anos); (iii) a presença ou ausência de
+cálculo diferencial (limites, derivadas); (iv) a presença ou ausência de
+cálculo integral; (v) o sistema de exame nacional ou de admissão e o peso
+atribuído à matemática; e (vi) estatísticas de desempenho disponíveis.
+
+A definição operacional de ``cálculo no currículo'' adotada foi: o tópico
+aparece de forma explícita, obrigatória ou eletiva formal, no documento
+curricular nacional, com expectativa de avaliação em exame de
+saída/admissão. Tópicos eventualmente mencionados em livros didáticos,
+mas não previstos no documento curricular nem cobrados em exame nacional,
+foram classificados como ``ausentes'' do currículo --- caso reconhecido,
+no Brasil, pela própria Sociedade Brasileira de Educação Matemática
+(SBEM, 2007).
+
+Para que o achado central não dependa apenas da leitura dos autores, a
+catalogação qualitativa é triangulada por uma verificação automatizada e
+reprodutível. Um manifesto público (\emph{sources\_calculo\_curricula.json})
+registra, para cada sistema, o documento curricular oficial (com URL, órgão
+emissor, \emph{hash} SHA-256 e data de captura), e um roteiro
+(\emph{audit\_curricula\_keywords.py}) extrai o texto de cada documento
+--- inclusive do formato HWP coreano --- e conta ocorrências de termos
+inequívocos de cálculo em cada idioma (por exemplo, \emph{cálculo
+diferencial}, \emph{derivada de}, \emph{integral definida}; 微分/積分;
+미분/적분). Deliberadamente evitam-se termos polissêmicos (``integral'',
+``limite'' isolados), que gerariam falso-positivo em português. Sobre os
+documentos oficiais dos dez países e do programa IB, o procedimento
+confirma a presença de cálculo em todos os sistemas exceto o brasileiro,
+cuja BNCC retorna \emph{zero} ocorrências --- tornando o achado verificável
+por terceiros em minutos, e não em horas de leitura (dados e código
+disponíveis; ver Declarações).
+
+Declaram-se as seguintes limitações metodológicas: (i) documentos
+curriculares são \emph{desideratos prescritivos}, não medidas do que de
+fato é ensinado em sala, podendo haver descolamento entre currículo
+oficial e implementação real em qualquer país; (ii) a análise comparativa
+internacional carrega risco de viés do analista, mitigado pela ênfase em
+fontes primárias oficiais; (iii) inferências causais entre
+presença/ausência de cálculo no ensino médio e indicadores de desempenho
+universitário são tratadas como plausíveis, não como demonstradas
+(Seção~\ref{sec:discussao}); e (iv) para alguns sistemas
+descentralizados (Estados Unidos, Canadá, Alemanha) adotou-se um
+documento de referência nacional ou de uma jurisdição representativa, o
+que é explicitado caso a caso.
+
+Declara-se, ainda, o uso de assistente de inteligência artificial
+(Claude, modelo Opus 4.8, da Anthropic) como ferramenta de apoio em
+todas as etapas do trabalho --- organização e revisão das fontes
+curriculares, redação e edição do texto e geração do código das figuras.
+Todo o conteúdo foi revisado e verificado pelos autores, que assumem
+integral responsabilidade pública pelo texto (ver Declarações).
+
+% =====================================================================
+% 4. RESULTADOS E DISCUSSÃO
+% =====================================================================
+\section{Análises e Resultados}
+
+\subsection{Panorama internacional: países de alta renda}
+
+O detalhamento por país consta da Figura~\ref{fig:heatmap} e do
+repositório de reprodutibilidade; aqui, sintetiza-se o padrão por região.
+
+\paragraph{Ásia.} Nos grandes sistemas asiáticos, o cálculo integra a
+trilha de ensino médio voltada a ciências e engenharia: o \emph{Math~III}
+japonês cobre derivadas avançadas e integração (JASSO, 2025); o currículo
+chinês de 2017 inclui derivadas e, na trilha avançada do Gaokao, a
+integral definida e o Teorema Fundamental do Cálculo (China, 2020); a
+Coreia do Sul mantém limites e continuidade em disciplina obrigatória e o
+cálculo como eletiva típica dos candidatos STEM (Coreia do Sul, 2015); e o
+\emph{H2 Mathematics} de Singapura cobre diferenciação, integração e
+equações diferenciais (SEAB, 2025).
+
+\paragraph{Europa.} O padrão se repete. O cálculo é compulsório na trilha
+científica no \emph{Abitur} alemão (Alemanha, 2012), no \emph{Liceo
+Scientifico} italiano (Itália, 2010), na \emph{Matemáticas~II} espanhola
+(Espanha, 2022) e no nível \emph{Profile} russo (Rússia, 2024); e integra
+opções de trilha avançada tipicamente escolhidas por candidatos a STEM na
+\emph{Spécialité} francesa (França, 2019), no \emph{A-Level} britânico
+(Reino Unido, 2016) e na ``matemática longa'' finlandesa (Finlândia, 2019).
+
+\paragraph{Américas, Oceania e programa internacional.} Nos Estados
+Unidos, sem currículo nacional, o \emph{AP Calculus} é a referência de
+padrão, em caráter eletivo (College Board, 2020); o Canadá
+(\emph{Calculus and Vectors}, Ontário) e a Austrália (\emph{Mathematical
+Methods}/\emph{Specialist}) o mantêm na trilha STEM (Canadá, 2007;
+Austrália, 2015). Em Israel, o nível de cinco unidades dedica cerca de um
+quarto da carga ao cálculo (Kontorovich, 2021). O \emph{International
+Baccalaureate} (\emph{Analysis and Approaches} HL), presente em escolas
+particulares brasileiras, inclui limites, diferenciação, integração e
+equações diferenciais, com a maior carga do programa (IBO, 2019) --- o
+ponto de equidade já assinalado.
+
+\subsection{Panorama internacional: países de renda média e baixa}
+\label{sec:desenvolvimento}
+
+Uma objeção previsível é que a comparação anterior privilegiaria países
+ricos, configurando um artefato de renda. Para testá-la, examinaram-se
+sistemas educacionais de renda média e baixa, inclusive de países com
+Índice de Desenvolvimento Humano (IDH) \emph{inferior} ao do Brasil
+(0,760 em 2022). O resultado é direto: a presença do cálculo no ensino
+médio não acompanha a renda nacional.
+
+Entre as grandes nações em desenvolvimento, incluem cálculo diferencial e
+integral no ensino médio a Índia --- onde o bloco responde por 35 dos 80
+pontos do exame nacional (CBSE, 2023) ---, o Vietnã, como conteúdo nuclear
+(Vietnã, 2018), o Paquistão, cujo livro oficial da 12.\textsuperscript{a}
+série se intitula \emph{Calculus and Analytic Geometry} (Paquistão, 2023),
+Bangladesh, na trilha de ciências (Bangladesh, 2022), e a Nigéria, via
+\emph{Further Mathematics} do WASSCE (WAEC, 2023) --- todos com IDH
+\emph{inferior} ao brasileiro em vários casos. Entre os pares
+latino-americanos, o México torna obrigatório o \emph{Cálculo Diferencial}
+(México, 2023), o Chile oferece o eletivo ``Límites, derivadas e
+integrales'' (Chile, 2021) e a Argentina prevê limites e derivadas nos
+desenhos curriculares provinciais (Argentina, 2011).
+
+Casos intermediários reforçam --- e não enfraquecem --- a distinção
+brasileira: África do Sul (África do Sul, 2011), Turquia (Turquia, 2018) e
+Colômbia (Colômbia, 2006) mantêm o cálculo \emph{diferencial}, ainda que
+restrinjam ou venham removendo a integral. Nenhum sistema da amostra
+exclui o cálculo \emph{integralmente} do currículo nacional --- como faz a
+BNCC brasileira.
+
+Esse achado obriga a uma formulação precisa do argumento central, adotada
+no restante do artigo: \textbf{o Brasil é o único país da amostra cujo
+currículo nacional do ensino médio exclui, simultânea e integralmente, o
+cálculo diferencial \emph{e} o cálculo integral}. A Figura~\ref{fig:hdi}
+torna visual esse resultado: ao distribuir os países de renda média e
+baixa examinados por IDH e por grau de presença do cálculo, evidencia-se
+que vários países com IDH \emph{inferior} ao brasileiro (Índia 0,644;
+Paquistão 0,540; Nigéria 0,548; Vietnã 0,726) oferecem cálculo completo,
+enquanto o Brasil (IDH 0,760) é o único ponto na categoria ``ausente''.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.80\textwidth]{fig03_hdi_calculo.pdf}
+\caption{Índice de Desenvolvimento Humano (2022) versus presença de
+cálculo no ensino médio, para os países de renda média e baixa examinados
+e o Brasil. Vários países com IDH \emph{inferior} ao
+brasileiro (Índia, Vietnã, Paquistão, Nigéria) oferecem cálculo completo;
+o Brasil (vermelho) é o único ponto na categoria ``ausente''.}
+\label{fig:hdi}
+\end{figure}
+
+\subsection{Síntese quantitativa}
+\label{sec:sintese}
+
+A Figura~\ref{fig:heatmap} sintetiza a presença de cálculo no ensino médio
+dos sistemas analisados, célula a célula (país $\times$ tópico), com o
+Brasil como única linha integralmente ausente. Os documentos oficiais de
+cada sistema, o status curricular codificado e o desempenho no PISA 2022
+por país constam do repositório de reprodutibilidade (ver Declarações).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig01_heatmap_calculo.pdf}
+\caption{Cálculo no ensino médio em dezessete sistemas nacionais e no
+programa IB (subconjunto que preserva a variação relevante; a matriz
+completa consta do repositório de auditoria). Cada célula indica se o
+tópico (limites, derivadas, integrais, equações diferenciais, séries,
+geometria diferencial) é obrigatório, eletivo ou ausente no currículo
+nacional para ingresso em cursos STEM. O Brasil (BNCC) é a única linha
+integralmente ausente.}
+\label{fig:heatmap}
+\end{figure}
+
+Uma verificação estatística acompanha esse panorama. Codificando o status
+curricular de forma ordinal (obrigatório~$=2$; eletivo/opção de trilha
+avançada~$=1$; ausente~$=0$ --- codificação documentada no script
+\emph{compute\_pisa\_correlations.py}) e correlacionando-o com o desempenho
+no PISA 2022 dos quinze sistemas com dado disponível, o coeficiente de correlação
+de postos de Spearman é nulo ($\rho = -0{,}08$; IC~95\% por \emph{bootstrap}
+$[-0{,}67,\, 0{,}51]$; teste de permutação unilateral $p \approx 0{,}61$,
+hipótese de gradiente positivo). A não-significância é estável sob
+codificações ordinais alternativas do status curricular. Isto é: entre os
+países que \emph{têm} cálculo, o grau de obrigatoriedade não prediz o desempenho ---
+resultado coerente com a ressalva de que o PISA é um \emph{proxy} invertido
+(Seção~\ref{sec:discussao}). O que é robusto não é um gradiente
+dose-resposta, e sim a posição do Brasil como \emph{outlier}: seu escore
+(379) está a cerca de $3{,}5$ desvios-padrão abaixo da média dos sistemas
+com cálculo (492). O contraste ausente-\emph{versus}-presente também é
+marcante (correlação ponto-bisserial $r = 0{,}68$; $p < 0{,}01$), embora,
+com o Brasil como único caso ``ausente'', esse coeficiente seja uma
+reparametrização do mesmo escore-$z$, não uma evidência independente. O
+código que reproduz estas estatísticas é público (ver Declarações). Os
+dados sustentam, portanto, a \emph{singularidade curricular} do Brasil ---
+não uma relação causal entre cálculo no ensino médio e desempenho aos 15 anos.
+
+\subsection{Comparativo por idade: o que se aprende em cada faixa etária}
+
+Tomado um estudante qualquer dos países comparados, em que idade ele
+encontra qual conteúdo? Já aos 16 anos o distanciamento se abre: na maioria
+dos sistemas, o estudante realiza cálculo diferencial em algum nível
+(diferenciação em Singapura e na Alemanha; derivadas e aplicações na China;
+limites na Coreia do Sul), enquanto no Brasil o conteúdo é análise
+combinatória e geometria. Aos 17 anos, a divergência se completa: Japão
+(\emph{Math~III}), China, Singapura, Alemanha, França, Itália, Reino Unido
+e Rússia encerram o ensino médio com integração e equações diferenciais
+--- o equivalente ao Cálculo~I universitário brasileiro ---, ao passo que a
+matemática do 3.\textsuperscript{o} ano brasileiro cobre tópicos de
+pré-cálculo (geometria analítica, polinômios) que \emph{seriam}
+pré-requisitos do cálculo, sem nunca chegar a ele. Bruner (1960) descreveu
+esse padrão como antipadrão pedagógico: apresentar um conceito complexo em
+sua forma final, sem revisitas progressivas, tende a produzir compreensão
+superficial e baixa transferência.
+
+\subsection{O caso brasileiro: duzentos anos de currículo}
+
+O caso brasileiro só se compreende em sua trajetória histórica. Ao
+contrário do que sugere o senso comum, a ausência do cálculo no ensino
+médio não é ``natural'' nem ``definitiva'': resulta de decisões
+curriculares sucessivas, algumas das quais incluíram o cálculo no
+programa antes de removê-lo.
+
+O Colégio Pedro II (decreto de 1837), primeira instituição secundária
+organizada do país, tinha currículo humanístico com matemática elementar,
+sem cálculo (Brasil, 1837). A primeira inclusão formal veio com a Reforma
+Benjamin Constant: o Decreto n.\textsuperscript{o} 981, de 1890, inspirado
+na hierarquia das ciências de Comte, previu no 3.\textsuperscript{o} ano
+``cálculo diferencial e integral, limitado ao conhecimento das teorias
+rigorosamente indispensáveis ao estudo da mecânica geral'' (Brasil, 1890).
+O cálculo foi excluído já em 1899 e a exclusão consolidada pelo Decreto
+n.\textsuperscript{o} 3.890, de 1901 (Silva, 2023); desde então não
+retornou ao currículo oficial.
+
+Essa janela 1890--1901 é a peça de evidência mais próxima de um
+experimento natural disponível neste desenho: a remoção foi \emph{exógena}
+ao desempenho dos estudantes --- seguiu-se à morte prematura de Benjamin
+Constant (janeiro de 1891) e ao realinhamento político, não a uma
+avaliação técnica de ineficácia (Silva, 2023) ---, ainda que não existam
+medidas de desempenho contemporâneas que permitam estimar seu efeito
+(Seção~\ref{sec:discussao}).
+
+A Reforma Capanema (Decreto-Lei n.\textsuperscript{o} 4.244/1942),
+incorporando propostas de Euclides Roxo, recuperou o \emph{estudo das
+variações e das derivadas} no curso Científico, mas não o cálculo integral
+(Dassie, 2001). O Movimento da Matemática Moderna (anos 1960), disseminado
+por Sangiorgi e pelo GEEM, enfatizou conjuntos e estruturas em detrimento
+do cálculo, representando novo recuo (Búrigo, 1989; Soares, 2001). Os PCN
+(1997/2000) oficializaram estatística e probabilidade; a BNCC (2018)
+organiza a área por competências e \emph{não} inclui limites, derivadas ou
+integrais, com estatística apenas descritiva (Brasil, 2018). A própria
+SBEM reconhece o problema:
+
+\begin{quote}
+\small
+``Alguns livros didáticos do Ensino Médio apresentam tópicos de Cálculo
+Diferencial e Integral, como limite, derivada e integral, mas na maioria
+das vezes não são ensinados sob o pretexto de serem difíceis e impróprios
+a esse segmento da educação [\ldots]. Assim sendo, o Cálculo faz parte do
+livro didático, mas não do currículo do Ensino Médio.'' (SBEM, 2007).
+\end{quote}
+
+O Novo Ensino Médio (Lei n.\textsuperscript{o} 13.415/2017, reformulada
+pela Lei n.\textsuperscript{o} 14.945/2024) instituiu itinerários
+formativos, entre eles ``Matemática e suas Tecnologias'', que
+\emph{permitem}, mas não \emph{exigem}, a oferta de cálculo, sem que isso
+o tenha incorporado ao currículo comum obrigatório (Brasil, 2017; BRASIL,
+2024).
+
+\subsection{Consequências mensuráveis}
+
+\subsubsection{Desempenho no PISA (2003--2022)}
+
+Uma ressalva de identificação precede os dados. O PISA avalia estudantes
+de 15 anos, idade em que o cálculo ainda \emph{não} foi introduzido em
+nenhum dos países da amostra; logo, o desempenho brasileiro mede sobretudo
+a qualidade do ensino fundamental e as condições socioeconômicas, e não o
+efeito específico da ausência de cálculo no ensino médio. Os números a
+seguir são, portanto, contexto histórico-regional --- não teste do canal
+causal discutido na Seção~\ref{sec:discussao}.
+
+O Brasil melhorou modestamente entre 2003 e 2009 e estagnou em torno de
+380 pontos em matemática desde então, mantendo-se cerca de 90 a 145
+pontos abaixo da média da OECD ao longo do período --- de $-$143 pontos em
+2003 a $-$93 em 2022 (OECD, 2023; Figura~\ref{fig:pisa}). Apenas 1\% dos
+jovens brasileiros qualificam-se como \emph{top performers} em matemática,
+contra 41\% em Singapura e 9\% na média da OECD (OECD, 2023). O baixo
+desempenho persiste mesmo na comparação regional: o Brasil figura na base
+do grupo latino-americano, abaixo de Chile, Uruguai, México, Peru e
+Colômbia, e em patamar próximo ao da Argentina.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{fig02_pisa_timeline.pdf}
+\caption{Desempenho em Matemática no PISA, 2003--2022, em vinte sistemas
+educacionais. O Brasil (vermelho) oscila em torno de 380 pontos,
+situando-se na base mesmo entre os pares latino-americanos (laranja); a
+média da OECD (azul tracejada) e os líderes mundiais e economias
+desenvolvidas (cinza) situam-se muito acima. Como o PISA avalia estudantes
+de 15 anos, a figura é contexto histórico-regional, não teste do canal
+causal. O resultado da Argentina em
+2015 foi omitido por incomparabilidade reconhecida pela OECD.}
+\label{fig:pisa}
+\end{figure}
+
+\subsubsection{Reprovação em Cálculo~I}
+
+A literatura é convergente quanto ao fato de o Cálculo~I ser, isoladamente,
+a disciplina que mais reprova nas engenharias brasileiras, embora não
+exista um índice nacional único e auditado. Estudos institucionais
+reportam taxas elevadas e dispersas: cerca de 70\% na UFRJ (GAZETA DO
+POVO, 2023); até 77,5\% de reprovação somada à evasão na Unicamp, entre
+1997 e 2009 (Garzella, 2013); e ampla variação entre instituições em
+revisões da literatura de educação em engenharia (Macambira; Athayde,
+2014). A análise epistemológica de Rezende (2003) interpreta o fenômeno
+como estrutural, e não conjuntural.
+
+Em nome do rigor, registre-se que altas taxas de reprovação em cálculo
+introdutório não são exclusividade brasileira: nos Estados Unidos, as
+taxas de reprovação e abandono (\emph{D/F/W}) em \emph{Calculus~I}
+universitário situam-se com frequência entre 25\% e 40\%, mesmo com o
+cálculo presente no ensino médio via \emph{AP} (Bressoud, 2015). O
+argumento deste artigo, portanto, não é que a ausência de cálculo no
+ensino médio \emph{explique} a reprovação --- que tem múltiplas causas
+--- mas que o Brasil enfrenta esse filtro \emph{sem} a preparação prévia
+que os demais sistemas oferecem.
+
+\subsubsection{O ``apagão de engenheiros''}
+
+O CONFEA projeta déficit de até um milhão de profissionais das áreas
+tecnológicas até 2030, associando-o à queda de matrículas e à fragilidade
+da formação matemática de base (CONFEA, 2025). A causalidade entre
+formação básica e déficit profissional não é direta nem única, mas a
+literatura identifica o ciclo básico --- e o Cálculo~I em particular ---
+como principal filtro de evasão nas engenharias.
+
+\subsection{Exemplos comparativos: o que se cobra em cada exame?}
+
+Para tornar concreta a discussão, apresentam-se exemplos típicos de
+problemas de exames nacionais ao final do ensino médio. Os enunciados
+estrangeiros exigem cálculo formal; o brasileiro, aritmética --- na mesma
+faixa etária.
+
+\smallskip
+\noindent\fbox{\parbox{0.95\textwidth}{\small
+\textbf{Gaokao (China):} seja $f(x) = x^3 - 3ax + 2$; discuta a
+monotonicidade de $f$, determine $a$ para que o mínimo seja $0$ e o número
+de raízes de $f(x)=1$ --- \emph{exige derivar e analisar variação}
+(análogos formais constam do Abitur alemão e do AP Calculus BC).\\[3pt]
+\textbf{ENEM (Brasil):} o número de bactérias dobra a cada hora; a partir
+de $100$, quantas haverá após 5 horas? --- \emph{crescimento exponencial
+em forma discreta, sem interface com a derivada nem com a taxa instantânea}.}}
+
+\smallskip
+Na mesma faixa etária, um exame cobra cálculo formal; o outro, aritmética
+--- contraste que ilustra, de modo tangível, o vácuo curricular documentado.
+
+\subsection{Discussão: níveis de robustez e contra-argumentos}
+\label{sec:discussao}
+
+A análise permite distinguir três níveis de afirmação, com graus
+distintos de robustez. \textbf{Nível 1 --- fato curricular}: o Brasil é o
+único país da amostra cujo currículo nacional do ensino médio não inclui
+cálculo (robustez alta). \textbf{Nível 2 --- padrões associados}: o Brasil
+é um \emph{outlier} --- desempenho substancialmente inferior em avaliações
+internacionais e taxas elevadas de reprovação em Cálculo~I (robustez alta
+para a \emph{posição} do Brasil). Note-se, porém, que \emph{não} há
+gradiente dose-resposta detectável entre o grau de obrigatoriedade do
+cálculo e o desempenho no PISA ($\rho = -0{,}08$; Seção~\ref{sec:sintese}) ---
+o que é coerente com o fato de o PISA medir alunos de 15 anos.
+\textbf{Nível 3 --- inferência causal}: que a ausência de cálculo no
+ensino médio \emph{contribua} para esses indicadores é hipótese plausível,
+mas não demonstrada (robustez baixa; há fatores confundidores, como
+qualidade geral do ensino básico, condições socioeconômicas e formação
+docente).
+
+Em fidelidade ao princípio acadêmico de considerar os argumentos
+contrários em sua versão mais forte, registram-se as principais objeções:
+(C1)~``a base é fraca demais'' --- objeção parcialmente válida, mas
+endereçável por sequenciamento em espiral; (C2)~``não há professores
+qualificados'' --- objeção empiricamente forte, que demanda investimento
+em formação docente; (C3)~``não cabe na carga horária'' --- a comparação
+internacional mostra cargas semanais maiores em vários sistemas,
+sugerindo reorganização de prioridades; e (C4)~``aumentaria a
+desigualdade'' --- objeção politicamente relevante, mas tecnicamente
+reversível, pois a estratificação \emph{já} existe (estudantes de IB em
+escolas particulares brasileiras estudam cálculo, ao passo que a rede
+pública não o oferece), de modo que incorporá-lo à BNCC tenderia a
+\emph{reduzir} a desigualdade.
+
+% =====================================================================
+% 5. CONSIDERAÇÕES FINAIS
+% =====================================================================
+\section{Considerações Finais}
+
+Este artigo documentou, com base em fontes curriculares oficiais de
+sistemas educacionais de cinco continentes, que o Brasil é o único da
+amostra cujo currículo nacional do ensino médio não inclui cálculo
+diferencial e integral. O fato é verificável e historicamente conhecido:
+em duzentos anos de trajetória educacional, o cálculo esteve presente no
+secundário brasileiro apenas em um período breve --- entre a Reforma
+Benjamin Constant (1890) e sua reversão (1899--1901) ---, com a derivada
+brevemente recuperada, em caráter restrito, pela Reforma Capanema (1942).
+
+O arcabouço pedagógico que tornaria viável a reintrodução está
+consolidado --- o currículo em espiral de Bruner, a zona de
+desenvolvimento proximal de Vygotsky e o diagnóstico epistemológico de
+Rezende ---, e o caso de Singapura evidencia, em escala nacional, que sua
+aplicação sistemática produz resultados. A inferência causal estrita
+entre o vácuo curricular e os indicadores mensuráveis permanece difícil
+de estabelecer; a posição atípica do Brasil, contudo, é robusta, e a
+literatura brasileira converge, desde Ávila (1991), para a hipótese de que
+a intervenção curricular seria parte da solução.
+
+Mais do que prescrever uma reforma --- tarefa de longa maturação política
+e técnica ---, o artigo pretende oferecer um mapeamento preciso e
+replicável de um contraste internacional pouco quantificado na literatura
+nacional. Pesquisas futuras poderão (i) ampliar a amostra de países de
+renda média e baixa; (ii) realizar análise de séries temporais
+interrompidas sobre coortes históricas de ingresso em engenharia; e
+(iii) desenhar e avaliar experimentalmente sequências didáticas de
+introdução ao cálculo no ensino médio brasileiro. O Brasil é exceção
+curricular; não precisa continuar sendo.
+
+% ---------- AGRADECIMENTOS / DECLARAÇÕES (anonimizadas) --------------
+\section*{Agradecimentos}
+\textit{[Suprimido para avaliação por pares duplo-cega. Será inserido na
+versão final, conforme política da revista.]}
+
+\section*{Declarações}
+\noindent\textbf{Conflito de interesse.} Os autores declaram não haver
+conflito de interesse. \textbf{Financiamento.} A pesquisa não recebeu
+financiamento externo. \textbf{Contribuição.} Todos os autores
+contribuíram para a concepção do estudo, a curadoria das fontes e a
+redação, tendo aprovado a versão submetida. \textbf{Uso de inteligência
+artificial.} Os autores declaram o uso do assistente de IA Claude
+(modelo Opus 4.8, da Anthropic) como ferramenta de apoio em todas as
+etapas de elaboração deste trabalho --- organização e revisão das fontes,
+redação e edição do texto e geração do código das figuras. Nenhum
+conteúdo foi publicado sem revisão e verificação humanas; os autores
+assumem integral responsabilidade pública pelo texto.
+\textbf{Disponibilidade de dados e código.} Todos os artefatos que
+reproduzem os achados são públicos, em repositório de acesso aberto: o
+manifesto das fontes curriculares oficiais (\emph{sources\_calculo\_curricula.json},
+com URL, órgão emissor, \emph{hash} SHA-256 e data de captura); o roteiro
+de auditoria que reproduz o achado curricular (\emph{audit\_curricula\_keywords.py});
+o script que reproduz as correlações com o PISA
+(\emph{compute\_pisa\_correlations.py}); e as dependências fixadas
+(\emph{requirements-audit.txt}). Para a avaliação por pares, os artefatos
+estão disponíveis em espelho anônimo (\emph{double-blind}):
+\url{https://anonymous.4open.science/r/calculo-ausente-repro/}. A URL
+definitiva do repositório será informada na versão final.
+
+% =====================================================================
+% REFERÊNCIAS  (ABNT NBR 6023; chamadas autor-data NBR 10520:2023)
+% =====================================================================
+\newpage
+\section*{Referências}
+\addcontentsline{toc}{section}{Referências}
+
+\begingroup
+\small
+\setstretch{1.0}
+\setlength{\parindent}{0pt}
+\raggedright
+\newcommand{\refitem}[1]{\par #1\par\vspace{1pt}}
+
+\refitem{ÁFRICA DO SUL. Department of Basic Education. \textbf{Curriculum
+and Assessment Policy Statement (CAPS), FET Phase, Grades 10--12:
+Mathematics}. Pretória: DBE, 2011.}
+
+\refitem{ALEMANHA. Kultusministerkonferenz (KMK). \textbf{Bildungsstandards
+im Fach Mathematik für die Allgemeine Hochschulreife}. Berlim: KMK, 2012.
+Disponível em:
+\url{https://www.kmk.org/fileadmin/veroeffentlichungen_beschluesse/2012/2012_10_18-Bildungsstandards-Mathe-Abi.pdf}.
+Acesso em: 6 jun. 2026.}
+
+\refitem{ARAÚJO, Jussara de Loiola; AVELAR, Petrina Rúbria Nogueira.
+Modelagem Matemática e o desenvolvimento do pensamento integral.
+\textbf{Bolema: Boletim de Educação Matemática}, Rio Claro, v. 36, n. 74,
+2022.}
+
+\refitem{ARGENTINA. Dirección General de Cultura y Educación (Provincia
+de Buenos Aires). \textbf{Diseño Curricular para la Educación Secundaria
+--- Matemática, Ciclo Superior, 6.\textsuperscript{o} año}. La Plata:
+DGCyE, 2011.}
+
+\refitem{ARTIGUE, Michèle. Ingénierie didactique. \textbf{Recherches en
+Didactique des Mathématiques}, Grenoble, v. 9, n. 3, p. 281--308, 1988.}
+
+\refitem{ARTIGUE, Michèle. Analysis. \emph{In}: TALL, David (org.).
+\textbf{Advanced Mathematical Thinking}. Dordrecht: Kluwer, 1991. p. 167--198.}
+
+\refitem{AUSTRÁLIA. Australian Curriculum, Assessment and Reporting
+Authority (ACARA). \textbf{The Australian Curriculum: Senior Secondary ---
+Mathematics} (v.~8.4). Sydney: ACARA, 2015. Disponível em:
+\url{https://www.australiancurriculum.edu.au/senior-secondary-curriculum/mathematics/}.
+Acesso em: 6 jun. 2026.}
+
+\refitem{ÁVILA, Geraldo. O ensino de Cálculo no 2.\textsuperscript{o}
+grau. \textbf{Revista do Professor de Matemática}, Rio de Janeiro, n. 18,
+p. 1--9, 1991.}
+
+\refitem{BANGLADESH. National Curriculum and Textbook Board (NCTB).
+\textbf{Higher Secondary (XI--XII) Higher Mathematics Syllabus}. Daca:
+NCTB, 2022.}
+
+\refitem{BRASIL. \textbf{Decreto de 2 de dezembro de 1837}. Cria o
+Colégio de instrução secundária (Colégio Pedro II). Rio de Janeiro, 1837.}
+
+\refitem{BRASIL. \textbf{Decreto n.\textsuperscript{o} 981, de 8 de
+novembro de 1890}. Aprova o Regulamento da Instrução Primária e Secundária
+do Distrito Federal (Reforma Benjamin Constant). Rio de Janeiro, 1890.}
+
+\refitem{BRASIL. \textbf{Decreto n.\textsuperscript{o} 3.890, de
+1.\textsuperscript{o} de janeiro de 1901}. Código dos Institutos Oficiais
+de Ensino Superior e Secundário (Reforma Epitácio Pessoa). Rio de
+Janeiro, 1901.}
+
+\refitem{BRASIL. \textbf{Decreto-Lei n.\textsuperscript{o} 4.244, de 9 de
+abril de 1942}. Lei Orgânica do Ensino Secundário (Reforma Capanema). Rio
+de Janeiro, 1942.}
+
+\refitem{BRASIL. \textbf{Lei n.\textsuperscript{o} 13.415, de 16 de
+fevereiro de 2017}. Altera as Leis de Diretrizes e Bases e institui a
+Política de Fomento ao Ensino Médio em Tempo Integral. Brasília, 2017.}
+
+\refitem{BRASIL. Ministério da Educação. \textbf{Base Nacional Comum
+Curricular}. Brasília: MEC, 2018.}
+
+\refitem{BRASIL. \textbf{Lei n.\textsuperscript{o} 14.945, de 31 de julho
+de 2024}. Altera a Lei n.\textsuperscript{o} 9.394/1996 quanto à
+organização do ensino médio. Brasília, 2024.}
+
+\refitem{BRESSOUD, David M.; MESA, Vilma; RASMUSSEN, Chris (org.).
+\textbf{Insights and recommendations from the MAA National Study of
+College Calculus}. Washington, DC: MAA Press, 2015.}
+
+\refitem{BRUNER, Jerome S. \textbf{The process of education}. Cambridge,
+MA: Harvard University Press, 1960.}
+
+\refitem{BRUNER, Jerome S. \textbf{Toward a theory of instruction}.
+Cambridge, MA: Belknap Press of Harvard University Press, 1966.}
+
+\refitem{BÚRIGO, Elisabete Zardo. \textbf{Movimento da Matemática Moderna
+no Brasil}: estudo da ação e do pensamento de educadores matemáticos nos
+anos 60. 1989. Dissertação (Mestrado em Educação) --- Universidade Federal
+do Rio Grande do Sul, Porto Alegre, 1989.}
+
+\refitem{CANADÁ. Ministry of Education (Ontario). \textbf{The Ontario
+Curriculum, Grades 11 and 12: Mathematics} (revised). Toronto: Queen's
+Printer for Ontario, 2007. Disponível em:
+\url{https://www.edu.gov.on.ca/eng/curriculum/secondary/math1112currb.pdf}.
+Acesso em: 6 jun. 2026.}
+
+\refitem{CBSE --- Central Board of Secondary Education.
+\textbf{Mathematics (041) Syllabus, Classes XI--XII (2023--24)}. Nova
+Délhi: CBSE, 2023.}
+
+\refitem{CHEVALLARD, Yves. \textbf{La transposition didactique}: du savoir
+savant au savoir enseigné. 2. ed. Grenoble: La Pensée Sauvage, 1991.}
+
+\refitem{CHILE. Ministerio de Educación (Unidad de Currículum y
+Evaluación). \textbf{Programa de Estudio 3.\textsuperscript{o} o
+4.\textsuperscript{o} Medio, Formación Diferenciada --- Matemática:
+Límites, Derivadas e Integrales}. Santiago: MINEDUC, 2021.}
+
+\refitem{CHINA. Ministério da Educação. \textbf{Currículo nacional de
+matemática do ensino médio} [Pu tong gao zhong shu xue ke cheng biao
+zhun], ed. 2017, rev. 2020. Pequim: People's Education Press, 2020.}
+
+\refitem{COLLEGE BOARD. \textbf{AP Calculus AB and AP Calculus BC course
+and exam description}. Nova York: College Board, 2020. Disponível em:
+\url{https://apcentral.collegeboard.org/media/pdf/ap-calculus-ab-and-bc-course-and-exam-description.pdf}.
+Acesso em: 6 jun. 2026.}
+
+\refitem{COLÔMBIA. Ministerio de Educación Nacional. \textbf{Estándares
+Básicos de Competencias en Matemáticas}. Bogotá: MEN, 2006.}
+
+\refitem{CONFEA. \textbf{Confea alerta para déficit de engenheiros e
+defende foco na matemática}. Brasília: Conselho Federal de Engenharia e
+Agronomia, 2025. Disponível em:
+\url{https://www.confea.org.br/confea-alerta-para-deficit-de-engenheiros-e-defende-foco-na-matematica}.
+Acesso em: 6 jun. 2026.}
+
+\refitem{COREIA DO SUL. Ministry of Education. \textbf{Mathematics
+Curriculum} (Notification n. 2015-74, Annex 8). Sejong: Ministry of
+Education, 2015.}
+
+\refitem{DASSIE, Bruno Alves. \textbf{A matemática do curso secundário na
+Reforma Gustavo Capanema}. 2001. Dissertação (Mestrado) --- Pontifícia
+Universidade Católica do Rio de Janeiro, Rio de Janeiro, 2001.}
+
+\refitem{DUBINSKY, Ed; McDONALD, Michael A. APOS: a constructivist theory of
+learning in undergraduate mathematics education research. \emph{In}: HOLTON,
+Derek (org.). \textbf{The Teaching and Learning of Mathematics at University
+Level}: an ICMI Study. Dordrecht: Kluwer, 2001. p. 275--282.}
+
+\refitem{ESPANHA. Ministerio de Educación y Formación Profesional.
+\textbf{Real Decreto 243/2022}, de 5 de abril, por el que se establecen
+la ordenación y las enseñanzas mínimas del Bachillerato. Boletín Oficial
+del Estado, Madrid, n. 82, 6 abr. 2022.}
+
+\refitem{FINLÂNDIA. Finnish National Agency for Education (EDUFI).
+\textbf{National core curriculum for general upper secondary education
+2019}. Helsinki: EDUFI, 2019.}
+
+\refitem{FRANÇA. Ministère de l'Éducation Nationale et de la Jeunesse.
+\textbf{Programme de spécialité de mathématiques de la classe terminale
+de la voie générale}. Bulletin officiel spécial n. 1, 22 jan. 2019.
+Paris: MENJ, 2019.}
+
+\refitem{GARZELLA, Fabiana Colombo. \textbf{A disciplina de Cálculo I}:
+análise das relações entre as práticas pedagógicas do professor e seus
+impactos nos alunos. 2013. Tese (Doutorado em Educação) --- Universidade
+Estadual de Campinas, Campinas, 2013.}
+
+\refitem{GAZETA DO POVO. \textbf{UFRJ vai mudar currículo de cálculo para
+tentar evitar evasão}. Curitiba, 2023.}
+
+\refitem{GONÇALVES, Harryson Júnio Lessa; DIAS, Ana Lúcia Braz; PERALTA,
+Deise Aparecida. Estudo comparativo sobre o ensino de Matemática em
+currículos de educação profissional técnica: Brasil e Estados Unidos.
+\textbf{Bolema: Boletim de Educação Matemática}, Rio Claro, v. 32, n. 60,
+p. 246--265, 2018.}
+
+\refitem{INTERNATIONAL BACCALAUREATE ORGANIZATION (IBO). \textbf{Diploma
+Programme --- Mathematics: Analysis and Approaches guide} (first
+assessment 2021). Cardiff: IBO, 2019.}
+
+\refitem{ITÁLIA. Ministero dell'Istruzione, dell'Università e della
+Ricerca. \textbf{Indicazioni nazionali riguardanti gli obiettivi
+specifici di apprendimento per i percorsi liceali}. Decreto
+Interministeriale n. 211, 7 ott. 2010. Roma: MIUR, 2010.}
+
+\refitem{JAPAN STUDENT SERVICES ORGANIZATION (JASSO). \textbf{EJU syllabus
+for mathematics}. Tóquio: JASSO, 2025. Disponível em:
+\url{https://www.jasso.go.jp/en/ryugaku/eju/examinee/syllabus/mathematics.html}.
+Acesso em: 6 jun. 2026.}
+
+\refitem{KONTOROVICH, Igor'. Research as a resource in a high-school
+calculus curriculum. \textbf{ZDM --- Mathematics Education}, v. 53, p.
+429--440, 2021. DOI: 10.1007/s11858-021-01236-3.}
+
+\refitem{LEONG, Yew Hoong; HO, Weng Kin; CHENG, Lu Pien.
+Concrete-Pictorial-Abstract: surveying its origins and charting its
+future. \textbf{The Mathematics Educator}, Singapura, v. 16, n. 1, p.
+1--19, 2015.}
+
+\refitem{MACAMBIRA, Indira Quaresma; ATHAYDE, Lígia S. Reprovação na
+disciplina cálculo nos cursos de engenharia: análise de dados e métodos
+minimizadores. \emph{In}: CONGRESSO BRASILEIRO DE EDUCAÇÃO EM ENGENHARIA
+(COBENGE), 42., 2014. \textbf{Anais [\ldots]}. Brasília: ABENGE, 2014.}
+
+\refitem{MÉXICO. Secretaría de Educación Pública (DGB/SEMS). \textbf{Marco
+Curricular Común de la Educación Media Superior --- Pensamiento
+Matemático}. Cidade do México: SEP, 2023.}
+
+\refitem{MULLIS, Ina V. S. \emph{et al.} \textbf{TIMSS 2015 international
+results in mathematics}. Chestnut Hill, MA: TIMSS \& PIRLS International
+Study Center, Boston College, 2016.}
+
+\refitem{OECD. \textbf{PISA 2022 results (Volume I)}: the state of
+learning and equity in education. Paris: OECD Publishing, 2023.}
+
+\refitem{PAQUISTÃO. Federal Board of Intermediate and Secondary Education
+(FBISE). \textbf{Scheme of Studies --- Mathematics HSSC-II}. Islamabad:
+FBISE, 2023.}
+
+\refitem{PIRES, Célia Maria Carolino; GODOY, Elenilton Vieira; SILVA,
+Márcio Antonio da; SANTOS, Vinício de Macedo. O currículo de Matemática em
+revista: um editorial. \textbf{Bolema: Boletim de Educação Matemática},
+Rio Claro, v. 28, n. 49, p. 485--493, 2014.}
+
+\refitem{PNUD --- Programa das Nações Unidas para o Desenvolvimento.
+\textbf{Relatório de Desenvolvimento Humano 2023/2024}. Nova York: PNUD,
+2024.}
+
+\refitem{REINO UNIDO. Department for Education. \textbf{Mathematics: AS
+and A level content}. Londres: DfE, 2016. Ref. DFE-00706-2014.}
+
+\refitem{REZENDE, Wanderley Moura. \textbf{O ensino de Cálculo}:
+dificuldades de natureza epistemológica. 2003. Tese (Doutorado em
+Educação) --- Faculdade de Educação, Universidade de São Paulo, São Paulo,
+2003.}
+
+\refitem{RÚSSIA. Federal Institute of Pedagogical Measurements (FIPI).
+\textbf{Exame Estatal Unificado (EGE) --- Matemática, nível Profile}:
+codificador de conteúdos. Moscou: FIPI, 2024.}
+
+\refitem{SEAB --- Singapore Examinations and Assessment Board.
+\textbf{Mathematics: Singapore-Cambridge GCE A-Level Higher 2 (Syllabus
+9758)}. Singapura: SEAB; Ministry of Education, 2025.}
+
+\refitem{SFARD, Anna. On the dual nature of mathematical conceptions:
+reflections on processes and objects as different sides of the same coin.
+\textbf{Educational Studies in Mathematics}, v. 22, n. 1, p. 1--36, 1991.}
+
+\refitem{SILVA, Circe Mary Silva da. Positivismo, ensino secundário e
+cálculo diferencial e integral. \textbf{Revista História da Educação},
+v. 27, e128201, 2023. DOI: 10.1590/2236-3459/128201.}
+
+\refitem{SOARES, Flávia. \textbf{Movimento da Matemática Moderna no
+Brasil}: avanço ou retrocesso? 2001. Dissertação (Mestrado) --- Pontifícia
+Universidade Católica do Rio de Janeiro, Rio de Janeiro, 2001.}
+
+\refitem{SOCIEDADE BRASILEIRA DE EDUCAÇÃO MATEMÁTICA (SBEM). O Cálculo
+Diferencial e Integral e o Ensino Médio. \emph{In}: ENCONTRO NACIONAL DE
+EDUCAÇÃO MATEMÁTICA (ENEM), 9., 2007, Belo Horizonte. \textbf{Anais
+[\ldots]}. Recife: SBEM, 2007.}
+
+\refitem{TALL, David; VINNER, Shlomo. Concept image and concept definition in
+mathematics with particular reference to limits and continuity.
+\textbf{Educational Studies in Mathematics}, v. 12, n. 2, p. 151--169, 1981.}
+
+\refitem{TURQUIA. Millî Eğitim Bakanlığı (MEB). \textbf{Ortaöğretim
+Matematik Dersi Öğretim Programı}. Ancara: MEB, 2018.}
+
+\refitem{VIETNÃ. Bo Giao duc va Dao tao (MOET). \textbf{Chuong trinh Giao
+duc Pho thong mon Toan} (Circular 32/2018/TT-BGDDT). Hanói: MOET, 2018.}
+
+\refitem{VYGOTSKY, Lev S. \textbf{Mind in society}: the development of
+higher psychological processes. Cambridge, MA: Harvard University Press,
+1978.}
+
+\refitem{WAEC --- West African Examinations Council. \textbf{Further
+Mathematics Syllabus (WASSCE/SSCE)}. Lagos: WAEC, 2023.}
+
+\refitem{WOOD, David; BRUNER, Jerome S.; ROSS, Gail. The role of tutoring
+in problem solving. \textbf{Journal of Child Psychology and Psychiatry},
+v. 17, n. 2, p. 89--100, 1976.}
+
+\endgroup
+
+\end{document}
