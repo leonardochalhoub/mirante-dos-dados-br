@@ -5,8 +5,30 @@
 > oficial da revista quando solicitado; o texto abaixo é a fonte única de
 > verdade. **Documento não-cego** — não integra o manuscrito anonimizado.
 
-**Título:** O cálculo ausente: duzentos anos de currículo e uma
-comparação internacional no ensino médio.
+**Título:** O cálculo ausente: duzentos anos de currículo, uma comparação
+internacional e um roteiro pedagógico para o ensino médio.
+
+---
+
+## 0. Autores (metadados ScholarOne / folha de rosto não-cega)
+
+> **Não** vão na versão anônima do manuscrito — apenas nos metadados do
+> sistema e na folha de rosto separada. Todos são pesquisadores independentes, Brasil.
+
+| # | Autor | E-mail | ORCID | Lattes |
+|---|---|---|---|---|
+| 1 | **Leonardo Chalhoub** (correspondente) | leochalhoub@hotmail.com | 0000-0003-0484-158X | http://lattes.cnpq.br/0703595867512327 |
+| 2 | Alexandre Maciel Rolim | alexandremrolim@gmail.com | 0009-0000-3983-4713 | http://lattes.cnpq.br/0128707599536129 |
+| 3 | Luis Fernando Kranz | lufekranz@gmail.com | 0009-0009-6015-3141 | http://lattes.cnpq.br/9302324694749099 |
+| 4 | Jefferson Korte Junior | jefferson.2024@alunos.utfpr.br | 0009-0006-9466-9830 | http://lattes.cnpq.br/6748323429576556 |
+
+Bios: Chalhoub — Mestre em Administração (Finanças), UFRGS; graduando em
+Engenharia de Software, Estácio. Rolim — Tecnólogo em Radiologia; Mestre em
+Proteção Radiológica, IFSC. Kranz — Tecnólogo em Radiologia; Mestre em
+Administração, UFRGS. Korte — graduando em Ciência da Computação, UTFPR.
+
+> **Ordem de autoria a confirmar** pelos autores (a Bolema não limita o
+> número de autores; Luis Fernando Kranz passa de agradecimento a autor).
 
 ---
 

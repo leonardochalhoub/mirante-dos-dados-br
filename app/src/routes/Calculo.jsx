@@ -78,17 +78,25 @@ function DocSection({ slug, pdfUrl, texUrl, overleafUrl }) {
           <ArticleTimestamp slug={slug} />
         </div>
 
+        <div style={{ marginTop: 6, fontSize: 12.5, fontWeight: 600, color: 'var(--accent, #1B7837)' }}>
+          📤 Submetido ao Bolema: Boletim de Educação Matemática (Qualis A1) ·
+          manuscrito 2026-0250 · em avaliação por pares (duplo-cega)
+        </div>
+
         <p style={{ marginTop: 8 }}>
-          <b>"O Cálculo Ausente: duzentos anos de currículo, dez países de
-          comparação, um vácuo estrutural"</b> — análise comparativa do
+          <b>"O Cálculo Ausente: duzentos anos de currículo, uma comparação
+          internacional e um roteiro pedagógico para o ensino médio"</b> —
+          análise comparativa do
           currículo de matemática do ensino médio em dez países (Japão,
           China, Coreia do Sul, Singapura, Alemanha, França, Rússia,
           Finlândia, Estados Unidos, Brasil) e do programa{' '}
-          <i>International Baccalaureate</i>, em padrão ABNT, com 47+
-          referências verificáveis e cobertura de duzentos anos das reformas
-          curriculares brasileiras (Colégio Pedro II 1837 → Reforma Benjamin
-          Constant 1890 → Capanema 1942 → Movimento Mat. Moderna 1960 →
-          PCN/BNCC 1997–2018).
+          <i>International Baccalaureate</i>, com 63 referências, cobertura de
+          duzentos anos das reformas curriculares brasileiras (Colégio Pedro II
+          1837 → Reforma Benjamin Constant 1890 → Capanema 1942 → Movimento
+          Mat. Moderna 1960 → PCN/BNCC 1997–2018) e um <b>roteiro pedagógico</b>
+          (engenharia didática) para reintroduzir derivada e integral no ensino
+          médio. Achado central verificável por auditoria automatizada dos
+          currículos oficiais.
         </p>
 
         <p style={{ marginTop: 6, fontSize: 13.5 }}>
@@ -130,16 +138,16 @@ function DocSection({ slug, pdfUrl, texUrl, overleafUrl }) {
           <a
             className="doc-toggle"
             href={pdfUrl}
-            download="Mirante-Calculo-Chalhoub-2026.pdf"
-            title="Baixar PDF compilado em LaTeX (formatado em padrão ABNT)"
+            download="Bolema-2026-0250-O-Calculo-Ausente.pdf"
+            title="Baixar o PDF da versão submetida ao Bolema (manuscrito 2026-0250)"
           >
-            ⤓ Baixar PDF (ABNT)
+            ⤓ Baixar PDF (submetido)
           </a>
 
           <a
             className="doc-toggle"
             href={texUrl}
-            download="calculo-ensino-medio-internacional.tex"
+            download="o-calculo-ausente-submissao.tex"
             title="Baixar fonte LaTeX (.tex) — recompilável em qualquer ambiente TeX"
           >
             ⤓ Baixar fonte (.tex)
