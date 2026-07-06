@@ -31,7 +31,55 @@ na sociedade". Enquadrar como **artigo original** (não como ensaio/relato).
 
 ---
 
-## STATUS (2026-07-03): 7/7 bloqueadores + revisão do Conselho (R2) aplicada
+## STATUS (2026-07-05): DESK-REJECT (BOLEMA-2026-0250) → reconstruído no template oficial
+
+A 1ª submissão foi **reprovada na triagem** (não foi para avaliação). Motivo
+literal da secretaria: *"Cover Letter e artigo fora do template exigido pela
+revista."*
+
+**Causa-raiz (mea culpa):** o `.docx` submetido fora **gerado por conversão
+LaTeX→Word (pandoc)** — acertava as *specs* visuais mas por dentro usava estilos
+do pandoc (`Body Text`, `Heading 1`…), não os do `TEMPLATE_BOLEMA_PT-2025.docx`
+(`Texto Comum`, `Texto ABNT`, `local`, `Caption`…). Tínhamos o template no repo
+e nunca digitamos dentro dele. A linha "Layout conferido contra TEMPLATE" abaixo
+era **conferência de aparência, não uso do template** — enganosa.
+
+**Correção (novos artefatos, fonte da verdade):**
+- [`calculo-bolema-TEMPLATE.docx`](calculo-bolema-TEMPLATE.docx) — manuscrito
+  **dentro** do template oficial (100% estilos Bolema; verificado), **PT+EN**
+  (sem ES — a revista pede 1 idioma secundário), Quadro 1 como **tabela nativa
+  editável** com matemática recuperada do `.tex`, 3 figuras com legenda+**Fonte**,
+  seções finais do template (Agradecimentos / Contribuições / Disponibilidade),
+  **anonimizado** (0 vazamentos de autor; propriedades limpas).
+  ⚠️ **Gotcha corrigido:** o docx-fonte (pandoc) havia descartado TODO `\ref`
+  (Figura/Quadro/Seção) e TODA matemática inline — recuperados do `.tex` (12 refs
+  + estatísticas da Seção 4.3 + Gaokao/ENEM). Recuo de 1ª linha do estilo `Normal`
+  zerado em títulos/cabeçalhos/figuras (senão centralização sai deslocada à
+  direita). Centralização das 3 figuras confirmada por bbox no PDF (Word). 19 pp.
+- [`calculo-bolema-carta-TEMPLATE.docx`](calculo-bolema-carta-TEMPLATE.docx) —
+  cover letter no **template OFICIAL** do Bolema (`bolema-template-CL.docx`, baixado
+  das instruções). NÃO é carta livre: é o **questionário obrigatório** (Seções A/B/C;
+  faixas 400-500/400-500/500-600; respostas = 1.262 palavras ≤ 1.500), em PT
+  (idioma primário), tipo de contribuição assinalado, blocos EN/ES removidos.
+- Builds: [`scripts/build_docx_bolema_template.py`](scripts/build_docx_bolema_template.py),
+  [`scripts/build_carta_bolema.py`](scripts/build_carta_bolema.py).
+
+**LIMITE DE 20 PÁGINAS = conforme, com margem.** Medido na **paginação real do
+MS Word** (Office16 via COM, `ComputeStatistics(wdStatisticPages)`):
+`calculo-bolema-TEMPLATE.docx` = **19 páginas** (7.332 palavras) → **≤ 20, com
+~1 página de folga**. Margem obtida por layout (figuras a 10 cm — alta resolução,
+legíveis — e espaçamento do cabeçalho), **sem cortar nenhum texto científico**.
+As 25 páginas do proof do ScholarOne eram o formato de revisão (duplo-espaço +
+numeração de linha), NÃO o template; páginas de artigos *publicados* (19–34) são
+diagramação do SciELO e não servem de referência.
+
+**Pré-envio (externo, do autor):** (1) rodar **Turnitin < 25%**; (2) como foi
+*Reject*, a resubmissão gera **novo Manuscript ID**. (Modelo oficial de cover
+letter já resolvido — questionário A/B/C preenchido.)
+
+---
+
+### STATUS anterior (2026-07-03, histórico — contém as afirmações corrigidas acima)
 
 **Revisão para "irresistível" concluída** (todas as recomendações das 4
 cadeiras): reenquadramento denúncia→construção (Quadro didático CPA de Bruner
