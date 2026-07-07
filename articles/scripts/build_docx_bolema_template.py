@@ -93,12 +93,15 @@ space(line(SP[0].text, "Normal", AL.CENTER, size=16, bold=True), after=6)   # t�
 space(line(SP[4].text, "Normal", AL.CENTER, size=14, bold=True), after=12)  # título EN
 # (autores omitidos: versão anônima para avaliação duplo-cega)
 
-space(line("Resumo", "Normal", bold=True), before=6)
-line(SP[2].text, "local", AL.JUSTIFY)                                       # resumo PT
-space(line(SP[3].text, "local", bold=True, size=10), before=6, after=6)     # palavras-chave PT
-space(line("Abstract", "Normal", bold=True), before=6)
-line(SP[6].text, "local", AL.JUSTIFY)                                       # abstract EN
-space(line(SP[7].text, "local", bold=True, size=10), before=6, after=12)    # keywords EN
+# Bloco de resumo conforme o template: cabeçalho CENTRALIZADO bold; texto e
+# palavras-chave JUSTIFICADOS em TNR 10 (o estilo 'local' é Arial 14 por baixo —
+# por isso fonte e tamanho são forçados explicitamente).
+space(line("Resumo", "Normal", AL.CENTER, bold=True), before=6)
+line(SP[2].text, "local", AL.JUSTIFY, size=10)                              # resumo PT (TNR 10)
+space(line(SP[3].text, "local", AL.JUSTIFY, bold=True, size=10), before=6, after=6)   # palavras-chave PT
+space(line("Abstract", "Normal", AL.CENTER, bold=True), before=6)
+line(SP[6].text, "local", AL.JUSTIFY, size=10)                             # abstract EN (TNR 10)
+space(line(SP[7].text, "local", AL.JUSTIFY, bold=True, size=10), before=6, after=12)  # keywords EN
 
 # ---------------------------------------------------------------- corpo
 FIG_SRC = {
