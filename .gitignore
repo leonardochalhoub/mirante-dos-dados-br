@@ -38,6 +38,11 @@ rais_local/
 # Credenciais Databricks do server MCP (segredo)
 conselho_mcp/.env
 
+# Bolsa Família Knowledge Hub — .env é segredo; uc_metadata/ é artefato
+# reproduzível (python bolsa_familia_hub/uc_metadata.py)
+bolsa_familia_hub/.env
+bolsa_familia_hub/docs_sources/uc_metadata/
+
 # Bolema published-articles corpus (reference for our submission) — not part of repo
 articles/bolema-corpus/
 

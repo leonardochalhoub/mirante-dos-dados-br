@@ -8,6 +8,15 @@
         "HF_HUB_OFFLINE": "1",
         "TOKENIZERS_PARALLELISM": "false"
       }
+    },
+    "bolsa_familia": {
+      "command": "/home/leochalhoub/miniconda3/envs/dev-env/bin/python",
+      "args": ["/home/leochalhoub/mirante-dos-dados-br/bolsa_familia_hub/server.py"],
+      "comment": "Ledger+Memory+Brain do Bolsa Família. Requer containers up: docker compose -f bolsa_familia_hub/docker-compose.yml up -d. Credenciais em bolsa_familia_hub/.env (gitignored).",
+      "env": {
+        "HF_HUB_OFFLINE": "1",
+        "TOKENIZERS_PARALLELISM": "false"
+      }
     }
   }
 }

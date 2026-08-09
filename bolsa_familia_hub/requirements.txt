@@ -1,0 +1,8 @@
+# Bolsa Família Knowledge Hub — instalar no env dev-env
+#   conda activate dev-env && pip install -r bolsa_familia_hub/requirements.txt
+mcp[cli]
+sentence-transformers
+databricks-sql-connector
+qdrant-client
+neo4j
+numpy

@@ -1,0 +1,51 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: pbf-qdrant
+    ports:
+      # 6333/6334 já usados por workshop1-aide neste host — usamos 6343/6344.
+      - "6343:6333"
+      - "6344:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      # Qdrant's image has no wget/curl/python — probe the listening port directly.
+      test: ["CMD-SHELL", "timeout 2 bash -c '>/dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - pbf-hub-network
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: pbf-neo4j
+    # NOTE: no `env_file: .env` — Neo4j treats every NEO4J_* env var as a
+    # config key, so vars like NEO4J_URI (meant for our scripts) would break it.
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}
+      NEO4J_PLUGINS: '["apoc"]'
+    ports:
+      # 7474/7687 já usados por workshop1-aide neste host — usamos 7475/7688.
+      - "7475:7474"
+      - "7688:7687"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p ${NEO4J_PASSWORD} 'RETURN 1' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - pbf-hub-network
+
+volumes:
+  qdrant_data:
+  neo4j_data:
+
+networks:
+  pbf-hub-network:
+    driver: bridge
+    name: pbf-hub-network
